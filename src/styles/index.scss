@@ -90,3 +90,84 @@ body {
 .search_input {
   z-index: 1000;
 }
+
+.main {
+  padding-top: 90px;
+  display: flex;
+  justify-content: space-between;
+
+  .middle {
+    max-width: 700px;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .left, .right {
+      display: none;
+    }
+
+  }
+}
+
+.question {
+  padding: 12px 1rem;
+  border-bottom: 1px solid #E5E5E5;
+  transition: background-color 0.4s ease;
+
+  .user {
+    padding-bottom: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #595959;
+    display: flex;
+    align-items: center;
+
+  }
+
+  .header {
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .body {
+    padding-top: 4px;
+    padding-bottom: 8px;
+    color: gray;
+    font-weight: 00;
+  }
+
+  .footer {
+    display: flex;
+    margin-top: 12px;
+    color: #595959;
+
+    .footer-button {
+      display: flex;
+      align-items: center;
+      background-color: #fff8f8;
+      margin-right: 12px;
+      padding: 6px 8px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: background-color 0.4s ease;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.3);
+      }
+
+      .button-icon {
+        padding-right: 4px;
+        color: rgba(0,0,0,0.5);
+      }
+
+      .button-number {
+        padding-left: 4px;
+      }
+    }
+
+  }
+
+  &:hover {
+    background-color: rgba(0, 10, 50, 0.05);
+  }
+}
