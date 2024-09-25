@@ -1,45 +1,27 @@
 import NavBar from "./components/NavBar";
+// import Post from "./components/Post";
 import "./styles/index.scss";
-import Question from "./components/Question.tsx";
+
+import Home from "./components/Home.tsx";
 
 function App() {
-  return (
-    <>
-      <NavBar />
-      <div className="main">
-        <div className="left">
+    return (
+        <>
+            <NavBar/>
+            <div className="main">
+                <div className="left">
+                </div>
 
-        </div>
-          <div className="middle">
+                <div className="middle">
+                    {/*<Post />*/}
+                    <Home/>
+                </div>
+                <div className="right">
 
-              {/*<div>
-                  <h3>Home</h3>
-
-                  <span>What's your question?</span>
-
-                  <button>Submit</button>
-
-              </div>
-
-              <h3>Recent Questions</h3>
-              <span>20 new questions</span>*/}
-
-              <Question />
-              <Question />
-              <Question />
-              <Question />
-              <Question />
-              <Question />
-              <Question />
-              <Question />
-              <Question />
-          </div>
-          <div className="right">
-
-          </div>
-      </div>
-    </>
-  );
+                </div>
+            </div>
+        </>
+    );
 }
 
 export default App;

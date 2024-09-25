@@ -11,6 +11,8 @@ input {
   font-optical-sizing: auto;
   font-style: normal;
   font-weight: 600;
+  outline: none;
+  border: none;
 }
 
 * {
@@ -19,19 +21,34 @@ input {
   box-sizing: border-box;
 }
 
+button {
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background-color: inherit
+}
+
 body {
   height: 110vh;
 }
 
+.btn-hover {
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: #b9fff7;
+  }
+}
 .navbar {
   display: flex;
   justify-content: space-between;
   font-weight: 600;
   border-bottom: 1px solid black;
-  position: fixed;
+  position: sticky;
+  top: 0;
   width: 100%;
   height: 70px;
   align-items: center;
+  background-color: white;
 
   &_logo {
     padding: 1rem;
@@ -92,9 +109,9 @@ body {
 }
 
 .main {
-  padding-top: 90px;
-  display: flex;
-  justify-content: space-between;
+  padding-top: 10px;
+  display: grid;
+  grid-template-columns: 2fr 3fr 2fr;
 
   .middle {
     max-width: 700px;
@@ -136,38 +153,52 @@ body {
     font-weight: 00;
   }
 
-  .footer {
-    display: flex;
-    margin-top: 12px;
-    color: #595959;
-
-    .footer-button {
-      display: flex;
-      align-items: center;
-      background-color: #fff8f8;
-      margin-right: 12px;
-      padding: 6px 8px;
-      border-radius: 9999px;
-      cursor: pointer;
-      transition: background-color 0.4s ease;
-
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.3);
-      }
-
-      .button-icon {
-        padding-right: 4px;
-        color: rgba(0,0,0,0.5);
-      }
-
-      .button-number {
-        padding-left: 4px;
-      }
-    }
-
-  }
 
   &:hover {
     background-color: rgba(0, 10, 50, 0.05);
+  }
+}
+.footer {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  color: #595959;
+
+  .footer-button {
+    display: flex;
+    align-items: center;
+    background-color: #fff8f8;
+    margin-right: 12px;
+    padding: 6px 8px;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background-color 0.4s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    .button-icon {
+      padding-right: 4px;
+      color: rgba(0,0,0,0.5);
+
+    }
+
+    .button-number {
+      padding-left: 4px;
+    }
+    &.bookmark {
+      margin-left: auto;
+    }
+  }
+
+  .bookmark {
+    margin-inline-start: auto;
+    height: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    padding: 5px;
+    display: flex;
+    align-items: center;
   }
 }
