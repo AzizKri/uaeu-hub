@@ -1,5 +1,5 @@
 import NavBar from "./components/NavBar/NavBar.tsx";
-import Home from "./components/Home.tsx";
+import Home from "./components/Home/Home.tsx";
 import "./styles/index.scss";
 
 function App() {
