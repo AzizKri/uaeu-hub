@@ -1,4 +1,4 @@
-import Question from "./Question.tsx";
+import Question from "./Question/Question.tsx";
 
 export default function Home() {
     return (

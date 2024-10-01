@@ -1,7 +1,7 @@
 import "../styles/post.scss"
 import profilePicture from "../assets/profile-picture.png"
 import postImage from "../assets/post-image.png"
-import PostFooter from "./PostFooter.tsx";
+import PostFooter from "./Question/PostFooter.tsx";
 import Comment from "./Comment.tsx";
 
 export default function Post() {
