@@ -1,5 +1,5 @@
 import Search from "../Search.tsx";
-import style from './NavBar.module.scss';
+import styles from './NavBar.module.scss';
 import {useState} from "react";
 
 enum Page {
@@ -12,13 +12,13 @@ export default function NavBar() {
 
     return (
         <>
-            <div className={style.navbar}>
-                <div className={style.navbar_logo}>UAEU</div>
-                <div className={style.navbar_buttons}>
-                    <div className={page === Page.Home ? style.selectedButton : style.button}
+            <div className={styles.navbar}>
+                <div className={styles.navbar_logo}>UAEU</div>
+                <div className={styles.navbar_buttons}>
+                    <div className={page === Page.Home ? styles.selectedButton : styles.button}
                          onClick={() => setPage(Page.Home)}>Home
                     </div>
-                    <div className={page === Page.Questions ? style.selectedButton : style.button}
+                    <div className={page === Page.Questions ? styles.selectedButton : styles.button}
                          onClick={() => setPage(Page.Questions)}>Your Questions
                     </div>
                 </div>
