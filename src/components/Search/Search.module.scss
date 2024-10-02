@@ -1,0 +1,20 @@
+.navbarSearch {
+  margin: 0.5rem;
+  padding: 10px;
+  height: 40px;
+  margin-right: 2rem;
+  width: 350px;
+  background-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.6);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  border-radius: 9999px;
+  gap: 10px;
+
+  .navbarSearchInput {
+    border: none;
+    background: none;
+    outline: none;
+  }
+}
