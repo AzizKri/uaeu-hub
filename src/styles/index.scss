@@ -32,9 +32,8 @@ body {
 }
 
 .main {
-  padding-top: 90px;
   display: grid;
-  grid-template-columns: 1fr 4fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
 
   .middle {
     //max-width: 700px;

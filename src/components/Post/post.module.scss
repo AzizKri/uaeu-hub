@@ -1,5 +1,8 @@
 .post {
-
+  background-color: white;
+  padding: 15px 25px;
+  border-radius: 10px;
+  margin-block: 15px;
   &__wrapper {
     position: sticky;
     top: 0;
@@ -78,7 +81,7 @@
   }
 
   &__image {
-    border: 1px solid black;
+    //border: 1px solid black;
     border-radius: 20px;
     overflow: hidden;
 
@@ -105,4 +108,9 @@
       border-radius: 50px;
     }
   }
+}
+.show_more {
+  color: #808080ad;
+  text-decoration: underline;
+  cursor: pointer;
 }
