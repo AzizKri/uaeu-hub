@@ -1,5 +1,5 @@
 import styles from './Question.module.scss'
-import PostFooter from "./PostFooter.tsx";
+import PostFooter from "../PostFooter/PostFooter.tsx";
 
 export default function Question() {
     return (

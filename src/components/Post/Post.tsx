@@ -1,22 +1,23 @@
-import "../styles/post.scss"
-import profilePicture from "../assets/profile-picture.png"
-import postImage from "../assets/post-image.png"
-import PostFooter from "./Question/PostFooter.tsx";
-import Comment from "./Comment.tsx";
+import "./post.module.scss"
+import profilePicture from "../../assets/profile-picture.png"
+import postImage from "../../assets/post-image.png"
+import PostFooter from "../PostFooter/PostFooter.tsx";
+import Comment from "../Comment/Comment.tsx";
+import styles from "./post.module.scss";
 
 export default function Post() {
     return (
-        <div className="post">
-            <div className="post__wrapper">
-                <div className="post__header">
-                    <button className="post__header__btn-back">
+        <div className={styles.post}>
+            <div className={styles.post__wrapper}>
+                <div className={styles.post__header}>
+                    <button className={styles.post__header__btn_back}>
                         <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 400 800" width="11.78px"
                              fill="#5f6368">
                             <path d="M400 0L0 400l400 400 71-71-329-329 329-329L400 0Z"/>
                         </svg>
                     </button>
-                    <span className="post__header__title">Post</span>
-                    <button className="post__header_btn-options">
+                    <span className={styles.post__header__title}>Post</span>
+                    <button className={styles.post__header_btn_options}>
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
                              fill="#5f6368">
                             <path
@@ -25,28 +26,28 @@ export default function Post() {
                     </button>
                 </div>
             </div>
-            <div className="post__info-bar">
-                <div className="post__info-bar__profile-pict">
+            <div className={styles.post__info_bar}>
+                <div className={styles.post__info_bar__profile_pict}>
                      <img src={profilePicture}  alt="profile picture"/>
                  </div>
-                <div className="post__info-bar__name">
-                    <div className="post__info-bar__name__display-name">Display Name</div>
-                    <div className="post__info-bar__name__user-name">@username</div>
+                <div className={styles.post__info_bar__name}>
+                    <div className={styles.post__info_bar__name__display_name}>Display Name</div>
+                    <div className={styles.post__info_bar__name__user_name}>@username</div>
                 </div>
                 <span>•</span>
-                <div className="post__info-bar__time">3hr.ago</div>
+                <div className={styles.post__info_bar__time}>3hr.ago</div>
             </div>
-            <div className="post__content">
+            <div className={styles.post__content}>
                 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Accusantium corporis culpa libero, necessitatibus odio quaerat reiciendis! Alias magnam obcaecati voluptatibus.
             </div>
-            <div className="post__image">
+            <div className={styles.post__image}>
                 <img src={postImage} alt="profile picture"/>
             </div>
             <PostFooter />
             {/* TODO use spacy instead of an input */}
-            <div className="post__write-answer">
-                <input className="post__write-answer__input" type="text" placeholder="Write your answer" />
-                <button className="post__write-answer__post btn-hover">Post</button>
+            <div className={styles.post__write_answer}>
+                <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />
+                <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>
             </div>
             <Comment />
         </div>
