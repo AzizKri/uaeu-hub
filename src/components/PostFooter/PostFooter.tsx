@@ -1,4 +1,4 @@
-import styles from "./Question.module.scss";
+import styles from './PostFooter.module.scss';
 
 export default function PostFooter() {
     return (

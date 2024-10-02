@@ -1,6 +1,7 @@
 import NavBar from "./components/NavBar/NavBar.tsx";
 import Home from "./components/Home/Home.tsx";
 import "./styles/index.scss";
+// import Post from "./components/Post/Post.tsx";
 
 function App() {
     return (

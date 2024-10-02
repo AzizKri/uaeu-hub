@@ -1,5 +1,8 @@
 .post {
-
+  background-color: white;
+  padding: 15px 25px;
+  border-radius: 10px;
+  margin-block: 15px;
   &__wrapper {
     position: sticky;
     top: 0;
@@ -17,7 +20,7 @@
 
     }
 
-    &__btn-back {
+    &__btn_back {
       border-radius: 50%;
       padding: 5px;
       background-color: red;
@@ -36,12 +39,12 @@
   }
 
 
-  &__info-bar {
+  &__info_bar {
     display: flex;
     gap: 3px;
     margin-block: 10px;
 
-    &__profile-pict {
+    &__profile_pict {
       height: 40px;
       border-radius: 50%;
 
@@ -52,11 +55,11 @@
 
     &__name {
 
-      &__display-name {
+      &__display_name {
         font-weight: bold;
       }
 
-      &__user-name {
+      &__user_name {
         font-size: 0.8rem;
         color: #888
       }
@@ -78,7 +81,7 @@
   }
 
   &__image {
-    border: 1px solid black;
+    //border: 1px solid black;
     border-radius: 20px;
     overflow: hidden;
 
@@ -87,7 +90,7 @@
     }
   }
 
-  &__write-answer {
+  &__write_answer {
     display: flex;
     gap: 8px;
     //justify-content: space-between;
@@ -105,4 +108,9 @@
       border-radius: 50px;
     }
   }
+}
+.show_more {
+  color: #808080ad;
+  text-decoration: underline;
+  cursor: pointer;
 }
