@@ -28,18 +28,22 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-            <h3>Recent Questions</h3>
-            <span>20 new questions</span>
+            <div className={styles.questionsRecent}>
+                <h3>Recent Questions</h3>
+                <span>20 new questions</span>
+            </div>
+            {/*<div className={styles.questionsList}>*/}
+            {/*    <Question/>*/}
+            {/*    <Question/>*/}
+            {/*    <Question/>*/}
+            {/*    <Question/>*/}
+            {/*    <Question/>*/}
+            {/*    <Question/>*/}
+            {/*    <Question/>*/}
+            {/*    <Question/>*/}
+            {/*    <Question/>*/}
+            {/*</div>*/}
 
-            {/*<Question/>*/}
-            {/*<Question/>*/}
-            {/*<Question/>*/}
-            {/*<Question/>*/}
-            {/*<Question/>*/}
-            {/*<Question/>*/}
-            {/*<Question/>*/}
-            {/*<Question/>*/}
-            {/*<Question/>*/}
             <Post content={content} />
             <Post content={content} />
             <Post content={content} />
