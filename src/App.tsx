@@ -1,19 +1,19 @@
-// import NavBar from "./components/NavBar/NavBar.tsx";
-// import Home from "./components/Home/Home.tsx";
+import NavBar from "./components/NavBar/NavBar.tsx";
+import Home from "./components/Home/Home.tsx";
 import "./styles/index.scss";
-import Post from "./components/Post/Post.tsx";
+// import Post from "./components/Post/Post.tsx";
 
 function App() {
     return (
         <>
-            {/*<NavBar/>*/}
+            <NavBar/>
             <div className="main">
                 <div className="left">
                 </div>
 
                 <div className="middle">
-                    <Post />
-                    {/*<Home />*/}
+                    {/*<Post />*/}
+                    <Home />
                 </div>
                 <div className="right">
 
