@@ -4,7 +4,7 @@ import styles from "./Home.module.scss";
 export default function Home() {
     return (
         <>
-            <div>
+            <div className={styles.header}>
                 <h3>Home</h3>
                 <div className={styles.newPost}>
                     <input title="search" placeholder="What's your question?" className={styles.input}/>
@@ -26,18 +26,21 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-            <h3>Recent Questions</h3>
-            <span>20 new questions</span>
-
-            <Question/>
-            <Question/>
-            <Question/>
-            <Question/>
-            <Question/>
-            <Question/>
-            <Question/>
-            <Question/>
-            <Question/>
+            <div className={styles.questionsRecent}>
+                <h3>Recent Questions</h3>
+                <span>20 new questions</span>
+            </div>
+            <div className={styles.questionsList}>
+                <Question/>
+                <Question/>
+                <Question/>
+                <Question/>
+                <Question/>
+                <Question/>
+                <Question/>
+                <Question/>
+                <Question/>
+            </div>
         </>
     )
 }

@@ -7,7 +7,7 @@
   padding: 12px 1rem;
   background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: rgba(50, 50, 93, 0.15) 0px 1px 5px -1px, rgba(0, 0, 0, 0.1) 0px 1px 3px -1px;
+  box-shadow: rgba(50, 50, 93, 0.15) 0 1px 5px -1px, rgba(0, 0, 0, 0.1) 0 1px 3px -1px;
   transition: background-color 0.2s ease;
   cursor: pointer;
 
@@ -47,7 +47,7 @@
     .footerButton {
       display: flex;
       align-items: center;
-      //background-color: #fff8f8;
+      color: #aaa;
       margin-right: 6px;
       padding: 6px 8px;
       border-radius: 4px;
@@ -59,8 +59,9 @@
       }
 
       .buttonIcon {
+        display: flex;
         padding-right: 4px;
-        color: rgba(0,0,0,0.5);
+        color: #aaa;
       }
 
       .buttonNumber {
@@ -72,5 +73,16 @@
 
   &:hover {
     background-color: #fafafa;
+  }
+}
+
+
+@media screen and (max-width: 500px) {
+  .questionWrapper {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  .buttonText {
+    display: none;
   }
 }

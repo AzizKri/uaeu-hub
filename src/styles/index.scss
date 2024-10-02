@@ -26,19 +26,18 @@ body {
 
 .main {
   padding-top: 90px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr;
 
   .middle {
     max-width: 700px;
     width: 100%;
   }
+}
 
-  @media (max-width: 768px) {
-    .left, .right {
-      display: none;
-    }
-
+@media screen and (max-width: 500px) {
+  .main {
+    grid-template-columns: 0 1fr 0;
   }
 }
 
