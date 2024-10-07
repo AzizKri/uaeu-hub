@@ -10,15 +10,13 @@ export default function Home() {
         getLatestPosts(5).then((res) => {
             const fetchedPosts = []
             for (const post of res.results) {
-                fetchedPosts.push(<Post key={post.id} content={post.content} author={post.author} dname={post.displayname} pfp={post.pfp}/>);
+                fetchedPosts.push(<Post key={post.id} content={post.content} authorUsername={post.author} authorDisplayName={post.displayname} pfp={post.pfp} postDate={new Date(post.post_time)}/>);
             }
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             setPosts(fetchedPosts);
         })
     }, [])
-
-    // const content: string = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A adipisci aperiam at commodi cupiditate, dicta, dolorum eaque explicabo, laboriosam magnam natus nostrum qui quidem sed velit voluptatem voluptatum. Dignissimos dolore excepturi fugiat ipsa libero nihil non quaerat, quibusdam! Accusamus amet delectus dolore doloremque, eius et, eum fuga ipsa laboriosam nihil numquam placeat quaerat qui quos rem veniam veritatis vitae voluptatem."
 
     return (
         <>
