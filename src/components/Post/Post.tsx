@@ -2,7 +2,7 @@ import "./post.module.scss"
 import profilePicture from "../../assets/profile-picture.png"
 import postImage from "../../assets/post-image.png"
 import PostFooter from "../PostFooter/PostFooter.tsx";
-// import Comment from "../Comment/Comment.tsx";
+import Comment from "../Comment/Comment.tsx";
 import styles from "./post.module.scss";
 import {useEffect, useState} from "react";
 
@@ -15,21 +15,20 @@ export default function Post({content, authorUsername, authorDisplayName, pfp, p
         console.log(postDate);
         const months: string[] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-        const crntDate: Date = new Date();
-        if (crntDate.getFullYear() === postDate.getFullYear()) {
-            if (crntDate.getMonth() === postDate.getMonth() && crntDate.getDate() === postDate.getDate()) {
-                if (crntDate.getHours() === postDate.getHours()) {
-                    if (crntDate.getMinutes() === postDate.getMinutes()) {
-                        setDateText(`${new Date(crntDate.getTime() - postDate.getTime()).getSeconds()}sec.ago`)
-                    } else {
-                        setDateText(`${new Date(crntDate.getTime() - postDate.getTime()).getMinutes()}min.ago`)
-                    }
-                } else {
-                    setDateText(`${new Date(crntDate.getTime() - postDate.getTime()).getHours()}hr.ago`)
-                }
-            } else {
-                setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}`);
-            }
+        const curDate = new Date();
+        const diffInMs = curDate.getTime() - postDate.getTime();
+        const diffInSeconds = Math.floor(diffInMs / 1000);
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        const diffInHours = Math.floor(diffInMinutes / 60);
+
+        if (diffInSeconds < 60) {
+            setDateText(`${diffInSeconds} sec ago`);
+        } else if (diffInMinutes < 60) {
+            setDateText(`${diffInMinutes} min ago`);
+        } else if (diffInHours < 24) {
+            setDateText(`${diffInHours} hr ago`);
+        } else if (curDate.getFullYear() === postDate.getFullYear()) {
+            setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}`);
         } else {
             setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}, ${postDate.getFullYear()}`);
         }
@@ -61,7 +60,7 @@ export default function Post({content, authorUsername, authorDisplayName, pfp, p
                 <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />
                 <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>
             </div>
-            {/*<Comment />*/}
+            <Comment />
         </div>
     )
 }
