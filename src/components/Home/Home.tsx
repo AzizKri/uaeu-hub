@@ -1,9 +1,25 @@
 // import Question from "../Question/Question.tsx";
 import styles from "./Home.module.scss";
 import Post from "../Post/Post.tsx";
+import {getLatestPosts} from "../../api.ts";
+import {useEffect, useState} from "react";
 
 export default function Home() {
-    const content: string = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A adipisci aperiam at commodi cupiditate, dicta, dolorum eaque explicabo, laboriosam magnam natus nostrum qui quidem sed velit voluptatem voluptatum. Dignissimos dolore excepturi fugiat ipsa libero nihil non quaerat, quibusdam! Accusamus amet delectus dolore doloremque, eius et, eum fuga ipsa laboriosam nihil numquam placeat quaerat qui quos rem veniam veritatis vitae voluptatem."
+    const [posts, setPosts] = useState([]);
+    useEffect(() => {
+        getLatestPosts(5).then((res) => {
+            const fetchedPosts = []
+            for (const post of res.results) {
+                fetchedPosts.push(<Post key={post.id} content={post.content} author={post.author} dname={post.displayname} pfp={post.pfp}/>);
+            }
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            setPosts(fetchedPosts);
+        })
+    }, [])
+
+    // const content: string = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A adipisci aperiam at commodi cupiditate, dicta, dolorum eaque explicabo, laboriosam magnam natus nostrum qui quidem sed velit voluptatem voluptatum. Dignissimos dolore excepturi fugiat ipsa libero nihil non quaerat, quibusdam! Accusamus amet delectus dolore doloremque, eius et, eum fuga ipsa laboriosam nihil numquam placeat quaerat qui quos rem veniam veritatis vitae voluptatem."
+
     return (
         <>
             <div>
@@ -32,24 +48,8 @@ export default function Home() {
                 <h3>Recent Questions</h3>
                 <span>20 new questions</span>
             </div>
-            {/*<div className={styles.questionsList}>*/}
-            {/*    <Question/>*/}
-            {/*    <Question/>*/}
-            {/*    <Question/>*/}
-            {/*    <Question/>*/}
-            {/*    <Question/>*/}
-            {/*    <Question/>*/}
-            {/*    <Question/>*/}
-            {/*    <Question/>*/}
-            {/*    <Question/>*/}
-            {/*</div>*/}
 
-            <Post content={content} />
-            <Post content={content} />
-            <Post content={content} />
-            <Post content={content} />
-            <Post content={content} />
-            <Post content={content} />
+            {posts}
         </>
     )
 }
