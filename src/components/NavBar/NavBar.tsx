@@ -1,6 +1,7 @@
 import Search from "../Search/Search.tsx";
 import styles from './NavBar.module.scss';
 import {useState} from "react";
+import SearchResultsList from "../SearchResultsList/SearchResultsList.tsx";
 
 enum Page {
     Home,
@@ -9,7 +10,6 @@ enum Page {
 
 export default function NavBar() {
     const [page, setPage] = useState<Page>(Page.Home);
-
     return (
         <>
             <div className={styles.navbar}>
@@ -22,7 +22,7 @@ export default function NavBar() {
                          onClick={() => setPage(Page.Questions)}>Your Questions
                     </div>
                 </div>
-                <Search/>
+                <Search />
             </div>
         </>
     );

@@ -1,0 +1,15 @@
+.resultsList {
+  height: 400px;
+  width: 350px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0px 0px 8px #ddd;
+  border-radius: 10px;
+  overflow-y: auto;
+  position: absolute;
+  top: 60px;
+  right: 20px;
+}
+
+/*# sourceMappingURL=SearchResultsList.module.css.map */

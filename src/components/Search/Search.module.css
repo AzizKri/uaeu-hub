@@ -2,7 +2,6 @@
   margin: 0.5rem;
   padding: 10px;
   height: 40px;
-  //margin-right: 2rem;
   width: 350px;
   background-color: rgba(0, 0, 0, 0.1);
   color: rgba(0, 0, 0, 0.6);
@@ -12,10 +11,11 @@
   gap: 10px;
   justify-self: flex-end;
   margin-right: 20px;
-
-  .navbarSearchInput {
-    border: none;
-    background: none;
-    outline: none;
-  }
 }
+.navbarSearch .navbarSearchInput {
+  border: none;
+  background: none;
+  outline: none;
+}
+
+/*# sourceMappingURL=Search.module.css.map */
