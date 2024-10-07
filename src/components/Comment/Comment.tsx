@@ -19,7 +19,7 @@ export default function Comment() {
                     similique voluptates.
                 </div>
                 <div className={styles.comment__content__footer}>
-                    <button className={`${styles.vote_icon} ${styles.btn_hover}`}>`
+                    <button className={`${styles.vote_icon} ${styles.btn_hover}`}>
                         <svg fill="currentColor" height="16" icon-name="upvote-outline" viewBox="0 0 20 20"
                              width="16" xmlns="http://www.w3.org/2000/svg">
                             <path
