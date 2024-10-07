@@ -1,9 +1,14 @@
 // import Question from "../Question/Question.tsx";
 import styles from "./Home.module.scss";
 import Post from "../Post/Post.tsx";
+import {getUserByUsername} from "../../api.ts";
 
 export default function Home() {
+    // const [posts, setPosts] = useState([]);
+    getUserByUsername("aziz").then((res) => {console.log(res)})
+
     const content: string = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A adipisci aperiam at commodi cupiditate, dicta, dolorum eaque explicabo, laboriosam magnam natus nostrum qui quidem sed velit voluptatem voluptatum. Dignissimos dolore excepturi fugiat ipsa libero nihil non quaerat, quibusdam! Accusamus amet delectus dolore doloremque, eius et, eum fuga ipsa laboriosam nihil numquam placeat quaerat qui quos rem veniam veritatis vitae voluptatem."
+
     return (
         <>
             <div>
