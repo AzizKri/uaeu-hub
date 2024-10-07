@@ -1,33 +1,16 @@
 export default {
 	async fetch(request, env): Promise<Response> {
+		const origin = request.headers.get('Origin') || "";
 		if (request.method === 'OPTIONS') {
-			const headers = request.headers
-			if (
-				headers.get("Origin") != null &&
-				headers.get("Access-Control-Request-Method") != null &&
-				headers.get("Access-Control-Request-Headers") != null
-			) {
-				const respHeaders = {
-					// "Access-Control-Allow-Origin": "https://sgi.uaeu.club",
-					"Access-Control-Allow-Origin": "*",
-					"Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS",
-					"Access-Control-Max-Age": "86400",
-					"Access-Control-Allow-Headers": request.headers.get("Access-Control-Request-Headers") || "",
+			return new Response(null, {
+				status: 204,
+				headers: {
+					'Access-Control-Allow-Origin': origin,
+					'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+					'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+					'Access-Control-Max-Age': '86400' // Cache preflight response for 1 day
 				}
-				const origin = headers.get("Origin")
-				if (origin != "http://localhost:5173" && origin != "http://localhost") {
-					return new Response('Unauthorized', {status: 401})
-				}
-				return new Response(null, {
-					headers: respHeaders,
-				})
-			} else {
-				return new Response(null, {
-					headers: {
-						Allow: "GET, HEAD, PUT, OPTIONS",
-					},
-				})
-			}
+			});
 		} else {
 			const {pathname} = new URL(request.url);
 			const paths = pathname.split('/').reverse();
@@ -87,7 +70,7 @@ export default {
 							const result = await env.DB.prepare(
 								"SELECT * FROM posts ORDER BY datetime(post_time) DESC LIMIT ?"
 							).bind(limit).all<PostRow>();
-							return Response.json(result);
+							return addCorsHeaders(Response.json(result), origin);
 						}
 					}
 				}
@@ -100,3 +83,11 @@ export default {
 	}
 	,
 } satisfies ExportedHandler<Env>;
+
+function addCorsHeaders(response: Response, origin: string) {
+	const newHeaders = new Headers(response.headers);
+	newHeaders.set('Access-Control-Allow-Origin', origin);
+	newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+	newHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+	return new Response(response.body, { ...response, headers: newHeaders });
+}
