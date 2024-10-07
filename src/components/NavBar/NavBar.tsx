@@ -1,7 +1,6 @@
 import Search from "../Search/Search.tsx";
 import styles from './NavBar.module.scss';
 import {useState} from "react";
-import SearchResultsList from "../SearchResultsList/SearchResultsList.tsx";
 
 enum Page {
     Home,

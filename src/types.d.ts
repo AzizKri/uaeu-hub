@@ -9,6 +9,11 @@ declare global {
     interface ResList {
         results: Res[];
     }
+
+    enum Page {
+        Home,
+        Questions
+    }
 }
 
 export {};
