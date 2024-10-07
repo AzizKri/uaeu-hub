@@ -25,18 +25,29 @@ export default {
 			const api = paths.pop();
 			const reqType = paths.pop();
 
+			let resp: Response | undefined;
+
+			type UserRow = {
+				username: string;
+				displayName: string;
+				email: string;
+				created_at: string;
+				bio: string;
+				pfp: string;
+			}
+
+			type PostRow = {
+				post_id: number;
+				author: string;
+				content: string;
+				post_time: number;
+				likes: number;
+			}
+
 			// API Version
 			if (version === 'v1') {
 				// Users API
 				if (api === 'users') {
-					type UserRow = {
-						username: string;
-						displayName: string;
-						email: string;
-						created_at: string;
-						bio: string;
-						pfp: string;
-					}
 
 					// Get by user ID
 					if (reqType === 'get') {
@@ -46,39 +57,52 @@ export default {
 							"SELECT * FROM users WHERE username = ?"
 						).bind(uname).all<UserRow>();
 
-						return Response.json(result);
+						resp = Response.json(result);
 					}
 				}
 
 				// Posts API
 				if (api === 'posts') {
-					type PostRow = {
-						post_id: number;
-						author: string;
-						content: string;
-						post_time: number;
-						likes: number;
-					}
 
 					// Get posts
 					if (reqType === 'get') {
 						const subtype = paths.pop();
 
 						// Get last X posts
-						if (subtype === 'latest') {
-							const limit = Number(paths.pop());
-							const result = await env.DB.prepare(
-								"SELECT * FROM posts ORDER BY datetime(post_time) DESC LIMIT ?"
-							).bind(limit).all<PostRow>();
-							return addCorsHeaders(Response.json(result), origin);
+						switch (subtype) {
+							case 'latest': {
+								const limit = Number(paths.pop());
+								const result = await env.DB.prepare(
+									"SELECT posts.*, users.displayname, users.pfp FROM posts LEFT JOIN users ON posts.author = users.username ORDER BY posts.post_time DESC LIMIT ?",
+								).bind(limit).all<PostRow>();
+
+								resp = Response.json(result);
+								break;
+							}
+							case 'user': {
+								const uname = paths.pop();
+								const result = await env.DB.prepare(
+									"SELECT * FROM posts WHERE author = ? ORDER BY posts.post_time",
+								).bind(uname).all<PostRow>();
+
+								resp = Response.json(result);
+								break;
+							}
+							default: {
+								const id = paths.pop();
+								const result = await env.DB.prepare(
+									"SELECT * FROM posts WHERE post_id = ?",
+								).bind(id).all<PostRow>();
+
+								resp = Response.json(result);
+								break;
+							}
 						}
 					}
 				}
 			}
 
-			return new Response(
-				"OK",
-			);
+			return resp == undefined? new Response("OK") : addCorsHeaders(resp, origin);
 		}
 	}
 	,
