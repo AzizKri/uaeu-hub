@@ -13,8 +13,9 @@ declare global {
     interface PostInfo {
         authorUsername: string,
         authorDisplayName: string,
-        date: Date,
+        postDate: Date,
         content: string,
+        pfp: string,
     }
 
     enum Page {

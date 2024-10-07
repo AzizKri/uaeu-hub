@@ -6,47 +6,47 @@ import PostFooter from "../PostFooter/PostFooter.tsx";
 import styles from "./post.module.scss";
 import {useEffect, useState} from "react";
 
-export default function Post({authorUsername, authorDisplayName, content, date}: PostInfo) {
+export default function Post({content, authorUsername, authorDisplayName, pfp, postDate}: PostInfo) {
     // let partContent: string = "";
     // const []
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
-    const [postDate, setPostDate] = useState<string>("");
+    const [dateText, setDateText] = useState<string>("");
     useEffect(() => {
-        console.log(date);
+        console.log(postDate);
         const months: string[] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         const crntDate: Date = new Date();
-        if (crntDate.getFullYear() === date.getFullYear()) {
-            if (crntDate.getMonth() === date.getMonth() && crntDate.getDate() === date.getDate()) {
-                if (crntDate.getHours() === date.getHours()) {
-                    if (crntDate.getMinutes() === date.getMinutes()) {
-                        setPostDate(`${new Date(crntDate.getTime() - date.getTime()).getSeconds()}sec.ago`)
+        if (crntDate.getFullYear() === postDate.getFullYear()) {
+            if (crntDate.getMonth() === postDate.getMonth() && crntDate.getDate() === postDate.getDate()) {
+                if (crntDate.getHours() === postDate.getHours()) {
+                    if (crntDate.getMinutes() === postDate.getMinutes()) {
+                        setDateText(`${new Date(crntDate.getTime() - postDate.getTime()).getSeconds()}sec.ago`)
                     } else {
-                        setPostDate(`${new Date(crntDate.getTime() - date.getTime()).getMinutes()}min.ago`)
+                        setDateText(`${new Date(crntDate.getTime() - postDate.getTime()).getMinutes()}min.ago`)
                     }
                 } else {
-                    setPostDate(`${new Date(crntDate.getTime() - date.getTime()).getHours()}hr.ago`)
+                    setDateText(`${new Date(crntDate.getTime() - postDate.getTime()).getHours()}hr.ago`)
                 }
             } else {
-                setPostDate(`${months[date.getMonth()]} ${date.getDate()}`);
+                setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}`);
             }
         } else {
-            setPostDate(`${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`);
+            setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}, ${postDate.getFullYear()}`);
         }
-    }, [date])
+    }, [postDate])
 
     return (
         <div className={styles.post}>
             <div className={styles.post__info_bar}>
                 <div className={styles.post__info_bar__profile_pict}>
-                     <img src={profilePicture}  alt="profile picture"/>
+                     <img src={pfp == undefined? profilePicture : pfp}  alt="profile picture"/>
                  </div>
                 <div className={styles.post__info_bar__name}>
                     <div className={styles.post__info_bar__name__display_name}>{authorDisplayName}</div>
                     <div className={styles.post__info_bar__name__user_name}>@{authorUsername}</div>
                 </div>
                 <span>•</span>
-                <div className={styles.post__info_bar__time}>{postDate}</div>
+                <div className={styles.post__info_bar__time}>{dateText}</div>
             </div>
             <div className={styles.post__content}>
                 {showContent ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}

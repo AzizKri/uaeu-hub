@@ -1,15 +1,23 @@
 // import Question from "../Question/Question.tsx";
 import styles from "./Home.module.scss";
 import Post from "../Post/Post.tsx";
+import {getLatestPosts} from "../../api.ts";
+import {useEffect, useState} from "react";
 
 export default function Home() {
-    const content: string = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. A adipisci aperiam at commodi cupiditate, dicta, dolorum eaque explicabo, laboriosam magnam natus nostrum qui quidem sed velit voluptatem voluptatum. Dignissimos dolore excepturi fugiat ipsa libero nihil non quaerat, quibusdam! Accusamus amet delectus dolore doloremque, eius et, eum fuga ipsa laboriosam nihil numquam placeat quaerat qui quos rem veniam veritatis vitae voluptatem."
-    const postInfo: PostInfo = {
-        authorUsername: "username",
-        authorDisplayName: "Display Name",
-        date: new Date(2024, 9, 7, 11, 0, 0, 0),
-        content: content,
-    }
+    const [posts, setPosts] = useState([]);
+    useEffect(() => {
+        getLatestPosts(5).then((res) => {
+            const fetchedPosts = []
+            for (const post of res.results) {
+                fetchedPosts.push(<Post key={post.id} content={post.content} authorUsername={post.author} authorDisplayName={post.displayname} pfp={post.pfp} postDate={new Date(post.post_time)}/>);
+            }
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            setPosts(fetchedPosts);
+        })
+    }, [])
+
     return (
         <>
             <div>
@@ -39,42 +47,7 @@ export default function Home() {
                 <span>20 new questions</span>
             </div>
 
-            <Post
-                authorUsername={postInfo.authorUsername}
-                authorDisplayName={postInfo.authorDisplayName}
-                content={postInfo.content}
-                date={postInfo.date}
-            />
-            <Post
-                authorUsername={postInfo.authorUsername}
-                authorDisplayName={postInfo.authorDisplayName}
-                content={postInfo.content}
-                date={postInfo.date}
-            />
-            <Post
-                authorUsername={postInfo.authorUsername}
-                authorDisplayName={postInfo.authorDisplayName}
-                content={postInfo.content}
-                date={postInfo.date}
-            />
-            <Post
-                authorUsername={postInfo.authorUsername}
-                authorDisplayName={postInfo.authorDisplayName}
-                content={postInfo.content}
-                date={postInfo.date}
-            />
-            <Post
-                authorUsername={postInfo.authorUsername}
-                authorDisplayName={postInfo.authorDisplayName}
-                content={postInfo.content}
-                date={postInfo.date}
-            />
-            <Post
-                authorUsername={postInfo.authorUsername}
-                authorDisplayName={postInfo.authorDisplayName}
-                content={postInfo.content}
-                date={postInfo.date}
-            />
+            {posts}
         </>
     )
 }

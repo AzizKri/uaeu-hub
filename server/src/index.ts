@@ -1,48 +1,117 @@
 export default {
 	async fetch(request, env): Promise<Response> {
-		const { pathname } = new URL(request.url);
-		const paths = pathname.split('/').reverse();
+		const origin = request.headers.get('Origin') || "";
+		if (request.method === 'OPTIONS') {
+			return new Response(null, {
+				status: 204,
+				headers: {
+					'Access-Control-Allow-Origin': origin,
+					'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+					'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+					'Access-Control-Max-Age': '86400' // Cache preflight response for 1 day
+				}
+			});
+		} else {
+			const {pathname} = new URL(request.url);
+			const paths = pathname.split('/').reverse();
 
-		if (paths[paths.length - 1] === '') {
-			paths.pop()
-		}
+			console.log(paths);
 
-		const version = paths.pop();
-		const api = paths.pop();
-		const reqType = paths.pop();
+			if (paths[paths.length - 1] === '') {
+				paths.pop()
+			}
 
-		// API Version
-		if (version === 'v1') {
-			console.log(version)
-			// Users API
-			if (api === 'users') {
-				console.log(api)
-				// Get by user ID
-				if (reqType === 'get') {
-					console.log(reqType)
-					const id = Number(paths.pop());
-					if (!isNaN(id)) {
+			const version = paths.pop();
+			const api = paths.pop();
+			const reqType = paths.pop();
+
+			let resp: Response | undefined;
+
+			type UserRow = {
+				username: string;
+				displayName: string;
+				email: string;
+				created_at: string;
+				bio: string;
+				pfp: string;
+			}
+
+			type PostRow = {
+				post_id: number;
+				author: string;
+				content: string;
+				post_time: number;
+				likes: number;
+			}
+
+			// API Version
+			if (version === 'v1') {
+				// Users API
+				if (api === 'users') {
+
+					// Get by user ID
+					if (reqType === 'get') {
+						const uname = paths.pop();
+						console.log(uname);
 						const result = await env.DB.prepare(
-							"SELECT * FROM users WHERE userid = ?"
-						).bind(id).all();
+							"SELECT * FROM users WHERE username = ?"
+						).bind(uname).all<UserRow>();
 
-						return Response.json(result);
+						resp = Response.json(result);
+					}
+				}
+
+				// Posts API
+				if (api === 'posts') {
+
+					// Get posts
+					if (reqType === 'get') {
+						const subtype = paths.pop();
+
+						// Get last X posts
+						switch (subtype) {
+							case 'latest': {
+								const limit = Number(paths.pop());
+								const result = await env.DB.prepare(
+									"SELECT posts.*, users.displayname, users.pfp FROM posts LEFT JOIN users ON posts.author = users.username ORDER BY posts.post_time DESC LIMIT ?",
+								).bind(limit).all<PostRow>();
+
+								resp = Response.json(result);
+								break;
+							}
+							case 'user': {
+								const uname = paths.pop();
+								const result = await env.DB.prepare(
+									"SELECT * FROM posts WHERE author = ? ORDER BY posts.post_time",
+								).bind(uname).all<PostRow>();
+
+								resp = Response.json(result);
+								break;
+							}
+							default: {
+								const id = paths.pop();
+								const result = await env.DB.prepare(
+									"SELECT * FROM posts WHERE post_id = ?",
+								).bind(id).all<PostRow>();
+
+								resp = Response.json(result);
+								break;
+							}
+						}
 					}
 				}
 			}
+
+			return resp == undefined? new Response("OK") : addCorsHeaders(resp, origin);
 		}
-
-		// if (pathname === "/api/v1/users") {
-		// 	const { results } = await env.DB.prepare(
-		// 		"SELECT * FROM users WHERE CompanyName = ?",
-		// 	)
-		// 		.bind("Bs Beverages")
-		// 		.all();
-		// 	return Response.json(results);
-		// }
-
-		return new Response(
-			"Call /api/v1/users to see all users",
-		);
-	},
+	}
+	,
 } satisfies ExportedHandler<Env>;
+
+function addCorsHeaders(response: Response, origin: string) {
+	const newHeaders = new Headers(response.headers);
+	newHeaders.set('Access-Control-Allow-Origin', origin);
+	newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+	newHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+	return new Response(response.body, { ...response, headers: newHeaders });
+}
