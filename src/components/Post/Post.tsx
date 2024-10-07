@@ -6,7 +6,7 @@ import PostFooter from "../PostFooter/PostFooter.tsx";
 import styles from "./post.module.scss";
 import {useState} from "react";
 
-export default function Post({content}: {content: string}) {
+export default function Post({content, author, dname, pfp}: {content: string, author: string, dname: string, pfp: string | undefined}) {
     // let partContent: string = "";
     // const []
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
@@ -33,11 +33,11 @@ export default function Post({content}: {content: string}) {
             {/*</div>*/}
             <div className={styles.post__info_bar}>
                 <div className={styles.post__info_bar__profile_pict}>
-                     <img src={profilePicture}  alt="profile picture"/>
+                     <img src={pfp == undefined? profilePicture : pfp}  alt="profile picture"/>
                  </div>
                 <div className={styles.post__info_bar__name}>
-                    <div className={styles.post__info_bar__name__display_name}>Display Name</div>
-                    <div className={styles.post__info_bar__name__user_name}>@username</div>
+                    <div className={styles.post__info_bar__name__display_name}>{dname}</div>
+                    <div className={styles.post__info_bar__name__user_name}>@{author}</div>
                 </div>
                 <span>•</span>
                 <div className={styles.post__info_bar__time}>3hr.ago</div>
