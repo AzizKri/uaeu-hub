@@ -10,6 +10,13 @@ declare global {
         results: Res[];
     }
 
+    interface PostInfo {
+        authorUsername: string,
+        authorDisplayName: string,
+        date: Date,
+        content: string,
+    }
+
     enum Page {
         Home,
         Questions
