@@ -69,12 +69,12 @@ export default {
 							case 'latest': {
 								const limit = Number(paths.pop());
 								const result = await env.DB.prepare(
-									`SELECT posts.*, users.displayname, users.pfp, COUNT(post_likes.post_id) AS like_count
-										FROM posts
-										LEFT JOIN users ON posts.author = users.username
-										LEFT JOIN post_likes on posts.id = post_likes.post_id
-										GROUP BY posts.id
-										ORDER BY posts.post_time DESC LIMIT ?`,
+									`SELECT post.*, users.displayname, users.pfp, COUNT(post_likes.post_id) AS like_count
+										FROM post
+										LEFT JOIN users ON post.author = users.username
+										LEFT JOIN post_likes on post.id = post_likes.post_id
+										GROUP BY post.id
+										ORDER BY post.post_time DESC LIMIT ?`,
 								).bind(limit).all<PostRow>();
 
 								resp = Response.json(result);
@@ -84,11 +84,11 @@ export default {
 								const uname = paths.pop();
 								const result = await env.DB.prepare(
 									`SELECT *, COUNT(post_likes.post_id) AS like_count
-										FROM posts
-										LEFT JOIN post_likes on posts.id = post_likes.post_id
+										FROM post
+										LEFT JOIN post_likes on post.id = post_likes.post_id
 										WHERE author = ?
 										GROUP BY post_likes.post_id
-										ORDER BY posts.post_time`,
+										ORDER BY post.post_time`,
 								).bind(uname).all<PostRow>();
 
 								resp = Response.json(result);
@@ -97,13 +97,23 @@ export default {
 							default: {
 								const id = paths.pop();
 								const result = await env.DB.prepare(
-									"SELECT * FROM posts WHERE id = ?",
+									"SELECT * FROM post WHERE id = ?",
 								).bind(id).all<PostRow>();
 
 								resp = Response.json(result);
 								break;
 							}
 						}
+					}
+					else if (reqType === 'post') {
+						const body: PostRow = await request.json();
+						const author: string | null = body?.author;
+						const content: string = body?.content;
+						const result = await env.DB.prepare(
+							`INSERT INTO post (author, content) VALUES (?, ?)`
+						).bind(author, content).run();
+
+						resp = Response.json(result);
 					}
 				}
 			}
