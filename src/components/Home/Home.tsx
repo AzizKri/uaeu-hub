@@ -2,18 +2,16 @@
 import styles from "./Home.module.scss";
 import Post from "../Post/Post.tsx";
 import {getLatestPosts} from "../../api.ts";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 
 export default function Home() {
-    const [posts, setPosts] = useState([]);
+    const [posts, setPosts] = useState<React.ReactElement[]>([]);
     useEffect(() => {
         getLatestPosts(5).then((res) => {
             const fetchedPosts = []
             for (const post of res.results) {
                 fetchedPosts.push(<Post key={post.id} content={post.content} author={post.author} dname={post.displayname} pfp={post.pfp}/>);
             }
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             setPosts(fetchedPosts);
         })
     }, [])
