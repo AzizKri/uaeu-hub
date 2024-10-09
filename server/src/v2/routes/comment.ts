@@ -1,6 +1,6 @@
-import {Hono} from "hono";
+import app from "../../index";
 
-const comment = new Hono().basePath('/comment');
+const comment = app.basePath('/comment');
 
 // add comment reply to post
 comment.post('/');
