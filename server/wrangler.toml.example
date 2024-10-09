@@ -1,5 +1,5 @@
 name = "server"
-main = "src/index.ts"
+main = "src/v1/index.ts"
 compatibility_date = "2024-09-25"
 compatibility_flags = ["nodejs_compat"]
 
