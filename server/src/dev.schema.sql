@@ -44,3 +44,12 @@ CREATE TABLE IF NOT EXISTS comment_likes (
 	FOREIGN KEY (comment_id) REFERENCES comment(id),
 	FOREIGN KEY (username) REFERENCES user(username)
 );
+
+CREATE TABLE IF NOT EXISTS attachment (
+	post_id INTEGER NOT NULL,
+	filename TEXT NOT NULL,
+	mimetype TEXT NOT NULL,
+	metadata TEXT,
+	PRIMARY KEY (post_id, filename),
+	FOREIGN KEY (post_id) REFERENCES post(id)
+);
