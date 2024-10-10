@@ -19,8 +19,8 @@ export async function Authenticate(c: Context) {
 
 export async function getByUsername(c: Context) {
 	// api.uaeu.chat/v2/user/:username
-	const username = c.req.param('username');
 	const env: Env = c.env;
+	const username = c.req.param('username');
 
 	// This is likely impossible but yeah
 	if (username === '') throw new HTTPException(400, { res: new Response('No username defined', { status: 400 })})
