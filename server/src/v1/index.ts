@@ -26,7 +26,7 @@ export default {
 			// const params: string | undefined = reqData?.pop();
 
 			let resp: Response | undefined;
-			let status: number;
+			let status: number = 200;
 
 			type UserRow = {
 				username: string;
@@ -157,7 +157,7 @@ export default {
 				}
 			}
 
-			return resp == undefined? new Response("OK") : addCorsHeaders(resp, origin, 200);
+			return resp == undefined? new Response("OK") : addCorsHeaders(resp, origin, status);
 		}
 	}
 	,
