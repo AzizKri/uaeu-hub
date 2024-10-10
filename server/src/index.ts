@@ -1,9 +1,8 @@
 import { Hono } from 'hono';
 import user from './v2/routes/user';
 import post from './v2/routes/post';
-import {Bindings} from "./util/types";
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Env }>();
 app.route('/user', user);
 app.route('/post', post);
 
