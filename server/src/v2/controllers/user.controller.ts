@@ -12,7 +12,8 @@ type UserRow = {
 
 export async function Authenticate(c: Context) {
 	// api.uaeu.chat/v2/user/authenticate
-
+	console.log(c);
+	return new Response('Not implemented', {status: 501});
 	// TODO: Implement authentication
 }
 
