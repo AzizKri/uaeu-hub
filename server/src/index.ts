@@ -8,7 +8,7 @@ app.route('/user', user);
 app.route('/post', post);
 
 app.onError((c, err) => {
-	console.error(err);
+	console.error(c, err);
 	return new Response('Internal Server Error', { status: 500 });
 });
 app.fire();
