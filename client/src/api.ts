@@ -1,4 +1,4 @@
-const base = 'https://api.talente.dev/';
+const base = 'https://api.talente.dev';
 
 export async function getUserByUsername(username: string) {
 	const request = await fetch(base + `/user/${username}`);
@@ -6,7 +6,7 @@ export async function getUserByUsername(username: string) {
 }
 
 // api.uaeu.chat/post/latest/:page
-export async function getLatestPosts(page: number | null) {
+export async function getLatestPosts(page?: number | null) {
 	const request = await fetch(base + `/post/latest/${page || 0}`);
 	return await request.json();
 }
