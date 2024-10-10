@@ -58,7 +58,7 @@ export async function getLatestPosts(c: Context) {
 							LEFT JOIN user ON post.author = user.username
 							LEFT JOIN post_likes on post.id = post_likes.post_id
 							LEFT JOIN comment on post.post_time = comment.post_time
-			 GROUP BY post.id
+			 GROUP BY post_likes.post_id, post.id
 			 ORDER BY post.post_time DESC
 			 LIMIT 10 OFFSET (? * 10)`
 		).bind(page).all<PostRow>();
