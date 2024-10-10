@@ -1,5 +1,5 @@
 name = "server"
-main = "src/v1/index.ts"
+main = "src/index.ts"
 compatibility_date = "2024-09-25"
 compatibility_flags = ["nodejs_compat"]
 
@@ -10,3 +10,8 @@ enabled = true
 binding = "DB"
 database_name = "YOUR-D1-DB"
 database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "YOUR-R2-BUCKET"
+preview_bucket_name = "YOUR-R2-PREVIEW-BUCKET"
