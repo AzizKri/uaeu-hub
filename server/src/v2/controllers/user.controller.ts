@@ -1,15 +1,6 @@
 import {Context} from "hono";
 import {HTTPException} from "hono/http-exception";
 
-type UserRow = {
-	username: string;
-	displayName: string;
-	email: string;
-	created_at: string;
-	bio: string;
-	pfp: string;
-}
-
 export async function Authenticate(c: Context) {
 	// api.uaeu.chat/v2/user/authenticate
 	console.log(c);

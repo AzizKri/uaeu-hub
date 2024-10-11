@@ -1,17 +1,6 @@
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
-type PostRow = {
-	id: number;
-	author: string;
-	content: string;
-	post_time: number;
-	displayname: string;
-	pfp: string;
-	like_count: number;
-	comment_count: number;
-}
-
 export async function getPostByID(c: Context) {
 	// api.uaeu.chat/v2/post/:id
 	const env: Env = c.env;
