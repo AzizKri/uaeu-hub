@@ -13,12 +13,16 @@ export async function getLatestPosts(page?: number | null) {
 
 // api.uaeu.chat/post/create
 export async function createPost(author: string | null, content: string) {
-	const request = await fetch(base + `/post/create`, {
-		body: JSON.stringify({ author, content }),
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' }
-	});
-	return await request.json();
+	try {
+		const request = await fetch(base + `/post/create`, {
+			body: JSON.stringify({ author, content }),
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' }
+		});
+		return await request.json();
+	} catch (error) {
+		console.error("Failed to create post: ", error);
+	}
 }
 
 // api.uaeu.chat/post/user/:username/:page
