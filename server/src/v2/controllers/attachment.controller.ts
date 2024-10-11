@@ -1,11 +1,6 @@
 import { Context } from 'hono';
-
-type Attachment = {
-	post_id: string,
-	filename: string,
-	mimetype: string,
-	metadata: object
-}
+// @ts-ignore
+import { v4 as uuidv4 } from 'uuid';
 
 export async function getAttachments(c: Context) {
 	const env: Env = c.env;
@@ -27,15 +22,54 @@ export async function getAttachments(c: Context) {
 
 export async function createAttachment(c: Context) {
 	const env: Env = c.env;
+	const postId: number = Number(c.req.header('post-id'));
+	const body = await c.req.parseBody();
+	// @ts-ignore
+	const file: File = body['file'];
+	const filename: string = uuidv4();
 
-	// TODO Implement this
+	// Check if post ID is valid and post exists
+	if (postId == 0 || isNaN(postId)) {
+		return new Response('Invalid Post ID', { status: 400 });
+	} else {
+		const post = await env.DB.prepare(
+			`SELECT id
+			 FROM post
+			 WHERE id = ?`
+		).bind(postId).all<PostRow>();
+
+		if (post == null) {
+			return new Response('Post not found', { status: 404 });
+		}
+	}
+
+	// Check if file is missing or too large
+	if (!file) {
+		return new Response('File missing from body', { status: 400 });
+	} else if (file.size > 1024 * 1024 * 10) {
+		return new Response('File too large', { status: 400 });
+	}
+
+	let R2Response: R2Object | null = null;
 
 	try {
 		// Uploading file to R2
-		// const R2Response = await env.R2.put(filename, file.stream(), { httpMetadata: { contentType: mimetype } });
-		return new Response('Not Implemented', { status: 501 });
+		R2Response = await env.R2.put(`attachments/${filename}`, file.stream(), { httpMetadata: new Headers({ 'Content-Type': file.type }) });
+		if (R2Response == null) {
+			return new Response('Upload failed', { status: 500 });
+		} else {
+			await env.DB.prepare(`
+				INSERT INTO attachment (post_id, filename, mimetype)
+				VALUES (?, ?, ?)`
+			).bind(postId, filename, file.type).run();
+
+			return new Response('Attachment created', { status: 201, headers: { 'Location': `/attachment/${filename}` } });
+		}
 	} catch (e) {
-		console.error(e, env);
+		console.error(e);
+		if (R2Response != null) {
+			await env.R2.delete(`attachments/${filename}`);
+		}
 		return new Response(`Internal Server Error`, { status: 500 });
 	}
 }
