@@ -5,14 +5,16 @@ import PostFooter from "../PostFooter/PostFooter.tsx";
 import Comment from "../Comment/Comment.tsx";
 import styles from "./post.module.scss";
 import {useEffect, useState} from "react";
+// import ReadOnlyEditor from "../ReadOnlyEditor/ReadOnlyEditor.tsx";
 
 export default function Post({content, authorUsername, authorDisplayName, pfp, postDate}: PostInfo) {
-    // let partContent: string = "";
-    // const []
-    const [showContent, setShowContent] = useState<boolean>(content.length < 300);
     const [dateText, setDateText] = useState<string>("");
+    const [showContent, setShowContent] = useState<boolean>(content.length < 300);
+    // example content later will come form database
+    // const editorContent: string = '{"root":{"children":[{"children":[{"text":"This is a post written in Lexical editor.","type":"text"}],"direction":"ltr","format":"paragraph","type":"paragraph"}],"type":"root"}}';
+
     useEffect(() => {
-        console.log(postDate);
+        // console.log(postDate);
         const months: string[] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         const curDate = new Date();
@@ -51,6 +53,7 @@ export default function Post({content, authorUsername, authorDisplayName, pfp, p
                 {showContent ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
                 {showContent ? "" : <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
             </div>
+            {/*<ReadOnlyEditor content={editorContent} />*/}
             <div className={styles.post__image}>
                 <img src={postImage} alt="profile picture"/>
             </div>
