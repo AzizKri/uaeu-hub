@@ -1,4 +1,4 @@
-const base = 'https://api.uaeu.chat/';
+const base = 'https://api.uaeu.chat';
 
 // api.uaeu.chat/user/anon
 // TODO generating anon sessions
@@ -35,7 +35,7 @@ export async function createPost(author: string, content: string, attachment?: F
 		method: 'POST',
 		body: formData,
 	});
-	return await request.json();
+	return await request.text();
 }
 
 // api.uaeu.chat/post/user/:username/:page

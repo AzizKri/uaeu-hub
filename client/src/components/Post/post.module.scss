@@ -78,6 +78,7 @@
 
   &__content {
     padding-block-end: 10px;
+    word-break: break-word;
   }
 
   &__image {
@@ -91,22 +92,11 @@
   }
 
   &__write_answer {
-    display: flex;
-    gap: 8px;
-    //justify-content: space-between;
     margin-block: 10px;
     padding-block: 10px;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
 
-    &__input {
-      width: 100%;
-    }
-
-    &__post {
-      padding: 6px 12px;
-      border-radius: 50px;
-    }
   }
 }
 .show_more {
