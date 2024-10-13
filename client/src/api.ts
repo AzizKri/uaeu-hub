@@ -35,7 +35,7 @@ export async function createPost(author: string, content: string, attachment?: F
 		method: 'POST',
 		body: formData,
 	});
-	return await request.json();
+	return await request.text();
 }
 
 // api.uaeu.chat/post/user/:username/:page
