@@ -16,6 +16,7 @@ declare global {
         postDate: Date,
         content: string,
         pfp: string,
+        filename?: string
     }
 
     enum Page {
