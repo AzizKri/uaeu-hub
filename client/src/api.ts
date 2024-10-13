@@ -1,4 +1,4 @@
-const base = 'https://api.uaeu.chat/';
+const base = 'https://api.uaeu.chat';
 
 // api.uaeu.chat/user/anon
 // TODO generating anon sessions
