@@ -1,5 +1,6 @@
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function getPostByID(c: Context) {
 	// api.uaeu.chat/v2/post/:id
@@ -66,7 +67,8 @@ export async function getPostsByUser(c: Context) {
 
 	try {
 		const results = await env.DB.prepare(
-			`SELECT post.*, COUNT(post_likes.post_id) AS like_count,
+			`SELECT post.*,
+							COUNT(post_likes.post_id)     AS like_count,
 							COUNT(comment.parent_post_id) AS comment_count
 			 FROM post
 							LEFT JOIN post_likes on post.id = post_likes.post_id
@@ -87,18 +89,69 @@ export async function getPostsByUser(c: Context) {
 export async function createPost(c: Context) {
 	// api.uaeu.chat/v2/post/create
 	const env: Env = c.env;
-	const body = await c.req.json();
-	const author = body?.author;
-	const content = body?.content;
+	const formData = await c.req.parseBody();
+	const author = formData['author'] as string;
+	const content = formData['content'] as string;
+	const file: File | undefined = formData['file'] as File;
 
 	if (!author) throw new HTTPException(400, { res: new Response('No author defined', { status: 400 }) });
 	if (!content) throw new HTTPException(400, { res: new Response('No content defined', { status: 400 }) });
 
 	try {
+		// Initialize attachment name
+		let attName: string | null = null;
+
+		// Check if we have an attachment
+		if (file) {
+			// Generate a random name
+			attName = uuidv4();
+
+			// Check if file size > 10MB
+			if (file.size > 1024 * 1024 * 10) {
+				return new Response('File too large', { status: 400 });
+			}
+
+			try {
+				// Upload file to R2
+				const R2Response = await env.R2.put(
+					`attachments/${attName}`,
+					file.stream(),
+					{
+						httpMetadata: new Headers({
+							'Content-Type': file.type
+						})
+					}
+				);
+
+				if (R2Response == null) {
+					// Return 500 if upload failed
+					return new Response('File upload failed', { status: 500 });
+				} else {
+					// Insert attachment into database
+					await env.DB.prepare(`
+						INSERT INTO attachment (filename, mimetype)
+						VALUES (?, ?)`
+					).bind(attName, file.type).run();
+
+					// Create a new post with attachment
+					await env.DB.prepare(
+						`INSERT INTO post (author, content, post_time, attachment)
+						 VALUES (?, ?, ?, ?)`
+					).bind(author, content, Date.now(), attName).run();
+
+					return new Response('Post created', { status: 201 });
+				}
+			} catch (e) {
+				console.error(e);
+				return new Response(`Internal Server Error`, { status: 500 });
+			}
+		}
+
+		// No file, create post without attachment
 		await env.DB.prepare(
 			`INSERT INTO post (author, content, post_time)
 			 VALUES (?, ?, ?)`
-		).bind(author, content, new Date(Date.now())).run();
+		).bind(author, content, Date.now()).run();
 
 		return new Response('Post created', { status: 201 });
 	} catch (e) {
