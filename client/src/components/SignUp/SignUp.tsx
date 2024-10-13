@@ -16,18 +16,18 @@ export default function SignUp(){
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle form submission, validation logic here
         console.log(formData);
     };
 
     return (
-        <div className={styles.signContainer}>
-            <div className={styles.signBox}>
-                <h2>Sign Up</h2>
-                <p>
+        <div className={styles.signUpBody}>
+            <div className={styles.signContainer}>
+                <div className={styles.signBox}>
+                    <h2>Sign Up</h2>
+                    <p>
                     By continuing, you agree to our <a href="#">User Agreement</a> and acknowledge that you understand the <a href="#">Privacy Policy</a>.
                 </p>
-                <div className={styles.socialSign}>
+                    <div className={styles.socialSign}>
                     <button className={styles.socialBtn}>
                         <svg className="custom-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25"
                              preserveAspectRatio="xMidYMid" viewBox="0 0 256 262" id="google">
@@ -534,8 +534,8 @@ export default function SignUp(){
                         <span>Continue with Outlook</span>
                     </button>
                 </div>
-                <div className={styles.separator}>OR</div>
-                <form className={styles.signForm} onSubmit={handleSubmit}>
+                    <div className={styles.separator}>OR</div>
+                    <form className={styles.signForm} onSubmit={handleSubmit}>
                     <div className={styles.nameContainer}>
                         <div className={styles.formGroup}>
                             <label htmlFor="firstName">First Name<span>*</span></label>
@@ -600,7 +600,8 @@ export default function SignUp(){
                     </div>
                     <button type="submit" className={styles.signupBtn}>Sign up</button>
                 </form>
-                <p>Already a member? <a href="#">Login</a></p>
+                    <p>Already a member? <a href="/login">Login</a></p>
+                </div>
             </div>
         </div>
     );
