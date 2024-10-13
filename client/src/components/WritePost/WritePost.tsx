@@ -43,9 +43,9 @@ export default function WritePost() {
 
     }
 
-    function uploadImage(event: React.FormEvent) {
+    function uploadImage(event: React.ChangeEvent<HTMLInputElement>) {
         event.preventDefault();
-        const file = event.target.files[0];
+        const file = event.target.files![0];
         if (file) {
             const formData = new FormData();
             formData.append("file", file);

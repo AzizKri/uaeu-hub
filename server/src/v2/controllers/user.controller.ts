@@ -1,15 +1,6 @@
 import {Context} from "hono";
 import {HTTPException} from "hono/http-exception";
 
-type UserRow = {
-	username: string;
-	displayName: string;
-	email: string;
-	created_at: string;
-	bio: string;
-	pfp: string;
-}
-
 export async function Authenticate(c: Context) {
 	// api.uaeu.chat/v2/user/authenticate
 	console.log(c);
@@ -19,8 +10,8 @@ export async function Authenticate(c: Context) {
 
 export async function getByUsername(c: Context) {
 	// api.uaeu.chat/v2/user/:username
-	const username = c.req.param('username');
 	const env: Env = c.env;
+	const username = c.req.param('username');
 
 	// This is likely impossible but yeah
 	if (username === '') throw new HTTPException(400, { res: new Response('No username defined', { status: 400 })})

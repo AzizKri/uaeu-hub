@@ -1,21 +1,10 @@
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
-type PostRow = {
-	id: number;
-	author: string;
-	content: string;
-	post_time: number;
-	displayname: string;
-	pfp: string;
-	like_count: number;
-	comment_count: number;
-}
-
 export async function getPostByID(c: Context) {
 	// api.uaeu.chat/v2/post/:id
-	const id: number = Number(c.req.param('id'));
 	const env: Env = c.env;
+	const id: number = Number(c.req.param('id'));
 
 	if (!id || id == 0) throw new HTTPException(400, { res: new Response('No post ID defined', { status: 400 }) });
 
@@ -44,8 +33,8 @@ export async function getPostByID(c: Context) {
 
 export async function getLatestPosts(c: Context) {
 	// api.uaeu.chat/v2/post/latest/:page
-	const page = c.req.param('page') ? Number(c.req.param('page')) : 0;
 	const env: Env = c.env;
+	const page = c.req.param('page') ? Number(c.req.param('page')) : 0;
 
 	try {
 		const results = await env.DB.prepare(
@@ -72,8 +61,8 @@ export async function getLatestPosts(c: Context) {
 
 export async function getPostsByUser(c: Context) {
 	// api.uaeu.chat/v2/post/user/:username/:page?
-	const { username, page } = c.req.param();
 	const env: Env = c.env;
+	const { username, page } = c.req.param();
 
 	try {
 		const results = await env.DB.prepare(
