@@ -5,16 +5,13 @@ import PostFooter from "../PostFooter/PostFooter.tsx";
 import Comment from "../Comment/Comment.tsx";
 import styles from "./post.module.scss";
 import {useEffect, useState} from "react";
-// import ReadOnlyEditor from "../ReadOnlyEditor/ReadOnlyEditor.tsx";
+import Editor from "../Editor/Editor.tsx";
 
 export default function Post({content, authorUsername, authorDisplayName, pfp, postDate}: PostInfo) {
     const [dateText, setDateText] = useState<string>("");
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
-    // example content later will come form database
-    // const editorContent: string = '{"root":{"children":[{"children":[{"text":"This is a post written in Lexical editor.","type":"text"}],"direction":"ltr","format":"paragraph","type":"paragraph"}],"type":"root"}}';
 
     useEffect(() => {
-        // console.log(postDate);
         const months: string[] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         const curDate = new Date();
@@ -58,10 +55,10 @@ export default function Post({content, authorUsername, authorDisplayName, pfp, p
                 <img src={postImage} alt="profile picture"/>
             </div>
             <PostFooter />
-            {/* TODO use spacy instead of an input */}
             <div className={styles.post__write_answer}>
-                <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />
-                <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>
+                <Editor placeholder="Write your comment" type="comment"/>
+            {/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}
+            {/*    <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>*/}
             </div>
             <Comment />
         </div>
