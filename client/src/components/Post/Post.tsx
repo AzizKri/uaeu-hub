@@ -56,7 +56,7 @@ export default function Post({content, authorUsername, authorDisplayName, pfp, p
             </div>
             <PostFooter />
             <div className={styles.post__write_answer}>
-                <Editor placeholder="Write your comment" type="comment"/>
+                <Editor type="comment"/>
             {/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}
             {/*    <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>*/}
             </div>

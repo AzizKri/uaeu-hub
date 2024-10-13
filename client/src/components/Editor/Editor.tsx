@@ -17,8 +17,7 @@ const initialConfig = {
         console.error(error);
     },
 };
-export default function Editor({placeholder, type}: {placeholder: string, type: string}): JSX.Element {
-    // const [editorState, setEditorState] = useState<EditorState | null>(null);
+export default function Editor({type}: {type: string}): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [imageURL, setImageURL] = useState<string | null>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
@@ -45,9 +44,9 @@ export default function Editor({placeholder, type}: {placeholder: string, type: 
 
         return null;
     }
+
     async function submitPost() {
-        console.log(plainText);
-        // TODO: not sure where the user will come from now and how to determine if it is a comment or a post
+        // TODO: not sure where the user will come from
         if (type === "post") {
             const author: string = "HussainElemam";
             const response = await createPost(author, plainText);
@@ -78,14 +77,21 @@ export default function Editor({placeholder, type}: {placeholder: string, type: 
             <LexicalComposer initialConfig={initialConfig}>
                 <div className={styles.editorInner}>
                     <RichTextPlugin
-                        contentEditable={<ContentEditable className={styles.editorInput}/>}
-                        placeholder={<div className={styles.editorPlaceholder}>{placeholder}...</div>}
+                        contentEditable={
+                            <ContentEditable className={styles.editorInput}/>
+                        }
+                        placeholder={
+                            <div className={styles.editorPlaceholder}>{
+                                type === "post" ? "Write you Question..." :
+                                type === "comment" ? "Write your comment..." :
+                                ""
+                            }
+                            </div>}
                         ErrorBoundary={LexicalErrorBoundary}
                     />
                 </div>
                 <EditorHelper />
                 <HistoryPlugin/>
-                {/*<OnChangePlugin onChange={(editorState: EditorState) => setEditorState(editorState)}/>*/}
             </LexicalComposer>
             {imageURL &&
                 <div className={styles.imagePreview}>
