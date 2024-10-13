@@ -110,7 +110,7 @@ export default function Editor({type}: {type: string}): JSX.Element {
                     <img src={typeof filePreview === 'string' ? filePreview : undefined} alt="uploaded image preview"/>
                     <div className={styles.changeImage} onClick={() => imageInputRef.current?.click()}>change</div>
                     <div className={styles.cancelImage} onClick={() => {
-                        // setImageURL(null);
+                        setFilePreview(null);
                     }}>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

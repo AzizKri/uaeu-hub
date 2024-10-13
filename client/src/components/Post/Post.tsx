@@ -1,66 +1,81 @@
-import "./post.module.scss"
-import profilePicture from "../../assets/profile-picture.png"
-import postImage from "../../assets/post-image.png"
-import PostFooter from "../PostFooter/PostFooter.tsx";
-import Comment from "../Comment/Comment.tsx";
-import styles from "./post.module.scss";
-import {useEffect, useState} from "react";
-import Editor from "../Editor/Editor.tsx";
+import './post.module.scss';
+import profilePicture from '../../assets/profile-picture.png';
+import postImage from '../../assets/post-image.png';
+import PostFooter from '../PostFooter/PostFooter.tsx';
+import Comment from '../Comment/Comment.tsx';
+import styles from './post.module.scss';
+import { ReactElement, useEffect, useState } from 'react';
+import Editor from '../Editor/Editor.tsx';
+import { getAttachmentDetails } from '../../api.ts';
 
-export default function Post({content, authorUsername, authorDisplayName, pfp, postDate}: PostInfo) {
-    const [dateText, setDateText] = useState<string>("");
-    const [showContent, setShowContent] = useState<boolean>(content.length < 300);
+export default function Post({ content, authorUsername, authorDisplayName, pfp, postDate, filename }: PostInfo) {
+	const [dateText, setDateText] = useState<string>('');
+	const [showContent, setShowContent] = useState<boolean>(content.length < 300);
+	const [attachment, setAttachment] = useState<ReactElement>(<img src={postImage} alt="profile picture" />);
 
-    useEffect(() => {
-        const months: string[] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	useEffect(() => {
+		const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        const curDate = new Date();
-        const diffInMs = curDate.getTime() - postDate.getTime();
-        const diffInSeconds = Math.floor(diffInMs / 1000);
-        const diffInMinutes = Math.floor(diffInSeconds / 60);
-        const diffInHours = Math.floor(diffInMinutes / 60);
+		const curDate = new Date();
+		const diffInMs = curDate.getTime() - postDate.getTime();
+		const diffInSeconds = Math.floor(diffInMs / 1000);
+		const diffInMinutes = Math.floor(diffInSeconds / 60);
+		const diffInHours = Math.floor(diffInMinutes / 60);
 
-        if (diffInSeconds < 60) {
-            setDateText(`${diffInSeconds} sec ago`);
-        } else if (diffInMinutes < 60) {
-            setDateText(`${diffInMinutes} min ago`);
-        } else if (diffInHours < 24) {
-            setDateText(`${diffInHours} hr ago`);
-        } else if (curDate.getFullYear() === postDate.getFullYear()) {
-            setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}`);
-        } else {
-            setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}, ${postDate.getFullYear()}`);
-        }
-    }, [postDate])
+		if (diffInSeconds < 60) {
+			setDateText(`${diffInSeconds} sec ago`);
+		} else if (diffInMinutes < 60) {
+			setDateText(`${diffInMinutes} min ago`);
+		} else if (diffInHours < 24) {
+			setDateText(`${diffInHours} hr ago`);
+		} else if (curDate.getFullYear() === postDate.getFullYear()) {
+			setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}`);
+		} else {
+			setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}, ${postDate.getFullYear()}`);
+		}
+	}, [postDate]);
 
-    return (
-        <div className={styles.post}>
-            <div className={styles.post__info_bar}>
-                <div className={styles.post__info_bar__profile_pict}>
-                     <img src={pfp == undefined? profilePicture : pfp}  alt="profile picture"/>
-                 </div>
-                <div className={styles.post__info_bar__name}>
-                    <div className={styles.post__info_bar__name__display_name}>{authorDisplayName}</div>
-                    <div className={styles.post__info_bar__name__user_name}>@{authorUsername}</div>
-                </div>
-                <span>•</span>
-                <div className={styles.post__info_bar__time}>{dateText}</div>
-            </div>
-            <div className={styles.post__content}>
-                {showContent ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
-                {showContent ? "" : <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
-            </div>
-            {/*<ReadOnlyEditor content={editorContent} />*/}
-            <div className={styles.post__image}>
-                <img src={postImage} alt="profile picture"/>
-            </div>
-            <PostFooter />
-            <div className={styles.post__write_answer}>
-                <Editor type="comment"/>
-            {/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}
-            {/*    <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>*/}
-            </div>
-            <Comment />
-        </div>
-    )
+	useEffect(() => {
+		if (filename) {
+			console.log(filename);
+			getAttachmentDetails(filename).then((res) => {
+				console.log(res)
+				if (res == 'image/png' || res == 'image/jpeg') {
+					console.log('image');
+					setAttachment(<img src={`https://cdn.uaeu.chat/attachments/${filename}`} alt="post attachment" />);
+				}
+			});
+		}
+	}, [filename]);
+
+	return (
+		<div className={styles.post}>
+			<div className={styles.post__info_bar}>
+				<div className={styles.post__info_bar__profile_pict}>
+					<img src={pfp == undefined ? profilePicture : pfp} alt="profile picture" />
+				</div>
+				<div className={styles.post__info_bar__name}>
+					<div className={styles.post__info_bar__name__display_name}>{authorDisplayName}</div>
+					<div className={styles.post__info_bar__name__user_name}>@{authorUsername}</div>
+				</div>
+				<span>•</span>
+				<div className={styles.post__info_bar__time}>{dateText}</div>
+			</div>
+			<div className={styles.post__content}>
+				{showContent ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
+				{showContent ? '' : <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
+			</div>
+			{/*<ReadOnlyEditor content={editorContent} />*/}
+			<div className={styles.post__image}>
+				{attachment}
+			</div>
+			<PostFooter />
+			<div className={styles.post__write_answer}>
+				<Editor type="comment" />
+				{/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}
+				{/*    <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>*/}
+			</div>
+			<Comment />
+		</div>
+	);
 }

@@ -19,6 +19,7 @@ export default function Home() {
                         authorDisplayName={post.displayname}
                         pfp={post.pfp}
                         postDate={new Date(post.post_time)}
+                        filename={post.attachment}
                     />
                 );
             }
