@@ -1,4 +1,14 @@
-const base = 'https://api.talente.dev';
+const base = 'https://api.uaeu.chat/';
+
+// api.uaeu.chat/user/anon
+// TODO generating anon sessions
+// export async function generateAnonSessionID() {
+// 	await fetch(base + `/user/anon`, { credentials: "include" })
+// 		.then(() => {localStorage.setItem('anon', 'true')})
+// 		.catch((e) => {
+// 		console.log(e);
+// 	});
+// }
 
 export async function getUserByUsername(username: string) {
 	const request = await fetch(base + `/user/${username}`);
@@ -12,17 +22,20 @@ export async function getLatestPosts(page?: number | null) {
 }
 
 // api.uaeu.chat/post/create
-export async function createPost(author: string | null, content: string) {
-	try {
-		const request = await fetch(base + `/post/create`, {
-			body: JSON.stringify({ author, content }),
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' }
-		});
-		return await request.json();
-	} catch (error) {
-		console.error("Failed to create post: ", error);
+export async function createPost(author: string, content: string, attachment?: File) {
+	const formData = new FormData();
+	formData.append('author', author);
+	formData.append('content', content);
+
+	if (attachment) {
+		formData.append('file', attachment);
 	}
+
+	const request = await fetch(base + `/post/create`, {
+		method: 'POST',
+		body: formData,
+	});
+	return await request.json();
 }
 
 // api.uaeu.chat/post/user/:username/:page
