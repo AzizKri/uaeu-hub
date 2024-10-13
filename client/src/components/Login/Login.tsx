@@ -17,7 +17,8 @@ export default function Login(){
     };
 
     return (
-        <div className={styles.loginContainer}>
+        <div className={styles.logInBody}>
+            <div className={styles.loginContainer}>
             <div className={styles.loginBox}>
                 <h2>Log In</h2>
                 <p>
@@ -568,9 +569,10 @@ export default function Login(){
                     </button>
                 </form>
                 <p>
-                    New to UAEU Chat? <a href="#">Sign Up</a>
+                    New to UAEU Chat? <a href="/signup">Sign Up</a>
                 </p>
             </div>
+        </div>
         </div>
     );
 };
