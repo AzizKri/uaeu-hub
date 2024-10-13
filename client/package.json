@@ -11,10 +11,11 @@
   },
   "dependencies": {
     "@lexical/react": "^0.17.1",
+    "dompurify": "^3.1.7",
     "lexical": "^0.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "sass": "^1.79.1"
+    "sass": "^1.79.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
