@@ -16,6 +16,7 @@ export default function SignUp(){
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // Handle form submission, validation logic here
         console.log(formData);
     };
 
