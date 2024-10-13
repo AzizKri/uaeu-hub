@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import user from './v2/routes/user';
 import post from './v2/routes/post';
-import attachment from './v2/routes/attachment';
 import v1 from './v1/index';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -14,7 +13,6 @@ app.use(cors({
 app.route('/v1', v1); // deprecated
 app.route('/user', user);
 app.route('/post', post);
-app.route('/attachment', attachment);
 
 // app.onError((c, err) => {
 // 	console.error(c, err);
