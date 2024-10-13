@@ -19,6 +19,7 @@ const initialConfig = {
 };
 export default function Editor({type}: {type: string}): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
+    const [file, setFile] = useState<File>();
     const [imageURL, setImageURL] = useState<string | null>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,8 +49,8 @@ export default function Editor({type}: {type: string}): JSX.Element {
     async function submitPost() {
         // TODO: not sure where the user will come from
         if (type === "post") {
-            const author: string = "HussainElemam";
-            const response = await createPost(author, plainText);
+            const author: string = "aziz";
+            const response = await createPost(author, plainText, file);
             console.log(response);
         } else if (type === "comment") {
             console.log("should send a comment - not implemented yet");
@@ -60,6 +61,9 @@ export default function Editor({type}: {type: string}): JSX.Element {
         event.preventDefault();
         const file = (event.target as HTMLInputElement).files?.[0];
         if (file) {
+            // TEMPORARY, USE submitPost() ONLY LATER
+            setFile(file);
+
             const formData = new FormData();
             formData.append("file", file);
             // TODO fitch data to actual database and take the url
