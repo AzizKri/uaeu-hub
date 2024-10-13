@@ -1,4 +1,5 @@
 const base = 'https://api.uaeu.chat';
+const cdn = 'https://cdn.uaeu.chat';
 
 // api.uaeu.chat/user/anon
 // TODO generating anon sessions
@@ -33,9 +34,9 @@ export async function createPost(author: string, content: string, attachment?: F
 
 	const request = await fetch(base + `/post/create`, {
 		method: 'POST',
-		body: formData,
+		body: formData
 	});
-	return await request.text();
+	return request.status;
 }
 
 // api.uaeu.chat/post/user/:username/:page
@@ -48,4 +49,10 @@ export async function getPostsByUser(username: string, page: number | null) {
 export async function getPostByID(id: number) {
 	const request = await fetch(base + `/post/${id}`);
 	return await request.json();
+}
+
+// api.uaeu.chat/attachment/:filename
+export async function getAttachmentDetails(filename: string) {
+	const request = await fetch(cdn + `/attachments/${filename}`, { method: 'HEAD' });
+	return request.headers.get('Content-Type');
 }
