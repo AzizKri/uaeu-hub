@@ -4,7 +4,6 @@ import {RichTextPlugin} from "@lexical/react/LexicalRichTextPlugin";
 import {ContentEditable} from "@lexical/react/LexicalContentEditable";
 import {LexicalErrorBoundary} from "@lexical/react/LexicalErrorBoundary";
 import {HistoryPlugin} from "@lexical/react/LexicalHistoryPlugin";
-// import {OnChangePlugin} from "@lexical/react/LexicalOnChangePlugin";
 import {$getRoot} from "lexical";
 import React, {useEffect, useRef, useState} from "react";
 import {createPost} from "../../api.ts";
@@ -19,8 +18,11 @@ const initialConfig = {
 };
 export default function Editor({type}: {type: string}): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
-    const [imageURL, setImageURL] = useState<string | null>(null);
+    // const [imageURL, setImageURL] = useState<string | null>(null);
+    const [filePreview, setFilePreview] = useState<string | ArrayBuffer | null>(null);
+    const [file, setFile] = useState<File | null>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
+    const editorContainerRef = useRef<HTMLDivElement | null>(null);
 
 
     const EditorHelper = () => {
@@ -45,11 +47,19 @@ export default function Editor({type}: {type: string}): JSX.Element {
         return null;
     }
 
+    useEffect(() => {
+        if (file || plainText) {
+            editorContainerRef.current?.classList.add(styles.focused);
+        } else{
+            editorContainerRef.current?.classList.remove(styles.focused);
+        }
+    }, [file, plainText]);
+
     async function submitPost() {
-        // TODO: not sure where the user will come from
+        // TODO: not sure where the user will come from yet
         if (type === "post") {
-            const author: string = "HussainElemam";
-            const response = await createPost(author, plainText);
+            const author: string = "hussain";
+            const response = await createPost(author, plainText, file);
             console.log(response);
         } else if (type === "comment") {
             console.log("should send a comment - not implemented yet");
@@ -60,19 +70,21 @@ export default function Editor({type}: {type: string}): JSX.Element {
         event.preventDefault();
         const file = (event.target as HTMLInputElement).files?.[0];
         if (file) {
-            const formData = new FormData();
-            formData.append("file", file);
-            // TODO fitch data to actual database and take the url
-            const newImageURL = URL.createObjectURL(file);
-            setImageURL(newImageURL)
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (typeof e.target?.result === "string") {
+                    setFilePreview(e.target.result);
+                }
+            }
+            reader.readAsDataURL(file);
+            setFile(file);
         }
     }
 
     return (
         <div
+            ref={editorContainerRef}
             className={styles.editorContainer}
-            onFocus={(e) => {e.currentTarget.classList.add(styles.focused)}}
-            onBlur={(e) => {if (plainText.length == 0) e.currentTarget.classList.remove(styles.focused)}}
         >
             <LexicalComposer initialConfig={initialConfig}>
                 <div className={styles.editorInner}>
@@ -93,11 +105,13 @@ export default function Editor({type}: {type: string}): JSX.Element {
                 <EditorHelper />
                 <HistoryPlugin/>
             </LexicalComposer>
-            {imageURL &&
+            {filePreview &&
                 <div className={styles.imagePreview}>
-                    <img src={imageURL} alt="uploaded image preview"/>
+                    <img src={typeof filePreview === 'string' ? filePreview : undefined} alt="uploaded image preview"/>
                     <div className={styles.changeImage} onClick={() => imageInputRef.current?.click()}>change</div>
-                    <div className={styles.cancelImage} onClick={() => setImageURL(null)}>
+                    <div className={styles.cancelImage} onClick={() => {
+                        // setImageURL(null);
+                    }}>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"
