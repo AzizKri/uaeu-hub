@@ -31,7 +31,7 @@ export async function searchPosts(query: string) {
 }
 
 // api.uaeu.chat/post/create
-export async function createPost(author: string, content: string, attachment?: File) {
+export async function createPost(author: string, content: string, attachment: File | null) {
 	const formData = new FormData();
 	formData.append('author', author);
 	formData.append('content', content);
