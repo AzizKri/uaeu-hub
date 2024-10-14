@@ -4,6 +4,7 @@
 
 .searchResult:hover {
   background-color: #efefef;
+  cursor: pointer;
 }
 
 /*# sourceMappingURL=SearchResult.module.css.map */

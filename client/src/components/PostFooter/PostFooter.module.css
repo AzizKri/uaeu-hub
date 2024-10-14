@@ -1,0 +1,31 @@
+.footer {
+  display: flex;
+  margin-top: 12px;
+  color: #595959;
+  justify-content: space-between;
+}
+.footer .footerLeft,
+.footer .footerRight {
+  display: flex;
+}
+.footer .footerButton {
+  display: flex;
+  align-items: center;
+  margin-right: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.footer .footerButton:hover {
+  background-color: #f3f3f3;
+}
+.footer .footerButton .buttonIcon {
+  padding-right: 4px;
+  color: rgba(0, 0, 0, 0.5);
+}
+.footer .footerButton .buttonNumber {
+  padding-left: 4px;
+}
+
+/*# sourceMappingURL=PostFooter.module.css.map */

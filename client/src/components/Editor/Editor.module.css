@@ -1,0 +1,82 @@
+.editorContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.editorContainer .editorInner {
+  position: relative;
+  width: 100%;
+}
+.editorContainer .editorInner .editorInput {
+  outline: none;
+}
+.editorContainer .editorInner .editorPlaceholder {
+  color: #999;
+  position: absolute;
+  top: 0;
+  left: 0;
+  user-select: none;
+  pointer-events: none;
+}
+.editorContainer .buttons {
+  display: flex;
+  padding: 2px;
+  align-self: flex-end;
+}
+.editorContainer .buttons .buttonIcon {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  margin-right: 6px;
+  border-radius: 9999px;
+  background-color: #f6f6f6;
+  cursor: pointer;
+}
+.editorContainer .buttons .buttonIcon svg {
+  width: 100%;
+  height: 100%;
+  color: #888888;
+}
+.editorContainer .buttons .postImageInput {
+  display: none;
+}
+.editorContainer .buttons :hover {
+  background-color: #fff0f0;
+}
+.editorContainer .imagePreview {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+.editorContainer .imagePreview > img {
+  width: 100%;
+}
+.editorContainer .imagePreview .changeImage, .editorContainer .imagePreview .cancelImage {
+  border-radius: 50px;
+  position: absolute;
+  background-color: rgba(23, 24, 43, 0.73);
+  top: 8px;
+  color: white;
+  display: flex;
+  cursor: pointer;
+}
+.editorContainer .imagePreview .changeImage:hover, .editorContainer .imagePreview .cancelImage:hover {
+  background-color: rgba(23, 24, 43, 0.5);
+}
+.editorContainer .imagePreview .changeImage {
+  left: 8px;
+  padding: 8px 15px;
+  font-weight: 600;
+}
+.editorContainer .imagePreview .cancelImage {
+  right: 8px;
+  padding: 8px;
+}
+
+.focused {
+  flex-direction: column;
+}
+
+/*# sourceMappingURL=Editor.module.css.map */

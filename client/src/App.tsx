@@ -1,6 +1,7 @@
 import NavBar from "./components/NavBar/NavBar.tsx";
 import "./styles/index.scss";
-import Home from "./components/Home/Home.tsx";
+import { Outlet } from "react-router-dom";
+// import Home from "./components/Home/Home.tsx";
 // import Post from "./components/Post/Post.tsx";
 
 function App() {
@@ -12,7 +13,7 @@ function App() {
                 </div>
 
                 <div className="middle">
-                    <Home />
+                    <Outlet />
                 </div>
                 <div className="right">
 

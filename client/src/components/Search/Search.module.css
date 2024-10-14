@@ -1,8 +1,8 @@
 .navbarSearch {
-  margin: 0.5rem;
   padding: 10px;
   height: 40px;
-  width: 350px;
+  width: 80%;
+  max-width: 350px;
   background-color: rgba(0, 0, 0, 0.1);
   color: rgba(0, 0, 0, 0.6);
   display: flex;
@@ -10,7 +10,7 @@
   border-radius: 50px;
   gap: 10px;
   justify-self: flex-end;
-  margin-right: 20px;
+  margin-inline: 20px;
 }
 .navbarSearch .navbarSearchInput {
   border: none;

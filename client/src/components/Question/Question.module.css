@@ -1,0 +1,85 @@
+.questionWrapper {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.question {
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+@media (max-width: 815px) {
+  .question {
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: solid 1px rgba(0, 0, 0, 0.075);
+    border-top: solid 1px rgba(0, 0, 0, 0.075);
+  }
+}
+.question .user {
+  padding-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #595959;
+  display: flex;
+  align-items: center;
+}
+.question .header {
+  font-size: 18px;
+  font-weight: 500;
+}
+.question .body {
+  padding-top: 4px;
+  padding-bottom: 8px;
+  color: gray;
+  font-weight: 0;
+}
+.question .footer {
+  display: flex;
+  margin-top: 12px;
+  color: #595959;
+  justify-content: space-between;
+}
+.question .footer .footerLeft,
+.question .footer .footerRight {
+  display: flex;
+}
+.question .footer .footerButton {
+  display: flex;
+  align-items: center;
+  color: #aaa;
+  margin-right: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.question .footer .footerButton:hover {
+  background-color: #f3f3f3;
+}
+.question .footer .footerButton .buttonIcon {
+  display: flex;
+  padding-right: 4px;
+  color: #aaa;
+}
+.question .footer .footerButton .buttonNumber {
+  padding-left: 4px;
+}
+.question:hover {
+  background-color: #fafafa;
+}
+
+@media screen and (max-width: 500px) {
+  .questionWrapper {
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  .buttonText {
+    display: none;
+  }
+}
+
+/*# sourceMappingURL=Question.module.css.map */
