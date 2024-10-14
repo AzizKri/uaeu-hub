@@ -23,6 +23,10 @@ declare global {
         Home,
         Questions
     }
+
+    interface UpdatePostsContestInterface {
+        updatePosts: () => void
+    }
 }
 
 export {};

@@ -24,7 +24,11 @@ export default function Editor({type}: {type: string}): JSX.Element {
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{clearEditorContent: () => void}>(null);
-    const {updatePosts} = useUpdatePosts();
+    const context = useUpdatePosts();
+    if (!context) {
+        throw new Error("useUpdatePosts must be used within a provider");
+    }
+    const {updatePosts} = context;
 
 
     const EditorHelper = forwardRef((_props, ref) => {

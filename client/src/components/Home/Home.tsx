@@ -4,7 +4,7 @@ import {getLatestPosts} from "../../api.ts";
 import React, {useEffect, useState, createContext, useContext} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
 
-const UpdatePostsContext = createContext<{updatePosts: () => void} | null>(null);
+const UpdatePostsContext = createContext<UpdatePostsContestInterface | null>(null);
 export default function Home() {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
     const updatePosts = () => {
