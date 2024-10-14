@@ -8,7 +8,7 @@ import { ReactElement, useEffect, useState } from 'react';
 import Editor from '../Editor/Editor.tsx';
 import { getAttachmentDetails } from '../../api.ts';
 
-export default function Post({ content, authorUsername, authorDisplayName, pfp, postDate, filename }: PostInfo) {
+export default function Post({ id, content, authorUsername, authorDisplayName, pfp, postDate, filename, likes, comments }: PostInfo) {
 	const [dateText, setDateText] = useState<string>('');
 	const [showContent, setShowContent] = useState<boolean>(content.length < 300);
 	const [attachment, setAttachment] = useState<ReactElement>(<img src={postImage} alt="profile picture" />);
@@ -69,7 +69,7 @@ export default function Post({ content, authorUsername, authorDisplayName, pfp, 
 			<div className={styles.post__image}>
 				{attachment}
 			</div>
-			<PostFooter />
+			<PostFooter id={id} likes={likes} comments={comments} />
 			<div className={styles.post__write_answer}>
 				<Editor type="comment" />
 				{/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}

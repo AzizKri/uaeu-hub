@@ -11,17 +11,15 @@ declare global {
     }
 
     interface PostInfo {
+        id: number,
         authorUsername: string,
         authorDisplayName: string,
         postDate: Date,
         content: string,
         pfp: string,
         filename?: string
-    }
-
-    enum Page {
-        Home,
-        Questions
+        likes: number,
+        comments: number
     }
 
     interface UpdatePostsContestInterface {

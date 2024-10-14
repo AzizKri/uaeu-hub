@@ -1,6 +1,9 @@
 import styles from './PostFooter.module.scss';
 
-export default function PostFooter() {
+export default function PostFooter({id, likes, comments}: {id: number, likes: number, comments: number}) {
+    async function sharePost() {
+        await navigator.clipboard.writeText(`https://uaeu.chat/post/${id}`);
+    }
     return (
         <div className={styles.footer}>
             <div className={styles.footerLeft}>
@@ -16,7 +19,7 @@ export default function PostFooter() {
                         </svg>
                     </div>
                     <div className={styles.buttonNumber}>
-                        <span>50</span>
+                        <span>{likes}</span>
                     </div>
                 </div>
                 <div className={styles.footerButton}>
@@ -31,12 +34,12 @@ export default function PostFooter() {
                         </svg>
                     </div>
                     <div className={styles.buttonNumber}>
-                        <span>15</span>
+                        <span>{comments}</span>
                     </div>
                 </div>
             </div>
             <div className={styles.footerRight}>
-                <div className={styles.footerButton}>
+                <div className={styles.footerButton} onClick={async () => {await sharePost()}}>
                     <div className={styles.buttonIcon}>
                         <svg xmlns="http://www.w3.org/2000/svg" height="1.4em" viewBox="0 -960 960 960"
                              width="1.4em"
