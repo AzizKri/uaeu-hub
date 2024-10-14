@@ -23,6 +23,7 @@ declare global {
     }
 
     interface UpdatePostsContestInterface {
+        posts: React.ReactElement[];
         updatePosts: () => void
     }
 }
