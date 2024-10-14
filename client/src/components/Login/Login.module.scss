@@ -93,7 +93,7 @@ label {
   display: block;
 }
 
-input {
+.formInput {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
@@ -102,23 +102,18 @@ input {
   margin-bottom: 5px;
 }
 
-input:focus {
+.formInput:focus {
   border-color: #0079d3;
   outline: none;
-}
-
-input:invalid {
-  border-color: red;
 }
 
 .error {
   color: red;
   font-size: 12px;
-  display: none;
+  margin-top: 5px;
 }
-
-input:invalid ~ .error {
-  display: block;
+.invalidInput {
+  border-color: red;
 }
 
 .forgotPassword {
