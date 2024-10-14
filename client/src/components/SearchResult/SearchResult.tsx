@@ -1,6 +1,7 @@
 import styles from './SearchResult.module.scss'
-export default function SearchResult({ result } : {result : string}){
+// @ts-ignore
+export default function SearchResult({ result }) {
     return (
-        <div className={styles.searchResult}>{result}</div>
+        <div className={styles.searchResult}>{result.content}</div>
     );
 }
