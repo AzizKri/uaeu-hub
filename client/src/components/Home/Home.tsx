@@ -4,7 +4,7 @@ import {getLatestPosts} from "../../api.ts";
 import React, {useEffect, useState, createContext, useContext} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
 
-const UpdatePostsContext = createContext<UpdatePostsContestInterface | null>(null);
+export const UpdatePostsContext = createContext<UpdatePostsContestInterface | null>(null);
 export default function Home() {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
     const updatePosts = () => {
@@ -45,4 +45,10 @@ export default function Home() {
 }
 
 // TODO: fix this later
-export const useUpdatePosts = () => useContext(UpdatePostsContext);
+export const useUpdatePosts = () => {
+    const context = useContext(UpdatePostsContext);
+    if (!context) {
+        throw new Error('useUpdatePosts must be used within a provider');
+    }
+    return context;
+};

@@ -8,6 +8,9 @@ import { ReactElement, useEffect, useState } from 'react';
 import Editor from '../Editor/Editor.tsx';
 import { getAttachmentDetails } from '../../api.ts';
 
+import {UpdatePostsContext} from '../Home/Home.tsx';
+import {useUpdatePosts} from "../Home/Home.tsx";
+
 export default function Post({ id, content, authorUsername, authorDisplayName, pfp, postDate, filename, likes, comments }: PostInfo) {
 	const [dateText, setDateText] = useState<string>('');
 	const [showContent, setShowContent] = useState<boolean>(content.length < 300);
@@ -49,33 +52,35 @@ export default function Post({ id, content, authorUsername, authorDisplayName, p
 	}, [filename]);
 
 	return (
-		<div className={styles.post}>
-			<div className={styles.post__info_bar}>
-				<div className={styles.post__info_bar__profile_pict}>
-					<img src={pfp == undefined ? profilePicture : pfp} alt="profile picture" />
+		<UpdatePostsContext.Provider value={{useUpdatePosts}}>
+			<div className={styles.post}>
+				<div className={styles.post__info_bar}>
+					<div className={styles.post__info_bar__profile_pict}>
+						<img src={pfp == undefined ? profilePicture : pfp} alt="profile picture" />
+					</div>
+					<div className={styles.post__info_bar__name}>
+						<div className={styles.post__info_bar__name__display_name}>{authorDisplayName}</div>
+						<div className={styles.post__info_bar__name__user_name}>@{authorUsername}</div>
+					</div>
+					<span>•</span>
+					<div className={styles.post__info_bar__time}>{dateText}</div>
 				</div>
-				<div className={styles.post__info_bar__name}>
-					<div className={styles.post__info_bar__name__display_name}>{authorDisplayName}</div>
-					<div className={styles.post__info_bar__name__user_name}>@{authorUsername}</div>
+				<div className={styles.post__content}>
+					{showContent ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
+					{showContent ? '' : <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
 				</div>
-				<span>•</span>
-				<div className={styles.post__info_bar__time}>{dateText}</div>
+				{/*<ReadOnlyEditor content={editorContent} />*/}
+				<div className={styles.post__image}>
+					{attachment}
+				</div>
+				<PostFooter id={id} likes={likes} comments={comments} />
+				<div className={styles.post__write_answer}>
+					<Editor type="comment" />
+					{/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}
+					{/*    <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>*/}
+				</div>
+				<Comment />
 			</div>
-			<div className={styles.post__content}>
-				{showContent ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
-				{showContent ? '' : <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
-			</div>
-			{/*<ReadOnlyEditor content={editorContent} />*/}
-			<div className={styles.post__image}>
-				{attachment}
-			</div>
-			<PostFooter id={id} likes={likes} comments={comments} />
-			<div className={styles.post__write_answer}>
-				<Editor type="comment" />
-				{/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}
-				{/*    <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>*/}
-			</div>
-			<Comment />
-		</div>
+		</UpdatePostsContext.Provider>
 	);
 }
