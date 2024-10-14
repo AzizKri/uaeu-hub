@@ -5,9 +5,10 @@ import {ContentEditable} from "@lexical/react/LexicalContentEditable";
 import {LexicalErrorBoundary} from "@lexical/react/LexicalErrorBoundary";
 import {HistoryPlugin} from "@lexical/react/LexicalHistoryPlugin";
 import {$getRoot} from "lexical";
-import React, {useEffect, useRef, useState} from "react";
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
 import {createPost} from "../../api.ts";
 import {useLexicalComposerContext} from "@lexical/react/LexicalComposerContext";
+import {useUpdatePosts} from "../Home/Home.tsx";
 
 const initialConfig = {
     namespace: 'MyEditor',
@@ -18,14 +19,15 @@ const initialConfig = {
 };
 export default function Editor({type}: {type: string}): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
-    // const [imageURL, setImageURL] = useState<string | null>(null);
     const [filePreview, setFilePreview] = useState<string | ArrayBuffer | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
+    const editorHelperRef = useRef<{clearEditorContent: () => void}>(null);
+    const {updatePosts} = useUpdatePosts();
 
 
-    const EditorHelper = () => {
+    const EditorHelper = forwardRef((_props, ref) => {
         const [editor] = useLexicalComposerContext();
 
         useEffect(() => {
@@ -44,8 +46,19 @@ export default function Editor({type}: {type: string}): JSX.Element {
             });
         }, [editor]);
 
+        const clearEditorContent = () => {
+            editor.update(() => {
+                const root = $getRoot();
+                root.clear();
+            });
+        };
+
+        useImperativeHandle(ref, () => ({
+            clearEditorContent,
+        }));
+
         return null;
-    }
+    });
 
     useEffect(() => {
         if (file || plainText) {
@@ -56,11 +69,16 @@ export default function Editor({type}: {type: string}): JSX.Element {
     }, [file, plainText]);
 
     async function submitPost() {
+        if (editorHelperRef.current) {
+            editorHelperRef.current.clearEditorContent();
+        }
+        setFilePreview(null);
         // TODO: not sure where the user will come from yet
         if (type === "post") {
             const author: string = "hussain";
             const response = await createPost(author, plainText, file);
             console.log(response);
+            updatePosts();
         } else if (type === "comment") {
             console.log("should send a comment - not implemented yet");
         }
@@ -102,7 +120,7 @@ export default function Editor({type}: {type: string}): JSX.Element {
                         ErrorBoundary={LexicalErrorBoundary}
                     />
                 </div>
-                <EditorHelper />
+                <EditorHelper ref={editorHelperRef}/>
                 <HistoryPlugin/>
             </LexicalComposer>
             {filePreview &&
