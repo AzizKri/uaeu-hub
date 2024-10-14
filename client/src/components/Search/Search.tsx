@@ -1,21 +1,17 @@
 import styles from './Search.module.scss'
 import {useState} from "react";
 import SearchResultsList from "../SearchResultsList/SearchResultsList.tsx";
+import {searchPosts} from "../../api.ts";
+
 
 export default function Search() {
     const [input, setInput] = useState<string>("");
     const [results, setResults] = useState<Res[]>([]);
 
-    const fetchData = (value: string)=>{
-        fetch("https://jsonplaceholder.typicode.com/posts")
-            .then((response) => response.json())
-            .then((json) => {
-                const results = json.filter((post: Res) => {
-                    return value && post && post.title && post.title.toLowerCase().includes(value.toLowerCase())
-                });
-                setResults(results);
-            });
-        console.log(results)
+    const fetchData = (value: string) => {
+        searchPosts(value).then((res) => {
+            setResults(res.results);
+        })
     }
 
     const handleChange = (value:string) =>{
