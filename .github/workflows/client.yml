@@ -1,0 +1,26 @@
+name: Frontend Build Check
+
+on:
+    push:
+    pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up env
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ./client
+        run: npm install
+
+      - name: Run build
+        working-directory: ./client
+        run: npm run build
