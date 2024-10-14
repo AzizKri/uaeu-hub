@@ -1,13 +1,13 @@
 import styles from "./Home.module.scss";
 import Post from "../Post/Post.tsx";
 import {getLatestPosts} from "../../api.ts";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, createContext, useContext} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
 
+const UpdatePostsContext = createContext<{updatePosts: () => void} | null>(null);
 export default function Home() {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
-
-    useEffect(() => {
+    const updatePosts = () => {
         getLatestPosts().then((res) => {
             const fetchedPosts = []
             for (const post of res.results) {
@@ -25,16 +25,21 @@ export default function Home() {
             }
             setPosts(fetchedPosts);
         })
-    }, [])
+    }
+
+    useEffect(updatePosts);
 
     return (
-        <>
+        <UpdatePostsContext.Provider value={{updatePosts}}>
             <WritePost />
             <div className={styles.questionsRecent}>
                 <h3>Recent Questions</h3>
                 <span>20 new questions</span>
             </div>
             {posts}
-        </>
+        </UpdatePostsContext.Provider>
     )
 }
+
+// TODO: fix this later
+export const useUpdatePosts = () => useContext(UpdatePostsContext);
