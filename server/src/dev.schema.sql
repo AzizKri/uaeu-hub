@@ -65,3 +65,23 @@ CREATE TABLE IF NOT EXISTS comment_likes
 	FOREIGN KEY (comment_id) REFERENCES comment (id) ON DELETE CASCADE,
 	FOREIGN KEY (username) REFERENCES user (username) ON DELETE CASCADE
 );
+
+CREATE VIRTUAL TABLE posts_fts USING fts5
+(
+	content,
+	author,
+	tokenize = 'porter'
+);
+
+INSERT INTO posts_fts(rowid, content, author)
+SELECT id, content, author
+FROM post;
+
+-- Run triggers on CF D1 console
+CREATE TRIGGER post_created
+	AFTER INSERT
+	ON post
+BEGIN
+	INSERT INTO posts_fts(rowid, content, author)
+	VALUES (new.id, new.content, new.author);
+END;

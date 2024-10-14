@@ -16,9 +16,17 @@ export async function getUserByUsername(username: string) {
 	return await request.json();
 }
 
+// POSTS
+
 // api.uaeu.chat/post/latest/:page
 export async function getLatestPosts(page?: number | null) {
 	const request = await fetch(base + `/post/latest/${page || 0}`);
+	return await request.json();
+}
+
+// api.uaeu.chat/post/search/:query
+export async function searchPosts(query: string) {
+	const request = await fetch(base + `/post/search/${query}`);
 	return await request.json();
 }
 
