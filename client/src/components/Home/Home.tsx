@@ -14,12 +14,15 @@ export default function Home() {
                 fetchedPosts.push(
                     <Post
                         key={post.id}
+                      	id={post.id}
                         content={post.content}
                         authorUsername={post.author}
                         authorDisplayName={post.displayname}
                         pfp={post.pfp}
                         postDate={new Date(post.post_time)}
                         filename={post.attachment}
+                        likes={post.like_count}
+                        comments={post.comment_count}
                     />
                 );
             }
@@ -27,7 +30,7 @@ export default function Home() {
         })
     }
 
-    useEffect(updatePosts);
+    useEffect(updatePosts, []);
 
     return (
         <UpdatePostsContext.Provider value={{updatePosts}}>
