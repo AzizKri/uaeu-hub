@@ -10,8 +10,8 @@ const app = new Hono<{ Bindings: Env }>();
 app.get('/latest/:page?', (c) => getLatestPosts(c));						// api.uaeu.chat/post/latest/:page
 app.get('/search/:query', (c) => searchPosts(c));								// api.uaeu.chat/post/search/:query
 app.post('/create', (c) => createPost(c), bodyLimit({						// api.uaeu.chat/post/create
-	maxSize: 10 * 1024 * 1024,
-	onError: (c) => c.text('File too large', 400)
+    maxSize: 10 * 1024 * 1024,
+    onError: (c) => c.text('File too large', 400)
 }));
 app.get('/user/:username/:page?', (c) => getPostsByUser(c));		// api.uaeu.chat/post/user/:username/:page
 app.get('/:id', (c) => getPostByID(c));													// api.uaeu.chat/post/:id
