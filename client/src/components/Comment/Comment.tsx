@@ -1,12 +1,12 @@
-import profilePict from '../../assets/profile-picture.png'
-import "./comment.module.scss"
-import styles from "./comment.module.scss"
+import profilePict from '../../assets/profile-picture.png';
+import './comment.module.scss';
+import styles from './comment.module.scss';
 
 export default function Comment() {
     return (
         <div className={styles.comment}>
             <div className={styles.comment__profile_pict}>
-                <img src={profilePict} alt="profile picture"/>
+                <img src={profilePict} alt="profile picture" />
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
@@ -38,12 +38,12 @@ export default function Comment() {
                         <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
                              fill="#5f6368">
                             <path
-                                d="M80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/>
+                                d="M80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z" />
                         </svg>
                         <span>reply</span>
                     </button>
                 </div>
             </div>
         </div>
-    )
+    );
 }
