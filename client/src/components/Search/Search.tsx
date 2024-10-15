@@ -6,7 +6,7 @@ import { searchPosts } from '../../api.ts';
 
 export default function Search() {
     const [input, setInput] = useState<string>('');
-    const [results, setResults] = useState<Res[]>([]);
+    const [results, setResults] = useState<SearchResult[]>([]);
 
     const fetchData = (value: string) => {
         searchPosts(value).then((res) => {

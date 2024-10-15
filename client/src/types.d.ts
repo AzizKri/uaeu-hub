@@ -1,13 +1,11 @@
 declare global {
-    interface Res {
-        userId: number;
+    interface SearchResult {
         id: number;
-        title: string;
-        body: string;
-    }
-
-    interface ResList {
-        results: Res[];
+        author: string;
+        content: string;
+        post_time: number;
+        attachment: string | null;
+        rank: number;
     }
 
     interface PostInfo {
