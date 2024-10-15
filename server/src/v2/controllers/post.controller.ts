@@ -7,6 +7,8 @@ export async function searchPosts(c: Context) {
     const env: Env = c.env;
     const query = c.req.param('query');
 
+    if (!query || query.length < 3) throw new HTTPException(400, { res: new Response('Query too short', { status: 400 }) });
+
     try {
         const results = await env.DB.prepare(
             `SELECT post.*, bm25(posts_fts, 1.0, 0.75) AS rank
@@ -15,7 +17,7 @@ export async function searchPosts(c: Context) {
              WHERE posts_fts MATCH ?
              ORDER BY rank DESC
              LIMIT 10`
-        ).bind(query).all<PostRow>();
+        ).bind(query?.concat('*')).all<PostRow>();
 
         return Response.json(results);
     } catch (e) {

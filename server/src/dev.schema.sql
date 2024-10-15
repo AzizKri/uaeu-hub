@@ -66,11 +66,13 @@ CREATE TABLE IF NOT EXISTS comment_likes
     FOREIGN KEY (username) REFERENCES user (username) ON DELETE CASCADE
 );
 
+DROP TABLE posts_fts;
 CREATE VIRTUAL TABLE posts_fts USING fts5
 (
     content,
     author,
-    tokenize = 'porter'
+    tokenize = 'porter',
+    prefix = '2 3 4'
 );
 
 INSERT INTO posts_fts(rowid, content, author)
@@ -78,10 +80,20 @@ SELECT id, content, author
 FROM post;
 
 -- Run triggers on CF D1 console
+DROP TRIGGER post_created;
 CREATE TRIGGER post_created
     AFTER INSERT
     ON post
 BEGIN
     INSERT INTO posts_fts(rowid, content, author)
     VALUES (new.id, new.content, new.author);
+END;
+
+CREATE TRIGGER post_deleted
+    AFTER DELETE
+    ON post
+BEGIN
+    DELETE
+    FROM posts_fts
+    WHERE rowid = old.id;
 END;

@@ -27,6 +27,9 @@ export async function getLatestPosts(page?: number | null) {
 // api.uaeu.chat/post/search/:query
 export async function searchPosts(query: string) {
     const request = await fetch(base + `/post/search/${query}`);
+    if (request.status === 400) {
+        return { results: [] };
+    }
     return await request.json();
 }
 /* returns
