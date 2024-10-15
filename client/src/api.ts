@@ -29,6 +29,21 @@ export async function searchPosts(query: string) {
     const request = await fetch(base + `/post/search/${query}`);
     return await request.json();
 }
+/* returns
+* {
+*   ...
+*   "results": [
+*      {
+*           "id": number,
+*           "author": string,
+*           "content": string,
+*           "post_time": number,
+*           "attachment": string | null,
+*           "rank": float
+*       }
+*   ]
+* }
+* */
 
 // api.uaeu.chat/post/create
 export async function createPost(author: string, content: string, attachment: File | null) {
