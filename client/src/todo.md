@@ -10,22 +10,23 @@
 # Logged in & Anon users
 
 Logged-in users can:
-    - Write questions
-    - Write answers
-    - See their previous questions
-    - Like (Q/A) and Dislike (answers only)
-    - Have badges & appear in leaderboards
-    - Report messages
+- Write questions
+- Write answers
+- See their previous questions
+- Like (Q/A) and Dislike (answers only)
+- Have badges & appear in leaderboards
+- Report messages
 
 Anon users:
-    - Can write questions
-    - Can't write questions
-    - Can't see their previous questions
-    - Can't like/Dislike
-    - Can't have badges & appear in leaderboards
-    - Can't report messages
+- Can write questions
+- Can't write questions
+- Can't see their previous questions
+- Can't like/Dislike
+- Can't have badges & appear in leaderboards
+- Can't report messages
 
 # Possible domains
+
 - ⭐ uaeu.chat
 - uaeu.place
 - uaeu.life

@@ -1,17 +1,17 @@
 .resultsList {
-  max-height: 400px;
-  width: 350px;
-  background-color: white;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0px 0px 8px #ddd;
-  border-radius: 10px;
-  overflow-y: auto;
-  position: absolute;
-  top: 60px;
-  right: 20px;
+    max-height: 400px;
+    width: 350px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 8px #ddd;
+    border-radius: 10px;
+    overflow-y: auto;
+    position: absolute;
+    top: 60px;
+    right: 20px;
 }
 
-.hidden{
-  display: none;
+.hidden {
+    display: none;
 }
