@@ -4,9 +4,9 @@ import postImage from '../../assets/post-image.png';
 import PostFooter from '../PostFooter/PostFooter.tsx';
 import Comment from '../Comment/Comment.tsx';
 import styles from './post.module.scss';
-import { ReactElement, useEffect, useState } from 'react';
+import {ReactElement, useEffect, useState} from 'react';
 import Editor from '../Editor/Editor.tsx';
-import { getAttachmentDetails } from '../../api.ts';
+import {getAttachmentDetails} from '../../api.ts';
 
 export default function Post({
                                  id,
@@ -21,7 +21,7 @@ export default function Post({
                              }: PostInfo) {
     const [dateText, setDateText] = useState<string>('');
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
-    const [attachment, setAttachment] = useState<ReactElement>(<img src={postImage} alt="profile picture" />);
+    const [attachment, setAttachment] = useState<ReactElement>(<img src={postImage} alt="profile picture"/>);
 
     useEffect(() => {
         const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -47,12 +47,9 @@ export default function Post({
 
     useEffect(() => {
         if (filename) {
-            console.log(filename);
             getAttachmentDetails(filename).then((res) => {
-                console.log(res);
                 if (res == 'image/png' || res == 'image/jpeg') {
-                    console.log('image');
-                    setAttachment(<img src={`https://cdn.uaeu.chat/attachments/${filename}`} alt="post attachment" />);
+                    setAttachment(<img src={`https://cdn.uaeu.chat/attachments/${filename}`} alt="post attachment"/>);
                 }
             });
         }
@@ -62,7 +59,7 @@ export default function Post({
         <div className={styles.post}>
             <div className={styles.post__info_bar}>
                 <div className={styles.post__info_bar__profile_pict}>
-                    <img src={pfp == undefined ? profilePicture : pfp} alt="profile picture" />
+                    <img src={pfp == undefined ? profilePicture : pfp} alt="profile picture"/>
                 </div>
                 <div className={styles.post__info_bar__name}>
                     <div className={styles.post__info_bar__name__display_name}>{authorDisplayName}</div>
@@ -80,13 +77,11 @@ export default function Post({
             <div className={styles.post__image}>
                 {attachment}
             </div>
-            <PostFooter id={id} likes={likes} comments={comments} />
+            <PostFooter id={id} likes={likes} comments={comments}/>
             <div className={styles.post__write_answer}>
-                <Editor type="comment" />
-                {/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}
-                {/*    <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>*/}
+                <Editor type="comment"/>
             </div>
-            <Comment />
+            <Comment/>
         </div>
     );
 }

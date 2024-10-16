@@ -1,26 +1,19 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 .signUpBody {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 
-.signContainer {
+  .signContainer {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
-}
+  }
 
-.signBox {
+  .signBox {
     background-color: white;
     padding: 40px;
     border-radius: 25px;
@@ -28,31 +21,31 @@
     max-width: 475px;
     width: 100%;
     text-align: center;
-}
+  }
 
-h2 {
+  h2 {
     margin-bottom: 20px;
-}
+  }
 
-p {
+  p {
     color: #606060;
     font-size: 14px;
     margin-bottom: 20px;
-}
+  }
 
-a {
+  a {
     color: #0079d3;
     text-decoration: none;
-}
+  }
 
-.socialSign {
+  .socialSign {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin-bottom: 20px;
-}
+  }
 
-.socialBtn {
+  .socialBtn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -64,72 +57,72 @@ a {
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s;
-}
+  }
 
-.socialBtn:hover {
+  .socialBtn:hover {
     background-color: #e9e9e9;
-}
+  }
 
-.separator {
+  .separator {
     margin: 20px 0;
     font-size: 14px;
     color: #a1a1a1;
-}
+  }
 
-.signForm {
+  .signForm {
     display: flex;
     flex-direction: column;
-}
+  }
 
-.formGroup {
+  .formGroup {
     margin-bottom: 15px;
     position: relative;
     text-align: left;
-}
+  }
 
-.nameContainer {
+  .nameContainer{
     display: flex;
     gap: 20px;
-}
+  }
 
-label {
+  label {
     font-size: 14px;
     margin-bottom: 5px;
     display: block;
-}
+  }
 
-.formInput {
+  .formInput {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 20px;
     font-size: 16px;
     margin-bottom: 5px;
-}
+  }
 
-.formInput:focus {
+  .formInput:focus {
     border-color: #0079d3;
     outline: none;
-}
+  }
 
-.invalidInput {
+  .invalidInput {
     border-color: red;
-}
+  }
 
-.error {
+  .error {
     color: red;
     font-size: 12px;
-}
+  }
 
 
-.forgotPassword {
+  .forgotPassword {
     font-size: 14px;
     color: #0079d3;
     text-align: left;
     margin-bottom: 20px;
-}
+  }
 
-.signupBtn {
+  .signupBtn {
     background-color: rgb(215, 66, 12);
     color: white;
     border: none;
@@ -139,8 +132,10 @@ label {
     cursor: pointer;
     transition: background-color 0.3s;
     margin-bottom: 20px;
+  }
+
+  .signupBtn:hover {
+    background-color: rgb(157, 48, 8);
+  }
 }
 
-.signupBtn:hover {
-    background-color: rgb(157, 48, 8);
-}

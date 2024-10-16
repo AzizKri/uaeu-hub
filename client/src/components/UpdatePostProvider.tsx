@@ -1,14 +1,14 @@
-import React, { createContext, useContext, useState } from 'react';
-import { getLatestPosts } from '../api.ts';
-import Post from './Post/Post.tsx';
+import React, {createContext, useState} from "react";
+import {getLatestPosts} from "../api.ts";
+import Post from "./Post/Post.tsx";
 
 export const UpdatePostsContext = createContext<UpdatePostsContestInterface | null>(null);
 
-export const UpdatePostProvider = ({ children }: { children: React.ReactNode }) => {
+export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
     const updatePosts = () => {
         getLatestPosts().then((res) => {
-            const fetchedPosts = [];
+            const fetchedPosts = []
             for (const post of res.results) {
                 fetchedPosts.push(
                     <Post
@@ -26,21 +26,13 @@ export const UpdatePostProvider = ({ children }: { children: React.ReactNode }) 
                 );
             }
             setPosts(fetchedPosts);
-        });
-    };
+        })
+    }
 
     return (
-        <UpdatePostsContext.Provider value={{ posts, updatePosts }}>
+        <UpdatePostsContext.Provider value={{posts, updatePosts}}>
             {children}
         </UpdatePostsContext.Provider>
-    );
-};
+    )
+}
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const useUpdatePosts = () => {
-    const context = useContext(UpdatePostsContext);
-    if (!context) {
-        throw new Error('useUpdatePosts must be used within a provider');
-    }
-    return context;
-};
