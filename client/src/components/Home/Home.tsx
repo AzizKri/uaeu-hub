@@ -1,9 +1,8 @@
 import styles from "./Home.module.scss";
-import {useEffect, createContext} from "react";
+import {useEffect} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
 import {useUpdatePosts} from "../../usePostProvider.ts";
 
-export const UpdatePostsContext = createContext<UpdatePostsContestInterface | null>(null);
 export default function Home() {
 
     const context = useUpdatePosts();
@@ -21,7 +20,6 @@ export default function Home() {
                 <span>20 new questions</span>
             </div>
             {posts}
-
         </>
     )
 }
