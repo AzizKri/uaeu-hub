@@ -1,4 +1,4 @@
-import {Hono} from "hono";
+import { Hono } from 'hono';
 import { Authenticate, getByUsername } from '../controllers/user.controller';
 
 const app = new Hono<{ Bindings: Env }>();

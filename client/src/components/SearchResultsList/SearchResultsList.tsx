@@ -1,8 +1,8 @@
 import styles from './SearchResultsList.module.scss';
-import SearchResult from "../SearchResult/SearchResult.tsx";
-import {useEffect, useState} from "react";
+import SearchResult from '../SearchResult/SearchResult.tsx';
+import { useEffect, useState } from 'react';
 
-export default function SearchResultsList({results } :  ResList ){
+export default function SearchResultsList({ results }: { results: SearchResult[] }) {
 
     const [isVisible, setIsVisible] = useState(true);
 

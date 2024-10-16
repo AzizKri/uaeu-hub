@@ -1,66 +1,75 @@
 @import "../../styles/index.scss";
+
 .comment {
-  display: flex;
-  gap: 5px;
+    display: flex;
+    gap: 5px;
 
-  &__profile_pict {
-    width: 80px;
+    &__profile_pict {
+        width: 80px;
 
-    img {
-      width: 100%;
+        img {
+            width: 100%;
+        }
     }
-  }
-  &__content {
 
-    &__header {
-      display: flex;
-      align-items: center;
+    &__content {
 
-      &__display_name {
-        font-size: 0.8rem;
-        font-weight: bold;
-      }
-      span {
-        margin-inline: 5px;
-      }
+        &__header {
+            display: flex;
+            align-items: center;
 
-      &__time {
-        font-size: 0.7rem;
-      }
+            &__display_name {
+                font-size: 0.8rem;
+                font-weight: bold;
+            }
+
+            span {
+                margin-inline: 5px;
+            }
+
+            &__time {
+                font-size: 0.7rem;
+            }
+        }
+
+        &__text {
+            font-size: 0.8rem;
+        }
+
+        &__footer {
+            display: flex;
+            align-items: center;
+            padding-block: 5px;
+            gap: 5px;
+            font-size: 12px;
+
+            &__votes {
+
+            }
+
+            &__reply {
+                display: flex;
+                align-items: center;
+                padding: 5px 10px;
+                gap: 5px;
+                border-radius: 50px;
+
+            }
+
+            .vote_icon {
+                border-radius: 50%;
+                padding: 8px;
+                aspect-ratio: 1;
+                height: 100%;
+            }
+
+            button:hover {
+                transition: background-color 0.2s;
+            }
+        }
     }
-    &__text {
-      font-size: 0.8rem;
-    }
-    &__footer {
-      display: flex;
-      align-items: center;
-      padding-block: 5px;
-      gap: 5px;
-      font-size: 12px;
-
-      &__votes {
-
-      }
-      &__reply {
-        display: flex;
-        align-items: center;
-        padding: 5px 10px;
-        gap: 5px;
-        border-radius: 50px;
-
-      }
-      .vote_icon {
-        border-radius: 50%;
-        padding: 8px;
-        aspect-ratio: 1;
-        height: 100%;
-      }
-      button:hover {
-        transition: background-color 0.2s;
-      }
-    }
-  }
 }
+
 .btn_hover:hover {
-  background-color: #f1883e;
+    background-color: #f1883e;
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom'; // To access the postId from the URL
 import Post from './Post';
-import {getPostByID} from "../../api.ts"; // Assuming you already have a Post component
+import { getPostByID } from '../../api.ts'; // Assuming you already have a Post component
 
 export default function PostPage() {
     const { postId } = useParams<{ postId: string }>(); // Get the postId from the URL
