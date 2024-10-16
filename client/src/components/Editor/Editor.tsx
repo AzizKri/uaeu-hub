@@ -8,7 +8,7 @@ import {$getRoot} from "lexical";
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
 import {createPost} from "../../api.ts";
 import {useLexicalComposerContext} from "@lexical/react/LexicalComposerContext";
-import {useUpdatePosts} from "../UpdatePostProvider.tsx";
+import {useUpdatePosts} from "../../usePostProvider.ts";
 
 const initialConfig = {
     namespace: 'MyEditor',

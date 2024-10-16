@@ -47,11 +47,8 @@ export default function Post({
 
     useEffect(() => {
         if (filename) {
-            console.log(filename);
             getAttachmentDetails(filename).then((res) => {
-                console.log(res)
                 if (res == 'image/png' || res == 'image/jpeg') {
-                    console.log('image');
                     setAttachment(<img src={`https://cdn.uaeu.chat/attachments/${filename}`} alt="post attachment"/>);
                 }
             });
@@ -83,8 +80,6 @@ export default function Post({
             <PostFooter id={id} likes={likes} comments={comments}/>
             <div className={styles.post__write_answer}>
                 <Editor type="comment"/>
-                {/*    <input className={styles.post__write_answer__input} type="text" placeholder="Write your answer" />*/}
-                {/*    <button className={`${styles.post__write_answer__post} ${styles.btn_hover}`}>Post</button>*/}
             </div>
             <Comment/>
         </div>

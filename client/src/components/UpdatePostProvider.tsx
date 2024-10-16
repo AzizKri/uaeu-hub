@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState} from "react";
+import React, {createContext, useState} from "react";
 import {getLatestPosts} from "../api.ts";
 import Post from "./Post/Post.tsx";
 
@@ -36,11 +36,3 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
     )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const useUpdatePosts = () => {
-    const context = useContext(UpdatePostsContext);
-    if (!context) {
-        throw new Error('useUpdatePosts must be used within a provider');
-    }
-    return context;
-};
