@@ -48,6 +48,40 @@ export async function searchPosts(query: string) {
 * }
 * */
 
+// api.uaeu.chat/attachment
+export async function uploadAttachment(attachment: File) {
+    const formData = new FormData();
+    formData.append('file', attachment);
+
+    const request = await fetch(base + `/attachment`, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (request.status === 201) {
+        return await request.text();
+    } else {
+        return request.status;
+    }
+}
+
+// api.uaeu.chat/post
+export async function createPostNew(author: string, content: string, attachment: File | null) {
+    const formData = new FormData();
+    formData.append('author', author);
+    formData.append('content', content);
+
+    if (attachment) {
+        formData.append('file', attachment);
+    }
+
+    const request = await fetch(base + `/post`, {
+        method: 'POST',
+        body: formData
+    });
+    return request.status;
+}
+
 // api.uaeu.chat/post/create
 export async function createPost(author: string, content: string, attachment: File | null) {
     const formData = new FormData();
