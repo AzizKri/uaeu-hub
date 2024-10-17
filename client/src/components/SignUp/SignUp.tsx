@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './SignUp.module.scss';
+import styles from '../Forms.module.scss';
 
 export default function SignUp() {
     const [formData, setFormData] = useState({
@@ -80,15 +80,15 @@ export default function SignUp() {
     };
 
     return (
-        <div className={styles.signUpBody}>
-            <div className={styles.signContainer}>
-                <div className={styles.signBox}>
-                    <h2>Sign Up</h2>
-                    <p>
-                        By continuing, you agree to our <a href="#">User Agreement</a> and acknowledge that you
-                        understand the <a href="#">Privacy Policy</a>.
+        <div className={styles.formBody}>
+            <div className={styles.formContainer}>
+                <div className={styles.formBox}>
+                    <h2 className={styles.subTitle}>Sign Up</h2>
+                    <p className={styles.textParagraph}>
+                        By continuing, you agree to our <a href="#" className={styles.formLink}>User Agreement</a> and acknowledge that you
+                        understand the <a href="#" className={styles.formLink}>Privacy Policy</a>.
                     </p>
-                    <div className={styles.socialSign}>
+                    <div className={styles.socialForm}>
                         <button className={styles.socialBtn}>
                             <svg className="custom-icon" xmlns="http://www.w3.org/2000/svg" width="25" height="25"
                                  preserveAspectRatio="xMidYMid" viewBox="0 0 256 262" id="google">
@@ -105,10 +105,10 @@ export default function SignUp() {
                         </button>
                     </div>
                     <div className={styles.separator}>OR</div>
-                    <form className={styles.signForm} onSubmit={handleSubmit} noValidate>
+                    <form className={styles.form} onSubmit={handleSubmit} noValidate>
                         <div className={styles.nameContainer}>
                             <div className={styles.formGroup}>
-                                <label htmlFor="firstName">First Name<span>*</span></label>
+                                <label htmlFor="firstName" className={styles.formLabel}>First Name<span>*</span></label>
                                 <input
                                     type="text"
                                     id="firstName"
@@ -122,7 +122,7 @@ export default function SignUp() {
                                     <small className={styles.error}>Please fill out this field.</small>}
                             </div>
                             <div className={styles.formGroup}>
-                                <label htmlFor="lastName">Last Name<span>*</span></label>
+                                <label htmlFor="lastName" className={styles.formLabel}>Last Name<span>*</span></label>
                                 <input
                                     type="text"
                                     className={`${styles.formInput} ${errors.lastName ? styles.invalidInput : ''}`}
@@ -136,7 +136,7 @@ export default function SignUp() {
                             </div>
                         </div>
                         <div className={styles.formGroup}>
-                            <label htmlFor="email">Email<span>*</span></label>
+                            <label htmlFor="email" className={styles.formLabel}>Email<span>*</span></label>
                             <input
                                 type="text"
                                 className={`${styles.formInput} ${errors.email ? styles.invalidInput : ''}`}
@@ -149,7 +149,7 @@ export default function SignUp() {
                             {errors.email && <small className={styles.error}>Please fill out this field.</small>}
                         </div>
                         <div className={styles.formGroup}>
-                            <label htmlFor="userName">Username<span>*</span></label>
+                            <label htmlFor="userName" className={styles.formLabel}>Username<span>*</span></label>
                             <input
                                 type="text"
                                 className={`${styles.formInput} ${errors.userName ? styles.invalidInput : ''}`}
@@ -162,7 +162,7 @@ export default function SignUp() {
                             {errors.userName && <small className={styles.error}>Please fill out this field.</small>}
                         </div>
                         <div className={styles.formGroup}>
-                            <label htmlFor="password">Password<span>*</span></label>
+                            <label htmlFor="password" className={styles.formLabel}>Password<span>*</span></label>
                             <input
                                 type="password"
                                 className={`${styles.formInput} ${errors.password ? styles.invalidInput : ''}`}
@@ -174,9 +174,9 @@ export default function SignUp() {
                             />
                             {errors.password && <small className={styles.error}>Please fill out this field.</small>}
                         </div>
-                        <button type="submit" className={styles.signupBtn}>Sign up</button>
+                        <button type="submit" className={styles.formBtn}>Sign up</button>
                     </form>
-                    <p>Already a member? <a href="/login">Login</a></p>
+                    <p className={styles.textParagraph}>Already a member? <a href="/login" className={styles.formLink}>Login</a></p>
                 </div>
             </div>
         </div>
