@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from './Login.module.scss';
+import styles from '../Forms.module.scss';
 
 export default function Login() {
     const [email, setEmail] = useState<string>('');
@@ -29,15 +29,15 @@ export default function Login() {
 
 
     return (
-        <div className={styles.logInBody}>
-            <div className={styles.loginContainer}>
-                <div className={styles.loginBox}>
-                    <h2>Log In</h2>
-                    <p>
-                        By continuing, you agree to our <a href="#">User Agreement</a> and
-                        acknowledge that you understand the <a href="#">Privacy Policy</a>.
+        <div className={styles.formBody}>
+            <div className={styles.formContainer}>
+                <div className={styles.formBox}>
+                    <h2 className={styles.subTitle}>Log In</h2>
+                    <p className={styles.textParagraph}>
+                        By continuing, you agree to our <a href="#" className={styles.formLink}>User Agreement</a> and
+                        acknowledge that you understand the <a href="#" className={styles.formLink}>Privacy Policy</a>.
                     </p>
-                    <div className={styles.socialLogin}>
+                    <div className={styles.socialForm}>
                         <button className={styles.socialBtn}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25"
                                  preserveAspectRatio="xMidYMid" viewBox="0 0 256 262" id="google">
@@ -54,9 +54,9 @@ export default function Login() {
                         </button>
                     </div>
                     <div className={styles.separator}>OR</div>
-                    <form className={styles.loginForm} onSubmit={handleSubmit} noValidate>
+                    <form className={styles.form} onSubmit={handleSubmit} noValidate>
                         <div className={styles.formGroup}>
-                            <label htmlFor="email">
+                            <label htmlFor="email" className={styles.formLabel}>
                                 Email or username <span>*</span>
                             </label>
                             <input
@@ -72,7 +72,7 @@ export default function Login() {
                             {emailError && <small className={styles.error}> Please enter an email.</small>}
                         </div>
                         <div className={styles.formGroup}>
-                            <label htmlFor="password">
+                            <label htmlFor="password" className={styles.formLabel}>
                                 Password <span>*</span>
                             </label>
                             <input
@@ -90,12 +90,12 @@ export default function Login() {
                         <a href="#" className={styles.forgotPassword}>
                             Forgot password?
                         </a>
-                        <button type="submit" className={styles.loginBtn}>
+                        <button type="submit" className={styles.formBtn}>
                             Log In
                         </button>
                     </form>
-                    <p>
-                        New to UAEU Chat? <a href="/signup">Sign Up</a>
+                    <p className={styles.textParagraph}>
+                        New to UAEU Chat? <a href="/signup" className={styles.formLink}>Sign Up</a>
                     </p>
                 </div>
             </div>
