@@ -18,11 +18,13 @@ CREATE TABLE IF NOT EXISTS user
     pfp         TEXT
 );
 
+-- ALTER TABLE attachment ADD COLUMN created_at INTEGER NOT NULL DEFAULT 1728936000;
 CREATE TABLE IF NOT EXISTS attachment
 (
-    filename TEXT PRIMARY KEY,
-    mimetype TEXT NOT NULL,
-    metadata TEXT
+    filename   TEXT PRIMARY KEY,
+    mimetype   TEXT    NOT NULL,
+    metadata   TEXT,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS post

@@ -218,3 +218,45 @@ export async function createPost(c: Context) {
 
     }
 }
+
+
+export async function createPostNew(c: Context) {
+    // api.uaeu.chat/post
+    const env: Env = c.env;
+    const formData = await c.req.parseBody();
+    const author = formData['author'] as string;
+    const content = formData['content'] as string;
+    const fileName: string | null = formData['filename'] as string;
+
+    if (!author) throw new HTTPException(400, { res: new Response('No author defined', { status: 400 }) });
+    if (!content) throw new HTTPException(400, { res: new Response('No content defined', { status: 400 }) });
+
+    const trimmedContent = content.replace(/\n{3,}/g, '\n');
+
+    try {
+        // We have a file
+        if (fileName) {
+            await env.DB.prepare(
+                `INSERT INTO post (author, content, attachment, post_time)
+                 VALUES (?, ?, ?, ?)`
+            ).bind(author, trimmedContent, fileName, Date.now()).run();
+        } else {
+            await env.DB.prepare(
+                `INSERT INTO post (author, content, post_time)
+                 VALUES (?, ?, ?)`
+            ).bind(author, trimmedContent, Date.now()).run();
+        }
+
+        // No file, create post without attachment
+        await env.DB.prepare(
+            `INSERT INTO post (author, content, post_time)
+             VALUES (?, ?, ?)`
+        ).bind(author, trimmedContent, Date.now()).run();
+
+        return new Response('Post created', { status: 201 });
+    } catch (e) {
+        console.error(e);
+        return new Response('Internal Server Error', { status: 500 });
+
+    }
+}
