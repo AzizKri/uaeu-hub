@@ -18,3 +18,10 @@ type PostRow = {
     comment_count: number;
     attachment?: string;
 }
+
+type AttachmentRow = {
+    filename: string;
+    mimetype: string;
+    metadata: string;
+    created_at: number;
+}
