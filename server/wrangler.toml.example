@@ -15,3 +15,6 @@ database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 binding = "R2"
 bucket_name = "YOUR-R2-BUCKET"
 preview_bucket_name = "YOUR-R2-PREVIEW-BUCKET"
+
+[triggers]
+crons = ["*/60 * * * *"]
