@@ -47,7 +47,7 @@ app.all('*', async (c) => {
                 if (reqType === 'get') {
                     const uname = paths.pop();
                     const result = await c.env.DB.prepare(
-                        'SELECT * FROM user WHERE username = ?'
+                        'SELECT * FROM user_view WHERE username = ?'
                     ).bind(uname).all<UserRow>();
 
                     return Response.json(result);
