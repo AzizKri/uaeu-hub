@@ -1,5 +1,5 @@
-// const base = 'https://api.uaeu.chat';
-const base = 'http://127.0.0.1:8787';
+const base = 'https://api.uaeu.chat';
+// const base = 'http://127.0.0.1:8787';
 const cdn = 'https://cdn.uaeu.chat';
 
 // api.uaeu.chat/user/anon
