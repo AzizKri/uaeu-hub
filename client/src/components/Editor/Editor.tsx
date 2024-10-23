@@ -79,7 +79,7 @@ export default function Editor({type}: {type: string}): JSX.Element {
         setFilePreview(null);
         // TODO: not sure where the user will come from yet
         if (type === "post") {
-            const author: string = "hussain";
+            const author: string = "aziz";
             const response = await createPost(author, plainText, file);
             console.log(response);
             updatePosts();
