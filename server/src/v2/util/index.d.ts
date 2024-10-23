@@ -2,6 +2,7 @@ type UserRow = {
     username: string;
     displayName: string;
     email: string;
+    password: string,
     created_at: string;
     bio?: string;
     pfp?: string;

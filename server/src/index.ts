@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+// import { jwt } from 'hono/jwt';
 import v1 from './v1/index';
 import user from './v2/routes/user';
 import post from './v2/routes/post';
@@ -10,6 +11,12 @@ const app = new Hono<{ Bindings: Env }>();
 app.use(cors({
     origin: ['https://uaeu.chat', 'https://post-page.uaeu-hub.pages.dev', 'http://localhost:5173']
 }));
+// app.post('/post/*', (c, next) => {
+//     const jwtMiddleware = jwt({
+//         secret: c.env.JWT_SECRET
+//     });
+//     return jwtMiddleware(c, next);
+// });
 
 app.route('/v1', v1); // deprecated
 app.route('/user', user);
@@ -21,7 +28,7 @@ export default {
         return app.fetch(request, env, ctx);
     },
     // @ts-ignore
-    async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+    async scheduled(controller: ScheduledController, env: Env) {
         console.log('Running cron-triggered cleanup...');
 
         const MinutesAgo = Date.now() - (30 * 60 * 1000);

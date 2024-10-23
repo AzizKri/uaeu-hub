@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
+import { login } from '../../api.ts';
 
 export default function Login() {
     const [email, setEmail] = useState<string>('');
@@ -7,7 +8,7 @@ export default function Login() {
     const [emailError, setEmailError] = useState<boolean>(false);
     const [passwordError, setPasswordError] = useState<boolean>(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         let hasError = false;
         if (email === '') {
@@ -23,7 +24,24 @@ export default function Login() {
             setPasswordError(false);
         }
         if (!hasError) {
-            console.log({ email, password });
+            let formData;
+            if (email.split('@').length === 1) {
+                formData = { username: email, password };
+            } else {
+                formData = { email, password };
+            }
+
+            const response = await login(formData);
+            if (response.status == 200) {
+                localStorage.setItem('token', response.token);
+                alert('Login successful');
+                console.log('Login successful');
+                // TODO redirect to home page
+            } else {
+                alert(`Error ${response.status}: ${response.message}`);
+                console.log('Error');
+                // TODO error occurred
+            }
         }
     };
 

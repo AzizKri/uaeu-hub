@@ -1,4 +1,5 @@
-const base = 'https://api.uaeu.chat';
+// const base = 'https://api.uaeu.chat';
+const base = 'http://127.0.0.1:8787';
 const cdn = 'https://cdn.uaeu.chat';
 
 // api.uaeu.chat/user/anon
@@ -10,6 +11,26 @@ const cdn = 'https://cdn.uaeu.chat';
 // 		console.log(e);
 // 	});
 // }
+
+// api.uaeu.chat/user/signup
+export async function signUp(formData: { displayname: string, email: string, username: string, password: string }) {
+    const data = await fetch(base + `/user/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    });
+    return await data.json();
+}
+
+// api.uaeu.chat/user/login
+export async function login(formData: { username: string, password: string } | { email: string, password: string }) {
+    const data = await fetch(base + `/user/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    });
+    return await data.json();
+}
 
 export async function getUserByUsername(username: string) {
     const request = await fetch(base + `/user/${username}`);
@@ -32,6 +53,7 @@ export async function searchPosts(query: string) {
     }
     return await request.json();
 }
+
 /* returns
 * {
 *   ...

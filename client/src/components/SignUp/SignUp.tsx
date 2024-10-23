@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
+import { signUp } from '../../api.ts';
 
 export default function SignUp() {
     const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
+        displayname: '',
         email: '',
-        userName: '',
+        username: '',
         password: ''
     });
     const [errors, setErrors] = useState({
-        firstName: false,
-        lastName: false,
         email: false,
-        userName: false,
+        username: false,
         password: false
     });
 
@@ -22,24 +20,10 @@ export default function SignUp() {
         setFormData({ ...formData, [id]: value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         let hasError = false;
         const newErrors = { ...errors };
-
-        if (formData.firstName === '') {
-            newErrors.firstName = true;
-            hasError = true;
-        } else {
-            newErrors.firstName = false;
-        }
-
-        if (formData.lastName === '') {
-            newErrors.lastName = true;
-            hasError = true;
-        } else {
-            newErrors.lastName = false;
-        }
 
         if (formData.email === '') {
             newErrors.email = true;
@@ -48,11 +32,11 @@ export default function SignUp() {
             newErrors.email = false;
         }
 
-        if (formData.userName === '') {
-            newErrors.userName = true;
+        if (formData.username === '') {
+            newErrors.username = true;
             hasError = true;
         } else {
-            newErrors.userName = false;
+            newErrors.username = false;
         }
 
         if (formData.password === '') {
@@ -65,16 +49,24 @@ export default function SignUp() {
         setErrors(newErrors);
 
         if (!hasError) {
-            console.log(formData);
+            const response = await signUp(formData);
+            if (response.status == 200) {
+                localStorage.setItem('token', response.token);
+                alert('User created successfully');
+                console.log('User created successfully');
+                // TODO redirect to home page
+            } else {
+                alert(`Error ${response.status}: ${response.message}`);
+                console.log('Error');
+                // TODO error occurred
+            }
         }
     };
 
     const handleFocus = () => {
         setErrors({
-            firstName: false,
-            lastName: false,
             email: false,
-            userName: false,
+            username: false,
             password: false
         });
     };
@@ -106,34 +98,30 @@ export default function SignUp() {
                     </div>
                     <div className={styles.separator}>OR</div>
                     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-                        <div className={styles.nameContainer}>
+                        <div className={styles.formGroup}>
                             <div className={styles.formGroup}>
-                                <label htmlFor="firstName" className={styles.formLabel}>First Name<span>*</span></label>
+                                <label htmlFor="username" className={styles.formLabel}>Username<span>*</span></label>
                                 <input
                                     type="text"
-                                    id="firstName"
-                                    className={`${styles.formInput} ${errors.firstName ? styles.invalidInput : ''}`}
-                                    placeholder="First Name"
-                                    value={formData.firstName}
+                                    className={`${styles.formInput} ${errors.username ? styles.invalidInput : ''}`}
+                                    id="username"
+                                    placeholder="Username"
+                                    value={formData.username}
                                     onChange={handleChange}
                                     onFocus={() => handleFocus()}
                                 />
-                                {errors.firstName &&
-                                    <small className={styles.error}>Please fill out this field.</small>}
+                                {errors.username && <small className={styles.error}>Please fill out this field.</small>}
                             </div>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="lastName" className={styles.formLabel}>Last Name<span>*</span></label>
-                                <input
-                                    type="text"
-                                    className={`${styles.formInput} ${errors.lastName ? styles.invalidInput : ''}`}
-                                    id="lastName"
-                                    placeholder="Last Name"
-                                    value={formData.lastName}
-                                    onChange={handleChange}
-                                    onFocus={() => handleFocus()}
-                                />
-                                {errors.lastName && <small className={styles.error}>Please fill out this field.</small>}
-                            </div>
+                            <label htmlFor="displayname" className={styles.formLabel}>Display Name</label>
+                            <input
+                                type="text"
+                                id="displayname"
+                                className={`${styles.formInput}`}
+                                placeholder="Display Name"
+                                value={formData.displayname}
+                                onChange={handleChange}
+                                onFocus={() => handleFocus()}
+                            />
                         </div>
                         <div className={styles.formGroup}>
                             <label htmlFor="email" className={styles.formLabel}>Email<span>*</span></label>
@@ -147,19 +135,6 @@ export default function SignUp() {
                                 onFocus={() => handleFocus()}
                             />
                             {errors.email && <small className={styles.error}>Please fill out this field.</small>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label htmlFor="userName" className={styles.formLabel}>Username<span>*</span></label>
-                            <input
-                                type="text"
-                                className={`${styles.formInput} ${errors.userName ? styles.invalidInput : ''}`}
-                                id="userName"
-                                placeholder="Username"
-                                value={formData.userName}
-                                onChange={handleChange}
-                                onFocus={() => handleFocus()}
-                            />
-                            {errors.userName && <small className={styles.error}>Please fill out this field.</small>}
                         </div>
                         <div className={styles.formGroup}>
                             <label htmlFor="password" className={styles.formLabel}>Password<span>*</span></label>
@@ -176,7 +151,8 @@ export default function SignUp() {
                         </div>
                         <button type="submit" className={styles.formBtn}>Sign up</button>
                     </form>
-                    <p className={styles.textParagraph}>Already a member? <a href="/login" className={styles.formLink}>Login</a></p>
+                    <p className={styles.textParagraph}>Already a member? <a href="/login"
+                                                                             className={styles.formLink}>Login</a></p>
                 </div>
             </div>
         </div>
