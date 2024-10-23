@@ -1,24 +1,20 @@
 PRAGMA foreign_keys = on;
-PRAGMA defer_foreign_keys = off;
-
-DROP TABLE comment_likes;
-DROP TABLE post_likes;
-DROP TABLE comment;
-DROP TABLE post;
-DROP TABLE user;
-DROP TABLE attachment;
 
 CREATE TABLE IF NOT EXISTS user
 (
     username    TEXT PRIMARY KEY,
     displayname TEXT    NOT NULL,
     email       TEXT    NOT NULL,
+    password    TEXT    NOT NULL,
     created_at  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     bio         TEXT,
     pfp         TEXT
 );
 
--- ALTER TABLE attachment ADD COLUMN created_at INTEGER NOT NULL DEFAULT 1728936000;
+CREATE VIEW IF NOT EXISTS user_view AS
+SELECT username, displayname, created_at, bio, pfp
+FROM user;
+
 CREATE TABLE IF NOT EXISTS attachment
 (
     filename   TEXT PRIMARY KEY,
@@ -29,11 +25,13 @@ CREATE TABLE IF NOT EXISTS attachment
 
 CREATE TABLE IF NOT EXISTS post
 (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    author     TEXT    NOT NULL,
-    content    TEXT    NOT NULL,
-    post_time  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    attachment TEXT,
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    author        TEXT    NOT NULL,
+    content       TEXT    NOT NULL,
+    post_time     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    attachment    TEXT,
+    like_count    INTEGER NOT NULL DEFAULT 0,
+    comment_count INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (author) REFERENCES user (username) ON DELETE SET NULL,
     FOREIGN KEY (attachment) REFERENCES attachment (filename) ON DELETE SET NULL
 );
@@ -46,8 +44,9 @@ CREATE TABLE IF NOT EXISTS comment
     content        TEXT    NOT NULL,
     post_time      INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     attachment     TEXT,
-    FOREIGN KEY (parent_post_id) REFERENCES post (id) ON DELETE SET NULL,
-    FOREIGN KEY (author) REFERENCES user (username) ON DELETE SET NULL
+    like_count     INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (parent_post_id) REFERENCES post (id) ON DELETE CASCADE,
+    FOREIGN KEY (author) REFERENCES user (username) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS post_likes
@@ -62,13 +61,12 @@ CREATE TABLE IF NOT EXISTS post_likes
 CREATE TABLE IF NOT EXISTS comment_likes
 (
     comment_id INTEGER NOT NULL,
-    username   TEXT    NOT NULL,
-    PRIMARY KEY (comment_id, username),
+    user       TEXT    NOT NULL,
+    PRIMARY KEY (comment_id, user),
     FOREIGN KEY (comment_id) REFERENCES comment (id) ON DELETE CASCADE,
-    FOREIGN KEY (username) REFERENCES user (username) ON DELETE CASCADE
+    FOREIGN KEY (user) REFERENCES user (username) ON DELETE CASCADE
 );
 
-DROP TABLE posts_fts;
 CREATE VIRTUAL TABLE posts_fts USING fts5
 (
     content,
@@ -77,12 +75,21 @@ CREATE VIRTUAL TABLE posts_fts USING fts5
     prefix = '2 3 4'
 );
 
+CREATE INDEX idx_post_author ON post (author);
+
+CREATE INDEX idx_comment_author ON comment (author);
+CREATE INDEX idx_comment_parent_post_id ON comment (parent_post_id);
+
+CREATE INDEX idx_post_likes_post_id ON post_likes (post_id);
+CREATE INDEX idx_post_likes_user ON post_likes (user);
+
+CREATE INDEX idx_comment_likes_comment_id ON comment_likes (comment_id);
+CREATE INDEX idx_comment_likes_user ON comment_likes (user);
+
 INSERT INTO posts_fts(rowid, content, author)
 SELECT id, content, author
 FROM post;
 
--- Run triggers on CF D1 console
-DROP TRIGGER post_created;
 CREATE TRIGGER post_created
     AFTER INSERT
     ON post
