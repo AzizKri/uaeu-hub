@@ -40,7 +40,7 @@ export async function getUserByUsername(username: string) {
 // POSTS
 
 // api.uaeu.chat/post/latest/:page
-export async function getLatestPosts(page?: number | null) {
+export async function getLatestPosts(page?: number) {
     const request = await fetch(base + `/post/latest/${page || 0}`);
     return await request.json();
 }
