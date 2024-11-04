@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom'; // To access the postId from the URL
 import Post from './Post';
-import { getPostByID } from '../../api.ts'; // Assuming you already have a Post component
+import { getPostByID } from '../../api.ts';
+import styles from "./post.module.scss"; // Assuming you already have a Post component
 
 export default function PostPage() {
     const { postId } = useParams<{ postId: string }>(); // Get the postId from the URL
@@ -30,8 +31,24 @@ export default function PostPage() {
         }
     }, [postId]); // Fetch the post when postId changes
 
+    const goBack = () => {
+        if (document.referrer && document.referrer.includes(location.origin)) {
+            history.back();
+        } else {
+            location.assign(location.origin);
+        }
+    }
+
     return (
         <div>
+            <div className={styles.header}>
+                <div className={styles.arrow_container} onClick={() => goBack()}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+                    </svg>
+                </div>
+                <h3 className={styles.title}>Post</h3>
+            </div>
             {post ? post : <p>Loading...</p>} {/* Render post or show loading */}
         </div>
     );

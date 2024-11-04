@@ -1,5 +1,5 @@
 import {useContext} from "react";
-import {UpdatePostsContext} from "./components/UpdatePostProvider.tsx";
+import {UpdatePostsContext} from "./UpdatePostProvider.tsx";
 
 export const useUpdatePosts = () => {
     const context = useContext(UpdatePostsContext);
