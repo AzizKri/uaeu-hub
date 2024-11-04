@@ -1,7 +1,7 @@
 import styles from "./Home.module.scss";
 import {useEffect} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
-import {useUpdatePosts} from "../../usePostProvider.ts";
+import {useUpdatePosts} from "../../contextProviders/usePostProvider.ts";
 
 export default function Home() {
 
@@ -19,7 +19,9 @@ export default function Home() {
                 <h3>Recent Questions</h3>
                 <span>20 new questions</span>
             </div>
-            {posts}
+            <section className={styles.posts_container}>
+                {posts}
+            </section>
         </>
     )
 }

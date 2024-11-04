@@ -1,6 +1,6 @@
 import React, {createContext, useState} from "react";
 import {getLatestPosts} from "../api.ts";
-import Post from "./Post/Post.tsx";
+import Post from "../components/Post/Post.tsx";
 
 export const UpdatePostsContext = createContext<UpdatePostsContestInterface | null>(null);
 

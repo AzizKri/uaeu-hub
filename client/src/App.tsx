@@ -1,7 +1,7 @@
 import NavBar from './components/NavBar/NavBar.tsx';
 import './styles/index.scss';
 import { Outlet } from 'react-router-dom';
-import { UpdatePostProvider } from './components/UpdatePostProvider.tsx';
+import { UpdatePostProvider } from './contextProviders/UpdatePostProvider.tsx';
 
 // import Post from "./components/Post/Post.tsx";
 
