@@ -93,6 +93,11 @@ export async function getPostByID(c: Context) {
 export async function getLatestPosts(c: Context) {
     // api.uaeu.chat/post/latest/:page
     const env: Env = c.env;
+    const ipAddress: string = c.req.header('cf-connecting-ip') || "";
+    const { success } = await env.POSTS_RL.limit({ key: `getLatest_${ipAddress}`})
+    if (!success) {
+        return c.json({ success: false, message: 'Rate limit exceeded', status: 429, results: [] }, 429);
+    }
     const page = c.req.param('page') ? Number(c.req.param('page')) : 0;
 
     try {
