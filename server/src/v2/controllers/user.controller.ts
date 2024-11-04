@@ -2,17 +2,63 @@ import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import bcrypt from 'bcryptjs';
 import { sign } from 'hono/jwt';
+import { z } from 'zod';
 
 /* User Authentication */
+
+const displaynameSchema = z
+    .string()
+    .min(3, 'Display name must be at least 3 characters long')
+    .max(32, 'Display name must be at most 32 characters long')
+    .optional();
+
+const usernameSchema = z
+    .string()
+    .min(3, 'Username must be at least 3 characters long')
+    .max(20)
+    .regex(/^[a-zA-Z0-9.\-_]+$/,
+        'Username can only contain alphanumeric characters, underscores, dashes, and dots, but not consecutively');
+
+const emailSchema = z
+    .string()
+    .email('Invalid email address');
+
+const passwordSchema = z
+    .string()
+    .min(8, 'Password must be at least 8 characters long')
+    .max(72, 'Password must be at most 72 characters long')
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/\d/, "Password must contain at least one number")
+    .regex(/[ !"#$%&'()*+,-./:;<=>?@\[\\\]^_`{|}]/, "Password must contain at least one special character");
+
+const userSchema = z.object({
+    displayname: displaynameSchema,
+    username: usernameSchema,
+    email: emailSchema,
+    password: passwordSchema,
+});
+
 
 // api.uaeu.chat/user/signup
 export async function signup(c: Context) {
     const env: Env = c.env;
     const { displayname, email, username, password } = await c.req.json();
 
-    if (!email || !username || !password) {
-        return c.json({ message: 'Missing required fields', status: 400 }, 400);
+    try {
+        userSchema.parse({ displayname, email, username, password });
+    } catch (e) {
+        if (e instanceof z.ZodError) {
+            const errors = e.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
+        } else {
+            return c.json({ message: 'Internal Server Error', status: 500 }, 500)
+        }
     }
+
+    // if (!email || !username || !password) {
+    //     return c.json({ message: 'Missing required fields', status: 400 }, 400);
+    // }
     const existingUser = await env.DB.prepare(`
         SELECT username
         FROM user

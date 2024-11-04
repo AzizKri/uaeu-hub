@@ -18,6 +18,7 @@ app.use(cors({
 //     return jwtMiddleware(c, next);
 // });
 
+app.all('/', (c) => c.text('OK', 200));
 app.route('/v1', v1); // deprecated
 app.route('/user', user);
 app.route('/post', post);

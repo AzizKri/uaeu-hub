@@ -106,3 +106,57 @@ BEGIN
     FROM posts_fts
     WHERE rowid = old.id;
 END;
+
+CREATE TRIGGER increment_post_like_count
+    AFTER INSERT
+    ON post_likes
+BEGIN
+    UPDATE post
+    SET like_count = like_count + 1
+    WHERE id = new.post_id;
+END;
+
+CREATE TRIGGER decrement_post_like_count
+    AFTER DELETE
+    ON post_likes
+BEGIN
+    UPDATE post
+    SET like_count = like_count - 1
+    WHERE id = old.post_id;
+END;
+
+CREATE TRIGGER increment_comment_like_count
+    AFTER INSERT
+    ON comment_likes
+BEGIN
+    UPDATE comment
+    SET like_count = like_count + 1
+    WHERE id = new.comment_id;
+END;
+
+CREATE TRIGGER decrement_comment_like_count
+    AFTER DELETE
+    ON comment_likes
+BEGIN
+    UPDATE comment
+    SET like_count = like_count - 1
+    WHERE id = old.comment_id;
+END;
+
+CREATE TRIGGER increment_post_comment_count
+    AFTER INSERT
+    ON comment
+BEGIN
+    UPDATE post
+    SET comment_count = comment_count + 1
+    WHERE id = new.parent_post_id;
+END;
+
+CREATE TRIGGER decrement_post_comment_count
+    AFTER DELETE
+    ON comment
+BEGIN
+    UPDATE post
+    SET comment_count = comment_count - 1
+    WHERE id = old.parent_post_id;
+END;

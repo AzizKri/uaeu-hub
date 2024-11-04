@@ -18,3 +18,9 @@ preview_bucket_name = "YOUR-R2-PREVIEW-BUCKET"
 
 [triggers]
 crons = ["*/60 * * * *"]
+
+[[unsafe.bindings]]
+name = "POSTS_RL"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 8, period = 10 }
