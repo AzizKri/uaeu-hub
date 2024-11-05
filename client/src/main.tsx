@@ -6,6 +6,7 @@ import Login from './components/Login/Login.tsx';
 import SignUp from './components/SignUp/SignUp.tsx';
 import Home from './components/Home/Home.tsx';
 import PostPage from './components/Post/PostPage.tsx';
+import LoadingImage from "./components/LoadingImage/LoadingImage.tsx";
 
 
 const router = createBrowserRouter([
@@ -20,6 +21,11 @@ const router = createBrowserRouter([
             {
                 path: '/post/:postId',
                 element: <PostPage />
+            },
+            // just for testing
+            {
+                path: '/loading',
+                element: <LoadingImage />
             }
         ]
     },

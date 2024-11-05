@@ -23,6 +23,7 @@ export default function PostPage() {
                         filename={res.results[0].attachment}
                         likes={res.results[0].like_count}
                         comments={res.results[0].comment_count}
+                        isPostPage={true}
                     />
                 );
                 console.log(res);
