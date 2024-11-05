@@ -1,7 +1,7 @@
 import styles from "./Home.module.scss";
 import {useEffect} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
-import {useUpdatePosts} from "../../contextProviders/usePostProvider.ts";
+import {useUpdatePosts} from "../../contextProviders/usePostProvider.tsx";
 
 export default function Home() {
 

@@ -17,7 +17,8 @@ declare global {
         pfp: string,
         filename?: string
         likes: number,
-        comments: number
+        comments: number,
+        isPostPage: boolean,
     }
 
     interface UpdatePostsContestInterface {

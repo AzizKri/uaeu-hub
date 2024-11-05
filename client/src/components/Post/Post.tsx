@@ -1,12 +1,13 @@
 import './post.module.scss';
 import profilePicture from '../../assets/profile-picture.png';
-import postImage from '../../assets/post-image.png';
+// import postImage from '../../assets/post-image.png';
 import PostFooter from '../PostFooter/PostFooter.tsx';
 import Comment from '../Comment/Comment.tsx';
 import styles from './post.module.scss';
 import {ReactElement, useEffect, useState} from 'react';
 import Editor from '../Editor/Editor.tsx';
 import {getAttachmentDetails} from '../../api.ts';
+import LoadingImage from "../LoadingImage/LoadingImage.tsx";
 
 export default function Post({
                                  id,
@@ -17,11 +18,13 @@ export default function Post({
                                  postDate,
                                  filename,
                                  likes,
-                                 comments
+                                 comments,
+                                 isPostPage,
                              }: PostInfo) {
     const [dateText, setDateText] = useState<string>('');
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
-    const [attachment, setAttachment] = useState<ReactElement>(<img src={postImage} alt="profile picture"/>);
+    const [attachment, setAttachment] = useState<ReactElement | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(filename != null);
 
     useEffect(() => {
         const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -49,7 +52,13 @@ export default function Post({
         if (filename) {
             getAttachmentDetails(filename).then((res) => {
                 if (res == 'image/png' || res == 'image/jpeg') {
-                    setAttachment(<img src={`https://cdn.uaeu.chat/attachments/${filename}`} alt="post attachment"/>);
+                    setAttachment(
+                        <img
+                            src={`https://cdn.uaeu.chat/attachments/${filename}`}
+                            alt="post attachment"
+                            onLoad={() => setIsLoading(false)}
+                        />
+                    );
                 }
             });
         }
@@ -69,14 +78,19 @@ export default function Post({
                 <div className={styles.post__info_bar__time}>{dateText}</div>
             </div>
             <div className={styles.post__content}>
-                {showContent ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
-                {showContent ? '' :
-                    <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
+                <a href={`/post/${id}`}>
+                    {showContent || isPostPage ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
+                </a>
+                    {showContent ? '' :
+                        <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
-            <div className={styles.post__image}>
-                {attachment}
-            </div>
+            {isLoading && <LoadingImage />}
+            {attachment && !isLoading &&
+                <div className={styles.post__image}>
+                    {attachment}
+                </div>
+            }
             <PostFooter id={id} likes={likes} comments={comments}/>
             <div className={styles.post__write_answer}>
                 <Editor type="comment"/>
