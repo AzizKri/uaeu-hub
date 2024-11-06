@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import styles from '../Forms.module.scss';
-import { signUp } from '../../api.ts';
+import styles from '../../styles/Forms.module.scss';
+import {signUp} from '../../api.ts';
 
 export default function SignUp() {
     const [formData, setFormData] = useState({

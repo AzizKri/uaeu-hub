@@ -39,6 +39,7 @@ a {
 .main {
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
+    gap: 15px;
 
     .middle {
         //max-width: 700px;
