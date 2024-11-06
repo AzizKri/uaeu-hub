@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import styles from '../Forms.module.scss';
-import { login } from '../../api.ts';
+import styles from '../../styles/Forms.module.scss';
+import {login} from '../../api.ts';
 
 export default function Login() {
     const [email, setEmail] = useState<string>('');

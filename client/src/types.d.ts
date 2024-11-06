@@ -1,3 +1,5 @@
+import React from "react";
+
 declare global {
     interface SearchResult {
         id: number;
@@ -21,9 +23,20 @@ declare global {
         isPostPage: boolean,
     }
 
-    interface UpdatePostsContestInterface {
+    interface UpdatePostsContextInterface {
         posts: React.ReactElement[];
         updatePosts: () => void;
+    }
+
+    interface userInfo {
+        username: string;
+        displayName: string;
+        pio: string;
+        pfp: string;
+    }
+    interface UserContextInterface {
+        user: userInfo | null;
+        updateUser: (userInfo) => void;
     }
 }
 

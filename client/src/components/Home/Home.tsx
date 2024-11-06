@@ -1,14 +1,11 @@
 import styles from "./Home.module.scss";
 import {useEffect} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
-import {useUpdatePosts} from "../../contextProviders/usePostProvider.tsx";
+import {useUpdatePosts} from "../../lib/hooks.ts";
 
 export default function Home() {
 
     const context = useUpdatePosts();
-    if (!context) {
-        throw new Error("useUpdatePosts must be used within a provider");
-    }
     const {posts, updatePosts} = context;
     useEffect(updatePosts, []);
 
