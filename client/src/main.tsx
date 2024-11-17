@@ -7,6 +7,8 @@ import SignUp from './components/SignUp/SignUp.tsx';
 import Home from './components/Home/Home.tsx';
 import PostPage from './components/Post/PostPage.tsx';
 import LoadingImage from "./components/LoadingImage/LoadingImage.tsx";
+import UserProvider from "./lib/userProvider.tsx";
+import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
 
 
 const router = createBrowserRouter([
@@ -40,5 +42,9 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById('root')!).render(
-    <RouterProvider router={router} />
+    <UserProvider>
+        <UpdatePostProvider>
+            <RouterProvider router={router} />
+        </UpdatePostProvider>
+    </UserProvider>
 );

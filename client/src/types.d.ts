@@ -25,7 +25,8 @@ declare global {
 
     interface UpdatePostsContextInterface {
         posts: React.ReactElement[];
-        updatePosts: () => void;
+        updatePosts: (page? : number) => void;
+        loading: boolean;
     }
 
     interface userInfo {
