@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
 import {login} from '../../api.ts';
+// import {useUser} from "../../lib/hooks.ts";
 
 export default function Login() {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [emailError, setEmailError] = useState<boolean>(false);
     const [passwordError, setPasswordError] = useState<boolean>(false);
+    // const {updateUser} = useUser();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,9 +36,14 @@ export default function Login() {
             const response = await login(formData);
             if (response.status == 200) {
                 localStorage.setItem('token', response.token);
+                // updateUser({
+                //     response.username,
+                //     response.
+                // })
                 alert('Login successful');
                 console.log('Login successful');
                 // TODO redirect to home page
+
             } else {
                 alert(`Error ${response.status}: ${response.message}`);
                 console.log('Error');

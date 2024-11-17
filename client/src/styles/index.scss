@@ -47,6 +47,12 @@ a {
     }
 }
 
+.right {
+    //height: 100vh;
+    position: sticky;
+    top: 70px;
+}
+
 @media screen and (max-width: 500px) {
     .main {
         grid-template-columns: 0 1fr 0;
