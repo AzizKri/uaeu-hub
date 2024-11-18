@@ -4,7 +4,7 @@ import profilePicture from '../../assets/profile-picture.png';
 import PostFooter from '../PostFooter/PostFooter.tsx';
 import Comment from '../Comment/Comment.tsx';
 import styles from './post.module.scss';
-import {ReactElement, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import Editor from '../Editor/Editor.tsx';
 import {getAttachmentDetails} from '../../api.ts';
 import LoadingImage from "../LoadingImage/LoadingImage.tsx";
@@ -23,7 +23,8 @@ export default function Post({
                              }: PostInfo) {
     const [dateText, setDateText] = useState<string>('');
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
-    const [attachment, setAttachment] = useState<ReactElement | null>(null);
+    const [imageSrc, setImageSrc] = useState<string>("");
+    const [error, setError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(filename != null);
 
     useEffect(() => {
@@ -52,14 +53,15 @@ export default function Post({
         if (filename) {
             getAttachmentDetails(filename).then((res) => {
                 if (res == 'image/png' || res == 'image/jpeg') {
-                    setAttachment(
-                        <img
-                            src={`https://cdn.uaeu.chat/attachments/${filename}`}
-                            alt="post attachment"
-                            onLoad={() => setIsLoading(false)}
-                        />
-                    );
+                    setImageSrc(`https://cdn.uaeu.chat/attachments/${filename}`);
+                    setError(false);
+                } else {
+                    setError(true);
+                    setIsLoading(false);
                 }
+            }).catch(() => {
+                setError(true);
+                setIsLoading(false);
             });
         }
     }, [filename]);
@@ -85,12 +87,21 @@ export default function Post({
                         <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
-            {isLoading && <LoadingImage />}
-            {attachment && !isLoading &&
-                <div className={styles.post__image}>
-                    {attachment}
+            {isLoading && !error && <LoadingImage />}
+            {filename != null && !error &&
+                <div className={styles.post__image} style={{display: isLoading ? 'none' : 'block'}}>
+                    <img
+                        src={imageSrc}
+                        alt="post attachment"
+                        onLoad={() => setIsLoading(false)}
+                        onError={() => {
+                            setError(true);
+                            setIsLoading(false);
+                        }}
+                    />
                 </div>
             }
+            {error && <p>Error Loading the image</p>}
             <PostFooter id={id} likes={likes} comments={comments}/>
             <div className={styles.post__write_answer}>
                 <Editor type="comment"/>
