@@ -1,6 +1,5 @@
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { v4 as uuidv4 } from 'uuid';
 
 export async function uploadAttachment(c: Context) {
     const env: Env = c.env;
@@ -11,7 +10,7 @@ export async function uploadAttachment(c: Context) {
     if (!file) throw new HTTPException(400, { res: new Response('No file defined', { status: 400 }) });
 
     try {
-        const fileName = uuidv4();
+        const fileName = crypto.randomUUID();
 
         const R2Response = await env.R2.put(
             `${uploadSource}/${fileName}`,

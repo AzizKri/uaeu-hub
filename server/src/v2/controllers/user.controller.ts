@@ -70,15 +70,18 @@ export async function signup(c: Context) {
     const hash = await bcrypt.hash(password, 10); // (password, salt)
 
     try {
-        await env.DB.prepare(`
+        const user = await env.DB.prepare(`
             INSERT INTO user (username, displayname, email, password)
             VALUES (?, ?, ?, ?)
-        `).bind(username, (displayname? displayname : username), email, hash).run();
+            RETURNING id
+        `).bind(username, (displayname? displayname : username), email, hash).first<UserRow>()
+
+        if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
         const payload = {
-            user: username,
+            id: user.id,
+            username: username,
             email: email,
-            password: password,
             exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60 // Expire in 30 days
         };
 
@@ -120,8 +123,9 @@ export async function login(c: Context) {
     if (!match) return c.json({ message: 'Invalid credentials', status: 401 }, 401);
 
     const payload = {
-        user: username,
-        password: password,
+        id: user.id,
+        username: username,
+        email: email,
         exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60 // Expire in 30 days
     };
 

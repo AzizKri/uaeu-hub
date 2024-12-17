@@ -1,7 +1,12 @@
-import app from '../../index';
+import { Hono } from 'hono';
+import type { JwtVariables } from 'hono/jwt';
+import { authMiddleware } from '../util/middleware';
 
-const comment = app.basePath('/comment');
+type Variables = JwtVariables
 
-// add comment reply to post
-comment.post('/');
-comment.delete('/');
+const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+
+app.use('/', authMiddleware);
+
+app.post('/');
+app.delete('/');

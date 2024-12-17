@@ -1,8 +1,10 @@
 type UserRow = {
+    id: number;
     username: string;
+    password: string;
     displayName: string;
     email: string;
-    password: string,
+    auth_provider: string;
     created_at: string;
     bio?: string;
     pfp?: string;
