@@ -4,5 +4,6 @@ interface Env {
     DB: D1Database;
     R2: R2Bucket;
     POSTS_RL: any;
+    ATTACHMENT_RL: any;
     JWT_SECRET: string;
 }
