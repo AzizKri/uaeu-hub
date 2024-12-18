@@ -2,6 +2,7 @@ type UserRow = {
     id: number;
     username: string;
     password: string;
+    salt: string;
     displayName: string;
     email: string;
     auth_provider: string;
