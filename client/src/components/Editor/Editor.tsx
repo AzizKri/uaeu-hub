@@ -6,7 +6,7 @@ import {LexicalErrorBoundary} from "@lexical/react/LexicalErrorBoundary";
 import {HistoryPlugin} from "@lexical/react/LexicalHistoryPlugin";
 import {$getRoot} from "lexical";
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
-import {createPost} from "../../api.ts";
+import {createPost, uploadAttachment} from "../../api.ts";
 import {useLexicalComposerContext} from "@lexical/react/LexicalComposerContext";
 import {useUpdatePosts} from "../../lib/hooks.ts";
 
@@ -21,6 +21,7 @@ export default function Editor({type}: {type: string}): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [filePreview, setFilePreview] = useState<string | ArrayBuffer | null>(null);
     const [file, setFile] = useState<File | null>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{clearEditorContent: () => void}>(null);
@@ -80,7 +81,7 @@ export default function Editor({type}: {type: string}): JSX.Element {
         // TODO: not sure where the user will come from yet
         if (type === "post") {
             const author: string = "aziz";
-            const response = await createPost(author, plainText, file);
+            const response = await createPost(author, plainText, fileName);
             console.log(response);
             updatePosts();
         } else if (type === "comment") {
@@ -99,7 +100,13 @@ export default function Editor({type}: {type: string}): JSX.Element {
                 }
             }
             reader.readAsDataURL(file);
-            setFile(file);
+            // setFile(file);
+            uploadAttachment([file]).then((resp) => {
+                if (resp.status === 201) {
+                    setFileName(resp.filename || null);
+                    setFile(file);
+                }
+            });
         }
     }
 

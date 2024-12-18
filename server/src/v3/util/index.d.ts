@@ -1,7 +1,8 @@
-type UserRowV2 = {
+type UserRow = {
     id: number;
     username: string;
     password: string;
+    salt: string;
     displayName: string;
     email: string;
     auth_provider: string;
@@ -26,5 +27,11 @@ type AttachmentRow = {
     filename: string;
     mimetype: string;
     metadata: string;
+    created_at: number;
+}
+
+type SessionRow = {
+    id: string;
+    user_id: number;
     created_at: number;
 }

@@ -2,13 +2,14 @@ import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { uploadAttachment } from '../controllers/attachment.controller';
 import type { JwtVariables } from 'hono/jwt';
-import { authMiddleware } from '../util/middleware';
+import { authMiddleware, uploadAttachmentateLimitMiddleware } from '../util/middleware';
 
 type Variables = JwtVariables
 
 const app = new Hono<{ Bindings: Env, Variables: Variables }>();
 
 app.use('/', authMiddleware);
+app.use('/', uploadAttachmentateLimitMiddleware);
 
 app.post('/', (c) => uploadAttachment(c), bodyLimit({						// api.uaeu.chat/attachment
     maxSize: 10 * 1024 * 1024,

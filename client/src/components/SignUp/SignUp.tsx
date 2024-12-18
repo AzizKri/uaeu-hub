@@ -51,7 +51,7 @@ export default function SignUp() {
         if (!hasError) {
             const response = await signUp(formData);
             if (response.status == 200) {
-                localStorage.setItem('token', response.token);
+                // localStorage.setItem('token', response.token);
                 alert('User created successfully');
                 console.log('User created successfully');
                 // TODO redirect to home page

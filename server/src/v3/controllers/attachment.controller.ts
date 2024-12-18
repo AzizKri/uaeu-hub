@@ -1,13 +1,14 @@
 import { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 
 export async function uploadAttachment(c: Context) {
     const env: Env = c.env;
-    const formData = await c.req.parseBody();
-    const uploadSource = formData['source'] as string;
-    const file = formData['file'] as File;
+    const formData: FormData = await c.req.formData();
+    const uploadSource: string = formData.get('source') as string;
+    const file: File = formData.get('files[]') as File;
 
-    if (!file) throw new HTTPException(400, { res: new Response('No file defined', { status: 400 }) });
+    if (!file) {
+        return new Response('No file provided', { status: 400 });
+    }
 
     try {
         const fileName = crypto.randomUUID();
@@ -23,10 +24,8 @@ export async function uploadAttachment(c: Context) {
         );
 
         if (R2Response == null) {
-            // Return 500 if upload failed
             return new Response('File upload failed', { status: 500 });
         } else {
-            // Insert attachment into database
             await env.DB.prepare(`
                 INSERT INTO attachment (filename, mimetype)
                 VALUES (?, ?)`
