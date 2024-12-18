@@ -24,6 +24,7 @@ export default function Post({
     const [dateText, setDateText] = useState<string>('');
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
     const [imageSrc, setImageSrc] = useState<string>("");
+    const [imageDims, setImageDims] = useState<{ width: number, height: number }>({width: 0, height: 0});
     const [error, setError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(filename != null);
 
@@ -52,9 +53,16 @@ export default function Post({
     useEffect(() => {
         if (filename) {
             getAttachmentDetails(filename).then((res) => {
-                if (res == 'image/png' || res == 'image/jpeg') {
-                    setImageSrc(`https://cdn.uaeu.chat/attachments/${filename}`);
-                    setError(false);
+                if (res.status === 200) {
+                    const fileType = res.data?.type;
+                    if (fileType?.startsWith('image')) {
+                        setImageDims({width: res.data?.metadata.width, height: res.data?.metadata.height});
+                        setImageSrc(`https://cdn.uaeu.chat/attachments/${filename}`);
+                        setError(false);
+                    } else {
+                        setImageSrc(`https://cdn.uaeu.chat/attachments/${filename}`);
+                        setError(false);
+                    }
                 } else {
                     setError(true);
                     setIsLoading(false);
@@ -89,7 +97,7 @@ export default function Post({
             {/*<ReadOnlyEditor content={editorContent} />*/}
             {isLoading && !error && <LoadingImage />}
             {filename != null && !error &&
-                <div className={styles.post__image} style={{display: isLoading ? 'none' : 'block'}}>
+                <div className={styles.post__image} style={{display: isLoading ? 'none' : 'block', height: imageDims.height, width: imageDims.width}}>
                     <img
                         src={imageSrc}
                         alt="post attachment"
