@@ -35,3 +35,8 @@ type SessionRow = {
     user_id: number;
     created_at: number;
 }
+
+type AttachmentMetadata = {
+    width?: string,
+    height?: string
+}
