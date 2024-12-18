@@ -1,7 +1,6 @@
 import { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod';
-import { setSignedCookie } from 'hono/cookie';
+import { setSignedCookie, getSignedCookie } from 'hono/cookie';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
 
 const COOKIE_EXPIRY = 360 * 24 * 60 * 60; // 1 year
@@ -46,6 +45,7 @@ const userSchema = z.object({
 export async function signup(c: Context) {
     const env: Env = c.env;
     const { displayname, email, username, password } = await c.req.json();
+    const existingSessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey');
 
     try {
         userSchema.parse({ displayname, email, username, password });
@@ -66,20 +66,39 @@ export async function signup(c: Context) {
 
     if (existingUser.results.length != 0) return c.json({ message: 'User already exists', status: 409 }, 409);
 
-    const salt = generateSalt()
+    const { salt, encoded } = generateSalt();
     const hash = await hashPassword(password, salt);
 
     try {
-        const user = await env.DB.prepare(`
+        // Check if the user signing up already has anonymous activity
+        let user;
+        if (existingSessionKey) {
+            // Get UserID from Session key
+            const hashedKey = await hashSessionKey(existingSessionKey)
+            const userResult = await env.DB.prepare(
+                `SELECT user_id FROM session WHERE id = ?`
+            ).bind(hashedKey).first<SessionRow>();
+
+            if (!userResult) return c.json({ message: 'User not found', status: 404 }, 404);
+
+            user = await env.DB.prepare(`
+                UPDATE user
+                SET username = ?, displayname = ?, email = ?, password = ?, salt = ?, is_anonymous = false
+                WHERE id = ?
+                RETURNING id
+            `).bind(username, (displayname ? displayname : username), email, hash, encoded, userResult.user_id).first<UserRow>();
+        } else {
+            // New user, no activity
+            user = await env.DB.prepare(`
             INSERT INTO user (username, displayname, email, password)
             VALUES (?, ?, ?, ?)
             RETURNING id
         `).bind(username, (displayname ? displayname : username), email, hash).first<UserRow>();
+        }
 
         if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
         const PlainSessionKey = crypto.randomUUID();
-
         const sessionKey = await hashSessionKey(PlainSessionKey);
 
         await env.DB.prepare(`
@@ -91,8 +110,17 @@ export async function signup(c: Context) {
             httpOnly: true,
             secure: true,
             sameSite: 'Strict',
+            domain: '.uaeu.chat',
             maxAge: COOKIE_EXPIRY
         });
+        // await setSignedCookie(c, 'user', user.id.toString(), env.JWT_SECRET, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: 'Strict',
+        //     domain: '.uaeu.chat',
+        //     maxAge: COOKIE_EXPIRY
+        // });
+
         return c.json({ message: 'User created successfully', status: 200 }, 200);
     } catch (e) {
         console.log(e);
@@ -137,16 +165,18 @@ export async function anonSignup(c: Context) {
             httpOnly: true,
             secure: true,
             sameSite: 'Strict',
+            domain: '.uaeu.chat',
             maxAge: COOKIE_EXPIRY
         });
-        await setSignedCookie(c, 'anonymous', user.id.toString(), env.JWT_SECRET, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'Strict',
-            maxAge: COOKIE_EXPIRY
-        });
+        // await setSignedCookie(c, 'user', user.id.toString(), env.JWT_SECRET, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: 'Strict',
+        //     domain: '.uaeu.chat',
+        //     maxAge: COOKIE_EXPIRY
+        // });
 
-        c.set('sessionKey', sessionKey);
+        c.set('sessionKey', PlainSessionKey);
         return c.json({ message: 'User created successfully', status: 200 }, 200);
     } catch (e) {
         console.log(e);
@@ -165,13 +195,13 @@ export async function login(c: Context) {
     let user;
     if (username) {
         user = await env.DB.prepare(`
-            SELECT username, password
+            SELECT id, username, password, salt
             FROM user
             WHERE username = ?
         `).bind(username).first<UserRow>();
     } else if (email) {
         user = await env.DB.prepare(`
-            SELECT email, password
+            SELECT id, email, password, salt
             FROM user
             WHERE email = ?
         `).bind(email).first<UserRow>();
@@ -195,8 +225,17 @@ export async function login(c: Context) {
         httpOnly: true,
         secure: true,
         sameSite: 'Strict',
+        domain: '.uaeu.chat',
         maxAge: COOKIE_EXPIRY
     });
+    // await setSignedCookie(c, 'user', user.id.toString(), env.JWT_SECRET, {
+    //     httpOnly: true,
+    //     secure: true,
+    //     sameSite: 'Strict',
+    //     domain: '.uaeu.chat',
+    //     maxAge: COOKIE_EXPIRY
+    // });
+
     return c.json({ message: 'Logged in successfully', status: 200 }, 200);
 }
 
@@ -208,7 +247,7 @@ export async function getByUsername(c: Context) {
     const username = c.req.param('username');
 
     // This is likely impossible but yeah
-    if (username === '') throw new HTTPException(400, { res: new Response('No username defined', { status: 400 }) });
+    if (username === '') return c.text('Bad Request', 400);
 
     try {
         const result = await env.DB.prepare(
