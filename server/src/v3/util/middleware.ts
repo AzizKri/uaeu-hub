@@ -9,8 +9,6 @@ export const authMiddleware = createMiddleware(
         console.log(sessionKey);
 
         if (!sessionKey) {
-            // return c.json({ success: false, message: 'Unauthorized', status: 401, results: [] }, 401);
-            console.log('anonSignup');
             await anonSignup(c)
         } else {
             const COOKIE_EXPIRY = 360 * 24 * 60 * 60; // 1 year
@@ -18,6 +16,7 @@ export const authMiddleware = createMiddleware(
                 httpOnly: true,
                 secure: true,
                 sameSite: 'Strict',
+                domain: '.uaeu.chat',
                 maxAge: COOKIE_EXPIRY
             });
             c.set('sessionKey', sessionKey);
