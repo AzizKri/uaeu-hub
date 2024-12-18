@@ -81,6 +81,31 @@ export async function uploadAttachment(c: Context) {
         }
     } catch (e) {
         console.log(e);
-        return new Response('Internal Server Error', { status: 500 });
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
+export async function getAttachmentDetails(c: Context) {
+    const env: Env = c.env;
+    const filename: string = c.req.param('filename');
+
+    try {
+        // Get the object details from R2
+        const R2Response = await env.R2.head(`attachments/${filename}`);
+
+        // File doesn't exist
+        if (!R2Response) {
+            return new Response("Object not found", { status: 404 });
+        }
+
+        const type = R2Response.httpMetadata?.contentType || '';
+        // Extract custom metadata from the response headers
+        const metadata = R2Response.customMetadata;
+
+        // Return the metadata
+        return c.json({ type, metadata }, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
     }
 }
