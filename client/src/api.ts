@@ -1,6 +1,6 @@
 // production
 const base = 'https://api.uaeu.chat/v3';
-const cdn = 'https://cdn.uaeu.chat';
+// const cdn = 'https://cdn.uaeu.chat';
 
 // dev
 // const base = 'http://127.0.0.1:8787/v3';
@@ -66,8 +66,38 @@ export async function searchPosts(query: string) {
 * }
 * */
 
+const allowedMimeTypes = [
+    // Images
+    'image/jpeg',           // .jpeg, .jpg
+    'image/png'            // .png
+    // 'image/gif',            // .gif
+    // 'image/webp',           // .webp
+    // 'image/svg+xml',        // .svg
+    // 'image/bmp',            // .bmp
+    // 'image/tiff',           // .tiff
+    // // Videos
+    // 'video/mp4',            // .mp4
+    // 'video/quicktime',      // .mov
+    // 'video/webm',           // .webm
+    // // Audios
+    // 'audio/mpeg',           // .mp3
+    // 'audio/ogg',            // .ogg
+    // 'audio/wav',            // .wav
+    // // Documents
+    // 'application/pdf',      // .pdf
+    // 'application/vnd.ms-powerpoint',    // .ppt
+    // 'application/vnd.openxmlformats-officedocument.presentationml.presentation',    // .pptx
+    // 'application/msword',   // .doc
+    // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',   // .docx
+    // 'application/vnd.ms-excel',    // .xls
+    // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',    // .xlsx
+];
+
 // api.uaeu.chat/attachment
 export async function uploadAttachment(attachments: File[]) {
+    if (!attachments[0] || !allowedMimeTypes.includes(attachments[0].type)) {
+        return { status: 400 };
+    }
     const formData = new FormData();
     formData.append('files[]', attachments[0]);
     formData.append('source', 'attachments');
@@ -88,7 +118,8 @@ export async function uploadAttachment(attachments: File[]) {
     if (request.status === 201) {
         return {
             status: 201,
-            filename: await request.text() };
+            filename: await request.text()
+        };
     } else {
         return { status: request.status };
     }
@@ -144,6 +175,7 @@ export async function getPostByID(id: number) {
 
 // api.uaeu.chat/attachment/:filename
 export async function getAttachmentDetails(filename: string) {
-    const request = await fetch(cdn + `/attachments/${filename}`, { method: 'HEAD' });
-    return request.headers.get('Content-Type');
+    const request = await fetch(base + `/attachment/${filename}`, { method: 'GET' });
+
+   return { status: request.status, data: await request.json()};
 }
