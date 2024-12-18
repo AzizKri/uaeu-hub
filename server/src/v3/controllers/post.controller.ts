@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { getSignedCookie } from 'hono/cookie';
+import { hashSessionKey } from '../util/crypto';
 
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
@@ -10,27 +10,21 @@ export async function createPost(c: Context) {
     const content = formData['content'] as string;
     const fileName: string | null = formData['filename'] as string;
     const sessionKey = c.get('sessionKey');
-    console.log(sessionKey)
 
-    if (!author) throw new HTTPException(400, { res: new Response('No author defined', { status: 400 }) });
-    if (!content) throw new HTTPException(400, { res: new Response('No content defined', { status: 400 }) });
+    if (!author) return c.text('No author defined', { status: 400 });
+    if (!content) return c.text('No content defined', { status: 400 });
 
     const trimmedContent = content.replace(/\n{3,}/g, '\n');
 
     try {
+        const hashedKey = await hashSessionKey(sessionKey)
+        console.log(hashedKey)
         const userResult = await env.DB.prepare(
             `SELECT user_id FROM session WHERE id = ?`
-        ).bind(sessionKey).first<SessionRow>();
-        console.log(userResult);
-        const userid = userResult!.user_id;
-        console.log(userid);
-
-        const authorResult = await env.DB.prepare(
-            `SELECT username FROM user WHERE id = ?`
-        ).bind(userid).first<UserRow>();
-        const author = authorResult!.username;
-
-        console.log(userid, author, trimmedContent);
+        ).bind(hashedKey).first<SessionRow>();
+        console.log(userResult)
+        if (!userResult) return c.text('User not found', { status: 404 });
+        const userid = userResult.user_id;
 
         // We have a file
         if (fileName) {
@@ -45,9 +39,9 @@ export async function createPost(c: Context) {
             ).bind(userid, trimmedContent, Date.now()).run();
         }
 
-        return new Response('Post created', { status: 201 });
+        return c.text('Post created', { status: 201 });
     } catch (e) {
-        return new Response(e, { status: 500 });
+        return c.text('Internal Server Error', { status: 500 });
     }
 }
 
@@ -63,9 +57,9 @@ export async function getLatestPosts(c: Context) {
          LIMIT 10 OFFSET ?`
         ).bind(page * 10).all<PostRow>();
 
-        return Response.json(posts, { status: 200 });
+        return c.json(posts, { status: 200 });
     } catch (e) {
-        return new Response('Internal Server Error', { status: 500 });
+        return c.text('Internal Server Error', { status: 500 });
     }
 }
 
