@@ -33,8 +33,9 @@ export async function hashPassword(password: string, salt: Uint8Array): Promise<
 }
 
 // Generate a salt (16 bytes)
-export function generateSalt(): Uint8Array {
-    return crypto.getRandomValues(new Uint8Array(16));
+export function generateSalt() {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    return { "salt": salt, "encoded": btoa(String.fromCharCode(...salt)) }
 }
 
 export async function verifyPassword(password: string, storedSalt: string, storedHash: string): Promise<boolean> {
