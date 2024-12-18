@@ -112,11 +112,12 @@ CREATE TABLE IF NOT EXISTS post
 CREATE VIEW IF NOT EXISTS post_view AS
 SELECT post.id,
        post.author_id,
-       user.username  AS author,
-       user.pfp       AS pfp,
+       user.username    AS author,
+       user.displayname AS displayname,
+       user.pfp         AS pfp,
        post.community_id,
-       community.name AS community,
-       community.icon AS community_icon,
+       community.name   AS community,
+       community.icon   AS community_icon,
        post.content,
        post.post_time,
        post.attachment,
@@ -124,7 +125,7 @@ SELECT post.id,
        post.comment_count
 FROM post
          JOIN user ON post.author_id = user.id
-         JOIN community ON post.community_id = community.id;
+         LEFT JOIN community ON post.community_id = community.id;
 
 CREATE TABLE IF NOT EXISTS comment
 (
