@@ -63,7 +63,7 @@ export async function signup(c: Context) {
         SELECT username
         FROM user
         WHERE username = ?
-           OR email = ?`).bind(username, email).all<UserRow>();
+           OR email = ?`).bind(username, email).all<UserRowV2>();
 
     if (existingUser.results.length != 0) return c.json({ message: 'User already exists', status: 409 }, 409);
 
@@ -74,7 +74,7 @@ export async function signup(c: Context) {
             INSERT INTO user (username, displayname, email, password)
             VALUES (?, ?, ?, ?)
             RETURNING id
-        `).bind(username, (displayname? displayname : username), email, hash).first<UserRow>()
+        `).bind(username, (displayname? displayname : username), email, hash).first<UserRowV2>()
 
         if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
@@ -107,13 +107,13 @@ export async function login(c: Context) {
             SELECT username, password
             FROM user
             WHERE username = ?
-        `).bind(username).first<UserRow>();
+        `).bind(username).first<UserRowV2>();
     } else if (email) {
         user = await env.DB.prepare(`
             SELECT email, password
             FROM user
             WHERE email = ?
-        `).bind(email).first<UserRow>();
+        `).bind(email).first<UserRowV2>();
     }
 
     if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
@@ -143,7 +143,7 @@ export async function login(c: Context) {
 // 			`INSERT INTO user (username, displayname, email)
 // 			 VALUES (?, ?, ?)
 // 			 RETURNING username`
-// 		).bind(sessionId, 'Anonymous', '@').all<UserRow>();
+// 		).bind(sessionId, 'Anonymous', '@').all<UserRowV2>();
 //
 // 		return new Response('Generated session ID', { status: 200,
 // 			headers: {
@@ -176,7 +176,7 @@ export async function getByUsername(c: Context) {
     try {
         const result = await env.DB.prepare(
             'SELECT * FROM user_view WHERE username = ?'
-        ).bind(username).all<UserRow>();
+        ).bind(username).all<UserRowV2>();
         return Response.json(result);
     } catch (e) {
         console.log(e);

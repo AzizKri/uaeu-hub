@@ -16,7 +16,7 @@ app.all('*', async (c) => {
     const reqType: string | undefined = reqData?.pop();
     // const params: string | undefined = reqData?.pop();
 
-    type UserRow = {
+    type UserRowV1 = {
         username: string;
         displayName: string;
         email: string;
@@ -48,7 +48,7 @@ app.all('*', async (c) => {
                     const uname = paths.pop();
                     const result = await c.env.DB.prepare(
                         'SELECT * FROM user_view WHERE username = ?'
-                    ).bind(uname).all<UserRow>();
+                    ).bind(uname).all<UserRowV1>();
 
                     return Response.json(result);
                 }

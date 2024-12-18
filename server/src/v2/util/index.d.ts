@@ -1,4 +1,4 @@
-type UserRow = {
+type UserRowV2 = {
     id: number;
     username: string;
     password: string;
