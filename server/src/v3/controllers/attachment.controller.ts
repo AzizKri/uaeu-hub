@@ -2,12 +2,12 @@ import { Context } from 'hono';
 
 export async function uploadAttachment(c: Context) {
     const env: Env = c.env;
-    const formData = await c.req.parseBody();
-    const uploadSource: string = formData['source'] as string;
-    const files: File[] = formData['files'] as File[];
+    const formData: FormData = await c.req.formData();
+    const uploadSource: string = formData.get('source') as string;
+    const file: File = formData.get('files[]') as File;
 
-    if (!files || files.length < 1) {
-        return new Response('No file defined', { status: 400 });
+    if (!file) {
+        return new Response('No file provided', { status: 400 });
     }
 
     try {
@@ -15,10 +15,10 @@ export async function uploadAttachment(c: Context) {
 
         const R2Response = await env.R2.put(
             `${uploadSource}/${fileName}`,
-            files[0].stream(),
+            file.stream(),
             {
                 httpMetadata: new Headers({
-                    'Content-Type': files[0].type
+                    'Content-Type': file.type
                 })
             }
         );
@@ -29,7 +29,7 @@ export async function uploadAttachment(c: Context) {
             await env.DB.prepare(`
                 INSERT INTO attachment (filename, mimetype)
                 VALUES (?, ?)`
-            ).bind(fileName, files[0].type).run();
+            ).bind(fileName, file.type).run();
 
             return new Response(fileName, { status: 201 });
         }

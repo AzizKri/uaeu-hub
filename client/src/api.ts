@@ -70,6 +70,14 @@ export async function searchPosts(query: string) {
 export async function uploadAttachment(attachments: File[]) {
     const formData = new FormData();
     formData.append('files[]', attachments[0]);
+    formData.append('source', 'attachments');
+
+    if (attachments[0].type.split('/')[0] === 'image') {
+        const imageBitmap: ImageBitmap = await createImageBitmap(attachments[0]); // Blob file
+        const { width, height } = imageBitmap;
+        formData.append('width', width.toString());
+        formData.append('height', height.toString());
+    }
 
     const request = await fetch(base + `/attachment`, {
         method: 'POST',
