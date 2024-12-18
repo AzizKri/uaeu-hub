@@ -144,6 +144,6 @@ export async function getPostByID(id: number) {
 
 // api.uaeu.chat/attachment/:filename
 export async function getAttachmentDetails(filename: string) {
-    const request = await fetch(cdn + `/attachments/${filename}`, { method: 'HEAD', credentials: 'include' });
+    const request = await fetch(cdn + `/attachments/${filename}`, { method: 'HEAD' });
     return request.headers.get('Content-Type');
 }
