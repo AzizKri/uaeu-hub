@@ -136,10 +136,10 @@ export async function getPostByID(c: Context) {
     }
 }
 
-
+// api.uaeu.chat/post/:id
 export async function deletePost(c: Context) {
     const env: Env = c.env;
-    const postid = c.req.param('postid');
+    const postid = c.req.param('id');
     const sessionKey = c.get('sessionKey');
 
     if (!postid) return c.text('No post provided', { status: 400 });
