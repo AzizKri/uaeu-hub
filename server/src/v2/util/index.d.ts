@@ -10,7 +10,7 @@ type UserRowV2 = {
     pfp?: string;
 }
 
-type PostRow = {
+type PostRowV2 = {
     id: number;
     author: string;
     content: string;

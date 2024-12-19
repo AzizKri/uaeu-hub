@@ -18,7 +18,7 @@ export async function searchPosts(c: Context) {
              WHERE posts_fts MATCH ?
              ORDER BY rank DESC
              LIMIT 10`
-        ).bind(query?.concat('*')).all<PostRow>();
+        ).bind(query?.concat('*')).all<PostRowV2>();
 
         return Response.json(results);
     } catch (e) {
@@ -38,7 +38,7 @@ export async function getPostByID(c: Context) {
         const results = await env.DB.prepare(
             `SELECT * FROM post_view AS post
              WHERE post.id = ?`
-        ).bind(id).all<PostRow>();
+        ).bind(id).all<PostRowV2>();
 
         return Response.json(results);
     } catch (e) {
@@ -72,7 +72,7 @@ export async function getPostByID(c: Context) {
 // 			 GROUP BY post_likes.post_id, post.id
 // 			 ORDER BY post.post_time DESC
 // 			 LIMIT 10 OFFSET (? * 10)`
-// 		).bind(page).all<PostRow>();
+// 		).bind(page).all<PostRowV2>();
 //
 // 		return Response.json(results);
 // 	} catch (e) {
@@ -96,7 +96,7 @@ export async function getLatestPosts(c: Context) {
             `SELECT * FROM post_view AS post
              ORDER BY post.post_time DESC
              LIMIT 10 OFFSET (? * 10)`
-        ).bind(page).all<PostRow>();
+        ).bind(page).all<PostRowV2>();
 
         return Response.json(results);
     } catch (e) {
@@ -120,7 +120,7 @@ export async function getPostsByUser(c: Context) {
              WHERE post.author = ?
              ORDER BY post.post_time DESC
              LIMIT 10 OFFSET (? * 10)`
-            ).bind(user, page || 0).all<PostRow>();
+            ).bind(user, page || 0).all<PostRowV2>();
 
             return Response.json(results);
         } else {
@@ -129,7 +129,7 @@ export async function getPostsByUser(c: Context) {
              WHERE post.author_id = ?
              ORDER BY post.post_time DESC
              LIMIT 10 OFFSET (? * 10)`
-            ).bind(user, page || 0).all<PostRow>();
+            ).bind(user, page || 0).all<PostRowV2>();
 
             return Response.json(results);
         }
