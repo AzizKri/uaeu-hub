@@ -1,32 +1,26 @@
 import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { hashSessionKey } from '../util/crypto';
+import { getUserFromSessionKey } from '../util/util';
 
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
     const env: Env = c.env;
     const formData = await c.req.parseBody();
-    const author = formData['author'] as string;
     const content = formData['content'] as string;
     const fileName: string | null = formData['filename'] as string;
     const sessionKey = c.get('sessionKey');
 
-    if (!author) return c.text('No author defined', { status: 400 });
+    // Check for required fields
     if (!content) return c.text('No content defined', { status: 400 });
 
+    // Trim excess newlines
     const trimmedContent = content.replace(/\n{3,}/g, '\n');
 
     try {
-        const hashedKey = await hashSessionKey(sessionKey)
-        console.log(hashedKey)
-        const userResult = await env.DB.prepare(
-            `SELECT user_id FROM session WHERE id = ?`
-        ).bind(hashedKey).first<SessionRow>();
-        console.log(userResult)
-        if (!userResult) return c.text('User not found', { status: 404 });
-        const userid = userResult.user_id;
+        // Get user from session key
+        const userid = await getUserFromSessionKey(c, sessionKey);
 
-        // We have a file
+        // Check if we have a file & insert into DB
         if (fileName) {
             await env.DB.prepare(
                 `INSERT INTO post (author_id, content, attachment, post_time)
@@ -55,7 +49,7 @@ export async function getLatestPosts(c: Context) {
             `SELECT * FROM post_view
          ORDER BY post_time DESC
          LIMIT 10 OFFSET ?`
-        ).bind(page * 10).all<PostRow>();
+        ).bind(page * 10).all<PostView>();
 
         return c.json(posts, { status: 200 });
     } catch (e) {
@@ -79,7 +73,7 @@ export async function getPostsByUser(c: Context) {
              WHERE post.author = ?
              ORDER BY post.post_time DESC
              LIMIT 10 OFFSET (? * 10)`
-            ).bind(user, page || 0).all<PostRow>();
+            ).bind(user, page || 0).all<PostView>();
 
             return Response.json(results);
         } else {
@@ -88,7 +82,7 @@ export async function getPostsByUser(c: Context) {
              WHERE post.author_id = ?
              ORDER BY post.post_time DESC
              LIMIT 10 OFFSET (? * 10)`
-            ).bind(user, page || 0).all<PostRow>();
+            ).bind(user, page || 0).all<PostView>();
 
             return Response.json(results);
         }
@@ -113,7 +107,7 @@ export async function searchPosts(c: Context) {
              WHERE posts_fts MATCH ?
              ORDER BY rank DESC
              LIMIT 10`
-        ).bind(query?.concat('*')).all<PostRow>();
+        ).bind(query?.concat('*')).all<PostView>();
 
         return Response.json(results);
     } catch (e) {
@@ -133,11 +127,39 @@ export async function getPostByID(c: Context) {
         const results = await env.DB.prepare(
             `SELECT * FROM post_view AS post
              WHERE post.id = ?`
-        ).bind(id).all<PostRow>();
+        ).bind(id).all<PostView>();
 
         return Response.json(results);
     } catch (e) {
         console.error(e);
         return new Response('Internal Server Error', { status: 500 });
+    }
+}
+
+
+export async function deletePost(c: Context) {
+    const env: Env = c.env;
+    const postid = c.req.param('postid');
+    const sessionKey = c.get('sessionKey');
+
+    if (!postid) return c.text('No post provided', { status: 400 });
+
+    try {
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
+        const post = await env.DB.prepare(`
+            SELECT author_id FROM post WHERE id = ?
+        `).bind(postid).first<PostRow>();
+
+        if (!post) return c.text('Post not found', { status: 404 });
+        if (userid !== post.author_id) return c.text('Unauthorized', { status: 403 });
+
+        await env.DB.prepare(`
+            DELETE FROM post WHERE id = ?
+        `).bind(postid).run();
+
+        return c.text('Post deleted', { status: 200 });
+    } catch (e) {
+        return c.text('Internal Server Error', { status: 500 });
     }
 }
