@@ -137,6 +137,7 @@ CREATE TABLE IF NOT EXISTS comment
     attachment     TEXT,
     like_count     INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (parent_post_id) REFERENCES post (id) ON DELETE CASCADE,
+    FOREIGN KEY (attachment) REFERENCES attachment (filename) ON DELETE SET NULL,
     FOREIGN KEY (author_id) REFERENCES user (id) ON DELETE CASCADE
 );
 

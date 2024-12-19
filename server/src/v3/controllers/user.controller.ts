@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import { z } from 'zod';
 import { setSignedCookie, getSignedCookie } from 'hono/cookie';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
+import { getUserFromSessionKey } from '../util/util';
 
 const COOKIE_EXPIRY = 360 * 24 * 60 * 60; // 1 year
 
@@ -74,19 +75,14 @@ export async function signup(c: Context) {
         let user;
         if (existingSessionKey) {
             // Get UserID from Session key
-            const hashedKey = await hashSessionKey(existingSessionKey)
-            const userResult = await env.DB.prepare(
-                `SELECT user_id FROM session WHERE id = ?`
-            ).bind(hashedKey).first<SessionRow>();
-
-            if (!userResult) return c.json({ message: 'User not found', status: 404 }, 404);
+            const userid = await getUserFromSessionKey(c, existingSessionKey);
 
             user = await env.DB.prepare(`
                 UPDATE user
                 SET username = ?, displayname = ?, email = ?, password = ?, salt = ?, is_anonymous = false
                 WHERE id = ?
                 RETURNING id
-            `).bind(username, (displayname ? displayname : username), email, hash, encoded, userResult.user_id).first<UserRow>();
+            `).bind(username, (displayname ? displayname : username), email, hash, encoded, userid).first<UserRow>();
         } else {
             // New user, no activity
             user = await env.DB.prepare(`
@@ -252,7 +248,7 @@ export async function getByUsername(c: Context) {
     try {
         const result = await env.DB.prepare(
             'SELECT * FROM user_view WHERE username = ?'
-        ).bind(username).all<UserRow>();
+        ).bind(username).all<UserView>();
         return Response.json(result);
     } catch (e) {
         console.log(e);
