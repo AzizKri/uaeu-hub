@@ -5,9 +5,14 @@ export default function PostFooter({ id, likes, comments }: { id: number, likes:
         await navigator.clipboard.writeText(`https://uaeu.chat/post/${id}`);
     }
 
+    const redirectToPost = () => {
+        location.assign(`/post/${id}`);
+    }
+
     return (
         <div className={styles.footer}>
             <div className={styles.footerLeft}>
+                {/*likes button*/}
                 <div className={styles.footerButton}>
                     <div className={styles.buttonIcon}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"
@@ -23,7 +28,8 @@ export default function PostFooter({ id, likes, comments }: { id: number, likes:
                         <span>{likes}</span>
                     </div>
                 </div>
-                <div className={styles.footerButton}>
+                {/*comments button*/}
+                <div className={styles.footerButton} onClick={() => redirectToPost()}>
                     <div className={styles.buttonIcon}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"
                              viewBox="0 0 24 24">
