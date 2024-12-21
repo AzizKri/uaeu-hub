@@ -51,14 +51,42 @@ type PostView = {
     comment_count: number;
 }
 
+type PostLikeRow = {
+    post_id: number;
+    user_id: number;
+    created_at: number;
+}
+
 type CommentRow = {
     id: number;
+    parent_post_id: number;
+    parent_type: string
+    level: number;
+    author_id: number;
+    content: string;
+    post_time: number;
+    attachment?: string;
+    like_count: number;
+}
+
+type CommentView = {
+    id: number;
+    parent_post_id: number;
+    parent_type: string
+    level: number;
+    author_id: number;
     author: string;
     pfp?: string;
+    displayname?: string;
     content: string;
     post_time: number;
     like_count: number;
     attachment?: string;
+}
+
+type AttachmentMetadata = {
+    width?: string,
+    height?: string
 }
 
 type AttachmentRow = {
@@ -72,9 +100,4 @@ type SessionRow = {
     id: string;
     user_id: number;
     created_at: number;
-}
-
-type AttachmentMetadata = {
-    width?: string,
-    height?: string
 }

@@ -39,6 +39,20 @@ declare global {
         user: userInfo | null;
         updateUser: (userInfo) => void;
     }
+
+    interface GenericMetadata {
+        size: number
+    }
+
+    interface ImageMetadata extends GenericMetadata {
+        width: number,
+        height: number,
+        animated: boolean
+    }
+
+    interface DocumentMetadata extends GenericMetadata {
+
+    }
 }
 
 export {};

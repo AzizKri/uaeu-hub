@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS user
     username      TEXT    NOT NULL UNIQUE,
     displayname   TEXT,
     email         TEXT,
+    email_verified BOOLEAN          DEFAULT FALSE,
     auth_provider TEXT    NOT NULL DEFAULT 'local',
     password      TEXT,
     salt          TEXT,
@@ -90,7 +91,6 @@ CREATE TABLE IF NOT EXISTS attachment
 (
     filename   TEXT PRIMARY KEY,
     mimetype   TEXT    NOT NULL,
-    metadata   TEXT,
     created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -131,6 +131,8 @@ CREATE TABLE IF NOT EXISTS comment
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     parent_post_id INTEGER NOT NULL,
+    parent_type    TEXT    NOT NULL DEFAULT 'post',
+    level          INTEGER NOT NULL DEFAULT 0, -- 0 for first comment
     author_id      INTEGER NOT NULL,
     content        TEXT    NOT NULL,
     post_time      INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -143,8 +145,13 @@ CREATE TABLE IF NOT EXISTS comment
 
 CREATE VIEW IF NOT EXISTS comment_view AS
 SELECT comment.id,
-       user.username AS author,
-       user.pfp      AS pfp,
+       comment.parent_post_id,
+       comment.parent_type,
+       comment.level,
+       comment.author_id,
+       user.username    AS author,
+       user.pfp         AS pfp,
+       user.displayname AS displayname,
        comment.content,
        comment.post_time,
        comment.attachment,
@@ -152,25 +159,26 @@ SELECT comment.id,
 FROM comment
          JOIN user ON comment.author_id = user.id;
 
-CREATE TABLE IF NOT EXISTS post_likes
+CREATE TABLE IF NOT EXISTS post_like
 (
-    post_id INTEGER NOT NULL,
-    user_id TEXT    NOT NULL,
+    post_id    INTEGER NOT NULL,
+    user_id    TEXT    NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (post_id, user_id),
     FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS post_views
-(
-    post_id INTEGER NOT NULL,
-    user_id TEXT    NOT NULL,
-    PRIMARY KEY (post_id, user_id),
-    FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
-);
+-- CREATE TABLE IF NOT EXISTS post_view
+-- (
+--     post_id INTEGER NOT NULL,
+--     user_id TEXT    NOT NULL,
+--     PRIMARY KEY (post_id, user_id),
+--     FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
+--     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+-- );
 
-CREATE TABLE IF NOT EXISTS comment_likes
+CREATE TABLE IF NOT EXISTS comment_like
 (
     comment_id INTEGER NOT NULL,
     user_id    TEXT    NOT NULL,
@@ -195,11 +203,11 @@ CREATE INDEX idx_post_author_id ON post (author_id);
 CREATE INDEX idx_comment_author_id ON comment (author_id);
 CREATE INDEX idx_comment_parent_post_id ON comment (parent_post_id);
 
-CREATE INDEX idx_post_likes_post_id ON post_likes (post_id);
-CREATE INDEX idx_post_likes_user ON post_likes (user_id);
+CREATE INDEX idx_post_likes_post_id ON post_like (post_id);
+CREATE INDEX idx_post_likes_user ON post_like (user_id);
 
-CREATE INDEX idx_comment_likes_comment_id ON comment_likes (comment_id);
-CREATE INDEX idx_comment_likes_user ON comment_likes (user_id);
+CREATE INDEX idx_comment_likes_comment_id ON comment_like (comment_id);
+CREATE INDEX idx_comment_likes_user ON comment_like (user_id);
 
 INSERT INTO posts_fts(rowid, content, author)
 SELECT id, content, (SELECT username FROM user WHERE user.id = post.author_id)
@@ -224,7 +232,7 @@ END;
 
 CREATE TRIGGER increment_post_like_count
     AFTER INSERT
-    ON post_likes
+    ON post_like
 BEGIN
     UPDATE post
     SET like_count = like_count + 1
@@ -233,7 +241,7 @@ END;
 
 CREATE TRIGGER decrement_post_like_count
     AFTER DELETE
-    ON post_likes
+    ON post_like
 BEGIN
     UPDATE post
     SET like_count = like_count - 1
@@ -242,7 +250,7 @@ END;
 
 CREATE TRIGGER increment_comment_like_count
     AFTER INSERT
-    ON comment_likes
+    ON comment_like
 BEGIN
     UPDATE comment
     SET like_count = like_count + 1
@@ -251,7 +259,7 @@ END;
 
 CREATE TRIGGER decrement_comment_like_count
     AFTER DELETE
-    ON comment_likes
+    ON comment_like
 BEGIN
     UPDATE comment
     SET like_count = like_count - 1
