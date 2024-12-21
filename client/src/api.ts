@@ -126,9 +126,8 @@ export async function uploadAttachment(attachments: File[]) {
 }
 
 // api.uaeu.chat/post
-export async function createPost(author: string, content: string, attachment: string | null) {
+export async function createPost(content: string, attachment: string | null) {
     const formData = new FormData();
-    formData.append('author', author);
     formData.append('content', content);
 
     if (attachment) {
@@ -136,24 +135,6 @@ export async function createPost(author: string, content: string, attachment: st
     }
 
     const request = await fetch(base + `/post`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-    });
-    return request.status;
-}
-
-// api.uaeu.chat/post/create
-export async function createPostOld(author: string, content: string, attachment: File | null) {
-    const formData = new FormData();
-    formData.append('author', author);
-    formData.append('content', content);
-
-    if (attachment) {
-        formData.append('file', attachment);
-    }
-
-    const request = await fetch(base + `/post/create`, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -177,5 +158,43 @@ export async function getPostByID(id: number) {
 export async function getAttachmentDetails(filename: string) {
     const request = await fetch(base + `/attachment/${filename}`, { method: 'GET' });
 
-   return { status: request.status, data: await request.json()};
+    return { status: request.status, data: await request.json() };
+}
+
+// api.uaeu.chat/post
+export async function comment(post: number, parentType: string, content: string, attachment: string | null, parentLevel?: number) {
+    const formData = new FormData();
+    formData.append('postid', post.toString());
+    formData.append('parent-type', parentType);
+    formData.append('parent-level', parentLevel ? parentLevel.toString() : '-1');
+    formData.append('content', content);
+
+    if (attachment) {
+        formData.append('filename', attachment);
+    }
+
+    const request = await fetch(base + `/comment`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// api.uaeu.chat/post
+export async function getCommentsOnPost(post: number, page: number | 0) {
+    const request = await fetch(base + `/comment/${post}/${page}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return await request.json();
+}
+
+// api.uaeu.chat/post/like/:id
+export async function toggleLike(post: number) {
+    const request = await fetch(base + `/post/like/${post}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return request.status;
 }

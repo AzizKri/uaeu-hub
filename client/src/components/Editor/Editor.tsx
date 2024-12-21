@@ -20,7 +20,7 @@ const initialConfig = {
 export default function Editor({type}: {type: string}): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [filePreview, setFilePreview] = useState<string | ArrayBuffer | null>(null);
-    const [file, setFile] = useState<File | null>(null);
+    const [file, setFile] = useState<{ status: "UPLOADING" | "READY", file: File } | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
@@ -80,8 +80,7 @@ export default function Editor({type}: {type: string}): JSX.Element {
         setFilePreview(null);
         // TODO: not sure where the user will come from yet
         if (type === "post") {
-            const author: string = "aziz";
-            const response = await createPost(author, plainText, fileName);
+            const response = await createPost(plainText, fileName);
             console.log(response);
             updatePosts();
         } else if (type === "comment") {
@@ -104,7 +103,7 @@ export default function Editor({type}: {type: string}): JSX.Element {
             uploadAttachment([file]).then((resp) => {
                 if (resp.status === 201) {
                     setFileName(resp.filename || null);
-                    setFile(file);
+                    setFile({ status: "READY", file });
                 }
             });
         }
@@ -123,8 +122,8 @@ export default function Editor({type}: {type: string}): JSX.Element {
                         }
                         placeholder={
                             <div className={styles.editorPlaceholder}>{
-                                type === "post" ? "Write you Question..." :
-                                type === "comment" ? "Write your comment..." :
+                                type === "post" ? "What's your question?" :
+                                type === "comment" ? "Reply..." :
                                 ""
                             }
                             </div>}

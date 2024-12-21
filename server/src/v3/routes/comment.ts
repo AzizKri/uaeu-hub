@@ -12,3 +12,5 @@ app.use('/', authMiddleware);
 app.post('/', (c) => comment(c));
 app.get('/:postid/:page', (c) => getCommentsOnPost(c));
 app.delete('/');
+
+export default app;
