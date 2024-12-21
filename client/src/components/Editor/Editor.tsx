@@ -6,7 +6,7 @@ import {LexicalErrorBoundary} from "@lexical/react/LexicalErrorBoundary";
 import {HistoryPlugin} from "@lexical/react/LexicalHistoryPlugin";
 import {$getRoot} from "lexical";
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
-import {createPost, uploadAttachment} from "../../api.ts";
+import {comment, createPost, uploadAttachment} from "../../api.ts";
 import {useLexicalComposerContext} from "@lexical/react/LexicalComposerContext";
 import {useUpdatePosts} from "../../lib/hooks.ts";
 
@@ -17,7 +17,7 @@ const initialConfig = {
         console.error(error);
     },
 };
-export default function Editor({type}: {type: string}): JSX.Element {
+export default function Editor({type, post_id}: {type: string, post_id: number | null}): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [filePreview, setFilePreview] = useState<string | ArrayBuffer | null>(null);
     const [file, setFile] = useState<{ status: "UPLOADING" | "READY", file: File } | null>(null);
@@ -78,13 +78,13 @@ export default function Editor({type}: {type: string}): JSX.Element {
             editorHelperRef.current.clearEditorContent();
         }
         setFilePreview(null);
-        // TODO: not sure where the user will come from yet
         if (type === "post") {
             const response = await createPost(plainText, fileName);
             console.log(response);
             updatePosts();
-        } else if (type === "comment") {
-            console.log("should send a comment - not implemented yet");
+        } else if (type === "comment" && post_id) {
+            const response = await comment(post_id, "post", plainText, fileName);
+            console.log(response);
         }
     }
 

@@ -2,7 +2,9 @@ import profilePict from '../../assets/profile-picture.png';
 import './comment.module.scss';
 import styles from './comment.module.scss';
 
-export default function Comment() {
+export default function Comment({info}: {info: CommentInfo}) {
+    console.log("info");
+    console.log(info);
     return (
         <div className={styles.comment}>
             <div className={styles.comment__profile_pict}>
@@ -10,13 +12,12 @@ export default function Comment() {
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
-                    <div className={styles.comment__content__header__display_name}>Display Name</div>
+                    <div className={styles.comment__content__header__display_name}>{info.displayname}</div>
                     <span>•</span>
                     <div className={styles.comment__content__header__time}>3h ago</div>
                 </div>
                 <div className={styles.comment__content__text}>
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Cum exercitationem iusto magni qui,
-                    similique voluptates.
+                    {info.content}
                 </div>
                 <div className={styles.comment__content__footer}>
                     <button className={`${styles.vote_icon} ${styles.btn_hover}`}>
@@ -26,7 +27,7 @@ export default function Comment() {
                                 d="M12.877 19H7.123A1.125 1.125 0 0 1 6 17.877V11H2.126a1.114 1.114 0 0 1-1.007-.7 1.249 1.249 0 0 1 .171-1.343L9.166.368a1.128 1.128 0 0 1 1.668.004l7.872 8.581a1.25 1.25 0 0 1 .176 1.348 1.113 1.113 0 0 1-1.005.7H14v6.877A1.125 1.125 0 0 1 12.877 19ZM7.25 17.75h5.5v-8h4.934L10 1.31 2.258 9.75H7.25v8ZM2.227 9.784l-.012.016c.01-.006.014-.01.012-.016Z"></path>
                         </svg>
                     </button>
-                    <span className={styles.comment__content__footer__votes}>2.4k</span>
+                    <span className={styles.comment__content__footer__votes}>{info.like_count}</span>
                     <button className={`${styles.vote_icon} ${styles.btn_hover}`}>
                         <svg fill="currentColor" height="16" icon-name="downvote-outline" viewBox="0 0 20 20"
                              width="16" xmlns="http://www.w3.org/2000/svg">

@@ -22,7 +22,7 @@ export default function PostPage() {
                         postDate={new Date(res.results[0].post_time)}
                         filename={res.results[0].attachment}
                         likes={res.results[0].like_count}
-                        comments={res.results[0].comment_count}
+                        comments_count={res.results[0].comment_count}
                         isPostPage={true}
                     />
                 );
@@ -44,6 +44,7 @@ export default function PostPage() {
         <div>
             <div className={styles.header}>
                 <div className={styles.arrow_container} onClick={() => goBack()}>
+                    {/*back button*/}
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
                     </svg>
