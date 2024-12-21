@@ -143,8 +143,11 @@ CREATE TABLE IF NOT EXISTS comment
 
 CREATE VIEW IF NOT EXISTS comment_view AS
 SELECT comment.id,
-       user.username AS author,
-       user.pfp      AS pfp,
+       comment.parent_post_id,
+       comment.author_id,
+       user.username    AS author,
+       user.pfp         AS pfp,
+       user.displayname AS displayname,
        comment.content,
        comment.post_time,
        comment.attachment,
@@ -152,7 +155,17 @@ SELECT comment.id,
 FROM comment
          JOIN user ON comment.author_id = user.id;
 
-CREATE TABLE IF NOT EXISTS post_likes
+CREATE TABLE IF NOT EXISTS post_like
+(
+    post_id    INTEGER NOT NULL,
+    user_id    TEXT    NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS post_view
 (
     post_id INTEGER NOT NULL,
     user_id TEXT    NOT NULL,
@@ -161,16 +174,7 @@ CREATE TABLE IF NOT EXISTS post_likes
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS post_views
-(
-    post_id INTEGER NOT NULL,
-    user_id TEXT    NOT NULL,
-    PRIMARY KEY (post_id, user_id),
-    FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS comment_likes
+CREATE TABLE IF NOT EXISTS comment_like
 (
     comment_id INTEGER NOT NULL,
     user_id    TEXT    NOT NULL,
