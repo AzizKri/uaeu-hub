@@ -34,7 +34,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                         postDate={new Date(post.post_time)}
                         filename={post.attachment}
                         likes={post.like_count}
-                        comments={post.comment_count}
+                        comments_count={post.comment_count}
                         isPostPage={false}
                     />
                 );

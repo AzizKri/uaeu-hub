@@ -6,8 +6,9 @@ import Comment from '../Comment/Comment.tsx';
 import styles from './post.module.scss';
 import {useEffect, useState} from 'react';
 import Editor from '../Editor/Editor.tsx';
-import {getAttachmentDetails} from '../../api.ts';
+import {getAttachmentDetails, getCommentsOnPost} from '../../api.ts';
 import LoadingImage from "../LoadingImage/LoadingImage.tsx";
+import {getFormatedDate} from "../../lib/tools.ts";
 
 export default function Post({
                                  id,
@@ -18,7 +19,7 @@ export default function Post({
                                  postDate,
                                  filename,
                                  likes,
-                                 comments,
+                                 comments_count,
                                  isPostPage,
                              }: PostInfo) {
     const [dateText, setDateText] = useState<string>('');
@@ -27,27 +28,17 @@ export default function Post({
     const [imageDims, setImageDims] = useState<{ width: number, height: number }>({width: 0, height: 0});
     const [error, setError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(filename != null);
+    const [comments, setComments] = useState<CommentInfo[]>([]);
 
     useEffect(() => {
-        const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        getCommentsOnPost(id, 0).then((res) => {
+            console.log(res.results);
+            setComments(res.results);
+        })
+    }, [id]);
 
-        const curDate = new Date();
-        const diffInMs = curDate.getTime() - postDate.getTime();
-        const diffInSeconds = Math.floor(diffInMs / 1000);
-        const diffInMinutes = Math.floor(diffInSeconds / 60);
-        const diffInHours = Math.floor(diffInMinutes / 60);
-
-        if (diffInSeconds < 60) {
-            setDateText(`${diffInSeconds} sec ago`);
-        } else if (diffInMinutes < 60) {
-            setDateText(`${diffInMinutes} min ago`);
-        } else if (diffInHours < 24) {
-            setDateText(`${diffInHours} hr ago`);
-        } else if (curDate.getFullYear() === postDate.getFullYear()) {
-            setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}`);
-        } else {
-            setDateText(`${months[postDate.getMonth()]} ${postDate.getDate()}, ${postDate.getFullYear()}`);
-        }
+    useEffect(() => {
+        setDateText(getFormatedDate(postDate))
     }, [postDate]);
 
     useEffect(() => {
@@ -110,11 +101,14 @@ export default function Post({
                 </div>
             }
             {error && <p>Error Loading the image</p>}
-            <PostFooter id={id} likes={likes} comments={comments}/>
+            <PostFooter id={id} likes={likes} comments={comments_count}/>
             <div className={styles.post__write_answer}>
-                <Editor type="comment"/>
+                <Editor type="comment" post_id={id}/>
             </div>
-            <Comment/>
+            {comments.map((cur) => <Comment
+                info={cur}
+            />)}
+            {/*<Comment/>*/}
         </div>
     );
 }

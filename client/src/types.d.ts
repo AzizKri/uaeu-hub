@@ -19,8 +19,37 @@ declare global {
         pfp: string,
         filename?: string
         likes: number,
-        comments: number,
+        comments_count: number,
         isPostPage: boolean,
+    }
+
+    // interface CommentInfo {
+    //     commentId: number,
+    //     authorUsername: string,
+    //     authorDisplayName: string,
+    //     // commentDate: Date,
+    //     level: number,
+    //     content: string,
+    //     pfp: string,
+    //     filename?: string
+    //     // upVotes: number,
+    //     // downVotes: number,
+    // }
+
+    interface CommentInfo {
+        attachment: string,
+        author: string,
+        author_id: number,
+        content: string,
+        displayname: stirng,
+        id: number,
+        level: number,
+        like_count: number,
+        liked: boolean,
+        parent_post_id: number,
+        parent_type: string,
+        pfp: string,
+        post_time: string,
     }
 
     interface UpdatePostsContextInterface {
