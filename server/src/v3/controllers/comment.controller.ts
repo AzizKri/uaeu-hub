@@ -43,13 +43,14 @@ export async function getCommentsOnPost(c: Context) {
     try {
         const comments = await env.DB.prepare(
             `SELECT * FROM comment_view
-         WHERE post_id = ?
+         WHERE parent_post_id = ?
          ORDER BY like_count DESC
          LIMIT 10 OFFSET ?`
         ).bind(postID, page).all<CommentRow>();
 
         return c.json(comments, { status: 200 });
     } catch (e) {
-        return c.text('Internal Server Error', { status: 500 });
+        console.log(e);
+        return c.text("Internal Server Error", { status: 500 });
     }
 }
