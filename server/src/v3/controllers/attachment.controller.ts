@@ -4,8 +4,8 @@ const allowedMimeTypes = [
     // Images
     'image/jpeg',           // .jpeg, .jpg
     'image/png',            // .png
-    // 'image/gif',            // .gif
-    // 'image/webp',           // .webp
+    'image/gif',            // .gif
+    'image/webp',           // .webp
     // 'image/svg+xml',        // .svg
     // 'image/bmp',            // .bmp
     // 'image/tiff',           // .tiff
@@ -17,14 +17,14 @@ const allowedMimeTypes = [
     // 'audio/mpeg',           // .mp3
     // 'audio/ogg',            // .ogg
     // 'audio/wav',            // .wav
-    // // Documents
-    // 'application/pdf',      // .pdf
-    // 'application/vnd.ms-powerpoint',    // .ppt
-    // 'application/vnd.openxmlformats-officedocument.presentationml.presentation',    // .pptx
-    // 'application/msword',   // .doc
-    // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',   // .docx
-    // 'application/vnd.ms-excel',    // .xls
-    // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',    // .xlsx
+    // Documents
+    'application/pdf',      // .pdf
+    'application/vnd.ms-powerpoint',    // .ppt
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',    // .pptx
+    'application/msword',   // .doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',   // .docx
+    'application/vnd.ms-excel',    // .xls
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',    // .xlsx
 ];
 
 export async function uploadAttachment(c: Context) {
