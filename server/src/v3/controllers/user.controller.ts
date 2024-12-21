@@ -168,13 +168,6 @@ export async function anonSignup(c: Context) {
             domain: '.uaeu.chat',
             maxAge: COOKIE_EXPIRY
         });
-        // await setSignedCookie(c, 'user', user.id.toString(), env.JWT_SECRET, {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: 'Strict',
-        //     domain: '.uaeu.chat',
-        //     maxAge: COOKIE_EXPIRY
-        // });
 
         c.set('sessionKey', PlainSessionKey);
         return c.json({ message: 'User created successfully', status: 200 }, 200);
