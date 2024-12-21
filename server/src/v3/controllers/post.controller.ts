@@ -43,20 +43,36 @@ export async function createPost(c: Context) {
 export async function getLatestPosts(c: Context) {
     const env: Env = c.env;
     const page = c.req.param('page') ? Number(c.req.param('page')) : 0;
+    const sessionKey = c.get('sessionKey');
 
     try {
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
         const posts = await env.DB.prepare(
-            `SELECT * FROM post_view
-         ORDER BY post_time DESC
-         LIMIT 10 OFFSET ?`
-        ).bind(page * 10).all<PostView>();
+            `SELECT pv.*,
+                    CASE
+                        WHEN pl.user_id IS NOT NULL then 1
+                        ELSE 0
+                        END AS liked
+             FROM post_view pv
+                      LEFT JOIN post_like pl
+                                ON pv.id = pl.post_id AND pl.user_id = ?
+             ORDER BY pv.post_time DESC
+             LIMIT 10 OFFSET ?`
+        ).bind(userid, page * 10).all<PostView>();
+
+        // const posts = await env.DB.prepare(
+        //     `SELECT * FROM post_view
+        //      ORDER BY post_time DESC
+        //      LIMIT 10 OFFSET ?`
+        // ).bind(page * 10).all<PostView>();
 
         return c.json(posts, { status: 200 });
     } catch (e) {
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
-
 
 // api.uaeu.chat/post/user/:username/:page?
 // api.uaeu.chat/post/user/:id/:page?
@@ -69,19 +85,21 @@ export async function getPostsByUser(c: Context) {
     try {
         if (isNaN(Number(user))) {
             const results = await env.DB.prepare(
-                `SELECT * FROM post_view AS post
-             WHERE post.author = ?
-             ORDER BY post.post_time DESC
-             LIMIT 10 OFFSET (? * 10)`
+                `SELECT *
+                 FROM post_view AS post
+                 WHERE post.author = ?
+                 ORDER BY post.post_time DESC
+                 LIMIT 10 OFFSET (? * 10)`
             ).bind(user, page || 0).all<PostView>();
 
             return Response.json(results);
         } else {
             const results = await env.DB.prepare(
-                `SELECT * FROM post_view AS post
-             WHERE post.author_id = ?
-             ORDER BY post.post_time DESC
-             LIMIT 10 OFFSET (? * 10)`
+                `SELECT *
+                 FROM post_view AS post
+                 WHERE post.author_id = ?
+                 ORDER BY post.post_time DESC
+                 LIMIT 10 OFFSET (? * 10)`
             ).bind(user, page || 0).all<PostView>();
 
             return Response.json(results);
@@ -125,7 +143,8 @@ export async function getPostByID(c: Context) {
 
     try {
         const results = await env.DB.prepare(
-            `SELECT * FROM post_view AS post
+            `SELECT *
+             FROM post_view AS post
              WHERE post.id = ?`
         ).bind(id).all<PostView>();
 
@@ -148,17 +167,58 @@ export async function deletePost(c: Context) {
         const userid = await getUserFromSessionKey(c, sessionKey);
 
         const post = await env.DB.prepare(`
-            SELECT author_id FROM post WHERE id = ?
+            SELECT author_id
+            FROM post
+            WHERE id = ?
         `).bind(postid).first<PostRow>();
 
         if (!post) return c.text('Post not found', { status: 404 });
         if (userid !== post.author_id) return c.text('Unauthorized', { status: 403 });
 
         await env.DB.prepare(`
-            DELETE FROM post WHERE id = ?
+            DELETE
+            FROM post
+            WHERE id = ?
         `).bind(postid).run();
 
         return c.text('Post deleted', { status: 200 });
+    } catch (e) {
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
+export async function likePost(c: Context) {
+    const env: Env = c.env;
+    const postid = Number(c.req.param('id'));
+    const sessionKey = c.get('sessionKey');
+
+    if (!postid) return c.text('No post provided', { status: 400 });
+
+    try {
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
+        const like = await env.DB.prepare(`
+            SELECT *
+            FROM post_like
+            WHERE post_id = ?
+              AND user_id = ?
+        `).bind(postid, userid).first<PostLikeRow>();
+
+        if (like) {
+            await env.DB.prepare(`
+                DELETE
+                FROM post_like
+                WHERE post_id = ?
+                  AND user_id = ?
+            `).bind(postid, userid).run();
+        } else {
+            await env.DB.prepare(`
+                INSERT INTO post_like (post_id, user_id)
+                VALUES (?, ?)
+            `).bind(postid, userid).run();
+        }
+
+        return c.text('Like toggled', { status: 200 });
     } catch (e) {
         return c.text('Internal Server Error', { status: 500 });
     }

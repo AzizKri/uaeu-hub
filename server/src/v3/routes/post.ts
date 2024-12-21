@@ -3,7 +3,7 @@ import {
     createPost, deletePost,
     getLatestPosts,
     getPostByID,
-    getPostsByUser,
+    getPostsByUser, likePost,
     searchPosts
 } from '../controllers/post.controller';
 import type { JwtVariables } from 'hono/jwt';
@@ -20,6 +20,7 @@ app.use('/', authMiddleware, postRateLimitMiddleware);
 
 app.post('/', (c) => createPost(c));                                // api.uaeu.chat/post
 app.delete('/:id', (c) => deletePost(c));                           // api.uaeu.chat/post/:id
+app.post('/like/:id', (c) => likePost(c));				            // api.uaeu.chat/post/like/:id
 app.get('/latest/:page?', (c) => getLatestPosts(c));				// api.uaeu.chat/post/latest/:page
 app.get('/search/:query', (c) => searchPosts(c));					// api.uaeu.chat/post/search/:query
 app.get('/user/:username/:page?', (c) => getPostsByUser(c));		// api.uaeu.chat/post/user/:username/:page
