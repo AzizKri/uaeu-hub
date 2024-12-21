@@ -22,6 +22,7 @@ export async function getUserFromSessionKey(c: Context, sessionKey: string) {
 
             return userResult?.user_id;
         }
+        return userResult?.user_id;
     } catch (e) {
         console.log(e);
         return null;
