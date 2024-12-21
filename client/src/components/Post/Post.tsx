@@ -79,11 +79,15 @@ export default function Post({
                 <div className={styles.post__info_bar__time}>{dateText}</div>
             </div>
             <div className={styles.post__content}>
-                <a href={`/post/${id}`}>
-                    {showContent || isPostPage ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
-                </a>
-                    {showContent ? '' :
-                        <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
+                {isPostPage ?
+                    (showContent || isPostPage ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>)
+                    :
+                    <a href={`/post/${id}`}>
+                        {showContent || isPostPage ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
+                    </a>
+                }
+                {showContent ? '' :
+                    <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
             {isLoading && !error && <LoadingImage />}
