@@ -33,6 +33,11 @@ export async function getUserByUsername(username: string) {
     return await request.json();
 }
 
+export async function isUser() {
+    const request = await fetch(base + `/user/isUser`, { credentials: 'include' });
+    return request.status === 200; // true if status is 200, otherwise false (401 Unauthorized or 500 Internal Server Error)
+}
+
 // POSTS
 
 // api.uaeu.chat/post/latest/:page
@@ -193,7 +198,7 @@ export async function getCommentsOnPost(post: number, page: number | 0) {
 // api.uaeu.chat/post/like/:id
 export async function toggleLike(post: number) {
     const request = await fetch(base + `/post/like/${post}`, {
-        method: 'GET',
+        method: 'POST',
         credentials: 'include'
     });
     return request.status;

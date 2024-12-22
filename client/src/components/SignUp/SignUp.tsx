@@ -7,7 +7,8 @@ export default function SignUp() {
         displayname: '',
         email: '',
         username: '',
-        password: ''
+        password: '',
+        includeAnon: true
     });
     const [errors, setErrors] = useState({
         email: false,

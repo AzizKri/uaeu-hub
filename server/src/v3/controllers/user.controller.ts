@@ -54,6 +54,7 @@ export async function signup(c: Context) {
     const { displayname, email, username, password, includeAnon } = await c.req.json();
     const existingSessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey');
 
+    // Parse the input data
     try {
         userSchema.parse({ displayname, email, username, password });
     } catch (e) {
@@ -65,6 +66,7 @@ export async function signup(c: Context) {
         }
     }
 
+    // Check if username / email already used
     const existingUser = await env.DB.prepare(`
         SELECT username
         FROM user
@@ -73,13 +75,14 @@ export async function signup(c: Context) {
 
     if (existingUser.results.length != 0) return c.json({ message: 'User already exists', status: 409 }, 409);
 
+    // Generate salt, encoded salt (for storing in db) & hash password with plain salt
     const { salt, encoded } = generateSalt();
     const hash = await hashPassword(password, salt);
 
     try {
         // Check if the user signing up already has anonymous activity
         let user;
-        if (existingSessionKey && includeAnon) {
+        if (existingSessionKey && includeAnon == true) { // We have a session key AND we want to include anonymous activity
             // Get UserID from Session key
             const userid = await getUserFromSessionKey(c, existingSessionKey);
 
@@ -136,6 +139,7 @@ export async function anonSignup(c: Context) {
     let existingUser;
 
     do {
+        // Generate random username, check if already exists
         username = `anon_${Math.floor(Math.random() * (Date.now() / 1000))}`; // TODO convert to random words
 
         existingUser = await env.DB.prepare(`
@@ -145,22 +149,27 @@ export async function anonSignup(c: Context) {
     } while (existingUser.results.length > 0);
 
     try {
+        // Insert into DB
         const user = await env.DB.prepare(`
             INSERT INTO user (username, displayname, is_anonymous)
             VALUES (?, ?, ?)
             RETURNING id
         `).bind(username, 'Anonymous', true).first<UserRow>();
 
+        // Error?
         if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
+        // All good, generate session key & hash it
         const PlainSessionKey = crypto.randomUUID();
         const sessionKey = await hashSessionKey(PlainSessionKey);
 
+        // Insert into session table
         await env.DB.prepare(`
             INSERT INTO session (id, user_id)
             VALUES (?, ?)
         `).bind(sessionKey, user.id).run();
 
+        // Send the session key to the client
         await setSignedCookie(c, 'sessionKey', PlainSessionKey, env.JWT_SECRET, {
             httpOnly: true,
             secure: true,
@@ -169,7 +178,6 @@ export async function anonSignup(c: Context) {
             maxAge: COOKIE_EXPIRY
         });
 
-        c.set('sessionKey', PlainSessionKey);
         return c.json({ message: 'User created successfully', status: 200 }, 200);
     } catch (e) {
         console.log(e);
