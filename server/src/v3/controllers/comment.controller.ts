@@ -1,5 +1,6 @@
 import { Context } from 'hono';
 import { getUserFromSessionKey } from '../util/util';
+import { getSignedCookie } from 'hono/cookie';
 
 export async function comment(c: Context) {
     const env: Env = c.env;
@@ -9,7 +10,7 @@ export async function comment(c: Context) {
     const parentLevel: number = Number(formData['parent-level']);
     const content: string = formData['content'] as string;
     const fileName: string | null = formData['filename'] as string;
-    const sessionKey = c.get('sessionKey');
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey');
 
     // Check for required fields
     if (!content) return c.text('No content provided', { status: 400 });
@@ -39,7 +40,7 @@ export async function comment(c: Context) {
 
 export async function getCommentsOnPost(c: Context) {
     const env: Env = c.env;
-    const sessionKey = c.get('sessionKey');
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey');
     const postID: number = Number(c.req.param('postid'));
     const page: number = c.req.param('page') ? Number(c.req.param('page')) : 0;
 
