@@ -76,30 +76,6 @@
     }
   }
 
-  &__content {
-    padding-block-end: 10px;
-    word-break: break-word;
-    white-space: pre-wrap;
-  }
-
-  &__image {
-    overflow: hidden;
-    max-height: 350px;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: space-between;
-    border-radius: 10px;
-    //justify-content: center;
-    //align-content: center;
-
-    img {
-      border-radius: 10px;
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: cover;
-    }
-  }
-
   &__write_answer {
     margin-block: 10px;
     padding-block: 10px;
