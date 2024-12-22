@@ -1,6 +1,8 @@
 import styles from './PostFooter.module.scss';
+import {toggleLike} from "../../api.ts";
 
 export default function PostFooter({ id, likes, comments }: { id: number, likes: number, comments: number }) {
+    // console.log(likes);
     async function sharePost() {
         await navigator.clipboard.writeText(`https://uaeu.chat/post/${id}`);
     }
@@ -14,7 +16,8 @@ export default function PostFooter({ id, likes, comments }: { id: number, likes:
             <div className={styles.footerLeft}>
                 {/*likes button*/}
                 <div className={styles.footerButton}>
-                    <div className={styles.buttonIcon}>
+                    <div className={styles.buttonIcon} onClick={() => toggleLike(id)}>
+                        {/*like icon*/}
                         <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"
                              viewBox="0 0 24 24">
                             <g fill="none">
@@ -31,6 +34,7 @@ export default function PostFooter({ id, likes, comments }: { id: number, likes:
                 {/*comments button*/}
                 <div className={styles.footerButton} onClick={() => redirectToPost()}>
                     <div className={styles.buttonIcon}>
+                        {/*comment icon*/}
                         <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"
                              viewBox="0 0 24 24">
                             <path fill="none" stroke="currentColor"
@@ -50,6 +54,7 @@ export default function PostFooter({ id, likes, comments }: { id: number, likes:
                     await sharePost();
                 }}>
                     <div className={styles.buttonIcon}>
+                        {/*share icon*/}
                         <svg xmlns="http://www.w3.org/2000/svg" height="1.4em" viewBox="0 -960 960 960"
                              width="1.4em"
                              fill="currentColor">
@@ -63,6 +68,7 @@ export default function PostFooter({ id, likes, comments }: { id: number, likes:
                 </div>
                 <div className={styles.footerButton}>
                     <div className={styles.buttonIcon}>
+                        {/*report flag icon*/}
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
                              width="24px"
                              fill="currentColor">

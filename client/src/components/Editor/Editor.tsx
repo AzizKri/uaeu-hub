@@ -17,7 +17,7 @@ const initialConfig = {
         console.error(error);
     },
 };
-export default function Editor({type, post_id}: {type: string, post_id: number | null}): JSX.Element {
+export default function Editor({type, parent_id, handleSubmit}: {type: string, parent_id: number | null, handleSubmit: (() => void) | null}): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [filePreview, setFilePreview] = useState<string | ArrayBuffer | null>(null);
     const [file, setFile] = useState<{ status: "UPLOADING" | "READY", file: File } | null>(null);
@@ -82,8 +82,12 @@ export default function Editor({type, post_id}: {type: string, post_id: number |
             const response = await createPost(plainText, fileName);
             console.log(response);
             updatePosts();
-        } else if (type === "comment" && post_id) {
-            const response = await comment(post_id, "post", plainText, fileName);
+        } else if (type === "comment" && parent_id) {
+            const response = await comment(parent_id, "post", plainText, fileName);
+            console.log(response);
+        } else if (type == "reply" && parent_id) {
+            const response = await comment(parent_id, "reply", plainText, fileName);
+            if (handleSubmit) handleSubmit();
             console.log(response);
         }
     }
@@ -123,7 +127,7 @@ export default function Editor({type, post_id}: {type: string, post_id: number |
                         placeholder={
                             <div className={styles.editorPlaceholder}>{
                                 type === "post" ? "What's your question?" :
-                                type === "comment" ? "Reply..." :
+                                type === "comment" || type == "reply" ? "Reply..." :
                                 ""
                             }
                             </div>}

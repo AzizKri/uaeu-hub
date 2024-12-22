@@ -1,4 +1,4 @@
-export function getFormatedDate(postDate: Date) {
+export function getFormattedDate(postDate: Date) {
     const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     const curDate = new Date();

@@ -4,7 +4,7 @@ import Editor from '../Editor/Editor.tsx';
 export default function WritePost() {
     return (
         <div className={styles.newPost}>
-            <Editor type="post" post_id={null}/>
+            <Editor type="post" parent_id={null} handleSubmit={() => null}/>
         </div>
     );
 }

@@ -3,6 +3,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 16px;
+    max-height: calc(100vh - 160px);
 
     .editorInner {
         position: relative;
@@ -25,7 +26,8 @@
     .buttons {
         display: flex;
         padding: 2px;
-        align-self: flex-end;
+        margin-inline-start: auto;
+        width: fit-content;
 
         .buttonIcon {
             width: 40px;
@@ -90,5 +92,6 @@
 }
 
 .focused {
-    flex-direction: column;
+    display: block;
+    overflow-y: auto;
 }
