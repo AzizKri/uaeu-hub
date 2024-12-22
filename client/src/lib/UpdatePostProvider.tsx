@@ -35,7 +35,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                         filename={post.attachment}
                         likes={post.like_count}
                         comments_count={post.comment_count}
-                        isPostPage={false}
+                        type={"post"}
                     />
                 );
             }

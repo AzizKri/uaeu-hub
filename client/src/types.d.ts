@@ -20,7 +20,7 @@ declare global {
         filename?: string
         likes: number,
         comments_count: number,
-        isPostPage: boolean,
+        type: string,
     }
 
     // interface CommentInfo {

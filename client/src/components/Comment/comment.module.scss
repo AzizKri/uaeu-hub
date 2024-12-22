@@ -1,8 +1,10 @@
 @import "../../styles/index.scss";
 
 .comment {
-    display: flex;
+    display: grid;
     gap: 5px;
+    grid-template-columns: 40px auto;
+    margin-block-end: 10px;
 
     &__profile_pict {
         max-width: 40px;
@@ -34,6 +36,7 @@
 
         &__text {
             font-size: 0.8rem;
+            margin-block: 5px;
         }
 
         &__footer {
