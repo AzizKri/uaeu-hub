@@ -7,10 +7,13 @@ export const authMiddleware = createMiddleware(
         const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, "sessionKey");
 
         console.log(sessionKey);
+        // If we have a session key, then this user already has activity. Is either signed in or an anonymous user
 
         if (!sessionKey) {
+            // First interaction, sign up as anonymous
             await anonSignup(c)
         } else {
+            // Existing user, just renew the key
             const COOKIE_EXPIRY = 360 * 24 * 60 * 60; // 1 year
             await setSignedCookie(c, 'sessionKey', sessionKey.toString(), c.env.JWT_SECRET, {
                 httpOnly: true,
@@ -19,9 +22,9 @@ export const authMiddleware = createMiddleware(
                 domain: '.uaeu.chat',
                 maxAge: COOKIE_EXPIRY
             });
-            c.set('sessionKey', sessionKey);
         }
 
+        // Authentication done, go to next middleware/controller
         await next();
     }
 );
