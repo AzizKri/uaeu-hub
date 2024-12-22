@@ -1,12 +1,26 @@
 import profilePict from '../../assets/profile-picture.png';
 import './comment.module.scss';
 import styles from './comment.module.scss';
+import Content from "../Content/Content.tsx";
+import ReplyPopUp from "../ReplyPopUp/ReplyPopUp.tsx";
+import {useState} from "react";
 
 export default function Comment({info}: {info: CommentInfo}) {
-    console.log("info");
-    console.log(info);
+
+    const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
+    const handleReply = () => {
+        console.log("handle reply");
+        document.body.style.overflow = "hidden";
+        setShowReplyPopUp(true)
+    }
+
+    const hideReplyPopUp = () => {
+        document.body.style.overflow = "scroll";
+        setShowReplyPopUp(false);
+    }
     return (
         <div className={styles.comment}>
+            {showReplyPopUp && <ReplyPopUp parent_comment_id={info.id} hideReplyPopUp={hideReplyPopUp}/>}
             <div className={styles.comment__profile_pict}>
                 <img src={profilePict} alt="profile picture" />
             </div>
@@ -17,7 +31,7 @@ export default function Comment({info}: {info: CommentInfo}) {
                     <div className={styles.comment__content__header__time}>3h ago</div>
                 </div>
                 <div className={styles.comment__content__text}>
-                    {info.content}
+                    <Content id={info.id} content={info.content} filename={info.attachment} type={"comment"}/>
                 </div>
                 <div className={styles.comment__content__footer}>
                     <button className={`${styles.vote_icon} ${styles.btn_hover}`}>
@@ -35,7 +49,7 @@ export default function Comment({info}: {info: CommentInfo}) {
                                 d="M10 20a1.122 1.122 0 0 1-.834-.372l-7.872-8.581A1.251 1.251 0 0 1 1.118 9.7 1.114 1.114 0 0 1 2.123 9H6V2.123A1.125 1.125 0 0 1 7.123 1h5.754A1.125 1.125 0 0 1 14 2.123V9h3.874a1.114 1.114 0 0 1 1.007.7 1.25 1.25 0 0 1-.171 1.345l-7.876 8.589A1.128 1.128 0 0 1 10 20Zm-7.684-9.75L10 18.69l7.741-8.44H12.75v-8h-5.5v8H2.316Zm15.469-.05c-.01 0-.014.007-.012.013l.012-.013Z"></path>
                         </svg>
                     </button>
-                    <button className={`${styles.comment__content__footer__reply} ${styles.btn_hover}`}>
+                    <button className={`${styles.comment__content__footer__reply} ${styles.btn_hover}`} onClick={() => handleReply()}>
                         <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
                              fill="#5f6368">
                             <path
