@@ -1,5 +1,3 @@
-import React from "react";
-
 declare global {
     interface SearchResult {
         id: number;
@@ -12,11 +10,13 @@ declare global {
 
     interface PostInfo {
         id: number,
-        authorUsername: string,
-        authorDisplayName: string,
-        postDate: Date,
+        author: {
+            username: string,
+            displayname: string,
+            pfp: string
+        },
+        date: Date,
         content: string,
-        pfp: string,
         filename?: string
         likes: number,
         comments_count: number,
@@ -41,7 +41,7 @@ declare global {
         author: string,
         author_id: number,
         content: string,
-        displayname: stirng,
+        displayname: string,
         id: number,
         level: number,
         like_count: number,
@@ -52,20 +52,20 @@ declare global {
         post_time: string,
     }
 
-    interface UpdatePostsContextInterface {
-        posts: React.ReactElement[];
+    interface PostsContextInterface {
+        posts: PostInfo[];
         updatePosts: (page? : number) => void;
         loading: boolean;
     }
 
-    interface userInfo {
+    interface UserInfo {
         username: string;
         displayName: string;
         pio: string;
         pfp: string;
     }
     interface UserContextInterface {
-        user: userInfo | null;
+        user: UserInfo | null;
         updateUser: (userInfo) => void;
     }
 

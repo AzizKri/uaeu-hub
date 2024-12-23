@@ -1,21 +1,34 @@
-export function getFormattedDate(postDate: Date) {
-    const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+export function formatRelativeTime(date: Date) {
+    const now = new Date();
+    const diff = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diff / (1000 * 3600 * 24));
 
-    const curDate = new Date();
-    const diffInMs = curDate.getTime() - postDate.getTime();
-    const diffInSeconds = Math.floor(diffInMs / 1000);
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    const diffInHours = Math.floor(diffInMinutes / 60);
-
-    if (diffInSeconds < 60) {
-        return `${diffInSeconds} sec ago`;
-    } else if (diffInMinutes < 60) {
-        return `${diffInMinutes} min ago`;
-    } else if (diffInHours < 24) {
-        return `${diffInHours} hr ago`;
-    } else if (curDate.getFullYear() === postDate.getFullYear()) {
-        return `${months[postDate.getMonth()]} ${postDate.getDate()}`;
-    } else {
-        return `${months[postDate.getMonth()]} ${postDate.getDate()}, ${postDate.getFullYear()}`;
+    if (diffDays > 7) {
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear().toString().slice(-2);
+        return day + "/" + month + "/" + year;
     }
+
+    if (diffDays >= 1 && diffDays <= 7) {
+        return diffDays + "d";
+    }
+
+    const diffHours = Math.floor(diff / (1000 * 3600));
+    if (diffHours >= 1 && diffHours <= 24) {
+        return diffHours + "h";
+    }
+
+    const diffMinutes = Math.floor(diff / (1000 * 60));
+    if (diffMinutes >= 1 && diffMinutes <= 60) {
+        return diffMinutes + "m";
+    }
+
+    const diffSeconds = Math.floor(diff / (1000));
+
+    if (diffSeconds < 10) {
+        return "now";
+    }
+
+    return diffSeconds + "s";
 }

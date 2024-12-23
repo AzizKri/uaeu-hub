@@ -1,8 +1,8 @@
 import {useContext} from "react";
-import {UpdatePostsContext, UserContext} from "./context.ts";
+import {PostsContext, UserContext} from "./context.ts";
 
 export const useUpdatePosts = () => {
-    const context = useContext(UpdatePostsContext);
+    const context = useContext(PostsContext);
     if (!context) {
         throw new Error('useUpdatePosts must be used within a provider');
     }

@@ -2,12 +2,14 @@ import styles from "./Home.module.scss";
 import React, {useEffect, useRef} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
 import {useUpdatePosts} from "../../lib/hooks.ts";
+import Post from "../Post/Post.tsx";
 
 export default function Home() {
 
     const context = useUpdatePosts();
     const {posts, updatePosts, loading} = context;
     const homeRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         updatePosts()
     }, []);
@@ -26,7 +28,11 @@ export default function Home() {
                 <span>20 new questions</span>
             </div>
             <section className={styles.posts_container}>
-                {posts}
+                {
+                    posts.map(post =>
+                        <Post key={post.id} {...post}/>
+                    )
+                }
             </section>
             {/*TODO: add a loader in case posts are still loading*/}
             {loading && <div>Loading...</div>}

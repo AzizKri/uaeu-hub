@@ -8,7 +8,7 @@ import Home from './components/Home/Home.tsx';
 import PostPage from './components/Post/PostPage.tsx';
 import LoadingImage from "./components/LoadingImage/LoadingImage.tsx";
 import UserProvider from "./lib/userProvider.tsx";
-import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
+import {PostsProvider} from "./lib/PostProvider.tsx";
 
 
 const router = createBrowserRouter([
@@ -43,8 +43,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
     <UserProvider>
-        <UpdatePostProvider>
+        <PostsProvider>
             <RouterProvider router={router} />
-        </UpdatePostProvider>
+        </PostsProvider>
     </UserProvider>
 );

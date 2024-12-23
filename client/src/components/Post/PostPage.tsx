@@ -16,10 +16,12 @@ export default function PostPage() {
                         key={res.results[0].id}
                         id={res.results[0].id}
                         content={res.results[0].content}
-                        authorUsername={res.results[0].author}
-                        authorDisplayName={res.results[0].displayname}
-                        pfp={res.results[0].pfp}
-                        postDate={new Date(res.results[0].post_time)}
+                        author={{
+                            username: res.results[0].author,
+                            displayname: res.results[0].displayname,
+                            pfp: res.results[0].pfp
+                        }}
+                        date={new Date(res.results[0].post_time)}
                         filename={res.results[0].attachment}
                         likes={res.results[0].like_count}
                         comments_count={res.results[0].comment_count}

@@ -1,4 +1,4 @@
 import {createContext} from "react";
 
-export const UpdatePostsContext = createContext<UpdatePostsContextInterface | null>(null);
+export const PostsContext = createContext<PostsContextInterface | null>(null);
 export const UserContext = createContext<UserContextInterface | null>(null);

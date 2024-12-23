@@ -2,9 +2,9 @@ import {ReactNode, useState} from "react";
 import {UserContext} from "./context.ts";
 
 export default function UserProvider({children}: {children: ReactNode}) {
-    const [user, setUser] = useState<userInfo | null>(null);
+    const [user, setUser] = useState<UserInfo | null>(null);
 
-    const updateUser = (newUser: userInfo) => {
+    const updateUser = (newUser: UserInfo) => {
         setUser(newUser);
     }
 
