@@ -101,3 +101,11 @@ type SessionRow = {
     user_id: number;
     created_at: number;
 }
+
+type cookieOptions = {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'strict' | 'lax' | 'none' | 'Strict' | 'Lax' | 'None';
+    domain?: string;
+    maxAge: number;
+}

@@ -9,7 +9,7 @@ export async function createPost(c: Context) {
     const formData = await c.req.parseBody();
     const content = formData['content'] as string;
     const fileName: string | null = formData['filename'] as string;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey');
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Check for required fields
     if (!content) return c.text('No content defined', { status: 400 });
@@ -19,7 +19,7 @@ export async function createPost(c: Context) {
 
     try {
         // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
+        const userid = await getUserFromSessionKey(c, sessionKey, true);
 
         // Check if we have a file & insert into DB
         if (fileName) {
@@ -44,54 +44,40 @@ export async function createPost(c: Context) {
 export async function getLatestPosts(c: Context) {
     const env: Env = c.env;
     const page = c.req.param('page') ? Number(c.req.param('page')) : 0;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey');
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     try {
+        // Get user from session key
         const userid = await getUserFromSessionKey(c, sessionKey);
 
-        const posts = await env.DB.prepare(
-            `SELECT pv.*,
-                    CASE
-                        WHEN pl.user_id IS NOT NULL then 1
-                        ELSE 0
-                        END       AS liked,
-                    -- Most liked comment
-                    mc.id         AS top_comment_id,
-                    mc.author_id  AS top_comment_author_id,
-                    u.username    AS top_comment_author,
-                    mc.content    AS top_comment_content,
-                    mc.like_count AS top_comment_like_count,
-                    mc.post_time  AS top_comment_post_time
-             FROM post_view pv
-                      LEFT JOIN post_like pl
-                                ON pv.id = pl.post_id AND pl.user_id = ?
-                      LEFT JOIN (SELECT c1.parent_post_id,
-                                        c1.id,
-                                        c1.author_id,
-                                        c1.content,
-                                        c1.like_count,
-                                        c1.post_time
-                                 FROM comment c1
-                                 WHERE c1.parent_type = 'post'
-                                   AND c1.id = (SELECT c2.id
-                                                FROM comment c2
-                                                WHERE c2.parent_post_id = c1.parent_post_id
-                                                  AND c2.parent_type = 'post'
-                                                ORDER BY c2.like_count DESC, c2.post_time ASC
-                                                LIMIT 1)) mc
-                                ON pv.id = mc.parent_post_id
-                      LEFT JOIN user u ON mc.author_id = u.id
-             ORDER BY pv.post_time DESC
-             LIMIT 10 OFFSET ?`
-        ).bind(userid, page * 10).all<PostView>();
+        console.log(userid);
+        if (!userid) {
+            // New user, show posts without likes
+            const posts = await env.DB.prepare(
+                `SELECT *
+                 FROM post_view
+                 ORDER BY post_time DESC
+                 LIMIT 10 OFFSET ?`
+            ).bind(page * 10).all<PostView>();
 
-        // const posts = await env.DB.prepare(
-        //     `SELECT * FROM post_view
-        //      ORDER BY post_time DESC
-        //      LIMIT 10 OFFSET ?`
-        // ).bind(page * 10).all<PostView>();
+            return c.json(posts, { status: 200 });
+        } else {
+            // Returning user, show posts with likes
+            const posts = await env.DB.prepare(
+                `SELECT pv.*,
+                        CASE
+                            WHEN pl.user_id IS NOT NULL then 1
+                            ELSE 0
+                            END AS liked
+                 FROM post_view pv
+                          LEFT JOIN post_like pl
+                                    ON pv.id = pl.post_id AND pl.user_id = ?
+                 ORDER BY pv.post_time DESC
+                 LIMIT 10 OFFSET ?`
+            ).bind(userid, page * 10).all<PostView>();
 
-        return c.json(posts, { status: 200 });
+            return c.json(posts, { status: 200 });
+        }
     } catch (e) {
         console.log(e);
         return c.text('Internal Server Error', { status: 500 });
@@ -183,12 +169,14 @@ export async function getPostByID(c: Context) {
 export async function deletePost(c: Context) {
     const env: Env = c.env;
     const postid = c.req.param('id');
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey');
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     if (!postid) return c.text('No post provided', { status: 400 });
 
     try {
         const userid = await getUserFromSessionKey(c, sessionKey);
+
+        if (!userid) return c.text('Unauthorized', { status: 403 });
 
         const post = await env.DB.prepare(`
             SELECT author_id
@@ -214,12 +202,12 @@ export async function deletePost(c: Context) {
 export async function likePost(c: Context) {
     const env: Env = c.env;
     const postid = Number(c.req.param('id'));
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey');
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     if (!postid) return c.text('No post provided', { status: 400 });
 
     try {
-        const userid = await getUserFromSessionKey(c, sessionKey);
+        const userid = await getUserFromSessionKey(c, sessionKey, true);
 
         const like = await env.DB.prepare(`
             SELECT *
