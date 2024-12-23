@@ -50,34 +50,40 @@ export async function getLatestPosts(c: Context) {
         // Get user from session key
         const userid = await getUserFromSessionKey(c, sessionKey);
 
-        console.log(userid);
         if (!userid) {
             // New user, show posts without likes
             const posts = await env.DB.prepare(
                 `SELECT pv.*,
-                        mc.id         AS top_comment_id,
-                        mc.author_id  AS top_comment_author_id,
-                        u.username    AS top_comment_author,
-                        mc.content    AS top_comment_content,
-                        mc.like_count AS top_comment_like_count,
-                        mc.post_time  AS top_comment_post_time
-                 FROM post_view pv
-                          LEFT JOIN (SELECT c1.parent_post_id,
-                                            c1.id,
-                                            c1.author_id,
-                                            c1.content,
-                                            c1.like_count,
-                                            c1.post_time
-                                     FROM comment c1
-                                     WHERE c1.id = (SELECT c2.id
-                                                    FROM comment c2
-                                                    WHERE c2.parent_post_id = c1.parent_post_id
-                                                    ORDER BY c2.like_count DESC, c2.post_time ASC
-                                                    LIMIT 1)) mc
-                                    ON pv.id = mc.parent_post_id
-                          LEFT JOIN user u
-                                    ON mc.author_id = u.id
-                 ORDER BY post_time DESC
+                        CASE
+                            WHEN tc.id IS NULL THEN NULL
+                            ELSE
+                                JSON_OBJECT(
+                                    'id', tc.id,
+                                    'author_id', tc.author_id,
+                                    'author', tc.author,
+                                    'pfp', tc.pfp,
+                                    'displayname', tc.displayname,
+                                    'content', tc.content,
+                                    'post_time', tc.post_time,
+                                    'attachment', tc.attachment,
+                                    'like_count', tc.like_count
+                                ) END AS top_comment
+                 FROM post_view AS pv
+                          LEFT JOIN (SELECT c.id,
+                                            c.parent_post_id,
+                                            c.parent_type,
+                                            c.author_id,
+                                            c.author,
+                                            c.pfp,
+                                            c.displayname,
+                                            c.content,
+                                            c.post_time,
+                                            c.attachment,
+                                            c.like_count
+                                     FROM comment_view AS c
+                                     WHERE c.parent_type = 'post'
+                                     ORDER BY c.like_count DESC, c.post_time) AS tc ON tc.parent_post_id = pv.id
+                 ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
             ).bind(page * 10).all<PostView>();
 
@@ -86,34 +92,39 @@ export async function getLatestPosts(c: Context) {
             // Returning user, show posts with likes
             const posts = await env.DB.prepare(
                 `SELECT pv.*,
+                        EXISTS (SELECT 1
+                                FROM post_like
+                                WHERE post_like.post_id = pv.id
+                                  AND post_like.user_id = :user_id) AS liked,
                         CASE
-                            WHEN pl.user_id IS NOT NULL then 1
-                            ELSE 0
-                            END       AS liked,
-                        mc.id         AS top_comment_id,
-                        mc.author_id  AS top_comment_author_id,
-                        u.username    AS top_comment_author,
-                        mc.content    AS top_comment_content,
-                        mc.like_count AS top_comment_like_count,
-                        mc.post_time  AS top_comment_post_time
-                 FROM post_view pv
-                          LEFT JOIN post_like pl
-                                    ON pv.id = pl.post_id AND pl.user_id = :user_id
-                          LEFT JOIN (SELECT c1.parent_post_id,
-                                            c1.id,
-                                            c1.author_id,
-                                            c1.content,
-                                            c1.like_count,
-                                            c1.post_time
-                                     FROM comment c1
-                                     WHERE c1.id = (SELECT c2.id
-                                                    FROM comment c2
-                                                    WHERE c2.parent_post_id = c1.parent_post_id
-                                                    ORDER BY c2.like_count DESC, c2.post_time ASC
-                                                    LIMIT 1)) mc
-                                    ON pv.id = mc.parent_post_id
-                          LEFT JOIN user u
-                                    ON mc.author_id = u.id
+                            WHEN tc.id IS NULL THEN NULL
+                            ELSE
+                                JSON_OBJECT(
+                                    'id', tc.id,
+                                    'author_id', tc.author_id,
+                                    'author', tc.author,
+                                    'pfp', tc.pfp,
+                                    'displayname', tc.displayname,
+                                    'content', tc.content,
+                                    'post_time', tc.post_time,
+                                    'attachment', tc.attachment,
+                                    'like_count', tc.like_count
+                                ) END                               AS top_comment
+                 FROM post_view AS pv
+                          LEFT JOIN (SELECT c.id,
+                                            c.parent_post_id,
+                                            c.parent_type,
+                                            c.author_id,
+                                            c.author,
+                                            c.pfp,
+                                            c.displayname,
+                                            c.content,
+                                            c.post_time,
+                                            c.attachment,
+                                            c.like_count
+                                     FROM comment_view AS c
+                                     WHERE c.parent_type = 'post'
+                                     ORDER BY c.like_count DESC, c.post_time) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
             ).bind(userid, page * 10).all<PostView>();
@@ -131,30 +142,40 @@ export async function getLatestPosts(c: Context) {
 export async function getPostsByUser(c: Context) {
     const env: Env = c.env;
     const { user, page } = c.req.param();
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     if (!user) throw new HTTPException(400, { res: new Response('No user defined', { status: 400 }) });
 
     try {
-        if (isNaN(Number(user))) {
+        // Get user from session key
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
+        if (!userid) {
+            // New user, show posts without likes
             const results = await env.DB.prepare(
                 `SELECT *
-                 FROM post_view AS post
-                 WHERE post.author = ?
-                 ORDER BY post.post_time DESC
+                 FROM post_view AS pv
+                 WHERE pv.author = ? OR pv.author_id = ?
+                 ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET (? * 10)`
-            ).bind(user, page || 0).all<PostView>();
+            ).bind(user, Number(user), page || 0).all<PostView>();
 
-            return Response.json(results);
+            return c.json(results, { status: 200 });
         } else {
+            // Returning user, show posts with likes
             const results = await env.DB.prepare(
-                `SELECT *
-                 FROM post_view AS post
-                 WHERE post.author_id = ?
-                 ORDER BY post.post_time DESC
+                `SELECT pv.*,
+                        EXISTS (SELECT 1
+                                FROM post_like
+                                WHERE post_like.post_id = pv.id
+                                  AND post_like.user_id = ?) AS liked
+                 FROM post_view AS pv
+                 WHERE pv.author = ? OR pv.author_id = ?
+                 ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET (? * 10)`
-            ).bind(user, page || 0).all<PostView>();
+            ).bind(userid, user, Number(user), page || 0).all<PostView>();
 
-            return Response.json(results);
+            return c.json(results, { status: 200 });
         }
     } catch (e) {
         console.error(e);
