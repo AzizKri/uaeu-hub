@@ -1,4 +1,6 @@
 import { Context } from 'hono';
+import { getSignedCookie } from 'hono/cookie';
+import { getUserFromSessionKey } from '../util/util';
 
 const allowedMimeTypes = [
     // Images
@@ -32,6 +34,7 @@ export async function uploadAttachment(c: Context) {
     const formData: FormData = await c.req.formData();
     const uploadSource: string = formData.get('source') as string;
     const file: File = formData.get('files[]') as File;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Make sure we have a file
     if (!file) {
@@ -42,6 +45,8 @@ export async function uploadAttachment(c: Context) {
     if (!allowedMimeTypes.includes(file.type)) {
         return new Response('File type not allowed', { status: 400 });
     }
+
+    const userId = await getUserFromSessionKey(c, sessionKey, true);
 
     try {
         // Create a random file name (uuidv4)
@@ -68,16 +73,16 @@ export async function uploadAttachment(c: Context) {
 
         if (R2Response == null) {
             // Upload failed
-            return new Response('File upload failed', { status: 500 });
+            return c.json({ message: 'Upload failed' }, { status: 500 });
         } else {
             // Upload successful, insert into DB for reference
             await env.DB.prepare(`
-                INSERT INTO attachment (filename, mimetype)
-                VALUES (?, ?)`
-            ).bind(fileName, file.type).run();
+                INSERT INTO attachment (filename, mimetype, author_id)
+                VALUES (?, ?, ?)`
+            ).bind(fileName, file.type, userId).run();
 
             // Return filename
-            return new Response(fileName, { status: 201 });
+            return c.text(fileName, { status: 201 });
         }
     } catch (e) {
         console.log(e);
