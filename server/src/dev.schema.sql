@@ -92,9 +92,9 @@ CREATE TABLE IF NOT EXISTS attachment
     filename       TEXT PRIMARY KEY,
     mimetype       TEXT    NOT NULL,
     metadata       TEXT,
-    uploaded_by_id INTEGER NOT NULL DEFAULT -1,
+    author_id INTEGER NOT NULL DEFAULT -1,
     created_at     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (uploaded_by_id) REFERENCES user (id) ON DELETE SET DEFAULT
+    FOREIGN KEY (author_id) REFERENCES user (id) ON DELETE SET DEFAULT
 );
 
 CREATE TABLE IF NOT EXISTS post
