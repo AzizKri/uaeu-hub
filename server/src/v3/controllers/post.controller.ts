@@ -54,8 +54,29 @@ export async function getLatestPosts(c: Context) {
         if (!userid) {
             // New user, show posts without likes
             const posts = await env.DB.prepare(
-                `SELECT *
-                 FROM post_view
+                `SELECT pv.*,
+                        mc.id         AS top_comment_id,
+                        mc.author_id  AS top_comment_author_id,
+                        u.username    AS top_comment_author,
+                        mc.content    AS top_comment_content,
+                        mc.like_count AS top_comment_like_count,
+                        mc.post_time  AS top_comment_post_time
+                 FROM post_view pv
+                          LEFT JOIN (SELECT c1.parent_post_id,
+                                            c1.id,
+                                            c1.author_id,
+                                            c1.content,
+                                            c1.like_count,
+                                            c1.post_time
+                                     FROM comment c1
+                                     WHERE c1.id = (SELECT c2.id
+                                                    FROM comment c2
+                                                    WHERE c2.parent_post_id = c1.parent_post_id
+                                                    ORDER BY c2.like_count DESC, c2.post_time ASC
+                                                    LIMIT 1)) mc
+                                    ON pv.id = mc.parent_post_id
+                          LEFT JOIN user u
+                                    ON mc.author_id = u.id
                  ORDER BY post_time DESC
                  LIMIT 10 OFFSET ?`
             ).bind(page * 10).all<PostView>();
@@ -68,10 +89,31 @@ export async function getLatestPosts(c: Context) {
                         CASE
                             WHEN pl.user_id IS NOT NULL then 1
                             ELSE 0
-                            END AS liked
+                            END       AS liked,
+                        mc.id         AS top_comment_id,
+                        mc.author_id  AS top_comment_author_id,
+                        u.username    AS top_comment_author,
+                        mc.content    AS top_comment_content,
+                        mc.like_count AS top_comment_like_count,
+                        mc.post_time  AS top_comment_post_time
                  FROM post_view pv
                           LEFT JOIN post_like pl
-                                    ON pv.id = pl.post_id AND pl.user_id = ?
+                                    ON pv.id = pl.post_id AND pl.user_id = :user_id
+                          LEFT JOIN (SELECT c1.parent_post_id,
+                                            c1.id,
+                                            c1.author_id,
+                                            c1.content,
+                                            c1.like_count,
+                                            c1.post_time
+                                     FROM comment c1
+                                     WHERE c1.id = (SELECT c2.id
+                                                    FROM comment c2
+                                                    WHERE c2.parent_post_id = c1.parent_post_id
+                                                    ORDER BY c2.like_count DESC, c2.post_time ASC
+                                                    LIMIT 1)) mc
+                                    ON pv.id = mc.parent_post_id
+                          LEFT JOIN user u
+                                    ON mc.author_id = u.id
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
             ).bind(userid, page * 10).all<PostView>();
