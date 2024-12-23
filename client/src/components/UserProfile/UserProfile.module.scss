@@ -26,6 +26,7 @@
     height: 80px;
     border: 2px solid rgb(215, 66, 12);
     border-radius: 50%;
+    object-fit: cover;
 }
 
 .userInfo {
@@ -92,4 +93,11 @@
     margin-top: 1rem;
     text-align: center;
     color: #666;
+}
+
+.userBio{
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    color: #444;
 }

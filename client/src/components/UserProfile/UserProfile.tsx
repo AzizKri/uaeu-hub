@@ -1,10 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styles from './UserProfile.module.scss';
 
-type UserProfileProps = {
-    displayName: string;
-    username: string;
-};
 
 const tabs = [
     { label: 'Posts' },
@@ -13,7 +9,7 @@ const tabs = [
     { label: 'Liked' },
 ];
 
-export default function UserProfile ({ displayName, username }) {
+export default function UserProfile ({ displayName , username , bio , pfp } : userInfo) {
     // State for the current tab
     const [activeTab, setActiveTab] = useState('Posts');
 
@@ -55,11 +51,14 @@ export default function UserProfile ({ displayName, username }) {
         <div className={styles.userProfileContainer}>
             <div className={styles.userHeader}>
                 <div className={styles.userAvatar}>
-                    <div className={styles.avatarIcon} />
+                    <div className={styles.avatarIcon} style={{backgroundImage : `url(${pfp})`}} />
                 </div>
                 <div className={styles.userInfo}>
                     <h1 className={styles.displayName}>{displayName}</h1>
                     <h2 className={styles.username}>@{username}</h2>
+                    <p className={styles.userBio}>
+                        {bio ? bio : ''}
+                    </p>
                 </div>
                 <button className={styles.editProfileButton}>Edit Profile</button>
             </div>
@@ -77,7 +76,7 @@ export default function UserProfile ({ displayName, username }) {
                     </button>
                 ))}
             </div>
-            
+
             <div className={styles.tabContent}>{getTabContent(activeTab)}</div>
         </div>
     );

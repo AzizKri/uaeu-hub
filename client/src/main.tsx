@@ -32,7 +32,7 @@ const router = createBrowserRouter([
             },
             {
                 path: '/user',
-                element: <UserProfile displayName={"Test"} username={"test"} />
+                element: <UserProfile displayName={"Test"} username={"test"} bio={"my bio"} pfp={"test.png"} />
             }
         ]
     },
