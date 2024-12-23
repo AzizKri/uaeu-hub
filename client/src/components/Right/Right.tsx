@@ -10,7 +10,7 @@ export default function Right() {
                 <>
                     <h3>{user.username}</h3>
                     <h4>{user.displayName}</h4>
-                    <p>{user.pio}</p>
+                    <p>{user.bio}</p>
                 </>
             ) : (
                 <>
