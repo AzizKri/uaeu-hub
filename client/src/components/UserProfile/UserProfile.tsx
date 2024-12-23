@@ -77,8 +77,7 @@ export default function UserProfile ({ displayName, username }) {
                     </button>
                 ))}
             </div>
-
-            {/* Tab Content */}
+            
             <div className={styles.tabContent}>{getTabContent(activeTab)}</div>
         </div>
     );
