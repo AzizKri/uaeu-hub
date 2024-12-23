@@ -2,20 +2,20 @@ PRAGMA foreign_keys = on;
 
 CREATE TABLE IF NOT EXISTS user
 (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    username      TEXT    NOT NULL UNIQUE,
-    displayname   TEXT,
-    email         TEXT,
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    username       TEXT    NOT NULL UNIQUE,
+    displayname    TEXT,
+    email          TEXT,
     email_verified BOOLEAN          DEFAULT FALSE,
-    auth_provider TEXT    NOT NULL DEFAULT 'local',
-    password      TEXT,
-    salt          TEXT,
-    google_id     TEXT,
-    created_at    INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    bio           TEXT,
-    pfp           TEXT,
-    is_anonymous  BOOLEAN          DEFAULT FALSE,
-    deleted       BOOLEAN          DEFAULT FALSE
+    auth_provider  TEXT    NOT NULL DEFAULT 'local',
+    password       TEXT,
+    salt           TEXT,
+    google_id      TEXT,
+    created_at     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    bio            TEXT,
+    pfp            TEXT,
+    is_anonymous   BOOLEAN          DEFAULT FALSE,
+    deleted        BOOLEAN          DEFAULT FALSE
 );
 
 CREATE VIEW IF NOT EXISTS user_view AS
@@ -89,9 +89,12 @@ CREATE TABLE IF NOT EXISTS user_badge
 
 CREATE TABLE IF NOT EXISTS attachment
 (
-    filename   TEXT PRIMARY KEY,
-    mimetype   TEXT    NOT NULL,
-    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP
+    filename       TEXT PRIMARY KEY,
+    mimetype       TEXT    NOT NULL,
+    metadata       TEXT,
+    uploaded_by_id INTEGER NOT NULL DEFAULT -1,
+    created_at     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (uploaded_by_id) REFERENCES user (id) ON DELETE SET DEFAULT
 );
 
 CREATE TABLE IF NOT EXISTS post
@@ -112,27 +115,30 @@ CREATE TABLE IF NOT EXISTS post
 CREATE VIEW IF NOT EXISTS post_view AS
 SELECT post.id,
        post.author_id,
-       user.username    AS author,
-       user.displayname AS displayname,
-       user.pfp         AS pfp,
+       user.username       AS author,
+       user.displayname    AS displayname,
+       user.pfp            AS pfp,
        post.community_id,
-       community.name   AS community,
-       community.icon   AS community_icon,
+       community.name      AS community,
+       community.icon      AS community_icon,
        post.content,
        post.post_time,
        post.attachment,
+       attachment.mimetype AS attachment_mime,
+       attachment.metadata AS attachment_metadata,
        post.like_count,
        post.comment_count
 FROM post
          JOIN user ON post.author_id = user.id
-         LEFT JOIN community ON post.community_id = community.id;
+         LEFT JOIN community ON post.community_id = community.id
+         LEFT JOIN attachment ON post.attachment = attachment.filename;
 
 CREATE TABLE IF NOT EXISTS comment
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     parent_post_id INTEGER NOT NULL,
     parent_type    TEXT    NOT NULL DEFAULT 'post',
-    level          INTEGER NOT NULL DEFAULT 0, -- 0 for first comment
+    level          INTEGER NOT NULL DEFAULT 0,
     author_id      INTEGER NOT NULL,
     content        TEXT    NOT NULL,
     post_time      INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -168,15 +174,6 @@ CREATE TABLE IF NOT EXISTS post_like
     FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
-
--- CREATE TABLE IF NOT EXISTS post_view
--- (
---     post_id INTEGER NOT NULL,
---     user_id TEXT    NOT NULL,
---     PRIMARY KEY (post_id, user_id),
---     FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
---     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
--- );
 
 CREATE TABLE IF NOT EXISTS comment_like
 (
@@ -283,3 +280,14 @@ BEGIN
     SET comment_count = comment_count - 1
     WHERE id = old.parent_post_id;
 END;
+
+
+
+-- CREATE TABLE IF NOT EXISTS post_view
+-- (
+--     post_id INTEGER NOT NULL,
+--     user_id TEXT    NOT NULL,
+--     PRIMARY KEY (post_id, user_id),
+--     FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
+--     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+-- );
