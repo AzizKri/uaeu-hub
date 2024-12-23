@@ -6,4 +6,5 @@ interface Env {
     POSTS_RL: any;
     ATTACHMENT_RL: any;
     JWT_SECRET: string;
+    ENVIRONMENT: string;
 }

@@ -1,10 +1,8 @@
 import { Context } from 'hono';
 import { z } from 'zod';
-import { getSignedCookie, setSignedCookie } from 'hono/cookie';
+import { getSignedCookie } from 'hono/cookie';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
-import { getUserFromSessionKey } from '../util/util';
-
-const COOKIE_EXPIRY = 360 * 24 * 60 * 60; // 1 year
+import { getUserFromSessionKey, sendAuthCookie } from '../util/util';
 
 /* User Authentication */
 
@@ -43,7 +41,7 @@ const userSchema = z.object({
 
 
 export async function isUser(c: Context) {
-    const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey');
+    const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
     if (!sessionKey) return c.json({ message: 'Unauthorized', status: 401 }, 401);
     return c.json({ message: 'Authorized', status: 200 }, 200);
 }
@@ -52,7 +50,7 @@ export async function isUser(c: Context) {
 export async function signup(c: Context) {
     const env: Env = c.env;
     const { displayname, email, username, password, includeAnon } = await c.req.json();
-    const existingSessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey');
+    const existingSessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
 
     // Parse the input data
     try {
@@ -81,12 +79,11 @@ export async function signup(c: Context) {
 
     try {
         // Check if the user signing up already has anonymous activity
-        let user;
         if (existingSessionKey && includeAnon == true) { // We have a session key AND we want to include anonymous activity
             // Get UserID from Session key
             const userid = await getUserFromSessionKey(c, existingSessionKey);
 
-            user = await env.DB.prepare(`
+            const user = await env.DB.prepare(`
                 UPDATE user
                 SET username     = ?,
                     displayname  = ?,
@@ -97,34 +94,33 @@ export async function signup(c: Context) {
                 WHERE id = ?
                 RETURNING id
             `).bind(username, (displayname ? displayname : username), email, hash, encoded, userid).first<UserRow>();
+
+            if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+
+            await sendAuthCookie(c, existingSessionKey);
+            return c.json({ message: 'User updated successfully', status: 200 }, 200);
         } else {
             // New user, no activity
-            user = await env.DB.prepare(`
+            const user = await env.DB.prepare(`
                 INSERT INTO user (username, displayname, email, password)
                 VALUES (?, ?, ?, ?)
                 RETURNING id
             `).bind(username, (displayname ? displayname : username), email, hash).first<UserRow>();
+
+            if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+
+            const PlainSessionKey = crypto.randomUUID();
+            const sessionKey = await hashSessionKey(PlainSessionKey);
+
+            await env.DB.prepare(`
+                INSERT INTO session (id, user_id)
+                VALUES (?, ?)
+            `).bind(sessionKey, user.id).run();
+
+            await sendAuthCookie(c, PlainSessionKey);
+
+            return c.json({ message: 'User created successfully', status: 200 }, 200);
         }
-
-        if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-
-        const PlainSessionKey = crypto.randomUUID();
-        const sessionKey = await hashSessionKey(PlainSessionKey);
-
-        await env.DB.prepare(`
-            INSERT INTO session (id, user_id)
-            VALUES (?, ?)
-        `).bind(sessionKey, user.id).run();
-
-        await setSignedCookie(c, 'sessionKey', PlainSessionKey, env.JWT_SECRET, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'Strict',
-            domain: '.uaeu.chat',
-            maxAge: COOKIE_EXPIRY
-        });
-
-        return c.json({ message: 'User created successfully', status: 200 }, 200);
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
@@ -170,13 +166,8 @@ export async function anonSignup(c: Context) {
         `).bind(sessionKey, user.id).run();
 
         // Send the session key to the client
-        await setSignedCookie(c, 'sessionKey', PlainSessionKey, env.JWT_SECRET, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'Strict',
-            domain: '.uaeu.chat',
-            maxAge: COOKIE_EXPIRY
-        });
+        await sendAuthCookie(c, PlainSessionKey);
+        c.set('sessionKey', PlainSessionKey);
 
         return c.json({ message: 'User created successfully', status: 200 }, 200);
     } catch (e) {
@@ -222,13 +213,7 @@ export async function login(c: Context) {
         VALUES (?, ?)
     `).bind(sessionKey, user.id).run();
 
-    await setSignedCookie(c, 'sessionKey', PlainSessionKey, env.JWT_SECRET, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'Strict',
-        domain: '.uaeu.chat',
-        maxAge: COOKIE_EXPIRY
-    });
+    await sendAuthCookie(c, PlainSessionKey);
 
     return c.json({ message: 'Logged in successfully', status: 200 }, 200);
 }
