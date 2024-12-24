@@ -1,6 +1,5 @@
 import './post.module.scss';
 import profilePicture from '../../assets/profile-picture.png';
-// import postImage from '../../assets/post-image.png';
 import PostFooter from '../PostFooter/PostFooter.tsx';
 import Comment from '../Comment/Comment.tsx';
 import styles from './post.module.scss';
@@ -9,6 +8,7 @@ import Editor from '../Editor/Editor.tsx';
 import {getCommentsOnPost} from '../../api.ts';
 import {getFormattedDate} from "../../lib/tools.ts";
 import Content from "../Content/Content.tsx";
+// import postImage from '../../assets/post-image.png';
 
 export default function Post({post_info, top_comment_info}: PostInfoWithTopComment) {
     const [dateText, setDateText] = useState<string>('');
@@ -48,7 +48,7 @@ export default function Post({post_info, top_comment_info}: PostInfoWithTopComme
             {post_info.type === "post-page" ? comments.map((cur) => <Comment
                 key={cur.id}
                 info={cur}
-            />) : post_info.type === "post" ? <Comment info={top_comment_info}/> : null}
+            />) : post_info.type === "post" && top_comment_info != null ? <Comment info={top_comment_info}/> : null}
         </div>
     );
 }
