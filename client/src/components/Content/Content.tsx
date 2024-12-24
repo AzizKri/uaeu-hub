@@ -36,33 +36,35 @@ export default function Content({id, content, filename, type}: {id: number, cont
 
     return (
         <>
-        <div className={styles.text}>
-            {type === "post-page" ?
-                (showContent || (type === "post-page") ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>)
-                :
-                <a href={`/post/${id}`}>
-                    {showContent || (type === "post-page") ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
-                </a>
+            <div className={styles.text}>
+                {type === 'post' ?
+                    <a href={`/post/${id}`}>
+                        {showContent ? content : <> {content.slice(0, 200)}
+                            <span>&#8230;</span> </>}
+                    </a> :
+                    (showContent || (type === "post-page") ? content : <> {content.slice(0, 200)}
+                        <span>&#8230;</span> </>)
+                }
+                {showContent ? '' :
+                    <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
+            </div>
+            {/*<ReadOnlyEditor content={editorContent} />*/}
+            {isLoading && !error && <LoadingImage/>}
+            {filename != null && !error &&
+                <div className={styles.image}
+                     style={{display: isLoading ? 'none' : 'block', height: imageDims.height, width: imageDims.width}}>
+                    <img
+                        src={imageSrc}
+                        alt="post attachment"
+                        onLoad={() => setIsLoading(false)}
+                        onError={() => {
+                            setError(true);
+                            setIsLoading(false);
+                        }}
+                    />
+                </div>
             }
-            {showContent ? '' :
-                <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
-        </div>
-    {/*<ReadOnlyEditor content={editorContent} />*/}
-    {isLoading && !error && <LoadingImage />}
-    {filename != null && !error &&
-    <div className={styles.image} style={{display: isLoading ? 'none' : 'block', height: imageDims.height, width: imageDims.width}}>
-        <img
-            src={imageSrc}
-            alt="post attachment"
-            onLoad={() => setIsLoading(false)}
-            onError={() => {
-                setError(true);
-                setIsLoading(false);
-            }}
-        />
-    </div>
-    }
-    {error && <p>Error Loading the image</p>}
+            {error && <p>Error Loading the image</p>}
         </>
     )
 }
