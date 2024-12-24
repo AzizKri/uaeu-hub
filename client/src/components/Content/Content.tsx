@@ -34,29 +34,17 @@ export default function Content({id, content, filename, type}: {id: number, cont
         }
     }, [filename]);
 
-    const handleClick = () => {
-        if (type === "post") {
-            location.assign(`/post/${id}`);
-        }
-    }
     return (
         <>
-            {/*<div className={styles.text}>*/}
-            {/*    {type === "post-page" || type === "comment" ?*/}
-            {/*        (showContent || (type === "post-page") ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>)*/}
-            {/*        :*/}
-            {/*        <a href={`/post/${id}`}>*/}
-            {/*            {showContent || (type === "post-page") ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}*/}
-            {/*        </a>*/}
-            {/*    }*/}
-            {/*    {showContent ? '' :*/}
-            {/*        <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}*/}
-            {/*</div>*/}
             <div className={styles.text}>
-                    <div onClick={() => handleClick()}>
-                        {showContent || (type === "post-page") ? content : <> {content.slice(0, 200)}
+                {type === 'post' ?
+                    <a href={`/post/${id}`}>
+                        {showContent ? content : <> {content.slice(0, 200)}
                             <span>&#8230;</span> </>}
-                    </div>
+                    </a> :
+                    (showContent || (type === "post-page") ? content : <> {content.slice(0, 200)}
+                        <span>&#8230;</span> </>)
+                }
                 {showContent ? '' :
                     <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
             </div>
