@@ -26,7 +26,7 @@ export default function Comment({info}: {info: CommentInfo}) {
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
-                    <div className={styles.comment__content__header__display_name}>{info.displayname}</div>
+                    <div className={styles.comment__content__header__display_name}>{info.display_name}</div>
                     <span>•</span>
                     <div className={styles.comment__content__header__time}>3h ago</div>
                 </div>
