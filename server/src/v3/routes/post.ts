@@ -23,7 +23,7 @@ app.delete('/:id', (c) => deletePost(c));                           // api.uaeu.
 app.post('/like/:id', (c) => likePost(c));				            // api.uaeu.chat/post/like/:id
 app.get('/latest/:page?', (c) => getLatestPosts(c));				// api.uaeu.chat/post/latest/:page
 app.get('/search/:query', (c) => searchPosts(c));					// api.uaeu.chat/post/search/:query
-app.get('/user/:username/:page?', (c) => getPostsByUser(c));		// api.uaeu.chat/post/user/:username/:page
+app.get('/user/:user/:page?', (c) => getPostsByUser(c));		// api.uaeu.chat/post/user/:username/:page
 app.get('/:id', (c) => getPostByID(c));								// api.uaeu.chat/post/:id
 
 export default app;

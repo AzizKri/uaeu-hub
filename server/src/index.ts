@@ -1,9 +1,5 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import v1 from './v1/index';
-import user from './v2/routes/user';
-import post from './v2/routes/post';
-import attachment from './v2/routes/attachment';
 import v3Index from './v3/v3.index';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -14,11 +10,7 @@ app.use(cors({
 }));
 
 app.all('/', (c) => c.text('OK', 200));
-app.route('/v1', v1); // deprecated
-app.route('/user', user);
-app.route('/post', post);
-app.route('/attachment', attachment);
-app.route('/v3', v3Index)
+app.route('/', v3Index)
 app.get('/env', (c) => {
     const environment = c.env.ENVIRONMENT || 'production';
     console.log(environment)
