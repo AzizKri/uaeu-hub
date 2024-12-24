@@ -56,18 +56,18 @@ export async function getLatestPosts(c: Context) {
                 `SELECT pv.*,
                         CASE
                             WHEN tc.id IS NULL THEN NULL
-                            ELSE
-                                JSON_OBJECT(
-                                    'id', tc.id,
-                                    'author_id', tc.author_id,
-                                    'author', tc.author,
-                                    'pfp', tc.pfp,
-                                    'displayname', tc.displayname,
-                                    'content', tc.content,
-                                    'post_time', tc.post_time,
-                                    'attachment', tc.attachment,
-                                    'like_count', tc.like_count
-                                ) END AS top_comment
+                        ELSE
+                            JSON_OBJECT(
+                                'id', tc.id,
+                                'author_id', tc.author_id,
+                                'author', tc.author,
+                                'pfp', tc.pfp,
+                                'displayname', tc.displayname,
+                                'content', tc.content,
+                                'post_time', tc.post_time,
+                                'attachment', tc.attachment,
+                                'like_count', tc.like_count
+                            ) END AS top_comment
                  FROM post_view AS pv
                           LEFT JOIN (SELECT c.id,
                                             c.parent_post_id,
@@ -82,7 +82,7 @@ export async function getLatestPosts(c: Context) {
                                             c.like_count
                                      FROM comment_view AS c
                                      WHERE c.parent_type = 'post'
-                                     ORDER BY c.like_count DESC, c.post_time) AS tc ON tc.parent_post_id = pv.id
+                                     ORDER BY c.like_count DESC, c.post_time LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
             ).bind(page * 10).all<PostView>();

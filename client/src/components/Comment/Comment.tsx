@@ -3,11 +3,17 @@ import './comment.module.scss';
 import styles from './comment.module.scss';
 import Content from "../Content/Content.tsx";
 import ReplyPopUp from "../ReplyPopUp/ReplyPopUp.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import {getFormattedDate} from "../../lib/tools.ts";
 
 export default function Comment({info}: {info: CommentInfo}) {
-
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
+    const [dateText, setDateText] = useState<string>("");
+
+    useEffect(() => {
+        setDateText(getFormattedDate(info.post_time))
+    }, [info.post_time]);
+
     const handleReply = () => {
         console.log("handle reply");
         document.body.style.overflow = "hidden";
@@ -26,9 +32,9 @@ export default function Comment({info}: {info: CommentInfo}) {
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
-                    <div className={styles.comment__content__header__display_name}>{info.displayname}</div>
+                    <div className={styles.comment__content__header__display_name}>{info.display_name}</div>
                     <span>•</span>
-                    <div className={styles.comment__content__header__time}>3h ago</div>
+                    <div className={styles.comment__content__header__time}>{dateText}</div>
                 </div>
                 <div className={styles.comment__content__text}>
                     <Content id={info.id} content={info.content} filename={info.attachment} type={"comment"}/>
