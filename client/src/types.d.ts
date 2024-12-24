@@ -50,12 +50,12 @@ declare global {
         parent_post_id: number,
         parent_type: string,
         pfp: string,
-        post_time: string,
+        post_time: Date,
     }
 
     interface PostInfoWithTopComment {
         post_info: PostInfo;
-        top_comment_info: CommentInfo;
+        top_comment_info: CommentInfo | null;
     }
 
     // type PostInfoWithTopComment = PostInfo & {

@@ -11,22 +11,27 @@ export default function PostPage() {
     useEffect(() => {
         if (postId) {
             getPostByID(parseInt(postId, 10)).then((res) => {
+                const post = res.results[0];
+                const postInfo: PostInfo = {
+                    id: post.id,
+                    content: post.content,
+                    authorUsername: post.author,
+                    authorDisplayName: post.displayname,
+                    pfp: post.pfp,
+                    postDate: new Date(post.post_time),
+                    filename: post.attachment,
+                    like_count: post.like_count,
+                    comment_count: post.comment_count,
+                    type: "post-page",
+                    liked: post.like,
+                };
                 const fetchedPost = (
                     <Post
-                        key={res.results[0].id}
-                        id={res.results[0].id}
-                        content={res.results[0].content}
-                        authorUsername={res.results[0].author}
-                        authorDisplayName={res.results[0].displayname}
-                        pfp={res.results[0].pfp}
-                        postDate={new Date(res.results[0].post_time)}
-                        filename={res.results[0].attachment}
-                        likes={res.results[0].like_count}
-                        comments_count={res.results[0].comment_count}
-                        type={"post-page"}
+                        key={post.id}
+                        post_info={postInfo}
+                        top_comment_info={null}
                     />
                 );
-                console.log(res);
                 setPost(fetchedPost);
             });
         }

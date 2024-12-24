@@ -23,6 +23,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
             setPage((prevPage) => prevPage + 1);
             const fetchedPosts: React.ReactElement[] = []
             for (const post of res.results) {
+                console.log(post);
                 const postInfo: PostInfo = {
                     id: post.id,
                     content: post.content,
@@ -36,22 +37,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     type: "post",
                     liked: post.like,
                 };
-                const topCommentInfo: CommentInfo = JSON.parse(post.comment);
-                // const topCommentInfo: CommentInfo = {
-                //     attachment: post.top_comment_attachment,
-                //     author: post.top_comment_author,
-                //     author_id: post.top_comment_author_id,
-                //     content: post.top_comment_content,
-                //     display_name: post.top_comment_display_name,
-                //     id: post.top_comment_id,
-                //     level: post.top_comment_level,
-                //     like_count: post.top_comment_like_count,
-                //     liked: post.top_comment_liked,
-                //     parent_post_id: post.top_comment_parent_post_id,
-                //     parent_type: post.top_comment_parent_type,
-                //     pfp: post.top_comment_pfp,
-                //     post_time: post.top_comment_post_time,
-                // }
+                const topCommentInfo: CommentInfo = JSON.parse(post.top_comment);
                 fetchedPosts.push(
                     <Post
                         key={post.id}
