@@ -34,35 +34,49 @@ export default function Content({id, content, filename, type}: {id: number, cont
         }
     }, [filename]);
 
+    const handleClick = () => {
+        if (type === "post") {
+            location.assign(`/post/${id}`);
+        }
+    }
     return (
         <>
-        <div className={styles.text}>
-            {type === "post-page" ?
-                (showContent || (type === "post-page") ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>)
-                :
-                <a href={`/post/${id}`}>
-                    {showContent || (type === "post-page") ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}
-                </a>
+            {/*<div className={styles.text}>*/}
+            {/*    {type === "post-page" || type === "comment" ?*/}
+            {/*        (showContent || (type === "post-page") ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>)*/}
+            {/*        :*/}
+            {/*        <a href={`/post/${id}`}>*/}
+            {/*            {showContent || (type === "post-page") ? content : <> {content.slice(0, 200)} <span>&#8230;</span> </>}*/}
+            {/*        </a>*/}
+            {/*    }*/}
+            {/*    {showContent ? '' :*/}
+            {/*        <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}*/}
+            {/*</div>*/}
+            <div className={styles.text}>
+                    <div onClick={() => handleClick()}>
+                        {showContent || (type === "post-page") ? content : <> {content.slice(0, 200)}
+                            <span>&#8230;</span> </>}
+                    </div>
+                {showContent ? '' :
+                    <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
+            </div>
+            {/*<ReadOnlyEditor content={editorContent} />*/}
+            {isLoading && !error && <LoadingImage/>}
+            {filename != null && !error &&
+                <div className={styles.image}
+                     style={{display: isLoading ? 'none' : 'block', height: imageDims.height, width: imageDims.width}}>
+                    <img
+                        src={imageSrc}
+                        alt="post attachment"
+                        onLoad={() => setIsLoading(false)}
+                        onError={() => {
+                            setError(true);
+                            setIsLoading(false);
+                        }}
+                    />
+                </div>
             }
-            {showContent ? '' :
-                <span className={styles.show_more} onClick={() => setShowContent(true)}>show more</span>}
-        </div>
-    {/*<ReadOnlyEditor content={editorContent} />*/}
-    {isLoading && !error && <LoadingImage />}
-    {filename != null && !error &&
-    <div className={styles.image} style={{display: isLoading ? 'none' : 'block', height: imageDims.height, width: imageDims.width}}>
-        <img
-            src={imageSrc}
-            alt="post attachment"
-            onLoad={() => setIsLoading(false)}
-            onError={() => {
-                setError(true);
-                setIsLoading(false);
-            }}
-        />
-    </div>
-    }
-    {error && <p>Error Loading the image</p>}
+            {error && <p>Error Loading the image</p>}
         </>
     )
 }
