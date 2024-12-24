@@ -9,6 +9,8 @@ import PostPage from './components/Post/PostPage.tsx';
 import LoadingImage from "./components/LoadingImage/LoadingImage.tsx";
 import UserProvider from "./lib/userProvider.tsx";
 import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
+import UserProfile from "./components/UserProfile/UserProfile.tsx";
+import NotFound from './components/NotFound/NotFound.tsx';
 
 
 const router = createBrowserRouter([
@@ -28,6 +30,10 @@ const router = createBrowserRouter([
             {
                 path: '/loading',
                 element: <LoadingImage />
+            },
+            {
+                path: '/user',
+                element: <UserProfile displayName={"Test"} username={"test"} bio={"my bio"} pfp={"test.png"} />
             }
         ]
     },
@@ -38,6 +44,10 @@ const router = createBrowserRouter([
     {
         path: '/signup',
         element: <SignUp />
+    },
+    {
+        path: '*',
+        element: <NotFound />
     }
 ]);
 

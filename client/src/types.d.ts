@@ -80,7 +80,7 @@ declare global {
     interface userInfo {
         username: string;
         displayName: string;
-        pio: string;
+        bio: string;
         pfp: string;
     }
     interface UserContextInterface {
