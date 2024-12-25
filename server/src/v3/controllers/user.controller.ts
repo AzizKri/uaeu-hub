@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import { z } from 'zod';
-import { getSignedCookie } from 'hono/cookie';
+import { getSignedCookie, setCookie } from 'hono/cookie';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
 import { getUserFromSessionKey, sendAuthCookie } from '../util/util';
 
@@ -39,11 +39,44 @@ const userSchema = z.object({
     password: passwordSchema
 });
 
-
+// api.uaeu.chat/user/isUser
+// Simple check if this user has a session key or not
 export async function isUser(c: Context) {
     const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
     if (!sessionKey) return c.json({ message: 'Unauthorized', status: 401 }, 401);
     return c.json({ message: 'Authorized', status: 200 }, 200);
+}
+
+// api.uaeu.chat/user/isAnon
+// Check if this user is anonymous
+export async function isAnon(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
+
+    // Not a user
+    if (!sessionKey) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    // Get user ID from session key
+    const userId = await getUserFromSessionKey(c, sessionKey);
+
+    try {
+        const user = await env.DB.prepare(`
+            SELECT is_anonymous
+            FROM user
+            WHERE id = ?
+        `).bind(userId).first<UserView>();
+
+        if (!user) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+        if (user.is_anonymous) {
+            return c.json({ message: 'Anonymous', anon: true, status: 200 }, 200);
+        } else {
+            return c.json({ message: 'Not Anonymous', anon: false, status: 200 }, 200);
+        }
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', 500);
+    }
 }
 
 // api.uaeu.chat/user/signup
@@ -79,33 +112,50 @@ export async function signup(c: Context) {
 
     try {
         // Check if the user signing up already has anonymous activity
-        if (existingSessionKey && includeAnon == true) { // We have a session key AND we want to include anonymous activity
-            // Get UserID from Session key
-            const userid = await getUserFromSessionKey(c, existingSessionKey);
+        if (includeAnon) {
+            if (existingSessionKey) {
+                // We have a session key. Check if this is not a normal user.
+                // Get UserID from Session key
+                const userid = await getUserFromSessionKey(c, existingSessionKey);
 
-            const user = await env.DB.prepare(`
-                UPDATE user
-                SET username     = ?,
-                    displayname  = ?,
-                    email        = ?,
-                    password     = ?,
-                    salt         = ?,
-                    is_anonymous = false
-                WHERE id = ?
-                RETURNING id
-            `).bind(username, (displayname ? displayname : username), email, hash, encoded, userid).first<UserRow>();
+                // Get if user is anonymous
+                const isAnon = await env.DB.prepare(`
+                    SELECT is_anonymous
+                    FROM user
+                    WHERE id = ?
+                `).bind(userid).first<UserRow>();
 
-            if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+                // Some idiot tries to sign up as anon when they're already logged in
+                if (!isAnon) return c.json({ message: 'Already Logged In', status: 401 }, 401);
 
-            await sendAuthCookie(c, existingSessionKey);
-            return c.json({ message: 'User updated successfully', status: 200 }, 200);
+                // Anon user, continue by updating the user
+                const user = await env.DB.prepare(`
+                    UPDATE user
+                    SET username     = ?,
+                        displayname  = ?,
+                        email        = ?,
+                        password     = ?,
+                        salt         = ?,
+                        is_anonymous = false
+                    WHERE id = ?
+                    RETURNING id
+                `).bind(username, (displayname ? displayname : username), email, hash, encoded, userid).first<UserRow>();
+
+                if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+
+                await sendAuthCookie(c, existingSessionKey);
+                return c.json({ message: 'User updated successfully', status: 200 }, 200);
+            } else {
+                // No session key, this is an error
+                return c.json({ message: 'Unauthorized', status: 401 }, 401);
+            }
         } else {
             // New user, no activity
             const user = await env.DB.prepare(`
                 INSERT INTO user (username, displayname, email, password)
                 VALUES (?, ?, ?, ?)
-                RETURNING id
-            `).bind(username, (displayname ? displayname : username), email, hash).first<UserRow>();
+                RETURNING id, username, displayname, created_at, bio, pfp, is_anonymous
+            `).bind(username, (displayname ? displayname : username), email, hash).first<UserView>();
 
             if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
@@ -119,7 +169,7 @@ export async function signup(c: Context) {
 
             await sendAuthCookie(c, PlainSessionKey);
 
-            return c.json({ message: 'User created successfully', status: 200 }, 200);
+            return c.json(user, 200);
         }
     } catch (e) {
         console.log(e);
@@ -180,10 +230,12 @@ export async function login(c: Context) {
     const env: Env = c.env;
     const { username, email, password } = await c.req.json();
 
+    // Check if username or email is provided
     if ((!username && !email) || !password) {
         return c.json({ message: 'Missing required fields', status: 400 }, 400);
     }
 
+    // Check if username/email exists
     let user;
     if (username) {
         user = await env.DB.prepare(`
@@ -198,29 +250,50 @@ export async function login(c: Context) {
             WHERE email = ?
         `).bind(email).first<UserRow>();
     }
-
     if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
 
+    // Verify password
     const match = await verifyPassword(password, user.salt, user.password);
-
     if (!match) return c.json({ message: 'Invalid credentials', status: 401 }, 401);
 
-    const PlainSessionKey = crypto.randomUUID();
-    const sessionKey = await hashSessionKey(PlainSessionKey);
+    // Get user data to send
+    try {
+        const userData = await env.DB.prepare(`
+            SELECT *
+            FROM user_view
+            WHERE username = ?
+               OR email = ?
+        `).bind(username, email).first<UserView>();
 
-    await env.DB.prepare(`
-        INSERT INTO session (id, user_id)
-        VALUES (?, ?)
-    `).bind(sessionKey, user.id).run();
+        // Generate session key & hash it
+        const PlainSessionKey = crypto.randomUUID();
+        const sessionKey = await hashSessionKey(PlainSessionKey);
 
-    await sendAuthCookie(c, PlainSessionKey);
+        // Insert into session table
+        await env.DB.prepare(`
+            INSERT INTO session (id, user_id)
+            VALUES (?, ?)
+        `).bind(sessionKey, user.id).run();
 
-    return c.json({ message: 'Logged in successfully', status: 200 }, 200);
+        // Send the session key to the client
+        await sendAuthCookie(c, PlainSessionKey);
+
+        return c.json(userData, 200);
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function logout(c: Context) {
+    // Set session key to empty and expire immediately
+    setCookie(c, 'sessionKey', '', { maxAge: 0 });
+    return c.text('Logged out', 200);
 }
 
 /* User information */
 
-export async function getByUsername(c: Context) {
+export async function getUserByUsername(c: Context) {
     // api.uaeu.chat/user/:username
     const env: Env = c.env;
     const username = c.req.param('username');
@@ -229,10 +302,37 @@ export async function getByUsername(c: Context) {
     if (username === '') return c.text('Bad Request', 400);
 
     try {
+        // Get user data
         const result = await env.DB.prepare(
             'SELECT * FROM user_view WHERE username = ?'
-        ).bind(username).all<UserView>();
-        return Response.json(result);
+        ).bind(username).first<UserView>();
+        // No result found, 404
+        if (!result) return c.json({ message: 'User not found', status: 404 }, 404);
+        // Result found, return it
+        return c.json(result, 200);
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getUserBySessionKey(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+
+    // Get user ID from session key
+    const userId = await getUserFromSessionKey(c, sessionKey);
+    if (!userId) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    try {
+        // Get user data
+        const user = await env.DB.prepare(
+            'SELECT * FROM user_view WHERE id = ?'
+        ).bind(userId).first<UserView>();
+        // User not found, return 404
+        if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+        // User found, return it
+        return c.json(user, 200);
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
