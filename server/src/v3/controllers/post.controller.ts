@@ -66,12 +66,12 @@ export async function getLatestPosts(c: Context) {
                                 'content', tc.content,
                                 'post_time', tc.post_time,
                                 'attachment', tc.attachment,
-                                'like_count', tc.like_count
+                                'like_count', tc.like_count,
+                                'comment_count', tc.comment_count
                             ) END AS top_comment
                  FROM post_view AS pv
                           LEFT JOIN (SELECT c.id,
                                             c.parent_post_id,
-                                            c.parent_type,
                                             c.author_id,
                                             c.author,
                                             c.pfp,
@@ -79,9 +79,9 @@ export async function getLatestPosts(c: Context) {
                                             c.content,
                                             c.post_time,
                                             c.attachment,
-                                            c.like_count
+                                            c.like_count,
+                                            c.comment_count
                                      FROM comment_view AS c
-                                     WHERE c.parent_type = 'post'
                                      ORDER BY c.like_count DESC, c.post_time LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
@@ -108,12 +108,12 @@ export async function getLatestPosts(c: Context) {
                                     'content', tc.content,
                                     'post_time', tc.post_time,
                                     'attachment', tc.attachment,
-                                    'like_count', tc.like_count
+                                    'like_count', tc.like_count,
+                                    'comment_count', tc.comment_count
                                 ) END                        AS top_comment
                  FROM post_view AS pv
                           LEFT JOIN (SELECT c.id,
                                             c.parent_post_id,
-                                            c.parent_type,
                                             c.author_id,
                                             c.author,
                                             c.pfp,
@@ -121,9 +121,9 @@ export async function getLatestPosts(c: Context) {
                                             c.content,
                                             c.post_time,
                                             c.attachment,
-                                            c.like_count
+                                            c.like_count,
+                                            c.comment_count
                                      FROM comment_view AS c
-                                     WHERE c.parent_type = 'post'
                                      ORDER BY c.like_count DESC, c.post_time
                                      LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY pv.post_time DESC
