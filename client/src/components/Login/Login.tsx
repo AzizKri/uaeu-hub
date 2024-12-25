@@ -43,6 +43,7 @@ export default function Login() {
                 alert('Login successful');
                 console.log('Login successful');
                 // TODO redirect to home page
+                navigate('/');
 
             } else {
                 alert(`Error ${response.status}: ${response.message}`);
