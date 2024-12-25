@@ -1,4 +1,4 @@
-const base = import.meta.env.VITE_API_URL;
+const base = import.meta.env.VITE_API_URL || 'https://api.uaeu.chat';
 
 /* Authentication */
 export async function signUp(formData: { displayname: string, email: string, username: string, password: string }) {
@@ -88,7 +88,6 @@ export async function createPost(content: string, attachment?: string) {
 
 // Get latest posts
 export async function getLatestPosts(page?: number) {
-    console.log(base)
     const request = await fetch(base + `/post/latest/${page || 0}`, { credentials: 'include' });
     return await request.json();
 }
