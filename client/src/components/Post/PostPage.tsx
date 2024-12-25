@@ -25,11 +25,16 @@ export default function PostPage() {
                     type: "post-page",
                     liked: post.like,
                 };
+                const communityInfo: CommunityInfoSimple = {
+                    name: post.community,
+                    icon: post.community_icon
+                }
                 const fetchedPost = (
                     <Post
                         key={post.id}
                         post_info={postInfo}
                         top_comment_info={null}
+                        community_info={communityInfo}
                     />
                 );
                 setPost(fetchedPost);
