@@ -66,7 +66,7 @@ export default function Aside() {
                             </div>
                         </li>
                         {my_communities.map((community) => (
-                            <div className={`${styles.user_community} ${styles.element}`}>
+                            <div key={community.name} className={`${styles.user_community} ${styles.element}`}>
                                 <img src={community.icon} alt="community" className={styles.community_icon}/>
                                 <span>{community.name}</span>
                             </div>
