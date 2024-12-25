@@ -94,7 +94,7 @@ async function signupAnon(c: Context): Promise<number | null> {
  *
  * `sessionKey` is sent in PLAINTEXT.
  */
-export async function sendAuthCookie(c: Context, sessionKey: string) {
+export async function sendAuthCookie(c: Context, sessionKey: string, customExpires?: number): Promise<void> {
     const COOKIE_EXPIRY = 360 * 24 * 60 * 60; // 1 year
 
     // Prepare cookie options
@@ -102,7 +102,7 @@ export async function sendAuthCookie(c: Context, sessionKey: string) {
         httpOnly: true,
         secure: c.env.ENVIRONMENT !== 'dev',
         sameSite: 'None',
-        maxAge: COOKIE_EXPIRY
+        maxAge: customExpires || COOKIE_EXPIRY
     };
 
     // If in production, set domain to .uaeu.chat & sameSite to Strict
