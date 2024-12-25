@@ -1,8 +1,8 @@
 // production
-// const base = 'https://api.uaeu.chat';
+const base = 'https://api.uaeu.chat';
 
 // dev
-const base = 'http://127.0.0.1:8787';
+// const base = 'http://127.0.0.1:8787';
 
 // api.uaeu.chat/user/signup
 export async function signUp(formData: { displayname: string, email: string, username: string, password: string }) {
