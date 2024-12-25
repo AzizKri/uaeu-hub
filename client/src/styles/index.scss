@@ -46,18 +46,26 @@ ul {
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
     gap: 15px;
+    width: fit-content;
+    margin: 10px auto 0;
+
+    .left {
+        display: flex;
+        justify-content: flex-end;
+    }
 
     .middle {
-        //max-width: 700px;
+        width: 500px;
         //width: 100%;
+    }
+
+    .right {
+        //height: 100vh;
+        position: sticky;
+        top: 70px;
     }
 }
 
-.right {
-    //height: 100vh;
-    position: sticky;
-    top: 70px;
-}
 
 @media screen and (max-width: 500px) {
     .main {
