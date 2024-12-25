@@ -6,8 +6,6 @@ export async function comment(c: Context) {
     const env: Env = c.env;
     const formData = await c.req.parseBody();
     const postID: number = Number(formData['postid']);
-    const parentType: string = formData['parent-type'] as string;
-    const parentLevel: number = Number(formData['parent-level']);
     const content: string = formData['content'] as string;
     const fileName: string | null = formData['filename'] as string;
     const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
@@ -22,14 +20,14 @@ export async function comment(c: Context) {
         // Check if we have a file & insert into DB
         if (fileName) {
             await env.DB.prepare(
-                `INSERT INTO comment (parent_post_id, parent_type, level, author_id, content, attachment)
-                 VALUES (?, ?, ?, ?, ?, ?)`
-            ).bind(postID, parentType, parentLevel + 1, userid, content, fileName).run();
+                `INSERT INTO comment (parent_post_id, author_id, content, attachment)
+                 VALUES (?, ?, ?, ?)`
+            ).bind(postID, userid, content, fileName).run();
         } else {
             await env.DB.prepare(
-                `INSERT INTO comment (parent_post_id, parent_type, level, author_id, content)
-                 VALUES (?, ?, ?, ?, ?)`
-            ).bind(postID, parentType, parentLevel + 1, userid, content).run();
+                `INSERT INTO comment (parent_post_id, author_id, content)
+                 VALUES (?, ?, ?)`
+            ).bind(postID, userid, content).run();
         }
 
         return c.text('Comment created', { status: 201 });
