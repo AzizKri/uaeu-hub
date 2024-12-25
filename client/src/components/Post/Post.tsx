@@ -10,7 +10,7 @@ import {getFormattedDate} from "../../lib/tools.ts";
 import Content from "../Content/Content.tsx";
 // import postImage from '../../assets/post-image.png';
 
-export default function Post({post_info, top_comment_info}: PostInfoWithTopComment) {
+export default function Post({post_info, top_comment_info}: PostAll) {
     const [dateText, setDateText] = useState<string>('');
     const [comments, setComments] = useState<CommentInfo[]>([]);
 
