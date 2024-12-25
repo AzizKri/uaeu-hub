@@ -1,14 +1,14 @@
 import Search from '../Search/Search.tsx';
 import styles from './NavBar.module.scss';
-import { useState } from 'react';
-
-enum Page {
-    Home,
-    Questions
-}
+// import { useState } from 'react';
+//
+// enum Page {
+//     Home,
+//     Questions
+// }
 
 export default function NavBar() {
-    const [page, setPage] = useState<Page>(Page.Home);
+    // const [page, setPage] = useState<Page>(Page.Home);
     return (
         <>
             <div className={styles.navbar}>
@@ -30,12 +30,12 @@ export default function NavBar() {
                     </svg>
                 </div>
                 <div className={styles.navbar_buttons}>
-                    <a href="/"><div className={page === Page.Home ? styles.selectedButton : styles.button}
-                         onClick={() => setPage(Page.Home)}>Home
-                    </div></a>
-                    <div className={page === Page.Questions ? styles.selectedButton : styles.button}
-                         onClick={() => setPage(Page.Questions)}>Your Questions
-                    </div>
+                    {/*<a href="/"><div className={page === Page.Home ? styles.selectedButton : styles.button}*/}
+                    {/*     onClick={() => setPage(Page.Home)}>Home*/}
+                    {/*</div></a>*/}
+                    {/*<div className={page === Page.Questions ? styles.selectedButton : styles.button}*/}
+                    {/*     onClick={() => setPage(Page.Questions)}>Your Questions*/}
+                    {/*</div>*/}
                 </div>
                 <Search />
             </div>

@@ -1,0 +1,59 @@
+
+.aside {
+    background-color: white;
+    padding: 16px 16px 40px;
+    height: 100%;
+    position: fixed;
+    overflow: auto;
+    list-style: none;
+    //maybe?
+    margin: 10px;
+    border-radius: 10px;
+
+    .inner_list {
+        padding-inline-start: 10px;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+    }
+
+    .element {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 10px;
+        border-radius: 4px;
+        color: #333;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: #eee;
+            //color: white;
+        }
+        &.active {
+            background-color: #d7420c;
+            color: white;
+        }
+
+        > svg {
+            transition: transform 0.4s ease;
+        }
+    }
+
+    svg {
+        width: 24px;
+    }
+
+    .community_icon {
+        width: 24px;
+        border-radius: 50%;
+    }
+    > li {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+        padding-block: 5px;
+    }
+
+    .inner_element, .user_community {
+        font-size: 14px;
+    }
+}

@@ -36,6 +36,11 @@ a {
     text-decoration: none;
     color: inherit;
 }
+
+ul {
+    list-style: none;
+}
+
 .main {
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
