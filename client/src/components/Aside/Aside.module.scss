@@ -5,10 +5,10 @@
     height: 100%;
     position: fixed;
     overflow: auto;
-    list-style: none;
     //maybe?
     margin: 10px;
     border-radius: 10px;
+    font-size: 14px;
 
     .inner_list {
         padding-inline-start: 10px;
@@ -20,8 +20,8 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 5px 10px;
-        border-radius: 4px;
+        padding: 10px 15px;
+        border-radius: 20px;
         color: #333;
         cursor: pointer;
         transition: background-color 0.2s ease;
@@ -49,7 +49,7 @@
         border-radius: 50%;
     }
     > li {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+        //border-bottom: 1px solid rgba(0, 0, 0, 0.3);
         padding-block: 5px;
     }
 
