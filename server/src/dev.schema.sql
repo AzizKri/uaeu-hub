@@ -178,13 +178,12 @@ CREATE TABLE IF NOT EXISTS comment
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     parent_post_id INTEGER NOT NULL,
-    parent_type    TEXT    NOT NULL DEFAULT 'post',
-    level          INTEGER NOT NULL DEFAULT 0,
     author_id      INTEGER NOT NULL,
     content        TEXT    NOT NULL,
     post_time      INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     attachment     TEXT,
     like_count     INTEGER NOT NULL DEFAULT 0,
+    comment_count  INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (parent_post_id) REFERENCES post (id) ON DELETE CASCADE,
     FOREIGN KEY (attachment) REFERENCES attachment (filename) ON DELETE SET NULL,
     FOREIGN KEY (author_id) REFERENCES user (id) ON DELETE CASCADE
@@ -193,8 +192,6 @@ CREATE TABLE IF NOT EXISTS comment
 CREATE VIEW IF NOT EXISTS comment_view AS
 SELECT comment.id,
        comment.parent_post_id,
-       comment.parent_type,
-       comment.level,
        comment.author_id,
        user.username    AS author,
        user.pfp         AS pfp,
@@ -202,9 +199,38 @@ SELECT comment.id,
        comment.content,
        comment.post_time,
        comment.attachment,
-       comment.like_count
+       comment.like_count,
+       comment.comment_count
 FROM comment
          JOIN user ON comment.author_id = user.id;
+
+CREATE TABLE IF NOT EXISTS subcomment
+(
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    parent_comment_id INTEGER NOT NULL,
+    author_id         INTEGER NOT NULL,
+    content           TEXT    NOT NULL,
+    post_time         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    attachment        TEXT,
+    like_count        INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (parent_comment_id) REFERENCES comment (id) ON DELETE CASCADE,
+    FOREIGN KEY (attachment) REFERENCES attachment (filename) ON DELETE SET NULL,
+    FOREIGN KEY (author_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
+CREATE VIEW IF NOT EXISTS subcomment_view AS
+SELECT subcomment.id,
+       subcomment.parent_comment_id,
+       subcomment.author_id,
+       user.username    AS author,
+       user.pfp         AS pfp,
+       user.displayname AS displayname,
+       subcomment.content,
+       subcomment.post_time,
+       subcomment.attachment,
+       subcomment.like_count
+FROM subcomment
+         JOIN user ON subcomment.author_id = user.id;
 
 /* Like Tables */
 
@@ -308,6 +334,24 @@ BEGIN
     UPDATE comment
     SET like_count = like_count - 1
     WHERE id = old.comment_id;
+END;
+
+CREATE TRIGGER increment_comment_subcomment_count
+    AFTER INSERT
+    ON subcomment
+BEGIN
+    UPDATE comment
+    SET comment_count = comment_count + 1
+    WHERE id = new.parent_comment_id;
+END;
+
+CREATE TRIGGER decrement_comment_subcomment_count
+    AFTER DELETE
+    ON subcomment
+BEGIN
+    UPDATE comment
+    SET comment_count = comment_count - 1
+    WHERE id = old.parent_comment_id;
 END;
 
 CREATE TRIGGER increment_post_comment_count
