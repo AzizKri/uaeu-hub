@@ -21,7 +21,7 @@ export default function Editor({type, parent_id, handleSubmit}: {type: string, p
     const [plainText, setPlainText] = useState<string>("");
     const [filePreview, setFilePreview] = useState<string | ArrayBuffer | null>(null);
     const [file, setFile] = useState<{ status: "UPLOADING" | "READY", file: File } | null>(null);
-    const [fileName, setFileName] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string>();
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{clearEditorContent: () => void}>(null);
@@ -106,7 +106,7 @@ export default function Editor({type, parent_id, handleSubmit}: {type: string, p
             // setFile(file);
             uploadAttachment([file]).then((resp) => {
                 if (resp.status === 201) {
-                    setFileName(resp.filename || null);
+                    setFileName(resp.filename as string);
                     setFile({ status: "READY", file });
                 }
             });
