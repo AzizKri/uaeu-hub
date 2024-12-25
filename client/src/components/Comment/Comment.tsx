@@ -9,6 +9,8 @@ import {getFormattedDate} from "../../lib/tools.ts";
 export default function Comment({info}: {info: CommentInfo}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
     const [dateText, setDateText] = useState<string>("");
+    const [repliesShown, setRepliesShown] = useState<boolean>(false);
+    const comment_count = 2;
 
     useEffect(() => {
         setDateText(getFormattedDate(info.post_time))
@@ -24,6 +26,15 @@ export default function Comment({info}: {info: CommentInfo}) {
         document.body.style.overflow = "scroll";
         setShowReplyPopUp(false);
     }
+
+    const toggleReplies = () => {
+        setRepliesShown((prev) => !prev);
+        /**
+         *  TODO: add a component to hold the replies and show it based on the state of repliesShown
+         *  if it is the first time to show them you need to first get them
+         */
+    }
+
     return (
         <div className={styles.comment}>
             {showReplyPopUp && <ReplyPopUp parent_comment_id={info.id} hideReplyPopUp={hideReplyPopUp}/>}
@@ -64,6 +75,7 @@ export default function Comment({info}: {info: CommentInfo}) {
                         <span>reply</span>
                     </button>
                 </div>
+                {comment_count > 0 && <div className={styles.view_comment} onClick={() => toggleReplies()}>{`${repliesShown ? "hide" : "view"} replies (${comment_count})`}</div>}
             </div>
         </div>
     );
