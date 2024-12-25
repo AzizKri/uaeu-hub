@@ -67,7 +67,7 @@ export async function uploadAttachment(c: Context) {
             file.stream(),
             {
                 httpMetadata: new Headers({ 'Content-Type': file.type }),
-                customMetadata: metadata
+                customMetadata: metadata // TODO Move metadata to DB instead of R2 Custom Metadata
             }
         );
 

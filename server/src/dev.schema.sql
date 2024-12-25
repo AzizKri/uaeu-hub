@@ -1,11 +1,13 @@
 PRAGMA foreign_keys = on;
 
+/* User Table */
+
 CREATE TABLE IF NOT EXISTS user
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     username       TEXT    NOT NULL UNIQUE,
     displayname    TEXT,
-    email          TEXT,
+    email          TEXT UNIQUE,
     email_verified BOOLEAN          DEFAULT FALSE,
     auth_provider  TEXT    NOT NULL DEFAULT 'local',
     password       TEXT,
@@ -37,6 +39,8 @@ SELECT id,
        is_anonymous
 FROM user;
 
+/* Session Table */
+
 CREATE TABLE IF NOT EXISTS session
 (
     id         TEXT PRIMARY KEY,
@@ -45,17 +49,23 @@ CREATE TABLE IF NOT EXISTS session
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
+/* Community Table */
+
 CREATE TABLE IF NOT EXISTS community
 (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    name        TEXT    NOT NULL UNIQUE,
-    description TEXT,
-    icon        TEXT,
-    verified    BOOLEAN NOT NULL DEFAULT FALSE,
-    invite_only BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    tags        TEXT
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    name         TEXT    NOT NULL UNIQUE,
+    description  TEXT,
+    icon         TEXT,
+    verified     BOOLEAN NOT NULL DEFAULT FALSE,
+    public       BOOLEAN NOT NULL DEFAULT TRUE, /* Are messages publicly viewable? */
+    invite_only  BOOLEAN NOT NULL DEFAULT FALSE, /* Can anyone join? */
+    created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    tags         TEXT,
+    member_count INTEGER NOT NULL DEFAULT 0
 );
+
+/* Community membership Table */
 
 CREATE TABLE IF NOT EXISTS user_community
 (
@@ -65,8 +75,31 @@ CREATE TABLE IF NOT EXISTS user_community
     role         TEXT    NOT NULL DEFAULT 'member',
     PRIMARY KEY (user_id, community_id),
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
+    FOREIGN KEY (role) REFERENCES community_role (name)
+);
+
+/* Community role Table */
+
+CREATE TABLE IF NOT EXISTS community_role
+(
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    community_id  INTEGER NOT NULL,
+    name          TEXT    NOT NULL,
+    level         INTEGER NOT NULL DEFAULT 0,
+    read_posts    BOOLEAN NOT NULL DEFAULT administrator, /* This should override the community's privacy */
+    write_posts   BOOLEAN NOT NULL DEFAULT administrator,
+    /* read_comments    BOOLEAN NOT NULL DEFAULT read_posts,
+    write_comments   BOOLEAN NOT NULL DEFAULT write_posts,
+    invite_users     BOOLEAN NOT NULL DEFAULT administrator,
+    manage_members   BOOLEAN NOT NULL DEFAULT administrator,
+    manage_roles     BOOLEAN NOT NULL DEFAULT administrator,
+    manage_community BOOLEAN NOT NULL DEFAULT administrator,*/
+    administrator BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE
 );
+
+/* Badge Table */
 
 CREATE TABLE IF NOT EXISTS badge
 (
@@ -76,6 +109,8 @@ CREATE TABLE IF NOT EXISTS badge
     icon        TEXT,
     awarded     INTEGER NOT NULL DEFAULT 0
 );
+
+/* User Badge Relationship Table */
 
 CREATE TABLE IF NOT EXISTS user_badge
 (
@@ -87,15 +122,19 @@ CREATE TABLE IF NOT EXISTS user_badge
     FOREIGN KEY (badge_id) REFERENCES badge (id) ON DELETE CASCADE
 );
 
+/* Attachment Table */
+
 CREATE TABLE IF NOT EXISTS attachment
 (
-    filename       TEXT PRIMARY KEY,
-    mimetype       TEXT    NOT NULL,
-    metadata       TEXT,
-    author_id INTEGER NOT NULL DEFAULT -1,
-    created_at     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    filename   TEXT PRIMARY KEY,
+    mimetype   TEXT    NOT NULL,
+    metadata   TEXT,
+    author_id  INTEGER NOT NULL DEFAULT -1,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (author_id) REFERENCES user (id) ON DELETE SET DEFAULT
 );
+
+/* Post Table */
 
 CREATE TABLE IF NOT EXISTS post
 (
@@ -133,6 +172,8 @@ FROM post
          LEFT JOIN community ON post.community_id = community.id
          LEFT JOIN attachment ON post.attachment = attachment.filename;
 
+/* Comment Table */
+
 CREATE TABLE IF NOT EXISTS comment
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -165,6 +206,8 @@ SELECT comment.id,
 FROM comment
          JOIN user ON comment.author_id = user.id;
 
+/* Like Tables */
+
 CREATE TABLE IF NOT EXISTS post_like
 (
     post_id    INTEGER NOT NULL,
@@ -184,6 +227,8 @@ CREATE TABLE IF NOT EXISTS comment_like
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
+/* Full Text Search Table */
+
 CREATE VIRTUAL TABLE posts_fts USING fts5
 (
     title,
@@ -192,6 +237,8 @@ CREATE VIRTUAL TABLE posts_fts USING fts5
     tokenize = 'porter',
     prefix = '2 3 4'
 );
+
+/* Indexes */
 
 CREATE INDEX idx_user_username ON user (username);
 
@@ -206,9 +253,9 @@ CREATE INDEX idx_post_likes_user ON post_like (user_id);
 CREATE INDEX idx_comment_likes_comment_id ON comment_like (comment_id);
 CREATE INDEX idx_comment_likes_user ON comment_like (user_id);
 
-INSERT INTO posts_fts(rowid, content, author)
-SELECT id, content, (SELECT username FROM user WHERE user.id = post.author_id)
-FROM post;
+CREATE INDEX idx_community_name ON community (name);
+
+/* Triggers */
 
 CREATE TRIGGER post_created
     AFTER INSERT
@@ -281,13 +328,31 @@ BEGIN
     WHERE id = old.parent_post_id;
 END;
 
+CREATE TRIGGER increment_community_member_count
+    AFTER INSERT
+    ON user_community
+BEGIN
+    UPDATE community
+    SET member_count = member_count + 1
+    WHERE id = new.community_id;
+END;
+
+CREATE TRIGGER decrement_community_member_count
+    AFTER DELETE
+    ON user_community
+BEGIN
+    UPDATE community
+    SET member_count = member_count - 1
+    WHERE id = old.community_id;
+END;
 
 
--- CREATE TABLE IF NOT EXISTS post_view
--- (
---     post_id INTEGER NOT NULL,
---     user_id TEXT    NOT NULL,
---     PRIMARY KEY (post_id, user_id),
---     FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
---     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
--- );
+/*
+CREATE TABLE IF NOT EXISTS post_view
+(
+    post_id INTEGER NOT NULL,
+    user_id TEXT    NOT NULL,
+    PRIMARY KEY (post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+); */

@@ -45,8 +45,10 @@ export async function getCommentsOnPost(c: Context) {
     const page: number = c.req.param('page') ? Number(c.req.param('page')) : 0;
 
     try {
+        // Get user ID from session key
         const userid = await getUserFromSessionKey(c, sessionKey);
 
+        // New user? Get without likes
         if (!userid) {
             const comments = await env.DB.prepare(
                 `SELECT *
@@ -58,6 +60,7 @@ export async function getCommentsOnPost(c: Context) {
 
             return c.json(comments, { status: 200 });
         } else {
+            // Returning user? Check if comments are liked
             const comments = await env.DB.prepare(
                 `SELECT cv.*,
                         CASE
