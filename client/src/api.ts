@@ -1,10 +1,6 @@
-// production
-const base = 'https://api.uaeu.chat';
+const base = import.meta.env.VITE_API_URL;
 
-// dev
-// const base = 'http://127.0.0.1:8787';
-
-// api.uaeu.chat/user/signup
+/* Authentication */
 export async function signUp(formData: { displayname: string, email: string, username: string, password: string }) {
     const data = await fetch(base + `/user/signup`, {
         method: 'POST',
@@ -15,7 +11,6 @@ export async function signUp(formData: { displayname: string, email: string, use
     return await data.json();
 }
 
-// api.uaeu.chat/user/login
 export async function login(formData: { username: string, password: string } | { email: string, password: string }) {
     const data = await fetch(base + `/user/login`, {
         method: 'POST',
@@ -26,25 +21,78 @@ export async function login(formData: { username: string, password: string } | {
     return await data.json();
 }
 
-export async function getUserByUsername(username: string) {
-    const request = await fetch(base + `/user/${username}`, { credentials: 'include' });
-    return await request.json();
+export async function logout() {
+    const data = await fetch(base + `/user/logout`, { credentials: 'include' });
+    return data.status;
 }
 
+/* Current User */
+
+// This basically checks if there's a session key (Anon or normal user)
 export async function isUser() {
     const request = await fetch(base + `/user/isUser`, { credentials: 'include' });
     return request.status === 200; // true if status is 200, otherwise false (401 Unauthorized or 500 Internal Server Error)
 }
 
-// POSTS
+// Returns true if anon, false otherwise
+export async function isAnon() {
+    const request = await fetch(base + `/user/isAnon`, { credentials: 'include' });
+    const data = await request.json();
+    return data.anon;
+}
 
-// api.uaeu.chat/post/latest/:page
+// Returns current user data
+export async function getCurrentUser() {
+    const request = await fetch(base + `/user`, { credentials: 'include' });
+    return await request.json();
+}
+
+// Returns the liked posts data for the current user
+export async function getLikesCurrentUser() {
+    const request = await fetch(base + `/user/likes`, { credentials: 'include' });
+    return await request.json();
+}
+
+/* Users */
+
+// Get user data by session key
+export async function getUserByUsername(username: string) {
+    const request = await fetch(base + `/user/${username}`, { credentials: 'include' });
+    return await request.json();
+}
+
+// Get posts sent by user (username)
+export async function getPostsByUser(username: string, page?: number) {
+    const request = await fetch(base + `/post/user/${username}/${page || 0}`, { credentials: 'include' });
+    return await request.json();
+}
+
+/* Posts */
+
+// Create post
+export async function createPost(content: string, attachment?: string) {
+    const formData = new FormData();
+    formData.append('content', content);
+
+    if (attachment) {
+        formData.append('filename', attachment);
+    }
+
+    const request = await fetch(base + `/post`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Get latest posts
 export async function getLatestPosts(page?: number) {
     const request = await fetch(base + `/post/latest/${page || 0}`, { credentials: 'include' });
     return await request.json();
 }
 
-// api.uaeu.chat/post/search/:query
+// Search post by query
 export async function searchPosts(query: string) {
     const request = await fetch(base + `/post/search/${query}`, { credentials: 'include' });
     if (request.status === 400) {
@@ -53,21 +101,22 @@ export async function searchPosts(query: string) {
     return await request.json();
 }
 
-/* returns
-* {
-*   ...
-*   "results": [
-*      {
-*           "id": number,
-*           "author": string,
-*           "content": string,
-*           "post_time": number,
-*           "attachment": string | null,
-*           "rank": float
-*       }
-*   ]
-* }
-* */
+// Get post by ID
+export async function getPostByID(id: number) {
+    const request = await fetch(base + `/post/${id}`, { credentials: 'include' });
+    return await request.json();
+}
+
+// Toggle like on post by its ID
+export async function toggleLike(post: number) {
+    const request = await fetch(base + `/post/like/${post}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+/* Attachments */
 
 const allowedMimeTypes = [
     // Images
@@ -96,7 +145,7 @@ const allowedMimeTypes = [
     // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',    // .xlsx
 ];
 
-// api.uaeu.chat/attachment
+// Upload attachment
 export async function uploadAttachment(attachments: File[]) {
     if (!attachments[0] || !allowedMimeTypes.includes(attachments[0].type)) {
         return { status: 400 };
@@ -128,44 +177,17 @@ export async function uploadAttachment(attachments: File[]) {
     }
 }
 
-// api.uaeu.chat/post
-export async function createPost(content: string, attachment: string | null) {
-    const formData = new FormData();
-    formData.append('content', content);
-
-    if (attachment) {
-        formData.append('filename', attachment);
-    }
-
-    const request = await fetch(base + `/post`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-    });
-    return request.status;
-}
-
-// api.uaeu.chat/post/user/:username/:page
-export async function getPostsByUser(username: string, page: number | null) {
-    const request = await fetch(base + `/post/user/${username}/${page || 0}`, { credentials: 'include' });
-    return await request.json();
-}
-
-// api.uaeu.chat/post/:id
-export async function getPostByID(id: number) {
-    const request = await fetch(base + `/post/${id}`, { credentials: 'include' });
-    return await request.json();
-}
-
-// api.uaeu.chat/attachment/:filename
+// Get attachment details by filename (length and height for images, video length, etc...)
 export async function getAttachmentDetails(filename: string) {
     const request = await fetch(base + `/attachment/${filename}`, { method: 'GET' });
 
     return { status: request.status, data: await request.json() };
 }
 
-// api.uaeu.chat/post
-export async function comment(post: number, parentType: string, content: string, attachment: string | null, parentLevel?: number) {
+/* Comments */
+
+// Comment on post
+export async function comment(post: number, parentType: string, content: string, attachment?: string, parentLevel?: number) {
     const formData = new FormData();
     formData.append('postid', post.toString());
     formData.append('parent-type', parentType);
@@ -184,20 +206,11 @@ export async function comment(post: number, parentType: string, content: string,
     return request.status;
 }
 
-// api.uaeu.chat/post
+// Get comments on a post by its ID
 export async function getCommentsOnPost(post: number, page: number | 0) {
     const request = await fetch(base + `/comment/${post}/${page}`, {
         method: 'GET',
         credentials: 'include'
     });
     return await request.json();
-}
-
-// api.uaeu.chat/post/like/:id
-export async function toggleLike(post: number) {
-    const request = await fetch(base + `/post/like/${post}`, {
-        method: 'POST',
-        credentials: 'include'
-    });
-    return request.status;
 }
