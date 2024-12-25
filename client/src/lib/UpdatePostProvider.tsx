@@ -38,11 +38,16 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     liked: post.like,
                 };
                 const topCommentInfo: CommentInfo = JSON.parse(post.top_comment);
+                const communityInfo: CommunityInfoSimple = {
+                    name: post.community,
+                    icon: post.community_icon
+                }
                 fetchedPosts.push(
                     <Post
                         key={post.id}
                         post_info={postInfo}
                         top_comment_info={topCommentInfo}
+                        community_info={communityInfo}
                     />
                 );
             }

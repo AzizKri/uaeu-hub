@@ -15,10 +15,26 @@
         padding-inline-start: 24px;
     }
 
-    &_buttons {
+    .auth_buttons {
         display: flex;
-        justify-content: center;
-        height: 100%;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 24px;
+
+        a {
+            padding: 14px 30px;
+            border-radius: 16px;
+            background-color: #d7420c;
+            color: white;
+            font-weight: 400;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: #9d3008;
+            }
+        }
     }
 }
 
@@ -35,6 +51,7 @@
     &:hover {
         background-color: rgba(0, 10, 50, 0.1);
     }
+
 }
 
 .selectedButton {
