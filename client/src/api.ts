@@ -88,6 +88,7 @@ export async function createPost(content: string, attachment?: string) {
 
 // Get latest posts
 export async function getLatestPosts(page?: number) {
+    console.log(base)
     const request = await fetch(base + `/post/latest/${page || 0}`, { credentials: 'include' });
     return await request.json();
 }
