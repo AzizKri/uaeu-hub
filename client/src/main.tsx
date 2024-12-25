@@ -11,6 +11,7 @@ import UserProvider from "./lib/userProvider.tsx";
 import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
 import UserProfile from "./components/UserProfile/UserProfile.tsx";
 import NotFound from './components/NotFound/NotFound.tsx';
+import Community from "./components/Community/Community.tsx";
 
 
 const router = createBrowserRouter([
@@ -34,6 +35,23 @@ const router = createBrowserRouter([
             {
                 path: '/user',
                 element: <UserProfile displayName={"Test"} username={"test"} bio={"my bio"} pfp={"test.png"} />
+            },
+            {
+                path: '/community',
+                element: <Community
+                    info={{
+                        id: 123,
+                        name: "Community1",
+                        description: "testing community",
+                        icon: null,
+                        verified: true,
+                        public: true,
+                        invite_only: false,
+                        created_at: new Date(24, 12, 5),
+                        tags: "test",
+                        member_count: 5
+                    }}
+                />
             }
         ]
     },
