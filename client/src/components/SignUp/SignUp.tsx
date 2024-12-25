@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
+import { useNavigate } from 'react-router-dom';
 import {signUp} from '../../api.ts';
 
 export default function SignUp() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         displayname: '',
         email: '',
@@ -56,6 +58,7 @@ export default function SignUp() {
                 alert('User created successfully');
                 console.log('User created successfully');
                 // TODO redirect to home page
+                navigate('/');
             } else {
                 alert(`Error ${response.status}: ${response.message}`);
                 console.log('Error');
