@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
 import {login} from '../../api.ts';
+import { useNavigate } from 'react-router-dom';
 // import {useUser} from "../../lib/hooks.ts";
 
 export default function Login() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [emailError, setEmailError] = useState<boolean>(false);
