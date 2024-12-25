@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
 import { useNavigate } from 'react-router-dom';
 import {signUp} from '../../api.ts';
+import {useUser} from "../../lib/hooks.ts";
 
 export default function SignUp() {
     const navigate = useNavigate();
+    const {updateUser} = useUser();
+
     const [formData, setFormData] = useState({
         displayname: '',
         email: '',
@@ -54,6 +57,12 @@ export default function SignUp() {
         if (!hasError) {
             const response = await signUp(formData);
             if (response.status == 200) {
+                updateUser({
+                    username: response.result.username,
+                    displayName: response.result.displayName,
+                    pio: response.result.pio,
+                    pfp: response.result.pfp
+                })
                 // localStorage.setItem('token', response.token);
                 alert('User created successfully');
                 console.log('User created successfully');
