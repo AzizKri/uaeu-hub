@@ -187,11 +187,9 @@ export async function getAttachmentDetails(filename: string) {
 /* Comments */
 
 // Comment on post
-export async function comment(post: number, parentType: string, content: string, attachment?: string, parentLevel?: number) {
+export async function comment(post: number, content: string, attachment?: string) {
     const formData = new FormData();
     formData.append('postid', post.toString());
-    formData.append('parent-type', parentType);
-    formData.append('parent-level', parentLevel ? parentLevel.toString() : '-1');
     formData.append('content', content);
 
     if (attachment) {

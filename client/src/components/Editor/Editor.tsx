@@ -83,10 +83,10 @@ export default function Editor({type, parent_id, handleSubmit}: {type: string, p
             console.log(response);
             updatePosts();
         } else if (type === "comment" && parent_id) {
-            const response = await comment(parent_id, "post", plainText, fileName);
+            const response = await comment(parent_id, plainText, fileName);
             console.log(response);
         } else if (type == "reply" && parent_id) {
-            const response = await comment(parent_id, "reply", plainText, fileName);
+            const response = await comment(parent_id, plainText, fileName);
             if (handleSubmit) handleSubmit();
             console.log(response);
         }
