@@ -1,7 +1,7 @@
 import { createMiddleware } from 'hono/factory';
 import { getSignedCookie } from 'hono/cookie';
 import { anonSignup } from '../controllers/user.controller';
-import { sendAuthCookie } from './util';
+import { getUserFromSessionKey, sendAuthCookie } from './util';
 
 export const authMiddleware = createMiddleware(
     async (c, next) => {
@@ -14,8 +14,16 @@ export const authMiddleware = createMiddleware(
             // First interaction, sign up as anonymous
             await anonSignup(c)
         } else {
-            // Existing user, just renew the key
-            await sendAuthCookie(c, sessionKey);
+            // Existing user. Is the user valid?
+            const userId = await getUserFromSessionKey(c, sessionKey);
+
+            if (!userId) {
+                // Invalid user, sign up as anonymous
+                await anonSignup(c);
+            } else {
+                // Valid user, send auth cookie
+                await sendAuthCookie(c, sessionKey);
+            }
         }
 
         // Authentication done, go to next middleware/controller
