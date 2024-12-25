@@ -100,15 +100,16 @@ export async function sendAuthCookie(c: Context, sessionKey: string, customExpir
     // Prepare cookie options
     const options: cookieOptions = {
         httpOnly: true,
-        secure: c.env.ENVIRONMENT !== 'dev',
-        sameSite: 'None',
+        secure: c.env.ENVIRONMENT !== 'development',
+        sameSite: 'Strict',
         maxAge: customExpires || COOKIE_EXPIRY
     };
 
     // If in production, set domain to .uaeu.chat & sameSite to Strict
     if (c.env.ENVIRONMENT === 'production') {
-        options.sameSite = 'Strict';
         options.domain = '.uaeu.chat';
+    } else {
+        options.domain = 'localhost';
     }
 
     // Set the cookie
