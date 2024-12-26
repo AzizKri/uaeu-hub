@@ -2,7 +2,7 @@ import styles from "./Home.module.scss";
 import React, {useEffect, useRef} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
 import {useUpdatePosts} from "../../lib/hooks.ts";
-
+import {getCurrentUser} from "../../api.ts";
 export default function Home() {
 
     const context = useUpdatePosts();
@@ -11,12 +11,19 @@ export default function Home() {
     useEffect(() => {
         updatePosts()
     }, []);
-
     const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
         if (!loading && event.currentTarget.scrollHeight - event.currentTarget.scrollTop < 2 * window.innerHeight) {
             updatePosts();
         }
     }
+
+    const fetchData = () => {
+        getCurrentUser().then((res) => {
+            console.log(res.username);
+        });
+    };
+
+    fetchData();
 
     return (
         <div className={styles.home} onScroll={handleScroll} ref={homeRef} style={{}}>

@@ -1,0 +1,43 @@
+//.popupBackdrop {
+//    position: fixed;
+//    top: 0;
+//    left: 0;
+//    width: 100%;
+//    height: 100%;
+//    background: rgba(0, 0, 0, 0.5);
+//    display: flex;
+//    align-items: center;
+//    justify-content: center;
+//    z-index: 9999;
+//}
+
+.popupContainer {
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    //max-width: 400px;
+    //width: 90%;
+    text-align: center;
+}
+
+.popupButtons {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 1.5rem;
+}
+
+.popupYesBtn,
+.popupNoBtn {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #fff;
+    background-color: rgb(215, 66, 12);
+}
+
+.popupYesBtn:hover,
+.popupNoBtn:hover {
+    background-color: rgb(157, 48, 8);
+}

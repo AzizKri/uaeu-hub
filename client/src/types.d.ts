@@ -90,6 +90,33 @@ declare global {
         bio: string;
         pfp: string;
     }
+
+    interface signUpErrors {
+        displayname?: string;
+        email?: string;
+        username?: string;
+        password?: string;
+        global?: string;
+    }
+
+    interface loginErrors {
+        email?: string;
+        password?: string;
+        global?: string;
+    }
+
+
+    interface ServerError {
+        field?: string;
+        message: string;
+    }
+
+    interface ServerErrorResponse {
+        status: number;
+        message?: string;
+        errors?: ServerError[];
+    }
+
     interface UserContextInterface {
         user: userInfo | null;
         updateUser: (userInfo) => void;
