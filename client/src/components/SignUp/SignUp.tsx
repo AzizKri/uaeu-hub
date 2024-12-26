@@ -31,9 +31,6 @@ export default function SignUp() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors({});
-        if (formData.displayname == ''){
-            formData.displayname = formData.username;
-        }
         const parseResult = userSchema.safeParse(formData);
         if (!parseResult.success) {
             const newErrors: signUpErrors = {};
