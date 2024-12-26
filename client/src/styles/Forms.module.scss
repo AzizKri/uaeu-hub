@@ -132,4 +132,8 @@
     .formBtn:hover {
         background-color: rgb(157, 48, 8);
     }
+
+    .formBtn:disabled {
+        background-color: rgb(80, 77, 77);
+    }
 }
