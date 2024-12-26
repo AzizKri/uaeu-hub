@@ -1,7 +1,9 @@
 import styles from './PostFooter.module.scss';
 import {toggleLike} from "../../api.ts";
+import {useState} from "react";
 
 export default function PostFooter({ id, likes, comments, isLiked }: { id: number, likes: number, comments: number, isLiked: boolean }) {
+    const [liked, setLiked] = useState(isLiked);
     // console.log(likes);
     async function sharePost() {
         await navigator.clipboard.writeText(`https://uaeu.chat/post/${id}`);
@@ -9,7 +11,7 @@ export default function PostFooter({ id, likes, comments, isLiked }: { id: numbe
 
     const handleToggleLike = () => {
         // TODO: check if this will trigger a rerender or not when the website work again if not create a state for is liked
-        isLiked = !isLiked;
+        setLiked((prev) => !prev);
         toggleLike(id);
     }
 
@@ -24,7 +26,7 @@ export default function PostFooter({ id, likes, comments, isLiked }: { id: numbe
                 <div className={styles.footerButton}>
                     <div className={styles.buttonIcon} onClick={() => handleToggleLike()}>
                         {/*like icon*/}
-                        {isLiked ? liked() : unliked()}
+                        {liked ? likedIcon() : unlikedIcon()}
                     </div>
                     <div className={styles.buttonNumber}>
                         <span>{likes}</span>
@@ -84,7 +86,7 @@ export default function PostFooter({ id, likes, comments, isLiked }: { id: numbe
     );
 }
 
-function unliked() {
+function unlikedIcon() {
     return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1.2em" height="1.2em"
          viewBox="0 0 24 24">
@@ -96,7 +98,7 @@ function unliked() {
     </svg>
     )
 }
-function liked() {
+function likedIcon() {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path

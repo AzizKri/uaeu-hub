@@ -1,0 +1,35 @@
+.container {
+    position: fixed;
+    width: 70vw;
+    max-width: 600px;
+    max-height: calc(100vh - 120px);
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    z-index: 30;
+    padding: 20px;
+    border-radius: 10px;
+
+    &__cancel {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        padding: 3px;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        background-color: #f6f6f6;
+    }
+
+}
+.dark_background {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 20;
+}

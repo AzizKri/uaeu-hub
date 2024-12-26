@@ -1,5 +1,6 @@
 import Search from '../Search/Search.tsx';
 import styles from './NavBar.module.scss';
+import {useUser} from "../../lib/hooks.ts";
 // import { useState } from 'react';
 //
 // enum Page {
@@ -8,18 +9,21 @@ import styles from './NavBar.module.scss';
 // }
 
 export default function NavBar() {
+    const {user} = useUser();
     // const [page, setPage] = useState<Page>(Page.Home);
     return (
         <>
             <div className={styles.navbar}>
                 <div className={styles.navbar_logo}>
-                    <svg xmlnsXlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" zoomAndPan="magnify"
+                    <svg xmlnsXlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"
+                         zoomAndPan="magnify"
                          height="40px"
                          viewBox="86 99 172.5 88.386719" preserveAspectRatio="xMidYMid meet" version="1.0">
                         <defs>
                             <clipPath id="7358b77053">
-                                <path d="M 86.59375 99 L 259.09375 99 L 259.09375 187.386719 L 86.59375 187.386719 Z M 86.59375 99 "
-                                      clipRule="nonzero"/>
+                                <path
+                                    d="M 86.59375 99 L 259.09375 99 L 259.09375 187.386719 L 86.59375 187.386719 Z M 86.59375 99 "
+                                    clipRule="nonzero"/>
                             </clipPath>
                         </defs>
                         <g clipPath="url(#7358b77053)">
@@ -29,15 +33,22 @@ export default function NavBar() {
                         </g>
                     </svg>
                 </div>
-                <div className={styles.navbar_buttons}>
-                    {/*<a href="/"><div className={page === Page.Home ? styles.selectedButton : styles.button}*/}
-                    {/*     onClick={() => setPage(Page.Home)}>Home*/}
-                    {/*</div></a>*/}
-                    {/*<div className={page === Page.Questions ? styles.selectedButton : styles.button}*/}
-                    {/*     onClick={() => setPage(Page.Questions)}>Your Questions*/}
-                    {/*</div>*/}
+                <Search/>
+                <div className={styles.right}>
+                    {user ? (
+                        <>
+                            <h3>{user.username}</h3>
+                            <h4>{user.displayName}</h4>
+                            <p>{user.bio}</p>
+                        </>
+                    ) : (
+                        <div className={styles.auth_buttons}>
+                            <a href="/signup">Sign Up</a>
+                            <a href="/login">Log In</a>
+                        </div>
+                    )}
+
                 </div>
-                <Search />
             </div>
         </>
     );

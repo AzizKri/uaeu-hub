@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
 import { useNavigate } from 'react-router-dom';
-import {signUp} from '../../api.ts';
+import {isUser, signUp} from '../../api.ts';
+import SignUpPopUp from "../SignUpPopUp/SignUpPopUp.tsx";
+import {userSchema} from "../../userSchema.ts";
+import { z } from 'zod';
+import {useUser} from "../../lib/hooks.ts";
 
 export default function SignUp() {
     const navigate = useNavigate();
+    const {updateUser} = useUser();
+
     const [formData, setFormData] = useState({
         displayname: '',
         email: '',
@@ -12,11 +18,10 @@ export default function SignUp() {
         password: '',
         includeAnon: true
     });
-    const [errors, setErrors] = useState({
-        email: false,
-        username: false,
-        password: false
-    });
+    const [errors, setErrors] = useState<signUpErrors>({});
+
+    const [showPopup, setShowPopup] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -25,54 +30,82 @@ export default function SignUp() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        let hasError = false;
-        const newErrors = { ...errors };
-
-        if (formData.email === '') {
-            newErrors.email = true;
-            hasError = true;
-        } else {
-            newErrors.email = false;
+        setErrors({});
+        if (formData.displayname == ''){
+            formData.displayname = formData.username;
         }
-
-        if (formData.username === '') {
-            newErrors.username = true;
-            hasError = true;
-        } else {
-            newErrors.username = false;
+        const parseResult = userSchema.safeParse(formData);
+        if (!parseResult.success) {
+            const newErrors: signUpErrors = {};
+            parseResult.error.issues.forEach((issue : z.ZodIssue) => {
+                const fieldName = issue.path[0] as keyof signUpErrors;
+                newErrors[fieldName] = issue.message;
+            });
+            console.log(newErrors);
+            setErrors(newErrors);
+            return;
         }
-
-        if (formData.password === '') {
-            newErrors.password = true;
-            hasError = true;
-        } else {
-            newErrors.password = false;
-        }
-
-        setErrors(newErrors);
-
-        if (!hasError) {
-            const response = await signUp(formData);
-            if (response.status == 200) {
-                // localStorage.setItem('token', response.token);
-                alert('User created successfully');
-                console.log('User created successfully');
-                // TODO redirect to home page
-                navigate('/');
+        setIsLoading(true);
+        try {
+            const isUserResponse = await isUser();
+            if (isUserResponse) {
+                setShowPopup(true);
             } else {
-                alert(`Error ${response.status}: ${response.message}`);
-                console.log('Error');
-                // TODO error occurred
+                await processSignup(false);
             }
+        } catch (error) {
+            console.error('Signup error:', error);
+            setErrors({ global: 'An unexpected error occurred. Please try again.' });
+        } finally {
+            setIsLoading(false);
         }
     };
 
+    const processSignup = async (includeAnon: boolean) => {
+        const payload = { ...formData, includeAnon };
+        const response = await signUp(payload);
+
+        if (response.errors) {
+            const newErrors: signUpErrors = {};
+            response.errors.forEach((err: ServerError) => {
+                if (err.field) {
+                    newErrors[err.field as keyof signUpErrors] = err.message;
+                } else {
+                    newErrors.global = err.message;
+                }
+            });
+            setErrors(newErrors);
+        } else if (response.status >= 400) {
+            setErrors({ global: response.message });
+        } else {
+            console.log('Sign up success:', response);
+            navigate('/');
+            updateUser({
+                username: response.result.username,
+                displayName: response.result.displayName,
+                bio: response.result.bio,
+                pfp: response.result.pfp
+            })
+        }
+    };
+
+    const handlePopupResponse = async (choice: boolean) => {
+        setShowPopup(false);
+        setIsLoading(true);
+        await processSignup(choice);
+        setIsLoading(false);
+    };
+
+    const hideReplyPopUp = async () => {
+        document.body.style.overflow = "scroll";
+        setShowPopup(false);
+        setIsLoading(true);
+        await processSignup(false);
+    }
+
     const handleFocus = () => {
-        setErrors({
-            email: false,
-            username: false,
-            password: false
-        });
+        setErrors({});
+        setIsLoading(false);
     };
 
     return (
@@ -100,6 +133,7 @@ export default function SignUp() {
                             <span>Continue with Google</span>
                         </button>
                     </div>
+                    {errors.global && <strong className={styles.error}>{errors.global}</strong>}
                     <div className={styles.separator}>OR</div>
                     <form className={styles.form} onSubmit={handleSubmit} noValidate>
                         <div className={styles.formGroup}>
@@ -114,7 +148,7 @@ export default function SignUp() {
                                     onChange={handleChange}
                                     onFocus={() => handleFocus()}
                                 />
-                                {errors.username && <small className={styles.error}>Please fill out this field.</small>}
+                                {errors.username && <small className={styles.error}>{errors.username}</small>}
                             </div>
                             <label htmlFor="displayname" className={styles.formLabel}>Display Name</label>
                             <input
@@ -138,7 +172,7 @@ export default function SignUp() {
                                 onChange={handleChange}
                                 onFocus={() => handleFocus()}
                             />
-                            {errors.email && <small className={styles.error}>Please fill out this field.</small>}
+                            {errors.email && <small className={styles.error}>{errors.email}</small>}
                         </div>
                         <div className={styles.formGroup}>
                             <label htmlFor="password" className={styles.formLabel}>Password<span>*</span></label>
@@ -151,14 +185,23 @@ export default function SignUp() {
                                 onChange={handleChange}
                                 onFocus={() => handleFocus()}
                             />
-                            {errors.password && <small className={styles.error}>Please fill out this field.</small>}
+                            {errors.password && <small className={styles.error}>{errors.password}</small>}
                         </div>
-                        <button type="submit" className={styles.formBtn}>Sign up</button>
+                        <button type="submit" className={styles.formBtn} disabled={isLoading}>
+                            {isLoading ? 'Signing up...' : 'Sign up'}
+                        </button>
                     </form>
                     <p className={styles.textParagraph}>Already a member? <a href="/login"
                                                                              className={styles.formLink}>Login</a></p>
                 </div>
             </div>
+            {showPopup && (
+                <SignUpPopUp
+                    onYes={() => handlePopupResponse(true)}
+                    onNo={() => handlePopupResponse(false)}
+                    hideReplyPopUp={hideReplyPopUp}
+                />
+            )}
         </div>
     );
 };

@@ -42,36 +42,35 @@ export default function Aside() {
                         <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
                     </svg>
                 </div>
-                {/*<ul className={styles.inner_list} style={{display: showCommunity ? "block" : "none"}}>*/}
-                    <ul className={styles.inner_list} style={{maxHeight: showCommunity ? "100vh" : "0"}}>
-                        <li>
-                            <a href="/community">
-                                <div className={`${styles.inner_element} ${styles.element}`}>
-                                    <svg style={{padding: "2px"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                         fill="currentColor">
-                                        <path
-                                            d="M15.5,2C13,2 11,4 11,6.5C11,9 13,11 15.5,11C16.4,11 17.2,10.7 17.9,10.3L21,13.4L22.4,12L19.3,8.9C19.7,8.2 20,7.4 20,6.5C20,4 18,2 15.5,2M4,4A2,2 0 0,0 2,6V20A2,2 0 0,0 4,22H18A2,2 0 0,0 20,20V15L18,13V20H4V6H9.03C9.09,5.3 9.26,4.65 9.5,4H4M15.5,4C16.9,4 18,5.1 18,6.5C18,7.9 16.9,9 15.5,9C14.1,9 13,7.9 13,6.5C13,5.1 14.1,4 15.5,4Z"/>
-                                    </svg>
-                                    <li>Explore</li>
-                                </div>
-                            </a>
-                        </li>
-                        <li>
+                <ul className={styles.inner_list} style={{maxHeight: showCommunity ? "100vh" : "0"}}>
+                    <li>
+                        <a href="/community">
                             <div className={`${styles.inner_element} ${styles.element}`}>
-                                {/*plus icon*/}
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                                <svg style={{padding: "2px"}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                     fill="currentColor">
+                                    <path
+                                        d="M15.5,2C13,2 11,4 11,6.5C11,9 13,11 15.5,11C16.4,11 17.2,10.7 17.9,10.3L21,13.4L22.4,12L19.3,8.9C19.7,8.2 20,7.4 20,6.5C20,4 18,2 15.5,2M4,4A2,2 0 0,0 2,6V20A2,2 0 0,0 4,22H18A2,2 0 0,0 20,20V15L18,13V20H4V6H9.03C9.09,5.3 9.26,4.65 9.5,4H4M15.5,4C16.9,4 18,5.1 18,6.5C18,7.9 16.9,9 15.5,9C14.1,9 13,7.9 13,6.5C13,5.1 14.1,4 15.5,4Z"/>
                                 </svg>
-                                Create
+                                Explore
                             </div>
+                        </a>
+                    </li>
+                    <li>
+                        <div className={`${styles.inner_element} ${styles.element}`}>
+                            {/*plus icon*/}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                            </svg>
+                            Create
+                        </div>
+                    </li>
+                    {my_communities.map((community) => (
+                        <li key={community.name} className={`${styles.user_community} ${styles.element}`}>
+                            <img src={community.icon} alt="community" className={styles.community_icon}/>
+                            <span>{community.name}</span>
                         </li>
-                        {my_communities.map((community) => (
-                            <div className={`${styles.user_community} ${styles.element}`}>
-                                <img src={community.icon} alt="community" className={styles.community_icon}/>
-                                <span>{community.name}</span>
-                            </div>
-                        ))}
-                    </ul>
+                    ))}
+                </ul>
             </li>
             <li>
                 <div className={`${styles.top_element} ${styles.element} ${active === 'setting' && styles.active}`}>

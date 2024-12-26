@@ -24,19 +24,6 @@ declare global {
         liked: boolean
     }
 
-    // interface CommentInfo {
-    //     commentId: number,
-    //     authorUsername: string,
-    //     authorDisplayName: string,
-    //     // commentDate: Date,
-    //     level: number,
-    //     content: string,
-    //     pfp: string,
-    //     filename?: string
-    //     // upVotes: number,
-    //     // downVotes: number,
-    // }
-
     interface CommentInfo {
         attachment: string
         author: string
@@ -46,6 +33,7 @@ declare global {
         id: number
         level: number
         like_count: number,
+        // comment_count: number,
         liked: boolean,
         parent_post_id: number,
         parent_type: string,
@@ -53,9 +41,28 @@ declare global {
         post_time: Date,
     }
 
-    interface PostInfoWithTopComment {
+    interface CommunityInfo {
+        id: number
+        name: string
+        description: string
+        icon: string | null
+        verified: boolean
+        public: boolean
+        invite_only: boolean
+        created_at: Date
+        tags: string
+        member_count: number
+    }
+
+    interface CommunityInfoSimple {
+        name: string,
+        icon: string | null,
+    }
+
+    interface PostAll {
         post_info: PostInfo;
         top_comment_info: CommentInfo | null;
+        community_info: CommunityInfoSimple;
     }
 
     // type PostInfoWithTopComment = PostInfo & {
@@ -83,6 +90,33 @@ declare global {
         bio: string;
         pfp: string;
     }
+
+    interface signUpErrors {
+        displayname?: string;
+        email?: string;
+        username?: string;
+        password?: string;
+        global?: string;
+    }
+
+    interface loginErrors {
+        email?: string;
+        password?: string;
+        global?: string;
+    }
+
+
+    interface ServerError {
+        field?: string;
+        message: string;
+    }
+
+    interface ServerErrorResponse {
+        status: number;
+        message?: string;
+        errors?: ServerError[];
+    }
+
     interface UserContextInterface {
         user: userInfo | null;
         updateUser: (userInfo) => void;
