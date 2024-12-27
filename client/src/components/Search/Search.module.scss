@@ -1,8 +1,8 @@
 .navbarSearch {
-    padding: 10px;
+    padding: 6px 16px;
     min-width: 80%;
     /* max-width: 350px; */
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: #ddd;
     color: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
@@ -10,8 +10,66 @@
     gap: 10px;
     justify-self: center;
 
+    .back {
+        display: none;
+    }
+
+    > svg {
+        width: 34px;
+        height: 34px;
+        cursor: pointer;
+    }
+
     .navbarSearchInput {
         width: 100%;
         font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .navbarSearch {
+        min-width: 0;
+        background-color: inherit;
+        cursor: pointer;
+        padding: 8px;
+        margin-left: auto;
+
+        &:hover {
+            background-color: #ddd;
+        }
+
+        .navbarSearchInput {
+            display: none;
+        }
+
+        &.active {
+            position: absolute;
+            width: calc(100% - 60px);
+            background-color: #ddd;
+            left: 50px;
+            padding: 6px 16px;
+            box-shadow: 0 0 0 10px #f6f6f6, -20px 0 0 10px #f6f6f6;
+
+            .back {
+                position: absolute;
+                display: inline;
+                left: -44px;
+                height: 32px;
+                width: 32px;
+            }
+
+            .navbarSearchInput {
+                display: block;
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .navbarSearch {
+        > svg {
+            width: 24px;
+            height: 24px;
+        }
     }
 }

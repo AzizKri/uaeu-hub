@@ -3,14 +3,15 @@ import React, {useEffect, useRef} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
 import {useUpdatePosts} from "../../lib/hooks.ts";
 import {getCurrentUser} from "../../api.ts";
-export default function Home() {
 
-    const context = useUpdatePosts();
-    const {posts, updatePosts, loading} = context;
+export default function Home() {
+    const {posts, updatePosts, loading} = useUpdatePosts();
     const homeRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         updatePosts()
     }, []);
+
     const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
         if (!loading && event.currentTarget.scrollHeight - event.currentTarget.scrollTop < 2 * window.innerHeight) {
             updatePosts();

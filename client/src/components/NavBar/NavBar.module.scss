@@ -1,18 +1,21 @@
 .navbar {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
     align-items: center;
     font-weight: 600;
     border-bottom: 1px solid #e5e5e5;
-    position: sticky;
+    position: fixed;
     top: 0;
     width: 100%;
     height: 70px;
     background-color: #f6f6f6;
+    padding-inline: 20px;
     z-index: 10;
 
-    &_logo {
-        padding-inline-start: 24px;
+    .menu {
+        display: none;
+        cursor: pointer;
     }
 
     .auth_buttons {
@@ -20,10 +23,10 @@
         gap: 10px;
         align-items: center;
         justify-content: flex-end;
-        padding-right: 24px;
+        text-wrap: nowrap;
 
         a {
-            padding: 14px 30px;
+            padding: 14px 26px;
             border-radius: 16px;
             background-color: #d7420c;
             color: white;
@@ -58,4 +61,38 @@
     @extend .button;
     border-bottom: 3px solid red;
     padding-top: 2px;
+}
+
+@media screen and (max-width: 768px) {
+    .navbar {
+        grid-template-columns: 35px repeat(3, 1fr);
+        //gap: 10px;
+
+        .menu {
+            display: block;
+        }
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .navbar {
+        .menu {
+            > svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        .navbar_logo {
+            width: 60px;
+            > svg {
+                width: 100%;
+            }
+        }
+        .auth_buttons {
+            .signup {
+                display: none;
+            }
+        }
+    }
 }
