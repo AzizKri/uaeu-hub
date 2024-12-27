@@ -9,6 +9,7 @@
     border-radius: 50px;
     gap: 10px;
     justify-self: center;
+    position: relative;
 
     .back {
         display: none;
@@ -23,6 +24,13 @@
     .navbarSearchInput {
         width: 100%;
         font-size: 14px;
+    }
+
+    .results {
+        position: absolute;
+        top: 52px;
+        left: 0;
+        width: 100%;
     }
 }
 

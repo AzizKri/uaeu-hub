@@ -1,6 +1,6 @@
 .navbar {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr minmax(0, 700px) 1fr;
     gap: 10px;
     align-items: center;
     font-weight: 600;

@@ -69,7 +69,9 @@ export default function Search() {
                     value={input}
                     onChange={(e) => handleChange(e.target.value)}
                 />
-                {results.length > 0 && <SearchResultsList results={results} />}
+                <div className={styles.results}>
+                    {results.length > 0 && <SearchResultsList results={results} />}
+                </div>
             </div>
         </>
     );
