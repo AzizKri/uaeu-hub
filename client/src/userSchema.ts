@@ -1,10 +1,9 @@
 import { z } from 'zod';
 
 const displaynameSchema = z
-    .string()
-    .min(3, 'Display name must be at least 3 characters long')
-    .max(32, 'Display name must be at most 32 characters long')
-    .optional();
+    .union([z.string().min(4, 'Display name must be at least 3 characters long'), z.string().length(0)])
+    .optional()
+    .transform((value) => value === '' ? undefined : value);
 
 const usernameSchema = z
     .string()

@@ -12,11 +12,11 @@ export default function SignUpPopUp({onYes, onNo, hideReplyPopUp}: { onYes: () =
                     your new account?
                 </p>
                 <div className={styles.popupButtons}>
-                    <button onClick={onYes} className={styles.popupYesBtn}>
-                        Yes
-                    </button>
                     <button onClick={onNo} className={styles.popupNoBtn}>
                         No
+                    </button>
+                    <button onClick={onYes} className={styles.popupYesBtn}>
+                        Yes
                     </button>
                 </div>
             </div>
