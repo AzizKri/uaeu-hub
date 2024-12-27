@@ -114,3 +114,45 @@ export async function getAttachmentDetails(c: Context) {
         return c.text('Internal Server Error', { status: 500 });
     }
 }
+
+export async function deleteAttachment(c: Context) {
+    const env: Env = c.env;
+    const filename: string = c.req.param('filename');
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+
+    if (!filename) {
+        return c.text('No filename provided', { status: 400 });
+    }
+
+    try {
+        const userId = await getUserFromSessionKey(c, sessionKey, true);
+
+        // Get attachment details
+        const attachmentAuthor = await env.DB.prepare(`
+            SELECT author_id
+            FROM attachment
+            WHERE filename = ?
+        `).bind(filename).first<AttachmentRow>();
+
+        // Check if attachment exists and if the user is the author
+        if (!attachmentAuthor) {
+            return c.text('Attachment not found', { status: 404 });
+        } else if (attachmentAuthor.author_id !== userId) {
+            return c.text('Unauthorized', { status: 403 });
+        }
+
+        // Delete from R2
+        await env.R2.delete(`attachments/${filename}`);
+        // Delete from DB
+        await env.DB.prepare(`
+            DELETE
+            FROM attachment
+            WHERE filename = ?
+        `).bind(filename).run();
+
+        return c.text('Attachment deleted', { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}

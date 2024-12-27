@@ -184,6 +184,15 @@ export async function getAttachmentDetails(filename: string) {
     return { status: request.status, data: await request.json() };
 }
 
+// Delete attachment by filename
+export async function deleteAttachment(filename: string) {
+    const request = await fetch(base + `/attachment/${filename}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
 /* Comments */
 
 // Comment on post
