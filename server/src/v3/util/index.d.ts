@@ -94,6 +94,7 @@ type AttachmentRow = {
     mimetype: string;
     metadata: string;
     created_at: number;
+    author_id: number;
 }
 
 type SessionRow = {
