@@ -37,12 +37,12 @@ const router = createBrowserRouter([
                 element: <UserProfile displayName={"Test"} username={"test"} bio={"my bio"} pfp={"test.png"} />
             },
             {
-                path: '/community',
+                path: '/community/community1',
                 element: <Community
                     info={{
                         id: 123,
                         name: "Community1",
-                        description: "testing community",
+                        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ",
                         icon: null,
                         verified: true,
                         public: true,

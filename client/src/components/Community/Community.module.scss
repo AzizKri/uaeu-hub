@@ -1,8 +1,73 @@
 .container {
     background-color: white;
     border-radius: 10px;
-    padding: 10px;
-    margin-top: 10px;
+    padding: 20px;
 
+    .header {
 
+        .header_top {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            //margin-block: 20px;
+
+            .info {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+
+                .icon {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                }
+
+                .community_name {
+                    font-size: 18px;
+                    font-weight: 500;
+                }
+            }
+
+            .actions {
+                display: flex;
+                gap: 10px;
+
+                button {
+                    padding: 5px 15px;
+                    border-radius: 20px;
+                    color: white;
+                    font-weight: 400;
+                    font-size: 12px;
+                    transition: background-color 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+
+                    &.join {
+                        background-color: #d7420c;
+
+                        &:hover {
+                            background-color: #9d3008;
+                        }
+                    }
+
+                    &.create {
+                        color: #000;
+                        border: 1px solid rgba(0, 0, 0, 0.3);
+                        padding-left: 10px;
+
+                        &:hover {
+                            background-color: #eee;
+                        }
+                    }
+
+                }
+            }
+        }
+        .pio {
+            font-size: 14px;
+            color: #4a4a4a;
+            margin-block: 20px;
+        }
+    }
 }

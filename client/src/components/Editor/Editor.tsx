@@ -119,11 +119,12 @@ export default function Editor({type, parent_id, handleSubmit}: {type: string, p
             className={styles.editorContainer}
         >
             <LexicalComposer initialConfig={initialConfig}>
-                <div className={styles.editorInner}>
+                {/*<div className={styles.editorInner}>*/}
                     <RichTextPlugin
                         contentEditable={
                             <ContentEditable className={styles.editorInput}/>
                         }
+                        // placeholder={<PlaceHolder type={type}/>}
                         placeholder={
                             <div className={styles.editorPlaceholder}>{
                                 type === "post" ? "What's your question?" :
@@ -133,7 +134,7 @@ export default function Editor({type, parent_id, handleSubmit}: {type: string, p
                             </div>}
                         ErrorBoundary={LexicalErrorBoundary}
                     />
-                </div>
+                {/*</div>*/}
                 <EditorHelper ref={editorHelperRef}/>
                 <HistoryPlugin/>
             </LexicalComposer>

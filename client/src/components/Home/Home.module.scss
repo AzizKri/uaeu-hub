@@ -1,7 +1,6 @@
 .home {
-    overflow-y: scroll;
-    height: calc(100vh - 70px);
-    scrollbar-width: none;
+    //overflow-y: scroll;
+    //scrollbar-width: none;
 }
 @media screen and (max-width: 500px) {
     .newPost {
