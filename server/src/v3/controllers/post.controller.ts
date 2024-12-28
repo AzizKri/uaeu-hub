@@ -138,6 +138,113 @@ export async function getLatestPosts(c: Context) {
     }
 }
 
+// api.uaeu.chat/post/best/:page?
+export async function getBestPosts(c: Context) {
+    const env: Env = c.env;
+    const page = c.req.param('page') ? Number(c.req.param('page')) : 0;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+
+    try {
+        // Get user from session key
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
+        if (!userid) {
+            // New user, show posts without likes
+            const posts = await env.DB.prepare(
+                `SELECT pv.*,
+                        CASE
+                            WHEN tc.id IS NULL THEN NULL
+                            ELSE
+                                JSON_OBJECT(
+                                    'id', tc.id,
+                                    'author_id', tc.author_id,
+                                    'author', tc.author,
+                                    'pfp', tc.pfp,
+                                    'displayname', tc.displayname,
+                                    'content', tc.content,
+                                    'post_time', tc.post_time,
+                                    'attachment', tc.attachment,
+                                    'like_count', tc.like_count,
+                                    'comment_count', tc.comment_count
+                                ) END            AS top_comment,
+                        (
+                            (pv.like_count * 10 + pv.comment_count * 5) /
+                            (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
+                                  (3600 * 24)))) AS score -- 1 day
+                 FROM post_view AS pv
+                          LEFT JOIN (SELECT c.id,
+                                            c.parent_post_id,
+                                            c.author_id,
+                                            c.author,
+                                            c.pfp,
+                                            c.displayname,
+                                            c.content,
+                                            c.post_time,
+                                            c.attachment,
+                                            c.like_count,
+                                            c.comment_count
+                                     FROM comment_view AS c
+                                     ORDER BY c.like_count DESC, c.post_time
+                                     LIMIT 1) AS tc ON tc.parent_post_id = pv.id
+                 ORDER BY score DESC
+                 LIMIT 10 OFFSET ?`
+            ).bind(page * 10).all<PostView>();
+
+            return c.json(posts, { status: 200 });
+        } else {
+            // Returning user, show posts with likes
+            const posts = await env.DB.prepare(
+                `SELECT pv.*,
+                        EXISTS (SELECT 1
+                                FROM post_like
+                                WHERE post_like.post_id = pv.id
+                                  AND post_like.user_id = ?) AS liked,
+                        CASE
+                            WHEN tc.id IS NULL THEN NULL
+                            ELSE
+                                JSON_OBJECT(
+                                    'id', tc.id,
+                                    'author_id', tc.author_id,
+                                    'author', tc.author,
+                                    'pfp', tc.pfp,
+                                    'displayname', tc.displayname,
+                                    'content', tc.content,
+                                    'post_time', tc.post_time,
+                                    'attachment', tc.attachment,
+                                    'like_count', tc.like_count,
+                                    'comment_count', tc.comment_count
+                                ) END                        AS top_comment,
+                        (
+                            (pv.like_count * 10 + pv.comment_count * 5) /
+                            (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
+                                  (3600 * 24))))             AS score -- 1 day
+                 FROM post_view AS pv
+                          LEFT JOIN (SELECT c.id,
+                                            c.parent_post_id,
+                                            c.author_id,
+                                            c.author,
+                                            c.pfp,
+                                            c.displayname,
+                                            c.content,
+                                            c.post_time,
+                                            c.attachment,
+                                            c.like_count,
+                                            c.comment_count
+                                     FROM comment_view AS c
+                                     ORDER BY c.like_count DESC, c.post_time
+                                     LIMIT 1) AS tc ON tc.parent_post_id = pv.id
+                 ORDER BY score DESC
+                 LIMIT 10 OFFSET ?`
+            ).bind(userid, page * 10).all<PostView>();
+
+            return c.json(posts, { status: 200 });
+        }
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
 // api.uaeu.chat/post/user/:username/:page?
 // api.uaeu.chat/post/user/:id/:page?
 export async function getPostsByUser(c: Context) {
@@ -252,7 +359,7 @@ export async function deletePost(c: Context) {
 
         // Get the post's author
         const post = await env.DB.prepare(`
-            SELECT author_id
+            SELECT author_id, attachment
             FROM post
             WHERE id = ?
         `).bind(postid).first<PostRow>();
@@ -261,6 +368,18 @@ export async function deletePost(c: Context) {
         if (!post) return c.text('Post not found', { status: 404 });
         // Not the author? 403
         if (userid !== post.author_id) return c.text('Unauthorized', { status: 403 });
+
+        if (post.attachment) {
+            // Delete the attachment from R2
+            await env.R2.delete(`attachments/${post.attachment}`);
+
+            // Delete the attachment from the DB
+            await env.DB.prepare(`
+                DELETE
+                FROM attachment
+                WHERE filename = ?
+            `).bind(post.attachment).run();
+        }
 
         // Delete the post
         await env.DB.prepare(`

@@ -65,20 +65,6 @@ CREATE TABLE IF NOT EXISTS community
     member_count INTEGER NOT NULL DEFAULT 0
 );
 
-/* Community membership Table */
-
-CREATE TABLE IF NOT EXISTS user_community
-(
-    user_id      INTEGER NOT NULL,
-    community_id INTEGER NOT NULL,
-    join_date    INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    role         TEXT    NOT NULL DEFAULT 'member',
-    PRIMARY KEY (user_id, community_id),
-    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
-    FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
-    FOREIGN KEY (role) REFERENCES community_role (name)
-);
-
 /* Community role Table */
 
 CREATE TABLE IF NOT EXISTS community_role
@@ -86,7 +72,7 @@ CREATE TABLE IF NOT EXISTS community_role
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     community_id  INTEGER NOT NULL,
     name          TEXT    NOT NULL,
-    level         INTEGER NOT NULL DEFAULT 0,
+    level         INTEGER NOT NULL DEFAULT 0, /* 0 = member, 100 = administrator */
     read_posts    BOOLEAN NOT NULL DEFAULT administrator, /* This should override the community's privacy */
     write_posts   BOOLEAN NOT NULL DEFAULT administrator,
     /* read_comments    BOOLEAN NOT NULL DEFAULT read_posts,
@@ -97,6 +83,20 @@ CREATE TABLE IF NOT EXISTS community_role
     manage_community BOOLEAN NOT NULL DEFAULT administrator,*/
     administrator BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE
+);
+
+/* Community membership Table */
+
+CREATE TABLE IF NOT EXISTS user_community
+(
+    user_id      INTEGER NOT NULL,
+    community_id INTEGER NOT NULL,
+    joined_at    INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    role_id      INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, community_id),
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES community_role (id)
 );
 
 /* Badge Table */

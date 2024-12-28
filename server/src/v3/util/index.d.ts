@@ -94,12 +94,36 @@ type AttachmentRow = {
     mimetype: string;
     metadata: string;
     created_at: number;
+    author_id: number;
 }
 
 type SessionRow = {
     id: string;
     user_id: number;
     created_at: number;
+}
+
+type CommunityRow = {
+    id: number;
+    name: string;
+    description: string;
+    icon: string;
+    verified: boolean;
+    public: boolean;
+    invite_only: boolean;
+    created_at: number;
+    tags: string;
+    member_count: number;
+}
+
+type CommunityRoleRow = {
+    id: number;
+    community_id: number;
+    name: string;
+    level: number;
+    read_posts: boolean;
+    write_posts: boolean;
+    administrator: boolean;
 }
 
 type cookieOptions = {
