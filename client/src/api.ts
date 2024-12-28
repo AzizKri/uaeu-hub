@@ -43,8 +43,7 @@ export async function isAnon() {
 
 // Returns current user data
 export async function getCurrentUser() {
-    const request = await fetch(base + `/user`, { credentials: 'include' });
-    return await request.json();
+    return await fetch(base + `/user`, {credentials: 'include'});
 }
 
 // Returns the liked posts data for the current user
