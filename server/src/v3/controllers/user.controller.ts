@@ -331,7 +331,7 @@ export async function getUserBySessionKey(c: Context) {
         // User not found, return 404
         if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
         // User found, return it
-        return c.json(user, 200);
+        return c.json(user, {status: 200});
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
