@@ -3,59 +3,78 @@ import styles from '../../styles/Forms.module.scss';
 import {login} from '../../api.ts';
 import { useNavigate } from 'react-router-dom';
 import {useUser} from "../../lib/hooks.ts";
-// import {useUser} from "../../lib/hooks.ts";
 
 export default function Login() {
     const navigate = useNavigate();
-    const [email, setEmail] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [emailError, setEmailError] = useState<boolean>(false);
-    const [passwordError, setPasswordError] = useState<boolean>(false);
     const {updateUser} = useUser();
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+    });
+
+    const [errors, setErrors] = useState<loginErrors>({});
+
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData({ ...formData, [id]: value });
+    };
+
+    const handleFocus = () => {
+        setErrors({});
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        let hasError = false;
-        if (email === '') {
-            setEmailError(true);
-            hasError = true;
-        } else {
-            setEmailError(false);
-        }
-        if (password === '') {
-            setPasswordError(true);
-            hasError = true;
-        } else {
-            setPasswordError(false);
-        }
-        if (!hasError) {
-            let formData;
-            if (email.split('@').length === 1) {
-                formData = { username: email, password };
-            } else {
-                formData = { email, password };
+        setErrors({});
+        setIsLoading(true);
+        if (formData.email.trim() === '' || formData.password.trim() === '') {
+            if (formData.email.trim() === ''){
+                setErrors({
+                    email: "Please enter a valid email or username",
+                });
             }
-
-            const response = await login(formData);
-            if (response.status == 200) {
-                localStorage.setItem('token', response.token);
-                updateUser({
-                    username: response.result.username,
-                    displayName: response.result.displayName,
-                    bio: response.result.bio,
-                    pfp: response.result.pfp
-                })
-                alert('Login successful');
-                console.log('Login successful');
-                // TODO redirect to home page
-                navigate('/');
-
-            } else {
-                alert(`Error ${response.status}: ${response.message}`);
-                console.log('Error');
-                // TODO error occurred
+            else{
+                setErrors({
+                    password: "Please enter a valid password",
+                });
             }
+            setIsLoading(false);
+            return;
         }
+
+        if (formData.email.split('@').length !== 1) {
+            setFormData({
+                username: formData.email,
+                email: '',
+                password: formData.password,
+            })
+        }
+        const response = await login(formData);
+        const data = await response.json();
+        if (response.status === 200) {
+            console.log('Log in success:', response);
+            updateUser({
+                username: data.username,
+                displayName: data.displayName,
+                bio: data.bio,
+                pfp: data.pfp
+            })
+            navigate('/');
+        } else {
+            const newErrors: loginErrors = {};
+            if (response.status === 404) {
+                newErrors.global = 'User not found check the entered email.';
+            } else if (response.status === 401) {
+                newErrors.global = 'Invalid password';
+            } else {
+                newErrors.global = 'Something went wrong please try again';
+            }
+            setErrors(newErrors);
+        }
+        setIsLoading(false);
     };
 
 
@@ -84,6 +103,7 @@ export default function Login() {
                             <span>Continue with Google</span>
                         </button>
                     </div>
+                    {errors.global && <strong className={styles.error}>{errors.global}</strong>}
                     <div className={styles.separator}>OR</div>
                     <form className={styles.form} onSubmit={handleSubmit} noValidate>
                         <div className={styles.formGroup}>
@@ -92,15 +112,15 @@ export default function Login() {
                             </label>
                             <input
                                 type="text"
-                                className={`${styles.formInput} ${emailError ? styles.invalidInput : ''}`}
+                                className={`${styles.formInput} ${errors.email ? styles.invalidInput : ''}`}
                                 id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                onFocus={() => setEmailError(false)}
+                                value={formData.email}
+                                onChange={handleChange}
+                                onFocus={() => handleFocus()}
                                 placeholder="Email or username"
                                 required
                             />
-                            {emailError && <small className={styles.error}> Please enter an email.</small>}
+                            {errors.email && <small className={styles.error}>{errors.email}</small>}
                         </div>
                         <div className={styles.formGroup}>
                             <label htmlFor="password" className={styles.formLabel}>
@@ -108,21 +128,21 @@ export default function Login() {
                             </label>
                             <input
                                 type="password"
-                                className={`${styles.formInput} ${passwordError ? styles.invalidInput : ''}`}
+                                className={`${styles.formInput} ${errors.password ? styles.invalidInput : ''}`}
                                 id="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                onFocus={() => setPasswordError(false)}
+                                value={formData.password}
+                                onChange={handleChange}
+                                onFocus={() => handleFocus()}
                                 placeholder="Password"
                                 required
                             />
-                            {passwordError && <small className={styles.error}>Please enter a password.</small>}
+                            {errors.password && <small className={styles.error}>{errors.password}</small>}
                         </div>
                         <a href="#" className={styles.forgotPassword}>
                             Forgot password?
                         </a>
-                        <button type="submit" className={styles.formBtn}>
-                            Log In
+                        <button type="submit" className={styles.formBtn} disabled={isLoading}>
+                            {isLoading ? 'Logging in...' : 'Login'}
                         </button>
                     </form>
                     <p className={styles.textParagraph}>
