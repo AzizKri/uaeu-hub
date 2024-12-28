@@ -64,6 +64,7 @@ ul {
             top: 70px;
             bottom: 0;
             transition: opacity 0.2s ease;
+            pointer-events: none;
         }
     }
 
@@ -105,6 +106,7 @@ ul {
             &.active {
                 max-width: 250px;
                 .left-overlay {
+                    pointer-events: auto;
                     opacity: 1;
                 }
             }
