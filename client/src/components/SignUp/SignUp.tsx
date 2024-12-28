@@ -43,26 +43,30 @@ export default function SignUp() {
             return;
         }
         setIsLoading(true);
-        try {
-            const isUserResponse = await isUser();
-            if (isUserResponse) {
-                setShowPopup(true);
-            } else {
-                await processSignup(false);
-            }
-        } catch (error) {
-            console.error('Signup error:', error);
-            setErrors({ global: 'An unexpected error occurred. Please try again.' });
-        } finally {
-            setIsLoading(false);
+
+        const isUserResponse = await isUser();
+        if (isUserResponse) {
+            setShowPopup(true);
+        } else {
+            await processSignup(false);
         }
+        setIsLoading(false);
     };
 
     const processSignup = async (includeAnon: boolean) => {
         const payload = { ...formData, includeAnon };
         const response = await signUp(payload);
 
-        if (response.errors) {
+        if (response.status === 200) {
+            console.log('Sign up success:', response);
+            updateUser({
+                username: response.username,
+                displayName: response.displayName,
+                bio: response.bio,
+                pfp: response.pfp
+            })
+            navigate('/');
+        } else {
             const newErrors: signUpErrors = {};
             response.errors.forEach((err: ServerError) => {
                 if (err.field) {
@@ -72,17 +76,6 @@ export default function SignUp() {
                 }
             });
             setErrors(newErrors);
-        } else if (response.status >= 400) {
-            setErrors({ global: response.message });
-        } else {
-            console.log('Sign up success:', response);
-            navigate('/');
-            updateUser({
-                username: response.result.username,
-                displayName: response.result.displayName,
-                bio: response.result.bio,
-                pfp: response.result.pfp
-            })
         }
     };
 

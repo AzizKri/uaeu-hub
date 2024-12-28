@@ -49,6 +49,7 @@
     border: none;
     border-radius: 20px;
     cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .editProfileButton:hover {
@@ -69,6 +70,7 @@
     background: #f2f2f2;
     cursor: pointer;
     border-radius: 20px;
+    transition: background-color 0.2s ease;
 }
 
 .tabButton:hover {
