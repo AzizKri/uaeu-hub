@@ -6,11 +6,6 @@ import {useUser} from "../../lib/hooks.ts";
 
 export default function Login() {
     const navigate = useNavigate();
-    // const [email, setEmail] = useState<string>('');
-    // const [password, setPassword] = useState<string>('');
-    // const [emailError, setEmailError] = useState<boolean>(false);
-    // const [passwordError, setPasswordError] = useState<boolean>(false);
-
     const {updateUser} = useUser();
     const [formData, setFormData] = useState({
         username: '',
@@ -80,50 +75,6 @@ export default function Login() {
             setErrors(newErrors);
         }
         setIsLoading(false);
-
-
-        // e.preventDefault();
-        // let hasError = false;
-        // if (email === '') {
-        //     setEmailError(true);
-        //     hasError = true;
-        // } else {
-        //     setEmailError(false);
-        // }
-        // if (password === '') {
-        //     setPasswordError(true);
-        //     hasError = true;
-        // } else {
-        //     setPasswordError(false);
-        // }
-        // if (!hasError) {
-        //     let formData;
-        //     if (email.split('@').length === 1) {
-        //         formData = { username: email, password };
-        //     } else {
-        //         formData = { email, password };
-        //     }
-        //
-        //     const response = await login(formData);
-        //     if (response.status == 200) {
-        //         // localStorage.setItem('token', response.token);
-        //         updateUser({
-        //             username: response.username,
-        //             displayName: response.displayName,
-        //             bio: response.bio,
-        //             pfp: response.pfp
-        //         })
-        //         alert('Login successful');
-        //         console.log('Login successful');
-        //         // TODO redirect to home page
-        //         navigate('/');
-        //
-        //     } else {
-        //         alert(`Error ${response.status}: ${response.message}`);
-        //         console.log('Error');
-        //         // TODO error occurred
-        //     }
-        // }
     };
 
 
