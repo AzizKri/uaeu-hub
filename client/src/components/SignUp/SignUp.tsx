@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
 import { useNavigate } from 'react-router-dom';
-import {isUser, signUp} from '../../api.ts';
+import {isAnon, signUp} from '../../api.ts';
 import SignUpPopUp from "../SignUpPopUp/SignUpPopUp.tsx";
 import {userSchema} from "../../userSchema.ts";
 import { z } from 'zod';
@@ -44,8 +44,8 @@ export default function SignUp() {
         }
         setIsLoading(true);
 
-        const isUserResponse = await isUser();
-        if (isUserResponse) {
+        const isAnonResponse = await isAnon();
+        if (isAnonResponse) {
             setShowPopup(true);
         } else {
             await processSignup(false);
@@ -56,25 +56,23 @@ export default function SignUp() {
     const processSignup = async (includeAnon: boolean) => {
         const payload = { ...formData, includeAnon };
         const response = await signUp(payload);
-
+        const data = await response.json();
         if (response.status === 200) {
             console.log('Sign up success:', response);
             updateUser({
-                username: response.username,
-                displayName: response.displayName,
-                bio: response.bio,
-                pfp: response.pfp
+                username: data.username,
+                displayName: data.displayName,
+                bio: data.bio,
+                pfp: data.pfp
             })
             navigate('/');
         } else {
             const newErrors: signUpErrors = {};
-            response.errors.forEach((err: ServerError) => {
-                if (err.field) {
-                    newErrors[err.field as keyof signUpErrors] = err.message;
-                } else {
-                    newErrors.global = err.message;
-                }
-            });
+            if (response.status === 409) {
+                newErrors.global = 'User already exists';
+            } else {
+                newErrors.global = 'Something went wrong please try again';
+            }
             setErrors(newErrors);
         }
     };
