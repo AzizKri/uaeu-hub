@@ -2,7 +2,7 @@ import styles from './SearchResultsList.module.scss';
 import SearchResult from '../SearchResult/SearchResult.tsx';
 import { useEffect, useState } from 'react';
 
-export default function SearchResultsList({ results }: { results: SearchResult[] }) {
+export default function SearchResultsList({ results, clearInput }: { results: SearchResult[], clearInput: () => void }) {
 
     const [isVisible, setIsVisible] = useState(true);
 
@@ -21,7 +21,7 @@ export default function SearchResultsList({ results }: { results: SearchResult[]
     }, []);
 
     return (
-        <div className={results.length === 0 || !isVisible ? styles.hidden : styles.resultsList}>
+        <div className={results.length === 0 || !isVisible ? styles.hidden : styles.resultsList} onClick={clearInput}>
             {results.map((result, id) => (
                 <SearchResult result={result} key={id} />
             ))}
