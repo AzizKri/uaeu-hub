@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
 import { useNavigate } from 'react-router-dom';
-import {isUser, signUp} from '../../api.ts';
+import {isAnon, signUp} from '../../api.ts';
 import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../userSchema.ts";
 import { z } from 'zod';
@@ -44,7 +44,7 @@ export default function SignUp() {
         }
         setIsLoading(true);
 
-        const isUserResponse = await isUser();
+        const isUserResponse = await isAnon();
         if (isUserResponse) {
             setShowPopup(true);
         } else {
