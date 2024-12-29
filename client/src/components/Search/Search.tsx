@@ -45,6 +45,10 @@ export default function Search() {
         // if (searchElement) searchElement.focus();
     }
 
+    const clearInput = () => {
+        setInput('');
+    }
+
     return (
         <>
             <div id="navbarSearch" className={styles.navbarSearch} onClick={handleClickNB}>
@@ -70,7 +74,7 @@ export default function Search() {
                     onChange={(e) => handleChange(e.target.value)}
                 />
                 <div className={styles.results}>
-                    {results.length > 0 && <SearchResultsList results={results} />}
+                    {results.length > 0 && <SearchResultsList results={results} clearInput={clearInput}/>}
                 </div>
             </div>
         </>

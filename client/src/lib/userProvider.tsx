@@ -45,7 +45,8 @@ export default function UserProvider({children}: {children: ReactNode}) {
                         username: data.username,
                         displayName: data.displayName,
                         bio: data.bio,
-                        pfp: data.pfp
+                        pfp: data.pfp,
+                        isAnonymous: data.is_anonymous,
                     };
                     cashUserData(usefulData);
                     setUser(usefulData)

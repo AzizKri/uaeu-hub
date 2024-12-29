@@ -34,9 +34,10 @@ const router = createBrowserRouter([
             },
             {
                 path: '/user',
-                element: <UserProfile displayName={"Test"} username={"test"} bio={"my bio"} pfp={"test.png"} />
+                element: <UserProfile displayName={"Test"} username={"test"} bio={"my bio"} pfp={"test.png"} isAnonymous={false}/>
             },
             {
+                // TODO: use same approach used in post
                 path: '/community/community1',
                 element: <Community
                     info={{

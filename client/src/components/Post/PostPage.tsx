@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom'; // To access the postId from the URL
+import {useNavigate, useParams} from 'react-router-dom'; // To access the postId from the URL
 import Post from './Post';
 import { getPostByID } from '../../api.ts';
-import styles from "./post.module.scss"; // Assuming you already have a Post component
+import styles from "./post.module.scss";
 
 export default function PostPage() {
     const { postId } = useParams<{ postId: string }>(); // Get the postId from the URL
     const [post, setPost] = useState<React.ReactElement | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (postId) {
@@ -44,9 +45,11 @@ export default function PostPage() {
 
     const goBack = () => {
         if (document.referrer && document.referrer.includes(location.origin)) {
-            history.back();
+            // we are coming from inside the website
+            navigate(-1);
         } else {
-            location.assign(location.origin);
+            // either there is no history or we are coming from an external website
+            navigate('/');
         }
     }
 
