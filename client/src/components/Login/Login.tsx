@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
 import {login} from '../../api.ts';
-import { useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {useUser} from "../../lib/hooks.ts";
 
 export default function Login() {
@@ -84,8 +84,8 @@ export default function Login() {
                 <div className={styles.formBox}>
                     <h2 className={styles.subTitle}>Log In</h2>
                     <p className={styles.textParagraph}>
-                        By continuing, you agree to our <a href="#" className={styles.formLink}>User Agreement</a> and
-                        acknowledge that you understand the <a href="#" className={styles.formLink}>Privacy Policy</a>.
+                        By continuing, you agree to our <Link to="#" className={styles.formLink}>User Agreement</Link> and
+                        acknowledge that you understand the <Link to="#" className={styles.formLink}>Privacy Policy</Link>.
                     </p>
                     <div className={styles.socialForm}>
                         <button className={styles.socialBtn}>
@@ -138,15 +138,15 @@ export default function Login() {
                             />
                             {errors.password && <small className={styles.error}>{errors.password}</small>}
                         </div>
-                        <a href="#" className={styles.forgotPassword}>
+                        <Link to="#" className={styles.forgotPassword}>
                             Forgot password?
-                        </a>
+                        </Link>
                         <button type="submit" className={styles.formBtn} disabled={isLoading}>
                             {isLoading ? 'Logging in...' : 'Login'}
                         </button>
                     </form>
                     <p className={styles.textParagraph}>
-                        New to UAEU Chat? <a href="/signup" className={styles.formLink}>Sign Up</a>
+                        New to UAEU Chat? <Link to="/signup" className={styles.formLink}>Sign Up</Link>
                     </p>
                 </div>
             </div>

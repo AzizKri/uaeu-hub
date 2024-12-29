@@ -1,9 +1,11 @@
 import styles from './PostFooter.module.scss';
 import {toggleLike} from "../../api.ts";
 import {useState} from "react";
+import {useNavigate} from "react-router-dom";
 
 export default function PostFooter({ id, likes, comments, isLiked }: { id: number, likes: number, comments: number, isLiked: boolean }) {
     const [liked, setLiked] = useState(isLiked);
+    const navigate = useNavigate();
     // console.log(likes);
     async function sharePost() {
         await navigator.clipboard.writeText(`https://uaeu.chat/post/${id}`);
@@ -16,7 +18,7 @@ export default function PostFooter({ id, likes, comments, isLiked }: { id: numbe
     }
 
     const redirectToPost = () => {
-        location.assign(`/post/${id}`);
+        navigate(`/post/${id}`);
     }
 
     return (

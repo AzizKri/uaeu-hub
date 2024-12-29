@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
-import { useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {isAnon, signUp} from '../../api.ts';
 import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../userSchema.ts";
@@ -101,8 +101,8 @@ export default function SignUp() {
                 <div className={styles.formBox}>
                     <h2 className={styles.subTitle}>Sign Up</h2>
                     <p className={styles.textParagraph}>
-                        By continuing, you agree to our <a href="#" className={styles.formLink}>User Agreement</a> and acknowledge that you
-                        understand the <a href="#" className={styles.formLink}>Privacy Policy</a>.
+                        By continuing, you agree to our <Link to="#" className={styles.formLink}>User Agreement</Link> and acknowledge that you
+                        understand the <Link to="#" className={styles.formLink}>Privacy Policy</Link>.
                     </p>
                     <div className={styles.socialForm}>
                         <button className={styles.socialBtn}>
@@ -178,8 +178,8 @@ export default function SignUp() {
                             {isLoading ? 'Signing up...' : 'Sign up'}
                         </button>
                     </form>
-                    <p className={styles.textParagraph}>Already a member? <a href="/login"
-                                                                             className={styles.formLink}>Login</a></p>
+                    <p className={styles.textParagraph}>Already a member? <Link to="/login"
+                                                                             className={styles.formLink}>Login</Link></p>
                 </div>
             </div>
             {showPopup && (

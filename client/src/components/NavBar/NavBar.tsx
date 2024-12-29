@@ -1,7 +1,8 @@
 import Search from '../Search/Search.tsx';
 import styles from './NavBar.module.scss';
 import {useUser} from "../../lib/hooks.ts";
-import React from "react";
+import React, {useEffect} from "react";
+import {Link} from "react-router-dom";
 // import { useState } from 'react';
 //
 // enum Page {
@@ -12,6 +13,10 @@ import React from "react";
 export default function NavBar() {
     const {user} = useUser();
     // const [page, setPage] = useState<Page>(Page.Home);
+
+    useEffect(() => {
+        console.log("user", user);
+    }, [user]);
 
     const showAside: React.MouseEventHandler<HTMLDivElement> = () => {
         const left = document.getElementById("left");
@@ -27,7 +32,7 @@ export default function NavBar() {
                         <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/>
                     </svg>
                 </div>
-                <a href="/">
+                <Link to="/">
                     <div className={styles.navbar_logo}>
                         <svg xmlnsXlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"
                              zoomAndPan="magnify"
@@ -47,10 +52,10 @@ export default function NavBar() {
                             </g>
                         </svg>
                     </div>
-                </a>
+                </Link>
                 <Search/>
                 <div className={styles.right}>
-                    {user ? (
+                    {(user && !user.isAnonymous) ? (
                         <>
                             <h3>{user.username}</h3>
                             <h4>{user.displayName}</h4>
@@ -58,11 +63,10 @@ export default function NavBar() {
                         </>
                     ) : (
                         <div className={styles.auth_buttons}>
-                            <a href="/signup" className={styles.signup}>Sign Up</a>
-                            <a href="/login" className={styles.login}>Log In</a>
+                            <Link to="/signup" className={styles.signup}>Sign Up</Link>
+                            <Link to="/login" className={styles.login}>Log In</Link>
                         </div>
                     )}
-
                 </div>
             </div>
         </>
