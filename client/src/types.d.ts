@@ -89,6 +89,7 @@ declare global {
         displayName: string;
         bio: string;
         pfp: string;
+        isAnonymous: boolean;
     }
 
     interface signUpErrors {
