@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from '../../styles/Forms.module.scss';
 import { useNavigate } from 'react-router-dom';
 import {isAnon, signUp} from '../../api.ts';
-import SignUpPopUp from "../SignUpPopUp/SignUpPopUp.tsx";
+import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../userSchema.ts";
 import { z } from 'zod';
 import {useUser} from "../../lib/hooks.ts";
@@ -78,17 +78,16 @@ export default function SignUp() {
     };
 
     const handlePopupResponse = async (choice: boolean) => {
-        setShowPopup(false);
+        // setShowPopup(false);
         setIsLoading(true);
         await processSignup(choice);
         setIsLoading(false);
     };
 
-    const hideReplyPopUp = async () => {
-        document.body.style.overflow = "scroll";
+    const handleHidePopUp = async () => {
         setShowPopup(false);
-        setIsLoading(true);
-        await processSignup(false);
+        setIsLoading(false);
+        // await processSignup(false);
     }
 
     const handleFocus = () => {
@@ -184,10 +183,14 @@ export default function SignUp() {
                 </div>
             </div>
             {showPopup && (
-                <SignUpPopUp
+                <YesNoPopUp
+                    title="Include Your Previous Posts?"
+                    text="We noticed you may already have content associated with an
+                          anonymous session. Would you like to attach that content to
+                          your new account?"
                     onYes={() => handlePopupResponse(true)}
                     onNo={() => handlePopupResponse(false)}
-                    hideReplyPopUp={hideReplyPopUp}
+                    hidePopUp={handleHidePopUp}
                 />
             )}
         </div>

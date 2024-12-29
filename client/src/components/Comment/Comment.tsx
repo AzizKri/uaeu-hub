@@ -18,7 +18,6 @@ export default function Comment({info}: {info: CommentInfo}) {
 
     const handleReply = () => {
         console.log("handle reply");
-        document.body.style.overflow = "hidden";
         setShowReplyPopUp(true)
     }
 

@@ -9,14 +9,31 @@ import arrowDownIcon from "../../assets/chevron-down.svg"
 import settingIcon from "../../assets/cog-outline.svg"
 import homeIcon from "../../assets/home-outline.svg"
 import logoutIcon from "../../assets/logout.svg"
+import {logout} from "../../api.ts";
+import {useUser} from "../../lib/hooks.ts";
+import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
 
 export default function Aside() {
     const [showCommunity, setShowCommunity] = useState<boolean>(false);
     const [active, setActive] = useState<string>("home");
-    const my_communities = [{icon: community_icon_placeholder, name: "community1"}, {icon: community_icon_placeholder, name: "community2"}];
+    const [isPopupOpen, setPopupOpen] = useState<boolean>(false);
+    const my_communities = [{icon: community_icon_placeholder, name: "community1"}, {
+        icon: community_icon_placeholder,
+        name: "community2"
+    }];
+    const {removeUser} = useUser();
 
-    return (
-        <ul className={styles.aside}>
+    const handleLogout = async () => {
+        console.log("logout");
+        const response = await logout()
+        if (response == 200) {
+            removeUser();
+        } else {
+            console.log("Error singing out", response);
+        }
+    }
+
+    return (<ul className={styles.aside}>
             <li>
                 <a href="/">
                     <div className={`${styles.top_element} ${styles.element} ${active === 'home' && styles.active}`}>
@@ -90,16 +107,14 @@ export default function Aside() {
                             <span>Create</span>
                         </div>
                     </li>
-                    {my_communities.map((community) => (
-                        <li key={community.name}>
+                    {my_communities.map((community) => (<li key={community.name}>
                             <a href={`/community/${community.name}`}>
                                 <div className={`${styles.user_community} ${styles.element}`}>
                                     <img src={community.icon} alt="community" className={styles.community_icon}/>
                                     <span>{community.name}</span>
                                 </div>
                             </a>
-                        </li>
-                    ))}
+                        </li>))}
                 </ul>
             </li>
             <li>
@@ -129,7 +144,8 @@ export default function Aside() {
                 </div>
             </li>
             <li>
-                <div className={`${styles.top_element} ${styles.element} ${active === 'logout' && styles.active}`}>
+                <div className={`${styles.top_element} ${styles.element} ${active === 'logout' && styles.active}`}
+                     onClick={() => setPopupOpen(true)}>
                     {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
                     {/*    <path*/}
                     {/*        d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12M4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z"/>*/}
@@ -138,6 +154,12 @@ export default function Aside() {
                     <span>LOGOUT</span>
                 </div>
             </li>
-        </ul>
-    )
+            {isPopupOpen && <YesNoPopUp
+                title="Log Out!"
+                text="Are you sure you want to log out?"
+                onYes={handleLogout}
+                onNo={() => null}
+                hidePopUp={() => setPopupOpen(false)}
+            />}
+        </ul>)
 }

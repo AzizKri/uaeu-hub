@@ -120,6 +120,7 @@ declare global {
     interface UserContextInterface {
         user: userInfo | null;
         updateUser: (userInfo) => void;
+        removeUser: () => void;
     }
 
     interface GenericMetadata {

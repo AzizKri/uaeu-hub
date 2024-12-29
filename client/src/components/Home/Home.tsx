@@ -2,7 +2,6 @@ import styles from "./Home.module.scss";
 import React, {useEffect, useRef} from "react";
 import WritePost from "../WritePost/WritePost.tsx";
 import {useUpdatePosts} from "../../lib/hooks.ts";
-import {getCurrentUser} from "../../api.ts";
 
 export default function Home() {
     const {posts, updatePosts, loading} = useUpdatePosts();
@@ -17,14 +16,6 @@ export default function Home() {
             updatePosts();
         }
     }
-
-    const fetchData = () => {
-        getCurrentUser().then((res) => {
-            console.log(res.username);
-        });
-    };
-
-    fetchData();
 
     return (
         <div className={styles.home} onScroll={handleScroll} ref={homeRef} style={{}}>
