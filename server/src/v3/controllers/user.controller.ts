@@ -3,40 +3,9 @@ import { z } from 'zod';
 import { getSignedCookie, setCookie } from 'hono/cookie';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
 import { getUserFromSessionKey, sendAuthCookie } from '../util/util';
+import { userSchema } from '../util/validationSchemas';
 
 /* User Authentication */
-
-const displaynameSchema = z
-    .union([z.string().min(4, 'Display name must be at least 3 characters long'), z.string().length(0)])
-    .optional()
-    .transform((value) => value === '' ? undefined : value);
-
-const usernameSchema = z
-    .string()
-    .min(3, 'Username must be at least 3 characters long')
-    .max(20)
-    .regex(/^[a-zA-Z0-9.\-_]+$/,
-        'Username can only contain alphanumeric characters, underscores, dashes, and dots, but not consecutively');
-
-const emailSchema = z
-    .string()
-    .email('Invalid email address');
-
-const passwordSchema = z
-    .string()
-    .min(8, 'Password must be at least 8 characters long')
-    .max(72, 'Password must be at most 72 characters long')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/\d/, 'Password must contain at least one number')
-    .regex(/[ !"#$%&'()*+,-./:;<=>?@\[\\\]^_`{|}]/, 'Password must contain at least one special character');
-
-const userSchema = z.object({
-    displayname: displaynameSchema,
-    username: usernameSchema,
-    email: emailSchema,
-    password: passwordSchema
-});
 
 // api.uaeu.chat/user/isUser
 // Simple check if this user has a session key or not
@@ -151,10 +120,10 @@ export async function signup(c: Context) {
         } else {
             // New user, no activity
             const user = await env.DB.prepare(`
-                INSERT INTO user (username, displayname, email, password)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO user (username, displayname, email, password, salt)
+                VALUES (?, ?, ?, ?, ?)
                 RETURNING id, username, displayname, created_at, bio, pfp, is_anonymous
-            `).bind(username, (displayname ? displayname : username), email, hash).first<UserView>();
+            `).bind(username, (displayname ? displayname : username), email, hash, encoded).first<UserView>();
 
             if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
@@ -168,7 +137,7 @@ export async function signup(c: Context) {
 
             await sendAuthCookie(c, PlainSessionKey);
 
-            return c.json(user, 200);
+            return c.json(user, { status: 200 });
         }
     } catch (e) {
         console.log(e);
@@ -229,6 +198,7 @@ export async function login(c: Context) {
     const env: Env = c.env;
     const { username, email, password } = await c.req.json();
 
+    console.log(username, email, password);
     // Check if username or email is provided
     if ((!username && !email) || !password) {
         return c.json({ message: 'Missing required fields', status: 400 }, 400);
@@ -257,12 +227,20 @@ export async function login(c: Context) {
 
     // Get user data to send
     try {
-        const userData = await env.DB.prepare(`
-            SELECT *
-            FROM user_view
-            WHERE username = ?
-               OR email = ?
-        `).bind(username, email).first<UserView>();
+        let userData;
+        if (username) {
+            userData = await env.DB.prepare(`
+                SELECT *
+                FROM user_view
+                WHERE username = ?
+            `).bind(username).first<UserView>();
+        } else {
+            userData = await env.DB.prepare(`
+                SELECT *
+                FROM user_view
+                WHERE email = ?
+            `).bind(email).first<UserView>();
+        }
 
         // Generate session key & hash it
         const PlainSessionKey = crypto.randomUUID();
@@ -277,7 +255,7 @@ export async function login(c: Context) {
         // Send the session key to the client
         await sendAuthCookie(c, PlainSessionKey);
 
-        return c.json(userData, 200);
+        return c.json(userData, { status: 200 });
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);

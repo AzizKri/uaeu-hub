@@ -8,7 +8,7 @@ export async function signUp(formData: { displayname: string, email: string, use
         body: JSON.stringify(formData),
         credentials: 'include'
     });
-    return await data.json();
+    return data;
 }
 
 export async function login(formData: { username: string, password: string } | { email: string, password: string }) {
@@ -18,7 +18,7 @@ export async function login(formData: { username: string, password: string } | {
         body: JSON.stringify(formData),
         credentials: 'include'
     });
-    return await data.json();
+    return data;
 }
 
 export async function logout() {
@@ -181,6 +181,15 @@ export async function getAttachmentDetails(filename: string) {
     const request = await fetch(base + `/attachment/${filename}`, { method: 'GET' });
 
     return { status: request.status, data: await request.json() };
+}
+
+// Delete attachment by filename
+export async function deleteAttachment(filename: string) {
+    const request = await fetch(base + `/attachment/${filename}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    });
+    return request.status;
 }
 
 /* Comments */
