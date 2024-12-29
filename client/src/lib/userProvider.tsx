@@ -57,7 +57,7 @@ export default function UserProvider({children}: {children: ReactNode}) {
             }
         };
 
-        fetchUserData();
+        fetchUserData().then(() => console.log("User Data fetched"));
     }, [])
 
     const updateUser = (newUser: userInfo) => {

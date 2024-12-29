@@ -15,7 +15,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
         setLoading(true);
         try {
             const res = await getLatestPosts(page);
-            console.log(res);
+            // console.log(res);
             if (res.results.length == 0) {
                 setNoMorePosts(true);
                 return;
@@ -23,7 +23,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
             setPage((prevPage) => prevPage + 1);
             const fetchedPosts: React.ReactElement[] = []
             for (const post of res.results) {
-                console.log(post);
+                // console.log(post);
                 const postInfo: PostInfo = {
                     id: post.id,
                     content: post.content,
