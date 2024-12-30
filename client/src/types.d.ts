@@ -5,7 +5,7 @@ declare global {
         id: number;
         author: string;
         content: string;
-        post_time: number;
+        postTime: number;
         attachment: string | null;
         rank: number;
     }
@@ -18,8 +18,8 @@ declare global {
         content: string,
         pfp: string,
         filename?: string,
-        like_count: number,
-        comment_count: number,
+        likeCount: number,
+        commentCount: number,
         type: string,
         liked: boolean
     }
@@ -27,18 +27,18 @@ declare global {
     interface CommentInfo {
         attachment: string
         author: string
-        author_id: number
+        authorId: number
         content: string
-        display_name: string
+        displayName: string
         id: number
         level: number
-        like_count: number,
-        // comment_count: number,
+        likeCount: number,
+        commentCount: number,
         liked: boolean,
-        parent_post_id: number,
-        parent_type: string,
+        parentPostId: number,
+        parentType: string,
         pfp: string,
-        post_time: Date,
+        postTime: Date,
     }
 
     interface CommunityInfo {
@@ -48,10 +48,10 @@ declare global {
         icon: string | null
         verified: boolean
         public: boolean
-        invite_only: boolean
-        created_at: Date
+        inviteOnly: boolean
+        createdAt: Date
         tags: string
-        member_count: number
+        memberCount: number
     }
 
     interface CommunityInfoSimple {
@@ -60,9 +60,9 @@ declare global {
     }
 
     interface PostAll {
-        post_info: PostInfo;
-        top_comment_info: CommentInfo | null;
-        community_info: CommunityInfoSimple;
+        postInfo: PostInfo;
+        topCommentInfo: CommentInfo | null;
+        communityInfo: CommunityInfoSimple;
     }
 
     // type PostInfoWithTopComment = PostInfo & {
@@ -93,7 +93,7 @@ declare global {
     }
 
     interface signUpErrors {
-        displayname?: string;
+        displayName?: string;
         email?: string;
         username?: string;
         password?: string;

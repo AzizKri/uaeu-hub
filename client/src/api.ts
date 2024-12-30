@@ -1,4 +1,5 @@
-const base = import.meta.env.VITE_API_URL || 'https://api.uaeu.chat';
+// const base = import.meta.env.VITE_API_URL || 'https://api.uaeu.chat';
+const base = 'https://api.uaeu.chat';
 
 /* Authentication */
 export async function signUp(formData: { displayname: string, email: string, username: string, password: string }) {

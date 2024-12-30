@@ -1,7 +1,15 @@
 import Popup from "../Popup/Popup.tsx";
 import styles from "./YesNoPopUp.module.scss";
 
-export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp}: { title: string, text: string, onYes: () => void, onNo: () => void, hidePopUp: () => void}) {
+export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp, yesText = "Yes", noText = "No"}: {
+    title: string,
+    text: string,
+    onYes: () => void,
+    onNo: () => void,
+    hidePopUp: () => void,
+    yesText?: string,
+    noText?: string
+}) {
     const handleHidePopUp = () => {
         document.body.style.overflow = "scroll";
         hidePopUp();
@@ -25,10 +33,10 @@ export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp}: { titl
                     <p>{text}</p>
                     <div className={styles.popupButtons}>
                         <button onClick={handleNo} className={styles.popupNoBtn}>
-                            No
+                            {noText}
                         </button>
                         <button onClick={handleYes} className={styles.popupYesBtn}>
-                            Yes
+                            {yesText}
                         </button>
                     </div>
                 </div>
