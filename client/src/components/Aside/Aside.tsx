@@ -18,10 +18,10 @@ export default function Aside() {
     const [showCommunity, setShowCommunity] = useState<boolean>(false);
     const [active, setActive] = useState<string>("home");
     const [isPopupOpen, setPopupOpen] = useState<boolean>(false);
-    const my_communities = [{icon: community_icon_placeholder, name: "community1"}, {
-        icon: community_icon_placeholder,
-        name: "community2"
-    }];
+    const my_communities = [
+        {icon: community_icon_placeholder, name: "community1"},
+        {icon: community_icon_placeholder, name: "community2"}
+    ];
     const {user, removeUser} = useUser();
     const navigate = useNavigate();
 
@@ -45,7 +45,7 @@ export default function Aside() {
 
     return (<ul className={styles.aside}>
             <li>
-                <Link to="/">
+                <Link to="/" onClick={() => setActive("home")}>
                     <div className={`${styles.top_element} ${styles.element} ${active === 'home' && styles.active}`}>
                         {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
                         {/*    <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>*/}
