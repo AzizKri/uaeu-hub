@@ -9,6 +9,8 @@ import arrowDownIcon from "../../assets/chevron-down.svg"
 import settingIcon from "../../assets/cog-outline.svg"
 import homeIcon from "../../assets/home-outline.svg"
 import logoutIcon from "../../assets/logout.svg"
+import courseMaterial from '../../assets/course-material.svg'
+import professorIcon from '../../assets/professor.svg'
 import {logout} from "../../api.ts";
 import {useUser} from "../../lib/hooks.ts";
 import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
@@ -17,13 +19,15 @@ import {Link, useNavigate} from "react-router-dom";
 export default function Aside() {
     const [showCommunity, setShowCommunity] = useState<boolean>(false);
     const [active, setActive] = useState<string>("home");
-    const [isPopupOpen, setPopupOpen] = useState<boolean>(false);
+    const [logoutPopUpShown, setLogoutPopUpShown] = useState<boolean>(false);
     const my_communities = [
         {icon: community_icon_placeholder, name: "community1"},
         {icon: community_icon_placeholder, name: "community2"}
     ];
     const {user, removeUser} = useUser();
     const navigate = useNavigate();
+    const [redirectPopUpShown, setRedirectPopUpShown] = useState<boolean>(false);
+    const [selected, setSelected] = useState<string>("");
 
     const handleLogout = async () => {
         console.log("logout");
@@ -41,6 +45,14 @@ export default function Aside() {
         } else {
             navigate('/community')
         }
+    }
+
+    const handleSpaceRead = (to: string) => {
+        setSelected(to);
+        setRedirectPopUpShown(true);
+    }
+    const handleRedirect= () => {
+        window.open(`https://spaceread.net/${selected}`, "_blank")
     }
 
     return (<ul className={styles.aside}>
@@ -139,6 +151,18 @@ export default function Aside() {
                     <span>SAVED</span>
                 </div>
             </li>}
+        <li>
+            <div className={`${styles.top_element} ${styles.element} ${active === 'setting' && styles.active}`} onClick={() => handleSpaceRead("course")}>
+                <img src={courseMaterial} alt="settings"/>
+                <span>Courses Material</span>
+            </div>
+        </li>
+        <li>
+            <div className={`${styles.top_element} ${styles.element} ${active === 'setting' && styles.active}`} onClick={() => handleSpaceRead("professor")}>
+                <img src={professorIcon} alt="settings"/>
+                <span>Professors</span>
+            </div>
+        </li>
             <li>
                 <div className={`${styles.top_element} ${styles.element} ${active === 'setting' && styles.active}`}>
                     {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
@@ -155,7 +179,7 @@ export default function Aside() {
             </li>
             {user && !user.isAnonymous && <li>
                 <div className={`${styles.top_element} ${styles.element} ${active === 'logout' && styles.active}`}
-                     onClick={() => setPopupOpen(true)}>
+                     onClick={() => setLogoutPopUpShown(true)}>
                     {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
                     {/*    <path*/}
                     {/*        d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12M4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z"/>*/}
@@ -164,12 +188,21 @@ export default function Aside() {
                     <span>LOGOUT</span>
                 </div>
             </li>}
-            {isPopupOpen && <YesNoPopUp
+            {logoutPopUpShown && <YesNoPopUp
                 title="Log Out!"
                 text="Are you sure you want to log out?"
                 onYes={handleLogout}
                 onNo={() => null}
-                hidePopUp={() => setPopupOpen(false)}
+                hidePopUp={() => setLogoutPopUpShown(false)}
             />}
+        {redirectPopUpShown && <YesNoPopUp
+            title="Redirect"
+            text="You will be redirected to SpaceRead"
+            onYes={() => handleRedirect()}
+            onNo={() => null}
+            hidePopUp={() => setRedirectPopUpShown(false)}
+            yesText="Go"
+            noText="Stay"
+        />}
         </ul>)
 }
