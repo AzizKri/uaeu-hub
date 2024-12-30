@@ -32,12 +32,31 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     pfp: post.pfp,
                     postDate: new Date(post.post_time),
                     filename: post.attachment,
-                    like_count: post.like_count,
-                    comment_count: post.comment_count,
+                    likeCount: post.like_count,
+                    commentCount: post.comment_count,
                     type: "post",
                     liked: post.like,
                 };
-                const topCommentInfo: CommentInfo = JSON.parse(post.top_comment);
+                // console.log("ptc", post.top_comment)
+                const tc = JSON.parse(post.top_comment);
+                // console.log("tc", tc)
+                const topCommentInfo: CommentInfo | null = !tc ? null : {
+                    attachment: tc.attachment,
+                    author: tc.author,
+                    authorId: tc.author_id,
+                    content: tc.content,
+                    displayName: tc.displayname,
+                    id: tc.id,
+                    level: tc.level,
+                    likeCount: tc.like_count,
+                    liked: tc.liked,
+                    parentPostId: tc.parent_post_id,
+                    parentType: tc.parent_type,
+                    pfp: tc.pfp,
+                    postTime: tc.post_time,
+                    commentCount: tc.comment_count,
+                }
+
                 const communityInfo: CommunityInfoSimple = {
                     name: post.community,
                     icon: post.community_icon
@@ -45,9 +64,9 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                 fetchedPosts.push(
                     <Post
                         key={post.id}
-                        post_info={postInfo}
-                        top_comment_info={topCommentInfo}
-                        community_info={communityInfo}
+                        postInfo={postInfo}
+                        topCommentInfo={topCommentInfo}
+                        communityInfo={communityInfo}
                     />
                 );
             }

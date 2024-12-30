@@ -47,10 +47,10 @@ const router = createBrowserRouter([
                         icon: null,
                         verified: true,
                         public: true,
-                        invite_only: false,
-                        created_at: new Date(24, 12, 5),
+                        inviteOnly: false,
+                        createdAt: new Date(24, 12, 5),
                         tags: "test",
-                        member_count: 5
+                        memberCount: 5
                     }}
                 />
             }

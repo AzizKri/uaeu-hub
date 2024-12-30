@@ -21,8 +21,8 @@ export default function PostPage() {
                     pfp: post.pfp,
                     postDate: new Date(post.post_time),
                     filename: post.attachment,
-                    like_count: post.like_count,
-                    comment_count: post.comment_count,
+                    likeCount: post.like_count,
+                    commentCount: post.comment_count,
                     type: "post-page",
                     liked: post.like,
                 };
@@ -33,9 +33,9 @@ export default function PostPage() {
                 const fetchedPost = (
                     <Post
                         key={post.id}
-                        post_info={postInfo}
-                        top_comment_info={null}
-                        community_info={communityInfo}
+                        postInfo={postInfo}
+                        topCommentInfo={null}
+                        communityInfo={communityInfo}
                     />
                 );
                 setPost(fetchedPost);
