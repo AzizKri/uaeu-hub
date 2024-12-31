@@ -296,7 +296,7 @@ export async function getUserByUsername(c: Context) {
         // No result found, 404
         if (!result) return c.json({ message: 'User not found', status: 404 }, 404);
         // Result found, return it
-        return c.json(result, 200);
+        return c.json(result, { status : 200});
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);

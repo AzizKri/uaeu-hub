@@ -58,7 +58,7 @@ export async function getLikesCurrentUser() {
 // Get user data by session key
 export async function getUserByUsername(username: string) {
     const request = await fetch(base + `/user/${username}`, { credentials: 'include' });
-    return await request.json();
+    return await request;
 }
 
 // Get posts sent by user (username)
