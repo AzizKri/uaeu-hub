@@ -8,8 +8,7 @@ export default function Login() {
     const navigate = useNavigate();
     const {updateUser} = useUser();
     const [formData, setFormData] = useState({
-        username: '',
-        email: '',
+        identifier: '',
         password: '',
     });
 
@@ -20,6 +19,8 @@ export default function Login() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
+        setIsLoading(false);
+        return;
     };
 
     const handleFocus = () => {
@@ -30,10 +31,10 @@ export default function Login() {
         e.preventDefault();
         setErrors({});
         setIsLoading(true);
-        if (formData.email.trim() === '' || formData.password.trim() === '') {
-            if (formData.email.trim() === ''){
+        if (formData.identifier.trim() === '' || formData.password.trim() === '') {
+            if (formData.identifier.trim() === ''){
                 setErrors({
-                    email: "Please enter a valid email or username",
+                    identifier: "Please enter a valid email or username",
                 });
             }
             else{
@@ -45,14 +46,16 @@ export default function Login() {
             return;
         }
 
-        if (formData.email.split('@').length !== 1) {
-            setFormData({
-                username: formData.email,
-                email: '',
-                password: formData.password,
-            })
-        }
+        // if (formData.email.split('@').length !== 1) {
+        //     setFormData({
+        //         username: formData.email,
+        //         email: '',
+        //         password: formData.password,
+        //     })
+        // }
+        console.log("form Data", formData);
         const response = await login(formData);
+        console.log("login response:", response);
         const data = await response.json();
         if (response.status === 200) {
             console.log('Log in success:', response);
@@ -112,15 +115,15 @@ export default function Login() {
                             </label>
                             <input
                                 type="text"
-                                className={`${styles.formInput} ${errors.email ? styles.invalidInput : ''}`}
-                                id="email"
-                                value={formData.email}
+                                className={`${styles.formInput} ${errors.identifier ? styles.invalidInput : ''}`}
+                                id="identifier"
+                                value={formData.identifier}
                                 onChange={handleChange}
                                 onFocus={() => handleFocus()}
                                 placeholder="Email or username"
                                 required
                             />
-                            {errors.email && <small className={styles.error}>{errors.email}</small>}
+                            {errors.identifier && <small className={styles.error}>{errors.identifier}</small>}
                         </div>
                         <div className={styles.formGroup}>
                             <label htmlFor="password" className={styles.formLabel}>

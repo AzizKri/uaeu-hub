@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-const displaynameSchema = z
-    .union([z.string().min(4, 'Display name must be at least 3 characters long'), z.string().length(0)])
+const displayNameSchema = z
+    .union([z.string().min(3, 'Display name must be at least 3 characters long'), z.string().length(0)])
     .optional()
     .transform((value) => value === '' ? undefined : value);
 
@@ -26,7 +26,7 @@ const passwordSchema = z
     .regex(/[ !"#$%&'()*+,-./:;<=>?@\[\\\]^_`{|}]/, 'Password must contain at least one special character');
 
 export const userSchema = z.object({
-    displayname: displaynameSchema,
+    displayName: displayNameSchema,
     username: usernameSchema,
     email: emailSchema,
     password: passwordSchema

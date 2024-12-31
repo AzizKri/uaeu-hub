@@ -12,7 +12,7 @@ export async function signUp(formData: { displayname: string, email: string, use
     return data;
 }
 
-export async function login(formData: { username: string, password: string } | { email: string, password: string }) {
+export async function login(formData: { identifier: string, password: string }) {
     const data = await fetch(base + `/user/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

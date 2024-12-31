@@ -12,7 +12,7 @@ export default function SignUp() {
     const {updateUser} = useUser();
 
     const [formData, setFormData] = useState({
-        displayname: '',
+        displayName: '',
         email: '',
         username: '',
         password: '',
@@ -54,7 +54,14 @@ export default function SignUp() {
     };
 
     const processSignup = async (includeAnon: boolean) => {
-        const payload = { ...formData, includeAnon };
+        const p = { ...formData, includeAnon };
+        const payload = {
+            username: p.username,
+            displayname: p.displayName,
+            email: p.email,
+            password: p.password,
+            includeAnon: includeAnon
+        }
         const response = await signUp(payload);
         const data = await response.json();
         if (response.status === 200) {
@@ -137,16 +144,17 @@ export default function SignUp() {
                                 />
                                 {errors.username && <small className={styles.error}>{errors.username}</small>}
                             </div>
-                            <label htmlFor="displayname" className={styles.formLabel}>Display Name</label>
+                            <label htmlFor="displayName" className={styles.formLabel}>Display Name</label>
                             <input
                                 type="text"
-                                id="displayname"
-                                className={`${styles.formInput}`}
+                                id="displayName"
+                                className={`${styles.formInput} ${errors.displayName ? styles.invalidInput : ''}`}
                                 placeholder="Display Name"
-                                value={formData.displayname}
+                                value={formData.displayName}
                                 onChange={handleChange}
                                 onFocus={() => handleFocus()}
                             />
+                            {errors.displayName && <small className={styles.error}>{errors.displayName}</small>}
                         </div>
                         <div className={styles.formGroup}>
                             <label htmlFor="email" className={styles.formLabel}>Email<span>*</span></label>
