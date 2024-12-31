@@ -1,0 +1,19 @@
+.reqContainer{
+    margin-top: 5px;
+    display: flex;
+    align-items: start;
+    gap: 5px;
+}
+
+.reqIcon{
+    position: relative;
+    bottom: 2px;
+}
+
+.invalid{
+    color:red;
+}
+
+.valid{
+    color:green;
+}
