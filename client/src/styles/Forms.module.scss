@@ -136,4 +136,11 @@
     .formBtn:disabled {
         background-color: rgb(80, 77, 77);
     }
+
+    .showPassword {
+        position: absolute;
+        right: 12px;
+        top: 28px;
+        cursor: pointer;
+    }
 }
