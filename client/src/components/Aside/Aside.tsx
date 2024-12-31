@@ -72,7 +72,7 @@ export default function Aside() {
                 </Link>
             </li>
             <li>
-                <Link to={`/user/`} onClick={() => setActive("profile")}>
+                <Link to={`/user/${user?.username}`} onClick={() => setActive("profile")}>
                     <div className={`${styles.top_element} ${styles.element} ${active === 'profile' && styles.active}`}>
                         {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
                         {/*    <path*/}
