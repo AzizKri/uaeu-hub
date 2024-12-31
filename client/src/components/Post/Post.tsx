@@ -101,9 +101,10 @@ export default function Post({postInfo, topCommentInfo}: PostAll) {
             comments={postInfo.commentCount}
             isLiked={postInfo.liked}
         />
+        { postInfo.type === "post-page" &&
         <div className={styles.post__write_answer}>
             <Editor type="comment" parent_id={postInfo.id} handleSubmit={() => null}/>
-        </div>
+        </div> }
         {postInfo.type === "post-page" ? comments.map((cur) => <Comment
             key={cur.id}
             info={cur}
