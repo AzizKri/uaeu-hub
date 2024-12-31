@@ -14,7 +14,7 @@ import React, {
 } from "react";
 import { comment, createPost, uploadAttachment } from "../../api";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useUpdatePosts } from "../../lib/hooks";
+// import { useUpdatePosts } from "../../lib/hooks";
 import LoaderDots from "../LoaderDots/LoaderDots";
 
 interface UploadState {
@@ -51,7 +51,7 @@ export default function Editor({
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{ clearEditorContent: () => void }>(null);
-    const {updatePosts} = useUpdatePosts();
+    // const {updatePosts} = useUpdatePosts();
 
     useEffect(() => {
         const hasContent = !!(uploadState.file || plainText);
@@ -172,7 +172,7 @@ export default function Editor({
                 editorHelperRef.current.clearEditorContent();
             }
             removeImage();
-            updatePosts();
+            // updatePosts();
         } catch (error) {
             console.error("Error submitting post:", error);
         } finally {
