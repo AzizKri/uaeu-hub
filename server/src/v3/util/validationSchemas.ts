@@ -13,7 +13,7 @@ export const communitySchema = z.object({
 });
 
 const displaynameSchema = z
-    .union([z.string().min(4, 'Display name must be at least 3 characters long'), z.string().length(0)])
+    .union([z.string().min(3, 'Display name must be at least 3 characters long'), z.string().length(0)])
     .optional()
     .transform((value) => value === '' ? undefined : value);
 

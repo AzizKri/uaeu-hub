@@ -196,29 +196,34 @@ export async function anonSignup(c: Context) {
 
 export async function login(c: Context) {
     const env: Env = c.env;
-    const { username, email, password } = await c.req.json();
+    const { identifier, password } = await c.req.json();
 
-    console.log(username, email, password);
+    console.log(identifier, password);
     // Check if username or email is provided
-    if ((!username && !email) || !password) {
+    if (!identifier || !password) {
         return c.json({ message: 'Missing required fields', status: 400 }, 400);
     }
 
     // Check if username/email exists
-    let user;
-    if (username) {
-        user = await env.DB.prepare(`
+    const user = await env.DB.prepare(`
             SELECT id, username, password, salt
             FROM user
-            WHERE username = ?
-        `).bind(username).first<UserRow>();
-    } else if (email) {
-        user = await env.DB.prepare(`
-            SELECT id, email, password, salt
-            FROM user
-            WHERE email = ?
-        `).bind(email).first<UserRow>();
-    }
+            WHERE username = ? OR email = ?
+        `).bind(identifier, identifier).first<UserRow>();
+    // let user;
+    // if (username) {
+    //     user = await env.DB.prepare(`
+    //         SELECT id, username, password, salt
+    //         FROM user
+    //         WHERE username = ?
+    //     `).bind(username).first<UserRow>();
+    // } else if (email) {
+    //     user = await env.DB.prepare(`
+    //         SELECT id, email, password, salt
+    //         FROM user
+    //         WHERE email = ?
+    //     `).bind(email).first<UserRow>();
+    // }
     if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
 
     // Verify password
@@ -227,20 +232,25 @@ export async function login(c: Context) {
 
     // Get user data to send
     try {
-        let userData;
-        if (username) {
-            userData = await env.DB.prepare(`
+        const userData = await env.DB.prepare(`
                 SELECT *
                 FROM user_view
-                WHERE username = ?
-            `).bind(username).first<UserView>();
-        } else {
-            userData = await env.DB.prepare(`
-                SELECT *
-                FROM user_view
-                WHERE email = ?
-            `).bind(email).first<UserView>();
-        }
+                WHERE username = ? OR id = ?
+            `).bind(identifier, identifier).first<UserView>();
+        // let userData;
+        // if (username) {
+        //     userData = await env.DB.prepare(`
+        //         SELECT *
+        //         FROM user_view
+        //         WHERE username = ?
+        //     `).bind(username).first<UserView>();
+        // } else {
+        //     userData = await env.DB.prepare(`
+        //         SELECT *
+        //         FROM user_view
+        //         WHERE email = ?
+        //     `).bind(email).first<UserView>();
+        // }
 
         // Generate session key & hash it
         const PlainSessionKey = crypto.randomUUID();

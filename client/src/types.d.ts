@@ -101,7 +101,7 @@ declare global {
     }
 
     interface loginErrors {
-        email?: string;
+        identifier?: string;
         password?: string;
         global?: string;
     }
