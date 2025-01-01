@@ -5,9 +5,9 @@ PRAGMA foreign_keys = on;
 CREATE TABLE IF NOT EXISTS user
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    username       TEXT    NOT NULL UNIQUE,
+    username       TEXT    NOT NULL UNIQUE COLLATE NOCASE,
     displayname    TEXT,
-    email          TEXT UNIQUE,
+    email          TEXT UNIQUE COLLATE NOCASE,
     email_verified BOOLEAN          DEFAULT FALSE,
     auth_provider  TEXT    NOT NULL DEFAULT 'local',
     password       TEXT,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS session
 CREATE TABLE IF NOT EXISTS community
 (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    name         TEXT    NOT NULL UNIQUE,
+    name         TEXT    NOT NULL UNIQUE COLLATE NOCASE,
     description  TEXT,
     icon         TEXT,
     verified     BOOLEAN NOT NULL DEFAULT FALSE,
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS user_community
 CREATE TABLE IF NOT EXISTS tag
 (
     id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE
+    name TEXT NOT NULL UNIQUE COLLATE NOCASE
 );
 
 /* Community Tag Relationship Table */
