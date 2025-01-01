@@ -30,6 +30,7 @@ export default function SignUp() {
     const [showPopup, setShowPopup] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [passwordShown, setPasswordShown] = useState<boolean>(false);
+    const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -130,7 +131,13 @@ export default function SignUp() {
     const handleFocus = () => {
         setErrors({});
         setIsLoading(false);
+        setIsPasswordActive(false)
     };
+
+    const handleFocusPassword = () => {
+        handleFocus();
+        setIsPasswordActive(true);
+    }
 
     return (
         <div className={styles.formBody}>
@@ -267,7 +274,7 @@ export default function SignUp() {
                                 placeholder="Password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                onFocus={() => handleFocus()}
+                                onFocus={() => handleFocusPassword()}
                             />
                             <span className={styles.showPassword} onClick={() => setPasswordShown((prev) => !prev)}>
                                 {passwordShown ? (
@@ -297,11 +304,16 @@ export default function SignUp() {
                                     {errors.password}
                                 </small>
                             )}
-                            <Requirement text={"Password must be at least 8 characters long"} error={reqErrors.passLengthError} />
-                            <Requirement text={"Password must contain at least one uppercase letter"} error={reqErrors.passUpperError} />
-                            <Requirement text={"Password must contain at least one lowercase letter"} error={reqErrors.passLowerError} />
-                            <Requirement text={"Password must contain at least one number"} error={reqErrors.passNumberError} />
-                            <Requirement text={"Password must contain at least one special character"} error={reqErrors.passSpecialError} />
+                            {isPasswordActive ? (
+                                <>
+                                <Requirement text={"Password must be at least 8 characters long"} error={reqErrors.passLengthError} />
+                                <Requirement text={"Password must contain at least one uppercase letter"} error={reqErrors.passUpperError} />
+                                <Requirement text={"Password must contain at least one lowercase letter"} error={reqErrors.passLowerError} />
+                                <Requirement text={"Password must contain at least one number"} error={reqErrors.passNumberError} />
+                                <Requirement text={"Password must contain at least one special character"} error={reqErrors.passSpecialError} />
+                                </>
+                                ) : (<span></span>
+                        )}
                         </div>
                         <button
                             type="submit"
