@@ -2,13 +2,13 @@ import styles from './Aside.module.scss';
 import community_icon_placeholder from "../../assets/community-icon.jpg"
 import {useState} from "react";
 
-import accountIcon from "../../assets/account-outline.svg"
-import communityIcon from "../../assets/account-group-outline.svg"
-import bookmarkIcon from "../../assets/bookmark-outline.svg"
+import accountIcon from "../../assets/account-outline-thin.svg"
+import communityIcon from "../../assets/account-group-outline-thin.svg"
+import bookmarkIcon from "../../assets/bookmark-outline-thin.svg"
 import arrowDownIcon from "../../assets/chevron-down.svg"
-import settingIcon from "../../assets/cog-outline.svg"
-import homeIcon from "../../assets/home-outline.svg"
-import logoutIcon from "../../assets/logout.svg"
+import settingIcon from "../../assets/cog-outline-thin.svg"
+import homeIcon from "../../assets/home-outline-thin.svg"
+import logoutIcon from "../../assets/logout-thin.svg"
 import courseMaterial from '../../assets/course-material.svg'
 import professorIcon from '../../assets/professor.svg'
 import {logout} from "../../api.ts";
@@ -55,17 +55,14 @@ export default function Aside() {
         window.open(`https://spaceread.net/${selected}`, "_blank")
     }
 
-    return (<ul className={styles.aside}>
+    return (
+        <ul
+            className={styles.aside}
+            onMouseLeave={() => {setShowCommunity(false)}}
+          >
             <li>
                 <Link to="/" onClick={() => setActive("home")}>
                     <div className={`${styles.top_element} ${styles.element} ${active === 'home' && styles.active}`}>
-                        {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
-                        {/*    <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>*/}
-                        {/*</svg>*/}
-                        {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
-                        {/*    <path*/}
-                        {/*        d="M12 5.69L17 10.19V18H15V12H9V18H7V10.19L12 5.69M12 3L2 12H5V20H11V14H13V20H19V12H22"/>*/}
-                        {/*</svg>*/}
                         <img src={homeIcon} alt="home"/>
                         <span>HOME</span>
                     </div>
@@ -74,37 +71,22 @@ export default function Aside() {
             <li>
                 <Link to={`/user/${user?.username}`} onClick={() => setActive("profile")}>
                     <div className={`${styles.top_element} ${styles.element} ${active === 'profile' && styles.active}`}>
-                        {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
-                        {/*    <path*/}
-                        {/*        d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>*/}
-                        {/*</svg>*/}
-                        {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
-                        {/*    <path*/}
-                        {/*        strokeWidth="1"*/}
-                        {/*        d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,6A2,2 0 0,0 10,8A2,2 0 0,0 12,10A2,2 0 0,0 14,8A2,2 0 0,0 12,6M12,13C14.67,13 20,14.33 20,17V20H4V17C4,14.33 9.33,13 12,13M12,14.9C9.03,14.9 5.9,16.36 5.9,17V18.1H18.1V17C18.1,16.36 14.97,14.9 12,14.9Z"/>*/}
-                        {/*</svg>*/}
                         <img src={accountIcon} alt="profile icon"/>
                         <span>PROFILE</span>
                     </div>
                 </Link>
             </li>
             <li>
-                <div className={`${styles.top_element} ${styles.element} ${active === 'communities' && styles.active}`}
-                     onClick={handleCommunities}>
-                    {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
-                    {/*    <path*/}
-                    {/*        d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z"/>*/}
-                    {/*</svg>*/}
-                    {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
-                    {/*    <path*/}
-                    {/*        d="M12,5A3.5,3.5 0 0,0 8.5,8.5A3.5,3.5 0 0,0 12,12A3.5,3.5 0 0,0 15.5,8.5A3.5,3.5 0 0,0 12,5M12,7A1.5,1.5 0 0,1 13.5,8.5A1.5,1.5 0 0,1 12,10A1.5,1.5 0 0,1 10.5,8.5A1.5,1.5 0 0,1 12,7M5.5,8A2.5,2.5 0 0,0 3,10.5C3,11.44 3.53,12.25 4.29,12.68C4.65,12.88 5.06,13 5.5,13C5.94,13 6.35,12.88 6.71,12.68C7.08,12.47 7.39,12.17 7.62,11.81C6.89,10.86 6.5,9.7 6.5,8.5C6.5,8.41 6.5,8.31 6.5,8.22C6.2,8.08 5.86,8 5.5,8M18.5,8C18.14,8 17.8,8.08 17.5,8.22C17.5,8.31 17.5,8.41 17.5,8.5C17.5,9.7 17.11,10.86 16.38,11.81C16.5,12 16.63,12.15 16.78,12.3C16.94,12.45 17.1,12.58 17.29,12.68C17.65,12.88 18.06,13 18.5,13C18.94,13 19.35,12.88 19.71,12.68C20.47,12.25 21,11.44 21,10.5A2.5,2.5 0 0,0 18.5,8M12,14C9.66,14 5,15.17 5,17.5V19H19V17.5C19,15.17 14.34,14 12,14M4.71,14.55C2.78,14.78 0,15.76 0,17.5V19H3V17.07C3,16.06 3.69,15.22 4.71,14.55M19.29,14.55C20.31,15.22 21,16.06 21,17.07V19H24V17.5C24,15.76 21.22,14.78 19.29,14.55M12,16C13.53,16 15.24,16.5 16.23,17H7.77C8.76,16.5 10.47,16 12,16Z"/>*/}
-                    {/*</svg>*/}
+                <div
+                    className={`
+                        ${styles.top_element}
+                        ${styles.element}
+                        ${active === 'communities' && styles.active}
+                    `}
+                    onClick={handleCommunities}
+                >
                     <img src={communityIcon} alt="community icon"/>
                     <span>COMMUNITIES</span>
-                    {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"*/}
-                    {/*     style={{transform: `rotate(${showCommunity ? "180" : "0"}deg)`}}>*/}
-                    {/*    <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>*/}
-                    {/*</svg>*/}
                     <img src={arrowDownIcon} alt="arrow down icon"/>
                 </div>
                 <ul className={styles.inner_list} style={{maxHeight: showCommunity ? "100vh" : "0"}}>
@@ -141,12 +123,6 @@ export default function Aside() {
             </li>
             {user && !user.isAnonymous && <li>
                 <div className={`${styles.top_element} ${styles.element} ${active === 'setting' && styles.active}`}>
-                    {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">*/}
-                    {/*    <path d="M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z"/>*/}
-                    {/*</svg>*/}
-                    {/*<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">*/}
-                    {/*    <path d="M17,18L12,15.82L7,18V5H17M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z"/>*/}
-                    {/*</svg>*/}
                     <img src={bookmarkIcon} alt="bookmark"/>
                     <span>SAVED</span>
                 </div>
@@ -154,13 +130,13 @@ export default function Aside() {
         <li>
             <div className={`${styles.top_element} ${styles.element} ${active === 'setting' && styles.active}`} onClick={() => handleSpaceRead("course")}>
                 <img src={courseMaterial} alt="settings"/>
-                <span>Courses Material</span>
+                <span>COURSES MATERIAL</span>
             </div>
         </li>
         <li>
             <div className={`${styles.top_element} ${styles.element} ${active === 'setting' && styles.active}`} onClick={() => handleSpaceRead("professor")}>
                 <img src={professorIcon} alt="settings"/>
-                <span>Professors</span>
+                <span>PROFESSORS</span>
             </div>
         </li>
             <li>

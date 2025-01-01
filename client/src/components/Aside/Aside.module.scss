@@ -11,6 +11,7 @@
     font-size: 14px;
     z-index: 2;
     transition: width 0.2s ease;
+    text-wrap: nowrap;
 
     .inner_list {
         padding-inline-start: 10px;
@@ -65,9 +66,12 @@
     }
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1200px) {
     .aside {
         width: 77px;
+        .inner_list {
+            max-height: 0;
+        }
         .element {
             padding: 10px;
             span {
@@ -98,9 +102,3 @@
         }
     }
 }
-
-//@media screen and (max-width: 480px) {
-//    .aside {
-//
-//    }
-//}
