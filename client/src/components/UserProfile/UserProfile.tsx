@@ -1,17 +1,43 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import styles from './UserProfile.module.scss';
+import {useNavigate, useParams} from "react-router-dom";
+import {getUserByUsername} from "../../api.ts";
+
 
 
 const tabs = [
     { label: 'Posts' },
     { label: 'Comments' },
-    { label: 'Saved' },
     { label: 'Liked' },
 ];
 
-export default function UserProfile ({ displayName , username , bio , pfp } : userInfo) {
+export default function UserProfile () {
     // State for the current tab
     const [activeTab, setActiveTab] = useState('Posts');
+    const [user, setUser] = useState<userInfo>();
+    const { username } =  useParams<{ username: string }>();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (username) {
+           getUserByUsername(username).then(async (res) => {
+               console.log(res);
+               const data = await res.json();
+               console.log(data);
+               if (res.status !== 200){
+                   navigate('/error');
+               } else{
+                   setUser({
+                       username: data.username,
+                       displayName: data.displayname,
+                       bio: data.bio,
+                       pfp: data.pfp,
+                       isAnonymous: false,
+                   });
+               }
+            });
+        }
+    }, [username]);
 
     const handleTabClick = (tabLabel: string) => {
         setActiveTab(tabLabel);
@@ -21,21 +47,16 @@ export default function UserProfile ({ displayName , username , bio , pfp } : us
     const getTabContent = (currentTab: string) => {
         switch (currentTab) {
             case 'Posts':
+
                 return (
                     <div className={styles.noPosts}>
-                        <p>{`@${username} hasn't posted yet`}</p>
+                        <p>{`@${user ? user.username : ''} hasn't posted yet`}</p>
                     </div>
                 );
             case 'Comments':
                 return (
                     <div className={styles.noPosts}>
-                        <p>{`@${username} hasn't commented yet`}</p>
-                    </div>
-                );
-            case 'Overview':
-                return (
-                    <div className={styles.overview}>
-                        <p>This is the user’s Overview section.</p>
+                        <p>{`@${user ? user.username : ''} hasn't commented yet`}</p>
                     </div>
                 );
             default:
@@ -51,13 +72,13 @@ export default function UserProfile ({ displayName , username , bio , pfp } : us
         <div className={styles.userProfileContainer}>
             <div className={styles.userHeader}>
                 <div className={styles.userAvatar}>
-                    <div className={styles.avatarIcon} style={{backgroundImage : `url(${pfp})`}} />
+                    <div className={styles.avatarIcon} style={{backgroundImage : `url(${user ? (user.pfp ? user.pfp : '') : ''})`}} />
                 </div>
                 <div className={styles.userInfo}>
-                    <h1 className={styles.displayName}>{displayName}</h1>
-                    <h2 className={styles.username}>@{username}</h2>
+                    <h1 className={styles.displayName}>{user ? user.displayName : ''}</h1>
+                    <h2 className={styles.username}>@{user ? user.username : ''}</h2>
                     <p className={styles.userBio}>
-                        {bio ? bio : ''}
+                        {user ? (user.bio ? user.bio : '') : ''}
                     </p>
                 </div>
                 <button className={styles.editProfileButton}>Edit Profile</button>

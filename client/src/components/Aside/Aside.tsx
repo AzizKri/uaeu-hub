@@ -69,7 +69,7 @@ export default function Aside() {
                 </Link>
             </li>
             <li>
-                <Link to={`/user/`} onClick={() => setActive("profile")}>
+                <Link to={`/user/${user?.username}`} onClick={() => setActive("profile")}>
                     <div className={`${styles.top_element} ${styles.element} ${active === 'profile' && styles.active}`}>
                         <img src={accountIcon} alt="profile icon"/>
                         <span>PROFILE</span>

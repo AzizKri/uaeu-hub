@@ -134,6 +134,14 @@ declare global {
         animated: boolean
     }
 
+    interface requirementErrors {
+        passLengthError: boolean,
+        passLowerError: boolean,
+        passUpperError: boolean,
+        passNumberError: boolean,
+        passSpecialError: boolean,
+    }
+
     interface DocumentMetadata extends GenericMetadata {
 
     }

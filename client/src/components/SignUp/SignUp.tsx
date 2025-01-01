@@ -6,6 +6,7 @@ import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../userSchema.ts";
 import { z } from 'zod';
 import {useUser} from "../../lib/hooks.ts";
+import Requirement from "../Requirement/Requirement.tsx";
 
 export default function SignUp() {
     const navigate = useNavigate();
@@ -19,7 +20,13 @@ export default function SignUp() {
         includeAnon: true
     });
     const [errors, setErrors] = useState<signUpErrors>({});
-
+    const [reqErrors, setReqErrors] = useState<requirementErrors>({
+        passLengthError: true,
+        passLowerError: true,
+        passUpperError: true,
+        passNumberError: true,
+        passSpecialError: true,
+    });
     const [showPopup, setShowPopup] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [passwordShown, setPasswordShown] = useState<boolean>(false);
@@ -27,6 +34,23 @@ export default function SignUp() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
+        if (id == "password") {
+            checkRequirements(value);
+        }
+    };
+
+    const checkRequirements = (password : string)=> {
+        const upperCasePattern = /[A-Z]/;
+        const lowerCasePattern = /[a-z]/;
+        const numberPattern = /\d/;
+        const specialPattern = /[^a-zA-Z0-9]/;
+        setReqErrors({
+            passLengthError: password.length < 8,
+            passLowerError: !lowerCasePattern.test(password),
+            passUpperError: !upperCasePattern.test(password),
+            passNumberError: !numberPattern.test(password),
+            passSpecialError: !specialPattern.test(password),
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -268,6 +292,11 @@ export default function SignUp() {
                                     {errors.password}
                                 </small>
                             )}
+                            <Requirement text={"Password must be at least 8 characters long"} error={reqErrors.passLengthError} />
+                            <Requirement text={"Password must contain at least one uppercase letter"} error={reqErrors.passUpperError} />
+                            <Requirement text={"Password must contain at least one lowercase letter"} error={reqErrors.passLowerError} />
+                            <Requirement text={"Password must contain at least one number"} error={reqErrors.passNumberError} />
+                            <Requirement text={"Password must contain at least one special character"} error={reqErrors.passSpecialError} />
                         </div>
                         <button
                             type="submit"

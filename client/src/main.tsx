@@ -33,8 +33,8 @@ const router = createBrowserRouter([
                 element: <LoadingImage />
             },
             {
-                path: '/user',
-                element: <UserProfile displayName={"Test"} username={"test"} bio={"my bio"} pfp={"test.png"} isAnonymous={false}/>
+                path: '/user/:username',
+                element: <UserProfile />
             },
             {
                 // TODO: use same approach used in post
