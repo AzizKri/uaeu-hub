@@ -1,25 +1,22 @@
-// const base = import.meta.env.VITE_API_URL || 'https://api.uaeu.chat';
-const base = 'https://api.uaeu.chat';
+const base = import.meta.env.VITE_API_URL || 'https://api.uaeu.chat';
 
 /* Authentication */
 export async function signUp(formData: { displayname: string, email: string, username: string, password: string }) {
-    const data = await fetch(base + `/user/signup`, {
+    return await fetch(base + `/user/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
         credentials: 'include'
     });
-    return data;
 }
 
 export async function login(formData: { identifier: string, password: string }) {
-    const data = await fetch(base + `/user/login`, {
+    return await fetch(base + `/user/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
         credentials: 'include'
     });
-    return data;
 }
 
 export async function logout() {
@@ -44,27 +41,21 @@ export async function isAnon() {
 
 // Returns current user data
 export async function getCurrentUser() {
-    return await fetch(base + `/user`, {credentials: 'include'});
+    return await fetch(base + `/user`, { credentials: 'include' });
 }
 
-// Returns the liked posts data for the current user
-export async function getLikesCurrentUser() {
-    const request = await fetch(base + `/user/likes`, { credentials: 'include' });
-    return await request.json();
+// Returns the like data for the current user
+export async function getLikesCurrentUser(type: 'posts' | 'comments' | 'subcomments' = 'posts') {
+    const request = await fetch(base + `/user/likes?type=${type}`, { credentials: 'include' });
+    return { status: request.status, data: await request.json() };
 }
 
 /* Users */
 
-// Get user data by session key
+// Get user data by username
 export async function getUserByUsername(username: string) {
     const request = await fetch(base + `/user/${username}`, { credentials: 'include' });
-    return await request;
-}
-
-// Get posts sent by user (username)
-export async function getPostsByUser(username: string, page?: number) {
-    const request = await fetch(base + `/post/user/${username}/${page || 0}`, { credentials: 'include' });
-    return await request.json();
+    return { status: request.status, data: await request.json() };
 }
 
 /* Posts */
@@ -87,30 +78,51 @@ export async function createPost(content: string, attachment?: string) {
 }
 
 // Get latest posts
-export async function getLatestPosts(page?: number) {
-    const request = await fetch(base + `/post/latest/${page || 0}`, { credentials: 'include' });
-    return await request.json();
+export async function getLatestPosts(page: number = 0) {
+    const request = await fetch(base + `/post/latest?page=${page}`, { credentials: 'include' });
+    return { status: request.status, data: await request.json() };
+}
+
+// Get best posts
+export async function getBestPosts(page: number = 0) {
+    const request = await fetch(base + `/post/best?page=${page}`, { credentials: 'include' });
+    return { status: request.status, data: await request.json() };
 }
 
 // Search post by query
 export async function searchPosts(query: string) {
-    const request = await fetch(base + `/post/search/${query}`, { credentials: 'include' });
+    const request = await fetch(base + `/post/search?query=${query}`, { credentials: 'include' });
     if (request.status === 400) {
         return { results: [] };
     }
-    return await request.json();
+    return { status: request.status, data: await request.json() };
 }
 
 // Get post by ID
 export async function getPostByID(id: number) {
     const request = await fetch(base + `/post/${id}`, { credentials: 'include' });
-    return await request.json();
+    return { status: request.status, data: await request.json() };
+}
+
+// Get posts sent by user (username)
+export async function getPostsByUser(username: string, page: number = 0) {
+    const request = await fetch(base + `/post/user/${username}?page=${page}`, { credentials: 'include' });
+    return { status: request.status, data: await request.json() };
 }
 
 // Toggle like on post by its ID
 export async function toggleLike(post: number) {
     const request = await fetch(base + `/post/like/${post}`, {
         method: 'POST',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Delete post by its ID
+export async function deletePost(post: number) {
+    const request = await fetch(base + `/post/${post}`, {
+        method: 'DELETE',
         credentials: 'include'
     });
     return request.status;
@@ -214,10 +226,204 @@ export async function comment(post: number, content: string, attachment?: string
 }
 
 // Get comments on a post by its ID
-export async function getCommentsOnPost(post: number, page: number | 0) {
-    const request = await fetch(base + `/comment/${post}/${page}`, {
+export async function getCommentsOnPost(post: number, page: number = 0) {
+    const request = await fetch(base + `/comment/${post}?page=${page}`, {
         method: 'GET',
         credentials: 'include'
     });
-    return await request.json();
+    return { status: request.status, data: await request.json() };
+}
+
+// Like/unlike a comment by its ID
+export async function likeComment(comment: number) {
+    const request = await fetch(base + `/comment/like/${comment}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Delete comment by its ID
+export async function deleteComment(comment: number) {
+    const request = await fetch(base + `/comment/${comment}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+/* Subcomments */
+
+// Subcomment on comment
+export async function subcomment(comment: number, content: string, attachment?: string) {
+    const formData = new FormData();
+    formData.append('commentId', comment.toString());
+    formData.append('content', content);
+
+    if (attachment) {
+        formData.append('filename', attachment);
+    }
+
+    const request = await fetch(base + `/subcomment`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Get subcomments on a comment by its ID
+export async function getSubcommentsOnComment(comment: number, page: number = 0) {
+    const request = await fetch(base + `/subcomment/${comment}?page=${page}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
+// Like/unlike a subcomment by its ID
+export async function likeSubcomment(subcomment: number) {
+    const request = await fetch(base + `/subcomment/like/${subcomment}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Delete subcomment by its ID
+export async function deleteSubcomment(subcomment: number) {
+    const request = await fetch(base + `/subcomment/${subcomment}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+/* Communities */
+
+// Create a community
+export async function createCommunity(name: string, description: string, tags: string[], icon?: string) {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('desc', description);
+    formData.append('tags', tags.join(','));
+
+    if (icon) {
+        formData.append('icon', icon);
+    }
+
+    const request = await fetch(base + `/community`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Get communities sorted by latest, activity, or members
+export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', page: number = 0) {
+    const request = await fetch(base + `/community/getCommunities?sortBy=${sortBy}&page=${page}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
+// Get community by ID
+export async function getCommunityById(id: number) {
+    const request = await fetch(base + `/community/${id}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
+// Get community by name
+export async function getCommunityByName(name: string) {
+    const request = await fetch(base + `/community/${name}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
+// Edit community by ID
+export async function editCommunity(id: number, name: string, description: string, icon: string, tags: string[]) {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('icon', icon);
+    formData.append('tags', tags.join(','));
+
+    const request = await fetch(base + `/community/${id}`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Delete community by ID
+export async function deleteCommunity(id: number) {
+    const request = await fetch(base + `/community/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Join community by ID
+export async function joinCommunity(id: number) {
+    const request = await fetch(base + `/community/join/${id}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Leave community by ID
+export async function leaveCommunity(id: number) {
+    const request = await fetch(base + `/community/leave/${id}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Get members of community by ID
+export async function getMembersOfCommunity(id: number) {
+    const request = await fetch(base + `/community/getMembers/${id}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
+// TODO - Redo into inviteMemberToCommunity
+// Add member to community
+export async function addMemberToCommunity(id: number, userId: number) {
+    const request = await fetch(base + `/community/addMember/${id}/${userId}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+// Remove member from community
+export async function removeMemberFromCommunity(id: number, userId: number) {
+    const request = await fetch(base + `/community/removeMember/${id}/${userId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    });
+    return request.status;
+}
+
+/* Tags */
+
+// Get All Tags
+export async function getTags() {
+    const request = await fetch(base + `/tags`, {
+        method: 'GET'
+    });
+    return { status: request.status, data: await request.json() };
 }
