@@ -5,6 +5,13 @@
     white-space: pre-wrap;
 }
 
+.show_more {
+    color: #808080ad;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
 .image {
     overflow: hidden;
     max-height: 350px;
