@@ -11,7 +11,7 @@ import homeIcon from "../../assets/home-outline-thin.svg"
 import logoutIcon from "../../assets/logout-thin.svg"
 import courseMaterial from '../../assets/course-material.svg'
 import professorIcon from '../../assets/professor.svg'
-import {logout} from "../../api.ts";
+import { createCommunity, joinCommunity, leaveCommunity, logout } from '../../api.ts';
 import {useUser} from "../../lib/hooks.ts";
 import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
 import {Link, useNavigate} from "react-router-dom";
@@ -53,6 +53,36 @@ export default function Aside() {
     }
     const handleRedirect= () => {
         window.open(`https://spaceread.net/${selected}`, "_blank")
+    }
+
+    // TEST FUNCTION
+    const handleCreate = async () => {
+        const response = await createCommunity("General", "This is the general community", ["UAEU", "Study", "Gaming", "Hobbies", "Jobs"])
+        if (response == 200) {
+            console.log("Community created")
+        } else {
+            console.log("Error creating community", response)
+        }
+    }
+
+    // TEST FUNCTION
+    const handleJoin = async () => {
+        const response = await joinCommunity(6)
+        if (response == 200) {
+            console.log("Community joined")
+        } else {
+            console.log("Error joining community", response)
+        }
+    }
+
+    // TEST FUNCTION
+    const handleLeave = async () => {
+        const response = await leaveCommunity(6)
+        if (response == 200) {
+            console.log("Community joined")
+        } else {
+            console.log("Error joining community", response)
+        }
     }
 
     return (
@@ -103,7 +133,7 @@ export default function Aside() {
                         </Link>
                     </li>
                     <li>
-                        <div className={`${styles.inner_element} ${styles.element}`}>
+                        <div className={`${styles.inner_element} ${styles.element}`} onClick={handleCreate}>
                             {/*plus icon*/}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
