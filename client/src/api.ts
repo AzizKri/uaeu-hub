@@ -61,9 +61,10 @@ export async function getUserByUsername(username: string) {
 /* Posts */
 
 // Create post
-export async function createPost(content: string, attachment?: string) {
+export async function createPost(content: string, communityId: number = 0, attachment?: string) {
     const formData = new FormData();
     formData.append('content', content);
+    formData.append('communityId', communityId.toString());
 
     if (attachment) {
         formData.append('filename', attachment);
