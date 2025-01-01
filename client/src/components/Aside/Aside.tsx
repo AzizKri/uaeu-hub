@@ -11,7 +11,7 @@ import homeIcon from "../../assets/home-outline-thin.svg"
 import logoutIcon from "../../assets/logout-thin.svg"
 import courseMaterial from '../../assets/course-material.svg'
 import professorIcon from '../../assets/professor.svg'
-import { createCommunity, joinCommunity, leaveCommunity, logout } from '../../api.ts';
+import { createCommunity, logout } from '../../api.ts';
 import {useUser} from "../../lib/hooks.ts";
 import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
 import {Link, useNavigate} from "react-router-dom";
@@ -66,24 +66,24 @@ export default function Aside() {
     }
 
     // TEST FUNCTION
-    const handleJoin = async () => {
-        const response = await joinCommunity(6)
-        if (response == 200) {
-            console.log("Community joined")
-        } else {
-            console.log("Error joining community", response)
-        }
-    }
-
-    // TEST FUNCTION
-    const handleLeave = async () => {
-        const response = await leaveCommunity(6)
-        if (response == 200) {
-            console.log("Community joined")
-        } else {
-            console.log("Error joining community", response)
-        }
-    }
+    // const handleJoin = async () => {
+    //     const response = await joinCommunity(6)
+    //     if (response == 200) {
+    //         console.log("Community joined")
+    //     } else {
+    //         console.log("Error joining community", response)
+    //     }
+    // }
+    //
+    // // TEST FUNCTION
+    // const handleLeave = async () => {
+    //     const response = await leaveCommunity(6)
+    //     if (response == 200) {
+    //         console.log("Community joined")
+    //     } else {
+    //         console.log("Error joining community", response)
+    //     }
+    // }
 
     return (
         <ul

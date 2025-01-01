@@ -20,7 +20,7 @@ export default function Post({postInfo, topCommentInfo}: PostAll) {
     useEffect(() => {
         if (postInfo.type === "post-page") {
             getCommentsOnPost(postInfo.id, 0).then((res) => {
-                setComments(res.results);
+                setComments(res.data);
             })
         }
     }, [postInfo.id, postInfo.type]);

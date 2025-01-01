@@ -27,7 +27,7 @@ export default function UserProfile () {
         if (username) {
            getUserByUsername(username).then(async (res) => {
                console.log(res);
-               const data = await res.json();
+               const data = res.data;
                console.log(data);
                if (res.status !== 200){
                    navigate('/error');
@@ -54,12 +54,12 @@ export default function UserProfile () {
         try {
             const res = await getPostsByUser(user.username, page);
             console.log("user psots results", res);
-            if (res.results.length == 0) {
+            if (res.data.length == 0) {
                 return;
             }
             setPage((prevPage) => prevPage + 1);
             const fetchedPosts: React.ReactElement[] = []
-            for (const post of res.results) {
+            for (const post of res.data) {
                 // console.log(post);
                 const postInfo: PostInfo = {
                     id: post.id,
