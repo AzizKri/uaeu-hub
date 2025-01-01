@@ -16,13 +16,13 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
         try {
             const res = await getLatestPosts(page);
             // console.log(res);
-            if (res.results.length == 0) {
+            if (res.data.length == 0) {
                 setNoMorePosts(true);
                 return;
             }
             setPage((prevPage) => prevPage + 1);
             const fetchedPosts: React.ReactElement[] = []
-            for (const post of res.results) {
+            for (const post of res.data) {
                 // console.log(post);
                 const postInfo: PostInfo = {
                     id: post.id,

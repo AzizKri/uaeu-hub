@@ -10,7 +10,7 @@ export default function Search() {
 
     const fetchData = (value: string) => {
         searchPosts(value).then((res) => {
-            setResults(res.results);
+            setResults(res.data);
         });
     };
 

@@ -12,7 +12,7 @@ export default function PostPage() {
     useEffect(() => {
         if (postId) {
             getPostByID(parseInt(postId, 10)).then((res) => {
-                const post = res.results[0];
+                const post = res.data[0];
                 const postInfo: PostInfo = {
                     id: post.id,
                     content: post.content,

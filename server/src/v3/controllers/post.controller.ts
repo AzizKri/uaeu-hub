@@ -8,6 +8,7 @@ export async function createPost(c: Context) {
     const env: Env = c.env;
     const formData = await c.req.parseBody();
     const content = formData['content'] as string;
+    const communityId = Number(formData['communityId']);
     const fileName: string | null = formData['filename'] as string;
     const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
@@ -21,21 +22,53 @@ export async function createPost(c: Context) {
         // Get user from session key
         const userid = await getUserFromSessionKey(c, sessionKey, true);
 
-        // Check if we have a file & insert into DB
-        if (fileName) {
-            await env.DB.prepare(
-                `INSERT INTO post (author_id, content, attachment, post_time)
-                 VALUES (?, ?, ?, ?)`
-            ).bind(userid, trimmedContent, fileName, Date.now()).run();
-        } else {
-            await env.DB.prepare(
-                `INSERT INTO post (author_id, content, post_time)
-                 VALUES (?, ?, ?)`
-            ).bind(userid, trimmedContent, Date.now()).run();
+        // Check if user is in community
+        if (communityId != 0) {
+            console.log(userid, communityId);
+            const inCommunity = await env.DB.prepare(`
+                SELECT *
+                FROM user_community
+                WHERE user_id = ?
+                  AND community_id = ?
+            `).bind(userid, communityId).first();
+
+            if (!inCommunity) return c.text('User not in community', { status: 401 });
         }
 
-        return c.text('Post created', { status: 201 });
+        // Check if we have a file & insert into DB
+        if (fileName) {
+            const postId = await env.DB.prepare(
+                `INSERT INTO post (author_id, content, attachment, post_time, community_id)
+                 VALUES (?, ?, ?, ?, ?)
+                 RETURNING id`
+            ).bind(userid, trimmedContent, fileName, Date.now(), communityId || 0).first<PostView>();
+
+            // Get the full post data to return
+            const post = await env.DB.prepare(`
+                SELECT *
+                FROM post_view
+                WHERE id = ?
+            `).bind(postId!.id).first<PostView>();
+
+            return c.json(post, { status: 201 });
+        } else {
+            const postId = await env.DB.prepare(
+                `INSERT INTO post (author_id, content, post_time, community_id)
+                 VALUES (?, ?, ?, ?)
+                 RETURNING id`
+            ).bind(userid, trimmedContent, Date.now(), communityId || 0).first<PostView>();
+
+            // Get the full post data to return
+            const post = await env.DB.prepare(`
+                SELECT *
+                FROM post_view
+                WHERE id = ?
+            `).bind(postId!.id).first<PostView>();
+
+            return c.json(post, { status: 201 });
+        }
     } catch (e) {
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -43,7 +76,7 @@ export async function createPost(c: Context) {
 // api.uaeu.chat/post/latest/:page?
 export async function getLatestPosts(c: Context) {
     const env: Env = c.env;
-    const page = c.req.param('page') ? Number(c.req.param('page')) : 0;
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
     const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     try {
@@ -56,19 +89,19 @@ export async function getLatestPosts(c: Context) {
                 `SELECT pv.*,
                         CASE
                             WHEN tc.id IS NULL THEN NULL
-                        ELSE
-                            JSON_OBJECT(
-                                'id', tc.id,
-                                'author_id', tc.author_id,
-                                'author', tc.author,
-                                'pfp', tc.pfp,
-                                'displayname', tc.displayname,
-                                'content', tc.content,
-                                'post_time', tc.post_time,
-                                'attachment', tc.attachment,
-                                'like_count', tc.like_count,
-                                'comment_count', tc.comment_count
-                            ) END AS top_comment
+                            ELSE
+                                JSON_OBJECT(
+                                    'id', tc.id,
+                                    'author_id', tc.author_id,
+                                    'author', tc.author,
+                                    'pfp', tc.pfp,
+                                    'displayname', tc.displayname,
+                                    'content', tc.content,
+                                    'post_time', tc.post_time,
+                                    'attachment', tc.attachment,
+                                    'like_count', tc.like_count,
+                                    'comment_count', tc.comment_count
+                                ) END AS top_comment
                  FROM post_view AS pv
                           LEFT JOIN (SELECT c.id,
                                             c.parent_post_id,
@@ -82,12 +115,13 @@ export async function getLatestPosts(c: Context) {
                                             c.like_count,
                                             c.comment_count
                                      FROM comment_view AS c
-                                     ORDER BY c.like_count DESC, c.post_time LIMIT 1) AS tc ON tc.parent_post_id = pv.id
+                                     ORDER BY c.like_count DESC, c.post_time
+                                     LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
             ).bind(page * 10).all<PostView>();
 
-            return c.json(posts, { status: 200 });
+            return c.json(posts.results, { status: 200 });
         } else {
             // Returning user, show posts with likes
             const posts = await env.DB.prepare(
@@ -130,7 +164,7 @@ export async function getLatestPosts(c: Context) {
                  LIMIT 10 OFFSET ?`
             ).bind(userid, page * 10).all<PostView>();
 
-            return c.json(posts, { status: 200 });
+            return c.json(posts.results, { status: 200 });
         }
     } catch (e) {
         console.log(e);
@@ -141,7 +175,7 @@ export async function getLatestPosts(c: Context) {
 // api.uaeu.chat/post/best/:page?
 export async function getBestPosts(c: Context) {
     const env: Env = c.env;
-    const page = c.req.param('page') ? Number(c.req.param('page')) : 0;
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
     const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     try {
@@ -190,7 +224,7 @@ export async function getBestPosts(c: Context) {
                  LIMIT 10 OFFSET ?`
             ).bind(page * 10).all<PostView>();
 
-            return c.json(posts, { status: 200 });
+            return c.json(posts.results, { status: 200 });
         } else {
             // Returning user, show posts with likes
             const posts = await env.DB.prepare(
@@ -237,7 +271,7 @@ export async function getBestPosts(c: Context) {
                  LIMIT 10 OFFSET ?`
             ).bind(userid, page * 10).all<PostView>();
 
-            return c.json(posts, { status: 200 });
+            return c.json(posts.results, { status: 200 });
         }
     } catch (e) {
         console.log(e);
@@ -245,11 +279,17 @@ export async function getBestPosts(c: Context) {
     }
 }
 
-// api.uaeu.chat/post/user/:username/:page?
-// api.uaeu.chat/post/user/:id/:page?
+export async function getPostsFromMyCommunities(c: Context) {
+    // TODO
+    return c.text('Not implemented', { status: 501 });
+}
+
+// api.uaeu.chat/post/user/:username?page=0
+// api.uaeu.chat/post/user/:id?page=0
 export async function getPostsByUser(c: Context) {
     const env: Env = c.env;
-    const { user, page } = c.req.param();
+    const { user } = c.req.param();
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
     const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Check for user param
@@ -264,12 +304,13 @@ export async function getPostsByUser(c: Context) {
             const results = await env.DB.prepare(
                 `SELECT *
                  FROM post_view AS pv
-                 WHERE pv.author = ? OR pv.author_id = ?
+                 WHERE pv.author = ?
+                    OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET (? * 10)`
             ).bind(user, Number(user), page || 0).all<PostView>();
 
-            return c.json(results, { status: 200 });
+            return c.json(results.results, { status: 200 });
         } else {
             // Returning user, show posts with likes
             const results = await env.DB.prepare(
@@ -279,12 +320,13 @@ export async function getPostsByUser(c: Context) {
                                 WHERE post_like.post_id = pv.id
                                   AND post_like.user_id = ?) AS liked
                  FROM post_view AS pv
-                 WHERE pv.author = ? OR pv.author_id = ?
+                 WHERE pv.author = ?
+                    OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET (? * 10)`
             ).bind(userid, user, Number(user), page || 0).all<PostView>();
 
-            return c.json(results, { status: 200 });
+            return c.json(results.results, { status: 200 });
         }
     } catch (e) {
         console.error(e);
@@ -295,7 +337,7 @@ export async function getPostsByUser(c: Context) {
 // api.uaeu.chat/post/search/:query
 export async function searchPosts(c: Context) {
     const env: Env = c.env;
-    const query = c.req.param('query');
+    const query = c.req.query('query');
 
     // Make sure query is at least 3 characters
     if (!query || query.length < 3) return c.text('Query too short', { status: 400 });
@@ -311,7 +353,7 @@ export async function searchPosts(c: Context) {
              LIMIT 10`
         ).bind(query?.concat('*')).all<PostView>();
 
-        return c.json(results);
+        return c.json(results.results, 200);
     } catch (e) {
         console.error(e);
         return c.text('Internal Server Error', { status: 500 });
@@ -334,7 +376,7 @@ export async function getPostByID(c: Context) {
              WHERE post.id = ?`
         ).bind(id).all<PostView>();
 
-        return c.json(results);
+        return c.json(results.results, 200);
     } catch (e) {
         console.error(e);
         return c.text('Internal Server Error', { status: 500 });

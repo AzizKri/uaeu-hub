@@ -5,9 +5,9 @@ PRAGMA foreign_keys = on;
 CREATE TABLE IF NOT EXISTS user
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    username       TEXT    NOT NULL UNIQUE,
+    username       TEXT    NOT NULL UNIQUE COLLATE NOCASE,
     displayname    TEXT,
-    email          TEXT UNIQUE,
+    email          TEXT UNIQUE COLLATE NOCASE,
     email_verified BOOLEAN          DEFAULT FALSE,
     auth_provider  TEXT    NOT NULL DEFAULT 'local',
     password       TEXT,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS session
 CREATE TABLE IF NOT EXISTS community
 (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    name         TEXT    NOT NULL UNIQUE,
+    name         TEXT    NOT NULL UNIQUE COLLATE NOCASE,
     description  TEXT,
     icon         TEXT,
     verified     BOOLEAN NOT NULL DEFAULT FALSE,
@@ -99,6 +99,24 @@ CREATE TABLE IF NOT EXISTS user_community
     FOREIGN KEY (role_id) REFERENCES community_role (id)
 );
 
+/* Community Tag Table */
+
+CREATE TABLE IF NOT EXISTS tag
+(
+    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE COLLATE NOCASE
+);
+
+/* Community Tag Relationship Table */
+
+CREATE TABLE IF NOT EXISTS community_tag
+(
+    community_id INTEGER NOT NULL,
+    tag_id       INTEGER NOT NULL,
+    FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tag (id)
+);
+
 /* Badge Table */
 
 CREATE TABLE IF NOT EXISTS badge
@@ -140,7 +158,7 @@ CREATE TABLE IF NOT EXISTS post
 (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     author_id     INTEGER NOT NULL DEFAULT -1,
-    community_id  INTEGER,
+    community_id  INTEGER NOT NULL DEFAULT 0, /* General Community */
     content       TEXT    NOT NULL,
     post_time     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     attachment    TEXT,
@@ -253,6 +271,15 @@ CREATE TABLE IF NOT EXISTS comment_like
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS subcomment_like
+(
+    subcomment_id INTEGER NOT NULL,
+    user_id       TEXT    NOT NULL,
+    PRIMARY KEY (subcomment_id, user_id),
+    FOREIGN KEY (subcomment_id) REFERENCES subcomment (id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
 /* Full Text Search Table */
 
 CREATE VIRTUAL TABLE posts_fts USING fts5
@@ -267,21 +294,25 @@ CREATE VIRTUAL TABLE posts_fts USING fts5
 /* Indexes */
 
 CREATE INDEX idx_user_username ON user (username);
+CREATE INDEX idx_user_email ON user (email);
 
 CREATE INDEX idx_post_author_id ON post (author_id);
+CREATE INDEX idx_post_community_id ON post (community_id);
+
+CREATE INDEX idx_community_name ON community (name);
+CREATE INDEX idx_community_role_community_id ON community_role (community_id);
+
+CREATE INDEX idx_tag_name ON tag (name);
 
 CREATE INDEX idx_comment_author_id ON comment (author_id);
 CREATE INDEX idx_comment_parent_post_id ON comment (parent_post_id);
 
-CREATE INDEX idx_post_likes_post_id ON post_like (post_id);
-CREATE INDEX idx_post_likes_user ON post_like (user_id);
-
-CREATE INDEX idx_comment_likes_comment_id ON comment_like (comment_id);
-CREATE INDEX idx_comment_likes_user ON comment_like (user_id);
-
-CREATE INDEX idx_community_name ON community (name);
+CREATE INDEX idx_subcomment_author_id ON subcomment (author_id);
+CREATE INDEX idx_subcomment_parent_comment_id ON subcomment (parent_comment_id);
 
 /* Triggers */
+
+/* Post triggers */
 
 CREATE TRIGGER post_created
     AFTER INSERT
@@ -317,6 +348,26 @@ BEGIN
     SET like_count = like_count - 1
     WHERE id = old.post_id;
 END;
+
+CREATE TRIGGER increment_post_comment_count
+    AFTER INSERT
+    ON comment
+BEGIN
+    UPDATE post
+    SET comment_count = comment_count + 1
+    WHERE id = new.parent_post_id;
+END;
+
+CREATE TRIGGER decrement_post_comment_count
+    AFTER DELETE
+    ON comment
+BEGIN
+    UPDATE post
+    SET comment_count = comment_count - 1
+    WHERE id = old.parent_post_id;
+END;
+
+/* Comment triggers */
 
 CREATE TRIGGER increment_comment_like_count
     AFTER INSERT
@@ -354,23 +405,27 @@ BEGIN
     WHERE id = old.parent_comment_id;
 END;
 
-CREATE TRIGGER increment_post_comment_count
+/* Subcomment triggers */
+
+CREATE TRIGGER increment_subcomment_like_count
     AFTER INSERT
-    ON comment
+    ON subcomment_like
 BEGIN
-    UPDATE post
-    SET comment_count = comment_count + 1
-    WHERE id = new.parent_post_id;
+    UPDATE subcomment
+    SET like_count = like_count + 1
+    WHERE id = new.subcomment_id;
 END;
 
-CREATE TRIGGER decrement_post_comment_count
+CREATE TRIGGER decrement_subcomment_like_count
     AFTER DELETE
-    ON comment
+    ON subcomment_like
 BEGIN
-    UPDATE post
-    SET comment_count = comment_count - 1
-    WHERE id = old.parent_post_id;
+    UPDATE subcomment
+    SET like_count = like_count - 1
+    WHERE id = old.subcomment_id;
 END;
+
+/* Community triggers */
 
 CREATE TRIGGER increment_community_member_count
     AFTER INSERT

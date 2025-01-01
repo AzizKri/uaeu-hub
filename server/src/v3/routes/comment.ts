@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { JwtVariables } from 'hono/jwt';
 import { authMiddleware } from '../util/middleware';
-import { comment, getCommentsOnPost } from '../controllers/comment.controller';
+import { comment, deleteComment, getCommentsOnPost, likeComment } from '../controllers/comment.controller';
 
 type Variables = JwtVariables
 
@@ -10,7 +10,8 @@ const app = new Hono<{ Bindings: Env, Variables: Variables }>();
 app.use('/', authMiddleware);
 
 app.post('/', (c) => comment(c));
-app.get('/:postid/:page', (c) => getCommentsOnPost(c));
-app.delete('/');
+app.post('/like/:commentId', (c) => likeComment(c));
+app.get('/:postId', (c) => getCommentsOnPost(c));
+app.delete('/:commentId', (c) => deleteComment(c));
 
 export default app;
