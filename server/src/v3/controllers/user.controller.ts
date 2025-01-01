@@ -7,7 +7,6 @@ import { userSchema } from '../util/validationSchemas';
 
 /* User Authentication */
 
-// api.uaeu.chat/user/isUser
 // Simple check if this user has a session key or not
 export async function isUser(c: Context) {
     const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
@@ -15,7 +14,6 @@ export async function isUser(c: Context) {
     return c.json({ message: 'Authorized', status: 200 }, 200);
 }
 
-// api.uaeu.chat/user/isAnon
 // Check if this user is anonymous
 export async function isAnon(c: Context) {
     const env: Env = c.env;
@@ -47,7 +45,6 @@ export async function isAnon(c: Context) {
     }
 }
 
-// api.uaeu.chat/user/signup
 export async function signup(c: Context) {
     const env: Env = c.env;
     const { displayname, email, username, password, includeAnon } = await c.req.json();
@@ -145,7 +142,6 @@ export async function signup(c: Context) {
     }
 }
 
-// api.uaeu.chat/user/anon
 export async function anonSignup(c: Context) {
     const env: Env = c.env;
 
@@ -196,9 +192,8 @@ export async function anonSignup(c: Context) {
 
 export async function login(c: Context) {
     const env: Env = c.env;
-    const { identifier, password } = await c.req.json();
+    const { identifier, password }: { identifier: string, password: string } = await c.req.json();
 
-    console.log(identifier, password);
     // Check if username or email is provided
     if (!identifier || !password) {
         return c.json({ message: 'Missing required fields', status: 400 }, 400);
@@ -206,24 +201,11 @@ export async function login(c: Context) {
 
     // Check if username/email exists
     const user = await env.DB.prepare(`
-            SELECT id, username, password, salt
-            FROM user
-            WHERE username = ? OR email = ?
-        `).bind(identifier, identifier).first<UserRow>();
-    // let user;
-    // if (username) {
-    //     user = await env.DB.prepare(`
-    //         SELECT id, username, password, salt
-    //         FROM user
-    //         WHERE username = ?
-    //     `).bind(username).first<UserRow>();
-    // } else if (email) {
-    //     user = await env.DB.prepare(`
-    //         SELECT id, email, password, salt
-    //         FROM user
-    //         WHERE email = ?
-    //     `).bind(email).first<UserRow>();
-    // }
+        SELECT id, username, email, password, salt
+        FROM user
+        WHERE username = ?
+           OR email = ?
+    `).bind(identifier.toLowerCase(), identifier).first<UserRow>();
     if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
 
     // Verify password
@@ -233,24 +215,10 @@ export async function login(c: Context) {
     // Get user data to send
     try {
         const userData = await env.DB.prepare(`
-                SELECT *
-                FROM user_view
-                WHERE username = ? OR id = ?
-            `).bind(identifier, identifier).first<UserView>();
-        // let userData;
-        // if (username) {
-        //     userData = await env.DB.prepare(`
-        //         SELECT *
-        //         FROM user_view
-        //         WHERE username = ?
-        //     `).bind(username).first<UserView>();
-        // } else {
-        //     userData = await env.DB.prepare(`
-        //         SELECT *
-        //         FROM user_view
-        //         WHERE email = ?
-        //     `).bind(email).first<UserView>();
-        // }
+            SELECT *
+            FROM user_view
+            WHERE id = ?
+        `).bind(user.id).first<UserView>();
 
         // Generate session key & hash it
         const PlainSessionKey = crypto.randomUUID();
@@ -283,20 +251,20 @@ export async function logout(c: Context) {
 export async function getUserByUsername(c: Context) {
     // api.uaeu.chat/user/:username
     const env: Env = c.env;
-    const username = c.req.param('username');
+    const username: string = c.req.param('username');
 
     // This is likely impossible but yeah
     if (username === '') return c.text('Bad Request', 400);
 
     try {
         // Get user data
-        const result = await env.DB.prepare(
+        const result: UserView | null = await env.DB.prepare(
             'SELECT * FROM user_view WHERE username = ?'
-        ).bind(username).first<UserView>();
+        ).bind(username.toLowerCase()).first<UserView>();
         // No result found, 404
         if (!result) return c.json({ message: 'User not found', status: 404 }, 404);
         // Result found, return it
-        return c.json(result, { status : 200});
+        return c.json(result, 200);
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
@@ -319,7 +287,76 @@ export async function getUserBySessionKey(c: Context) {
         // User not found, return 404
         if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
         // User found, return it
-        return c.json(user, {status: 200});
+        return c.json(user, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getUserLikesOnPosts(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+
+    try {
+        // Get user ID from session key
+        const userId = await getUserFromSessionKey(c, sessionKey);
+        if (!userId) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+        // Get user likes
+        const likes = await env.DB.prepare(`
+            SELECT post_id
+            FROM post_like
+            WHERE user_id = ?
+        `).bind(userId).all<PostLikeRow>();
+
+        return c.json(likes.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getUserLikesOnComments(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+
+    try {
+        // Get user ID from session key
+        const userId = await getUserFromSessionKey(c, sessionKey);
+        if (!userId) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+        // Get user likes
+        const likes = await env.DB.prepare(`
+            SELECT comment_id
+            FROM comment_like
+            WHERE user_id = ?
+        `).bind(userId).all<CommentLikeRow>();
+
+        return c.json(likes.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getUserLikesOnSubcomments(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+
+    try {
+        // Get user ID from session key
+        const userId = await getUserFromSessionKey(c, sessionKey);
+        if (!userId) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+        // Get user likes
+        const likes = await env.DB.prepare(`
+            SELECT subcomment_id
+            FROM subcomment_like
+            WHERE user_id = ?
+        `).bind(userId).all<SubcommentLikeRow>();
+
+        return c.json(likes.results, { status: 200 });
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
