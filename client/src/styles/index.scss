@@ -42,18 +42,34 @@ a {
 ul {
     list-style: none;
 }
+#overlay {
+    opacity: 0;
+    position: fixed;
+    background-color: rgba(73, 63, 57, 0.35);
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    //z-index: 1;
+    &.active {
+        opacity: 1;
+    }
+}
 
 .main {
     display: grid;
-    grid-template-columns: 250px 720px;
+    grid-template-columns: 250px 600px 300px;
     gap: 15px;
-    width: 1000px;
+    //width: 1000px;
+    width: fit-content;
     height: calc(100vh - 80px);
     margin: 80px auto 0;
 
     .left {
         z-index: 5;
-        transition: max-width 0.2s ease-in-out;
+        transition: transform 0.2s ease-in-out;
 
         .left-overlay {
             opacity: 0;
@@ -67,6 +83,9 @@ ul {
             pointer-events: none;
         }
     }
+    .left-placeholder {
+        display: none;
+    }
 
     .middle {
         //width: 700px;
@@ -74,37 +93,51 @@ ul {
     }
 
     .right {
-        display: none;
+        //display: none;
         //height: 100vh;
-        position: sticky;
-        top: 70px;
+        //position: sticky;
+        //top: 70px;
+        //overflow-y: auto;
     }
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1200px) {
     .main {
-        grid-template-columns: 720px;
-        width: 750px;
-        .left {
-            position: fixed;
-            top: 80px;
-        }
+        grid-template-columns: 77px 600px 300px;
+        //padding-left: 90px;
+        //.left {
+        //    position: fixed;
+        //    top: 80px;
+        //}
         .middle {
-            padding-left: 90px;
+        }
+    }
+}
+
+@media screen and (max-width: 1030px) {
+    .main {
+        grid-template-columns: 77px 600px 250px;
+    }
+}
+
+@media screen and (max-width: 990px) {
+    .main {
+        grid-template-columns: 77px 600px;
+        .right {
+            display: none;
         }
     }
 }
 
 @media screen and (max-width: 768px) {
     .main {
-        grid-template-columns: minmax(300px, 1fr);
-        width: auto;
+        grid-template-columns: 0 minmax(300px, 1fr);
+        gap: 0;
 
         .left {
-            max-width: 0;
-            overflow: hidden;
+            transform: translateX(-250px);
             &.active {
-                max-width: 250px;
+                transform: translateX(10px);
                 .left-overlay {
                     pointer-events: auto;
                     opacity: 1;
