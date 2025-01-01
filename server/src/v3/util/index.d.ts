@@ -57,23 +57,57 @@ type PostLikeRow = {
     created_at: number;
 }
 
+type CommentLikeRow = {
+    post_id: number;
+    user_id: number;
+    created_at: number;
+}
+
+type SubcommentLikeRow = {
+    post_id: number;
+    user_id: number;
+    created_at: number;
+}
+
 type CommentRow = {
     id: number;
     parent_post_id: number;
-    parent_type: string
-    level: number;
     author_id: number;
     content: string;
     post_time: number;
     attachment?: string;
     like_count: number;
+    comment_count: number;
 }
 
 type CommentView = {
     id: number;
     parent_post_id: number;
-    parent_type: string
-    level: number;
+    author_id: number;
+    author: string;
+    pfp?: string;
+    displayname?: string;
+    content: string;
+    post_time: number;
+    like_count: number;
+    comment_count: number;
+    attachment?: string;
+}
+
+type SubcommentRow = {
+    id: number;
+    parent_comment_id: number;
+    author_id: number;
+    author: string;
+    content: string;
+    post_time: number;
+    like_count: number;
+    attachment?: string;
+}
+
+type SubcommentView = {
+    id: number;
+    parent_comment_id: number;
     author_id: number;
     author: string;
     pfp?: string;
@@ -124,6 +158,18 @@ type CommunityRoleRow = {
     read_posts: boolean;
     write_posts: boolean;
     administrator: boolean;
+}
+
+type CommunityMemberRow = {
+    user_id: number;
+    community_id: number;
+    joined_at: number;
+    role_id: number;
+}
+
+type TagRow = {
+    id: number;
+    name: string;
 }
 
 type cookieOptions = {
