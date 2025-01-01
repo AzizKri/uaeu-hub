@@ -21,10 +21,10 @@ app.use('/', authMiddleware, postRateLimitMiddleware);
 app.post('/', (c) => createPost(c));                                // api.uaeu.chat/post
 app.delete('/:id', (c) => deletePost(c));                           // api.uaeu.chat/post/:id
 app.post('/like/:id', (c) => likePost(c));				            // api.uaeu.chat/post/like/:id
-app.get('/latest/:page?', (c) => getLatestPosts(c));				// api.uaeu.chat/post/latest/:page
-app.get('/best/:page?', (c) => getBestPosts(c));				    // api.uaeu.chat/post/best/:page
-app.get('/search/:query', (c) => searchPosts(c));					// api.uaeu.chat/post/search/:query
-app.get('/user/:user/:page?', (c) => getPostsByUser(c));		    // api.uaeu.chat/post/user/:username/:page
+app.get('/latest', (c) => getLatestPosts(c));				// api.uaeu.chat/post/latest/:page
+app.get('/best', (c) => getBestPosts(c));				    // api.uaeu.chat/post/best/:page
+app.get('/search', (c) => searchPosts(c));					// api.uaeu.chat/post/search/:query
+app.get('/user/:user', (c) => getPostsByUser(c));		    // api.uaeu.chat/post/user/:username/:page
 app.get('/:id', (c) => getPostByID(c));								// api.uaeu.chat/post/:id
 
 export default app;
