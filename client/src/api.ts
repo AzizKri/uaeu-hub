@@ -61,7 +61,7 @@ export async function getUserByUsername(username: string) {
 /* Posts */
 
 // Create post
-export async function createPost(content: string, communityId: number = 0, attachment?: string) {
+export async function createPost(content: string, attachment?: string, communityId: number = 0,) {
     const formData = new FormData();
     formData.append('content', content);
     formData.append('communityId', communityId.toString());
