@@ -349,12 +349,12 @@ export async function getCommunityByName(name: string) {
 }
 
 // Edit community by ID
-export async function editCommunity(id: number, name: string, description: string, icon: string, tags: string[]) {
+export async function editCommunity(id: number, name?: string, description?: string, icon?: string, tags?: string[]) {
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description);
-    formData.append('icon', icon);
-    formData.append('tags', tags.join(','));
+    if (name) formData.append('name', name);
+    if (description) formData.append('description', description);
+    if (icon) formData.append('icon', icon);
+    if (tags) formData.append('tags', tags.join(','));
 
     const request = await fetch(base + `/community/${id}`, {
         method: 'POST',
