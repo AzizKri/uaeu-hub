@@ -34,9 +34,14 @@ export default function SignUp() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
-        if (id == "password") {
+        if (id === "password") {
             checkRequirements(value);
         }
+    };
+
+    const handleChangeUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData({ ...formData, [id]: value.toLowerCase() });
     };
 
     const checkRequirements = (password : string)=> {
@@ -199,7 +204,7 @@ export default function SignUp() {
                                     id="username"
                                     placeholder="Username"
                                     value={formData.username}
-                                    onChange={handleChange}
+                                    onChange={handleChangeUsername}
                                     onFocus={() => handleFocus()}
                                 />
                                 {errors.username && (
