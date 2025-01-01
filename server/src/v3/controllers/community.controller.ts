@@ -32,7 +32,7 @@ export async function createCommunity(c: Context) {
             `SELECT id
              FROM community
              WHERE name = ?`
-        ).bind(name.toLowerCase()).first<CommunityRow>();
+        ).bind(name).first<CommunityRow>();
 
         if (exists) return c.text('Community name already taken', { status: 400 });
 
@@ -45,7 +45,7 @@ export async function createCommunity(c: Context) {
             `INSERT INTO community (name, description, icon, tags, created_at)
              VALUES (?, ?, ?, ?, ?)
              RETURNING id`
-        ).bind(name.toLowerCase(), desc, icon || null, tags.join(','), Date.now()).first<CommunityRow>();
+        ).bind(name, desc, icon || null, tags.join(','), Date.now()).first<CommunityRow>();
 
         // Add tags to community
         await Promise.all(tagIds.map(async (tagId) => {
@@ -83,10 +83,31 @@ export async function createCommunity(c: Context) {
     }
 }
 
+export async function communityExists(c: Context) {
+    const env: Env = c.env;
+    const name = c.req.param('name');
+
+    // Check for required fields
+    if (!name) return c.text('No community name provided', { status: 400 });
+
+    try {
+        const exists = await env.DB.prepare(`
+            SELECT 1
+            FROM community
+            WHERE name = ?
+        `).bind(name).first<CommunityRow>();
+
+        return c.json({ exists: !!exists }, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
 export async function getCommunityByName(c: Context) {
     const env: Env = c.env;
     const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
-    const name = c.req.param('name')?.toLowerCase();
+    const name = c.req.param('name');
 
     // Check for required fields
     if (!name) return c.text('No community name provided', { status: 400 });
@@ -609,7 +630,7 @@ export async function editCommunity(c: Context) {
                 `SELECT 1
                  FROM community
                  WHERE name = ?`
-            ).bind(name.toLowerCase()).first<CommunityRow>();
+            ).bind(name).first<CommunityRow>();
             if (exists) return c.text('Community name already taken', { status: 400 });
         }
 
@@ -666,7 +687,7 @@ export async function editCommunity(c: Context) {
                 icon = CASE WHEN ? IS NOT NULL THEN ? ELSE icon END,
                 tags = CASE WHEN ? IS NOT NULL THEN ? ELSE tags END
             WHERE id = ?
-        `).bind(name, name?.toLowerCase(), desc, desc, icon, icon, tags, tags, communityId).run();
+        `).bind(name, name, desc, desc, icon, icon, tags, tags, communityId).run();
 
         return c.text('Community updated', { status: 200 });
     } catch (e) {
