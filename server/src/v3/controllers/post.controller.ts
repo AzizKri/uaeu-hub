@@ -279,6 +279,11 @@ export async function getBestPosts(c: Context) {
     }
 }
 
+export async function getPostsFromMyCommunities(c: Context) {
+    // TODO
+    return c.text('Not implemented', { status: 501 });
+}
+
 // api.uaeu.chat/post/user/:username?page=0
 // api.uaeu.chat/post/user/:id?page=0
 export async function getPostsByUser(c: Context) {
