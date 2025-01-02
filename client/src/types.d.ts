@@ -81,6 +81,8 @@ declare global {
     interface UpdatePostsContextInterface {
         posts: React.ReactElement[];
         updatePosts: (page? : number) => void;
+        deletePost: (postId : number) => void;
+        prependPost: (post: React.ReactElement) => void;
         loading: boolean;
     }
 
