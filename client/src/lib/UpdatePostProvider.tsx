@@ -78,8 +78,18 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
         }
     }
 
+    const prependPost = (post: React.ReactElement) => {
+        setPosts((prev) => [post,...prev]);
+    }
+
+    const deletePost = (postId: number) => {
+        setPosts((prev) => (
+            prev.filter((curr) => curr.key && parseInt(curr.key) !== postId)
+        ));
+    }
+
     return (
-        <UpdatePostsContext.Provider value={{posts, updatePosts, loading}}>
+        <UpdatePostsContext.Provider value={{posts, updatePosts, deletePost, prependPost, loading}}>
             {children}
         </UpdatePostsContext.Provider>
     )

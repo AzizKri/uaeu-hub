@@ -17,21 +17,47 @@ export async function comment(c: Context) {
         // Get user ID from session key
         const userid = await getUserFromSessionKey(c, sessionKey, true);
 
+        let commentId;
         // Check if we have a file & insert into DB
         if (fileName) {
-            await env.DB.prepare(
+            commentId = await env.DB.prepare(
                 `INSERT INTO comment (parent_post_id, author_id, content, attachment)
-                 VALUES (?, ?, ?, ?)`
-            ).bind(postID, userid, content, fileName).run();
+                 VALUES (?, ?, ?, ?)
+                 RETURNING id`
+            ).bind(postID, userid, content, fileName).first();
         } else {
-            await env.DB.prepare(
-                `INSERT INTO comment (parent_post_id, author_id, content)
-                 VALUES (?, ?, ?)`
-            ).bind(postID, userid, content).run();
+            commentId = await env.DB.prepare(`
+                INSERT INTO comment (parent_post_id, author_id, content)
+                VALUES (?, ?, ?)
+                RETURNING id
+            `).bind(postID, userid, content).first();
         }
 
-        return c.text('Comment created', { status: 201 });
+        let comment;
+        // New user? Get without likes
+        if (!userid) {
+            comment = await env.DB.prepare(`
+                SELECT *
+                FROM comment_view
+                WHERE id = ?
+            `).bind(commentId?.id).first<CommentView>();
+        } else {
+            // Returning user? Check if comments are liked
+            comment = await env.DB.prepare(`
+                SELECT cv.*,
+                    CASE
+                        WHEN cl.user_id IS NOT NULL then 1
+                        ELSE 0
+                        END AS liked
+                FROM comment_view cv
+                    LEFT JOIN comment_like cl
+                        ON cv.id = cl.comment_id AND cl.user_id = ?
+                WHERE id = ?
+            `).bind(userid, commentId?.id).first<CommentView>();
+        }
+        return c.json(comment, { status: 200 });
     } catch (e) {
+        console.log("comment error", e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -52,9 +78,9 @@ export async function getCommentsOnPost(c: Context) {
                 `SELECT *
                  FROM comment_view
                  WHERE parent_post_id = ?
-                 ORDER BY like_count DESC
+                 ORDER BY like_count DESC, post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(postID, page).all<CommentView>();
+            ).bind(postID, page).all<CommentView>(); // should be page * 10, but I handled it in the frontend
 
             return c.json(comments.results, { status: 200 });
         } else {
@@ -69,9 +95,9 @@ export async function getCommentsOnPost(c: Context) {
                           LEFT JOIN comment_like cl
                                     ON cv.id = cl.comment_id AND cl.user_id = ?
                  WHERE parent_post_id = ?
-                 ORDER BY like_count DESC
+                 ORDER BY like_count DESC, post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(userid, postID, page).all<CommentView>();
+            ).bind(userid, postID, page).all<CommentView>(); // should be page * 10, but I handled it in the frontend
 
             return c.json(comments.results, { status: 200 });
         }

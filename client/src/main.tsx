@@ -11,7 +11,8 @@ import UserProvider from "./lib/userProvider.tsx";
 import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
 import UserProfile from "./components/UserProfile/UserProfile.tsx";
 import NotFound from './components/NotFound/NotFound.tsx';
-import Community from "./components/Community/Community.tsx";
+import Community from "./components/Communities/Community/Community.tsx";
+import ExploreCommunities from "./components/Communities/ExploreCommunities/ExploreCommunities.tsx"
 
 
 const router = createBrowserRouter([
@@ -53,7 +54,15 @@ const router = createBrowserRouter([
                         memberCount: 5
                     }}
                 />
-            }
+            },
+            {
+                path: '/community/explore',
+                element: <ExploreCommunities />
+            },
+            // {
+            //     path: '/community/:communityId',
+            //     element: <Community />
+            // }
         ]
     },
     {

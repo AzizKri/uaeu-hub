@@ -75,7 +75,7 @@ export async function createPost(content: string, attachment?: string, community
         body: formData,
         credentials: 'include'
     });
-    return request.status;
+    return request.json();
 }
 
 // Get latest posts
@@ -211,7 +211,7 @@ export async function deleteAttachment(filename: string) {
 // Comment on post
 export async function comment(post: number, content: string, attachment?: string) {
     const formData = new FormData();
-    formData.append('postid', post.toString());
+    formData.append('postId', post.toString());
     formData.append('content', content);
 
     if (attachment) {
@@ -223,7 +223,7 @@ export async function comment(post: number, content: string, attachment?: string
         body: formData,
         credentials: 'include'
     });
-    return request.status;
+    return request.json();
 }
 
 // Get comments on a post by its ID

@@ -1,6 +1,6 @@
 import styles from "./Community.module.scss";
-import pfp from "../../assets/community-icon.jpg"
-import {useUpdatePosts} from "../../lib/hooks.ts";
+import pfp from "../../../assets/community-icon.jpg"
+import {useUpdatePosts} from "../../../lib/hooks.ts";
 import {useState} from "react";
 
 export default function Community({info}: {info: CommunityInfo}) {

@@ -12,10 +12,11 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { comment, createPost, uploadAttachment } from "../../api";
+import {comment, createPost, deleteAttachment, uploadAttachment} from "../../api";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 // import { useUpdatePosts } from "../../lib/hooks";
 import LoaderDots from "../LoaderDots/LoaderDots";
+import Post from "../Post/Post.tsx";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
@@ -36,10 +37,14 @@ export default function Editor({
     type,
     parent_id,
     handleSubmit,
+    prependPost,
+    prependComment
 }: {
     type: string;
     parent_id: number | null;
     handleSubmit: (() => void) | null;
+    prependPost?: (stuff: React.ReactElement) => void;
+    prependComment?: (stuff: CommentInfo) => void;
 }): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [uploadState, setUploadState] = useState<UploadState>({
@@ -136,6 +141,7 @@ export default function Editor({
     };
 
     const removeImage = () => {
+        if (typeof uploadState.fileName === "string") deleteAttachment(uploadState.fileName).then(() => console.log("attachment deleted"))
         setUploadState({
             status: "IDLE",
             file: null,
@@ -159,9 +165,52 @@ export default function Editor({
 
             // Submit the post or comment
             if (type === "post") {
-                await createPost(plainText, uploadState.fileName);
+                const post = await createPost(plainText, uploadState.fileName);
+                const postInfo: PostInfo = {
+                    id: post.id,
+                    content: post.content,
+                    authorUsername: post.author,
+                    authorDisplayName: post.displayname,
+                    pfp: post.pfp,
+                    postDate: new Date(post.post_time),
+                    filename: post.attachment,
+                    likeCount: post.like_count,
+                    commentCount: post.comment_count,
+                    type: "post",
+                    liked: post.like,
+                };
+
+                const communityInfo: CommunityInfoSimple = {
+                    name: post.community,
+                    icon: post.community_icon
+                };
+                if (prependPost) prependPost(<Post
+                    key={post.id}
+                    postInfo={postInfo}
+                    topCommentInfo={null}
+                    communityInfo={communityInfo}
+                />);
             } else if ((type === "comment" || type === "reply") && parent_id) {
-                await comment(parent_id, plainText, uploadState.fileName);
+                const res = await comment(parent_id, plainText, uploadState.fileName);
+                if (type === "comment") {
+                    const createdComment = {
+                        attachment: res.attachment,
+                        author: res.author,
+                        authorId: res.author_id,
+                        content: res.content,
+                        displayName: res.display_name,
+                        id: res.id,
+                        level: res.level,
+                        likeCount: res.like_count,
+                        commentCount: res.comment_count,
+                        liked: res.liked,
+                        parentPostId: res.parent_post_id,
+                        parentType: res.parent_id,
+                        pfp: res.pfp,
+                        postTime: res.post_time,
+                    }
+                    if (prependComment) prependComment(createdComment);
+                }
                 if (type === "reply" && handleSubmit) {
                     handleSubmit();
                 }
@@ -179,6 +228,11 @@ export default function Editor({
             setIsSubmitting(false);
         }
     };
+
+    const handleChangeImage = () => {
+        if (typeof uploadState.fileName === "string") deleteAttachment(uploadState.fileName).then(() => console.log("attachment deleted"))
+        imageInputRef.current?.click();
+    }
 
     return (
         <div ref={editorContainerRef} className={styles.editorContainer}>
@@ -214,7 +268,7 @@ export default function Editor({
                     />
                     <div
                         className={styles.changeImage}
-                        onClick={() => imageInputRef.current?.click()}
+                        onClick={handleChangeImage}
                     >
                         change
                     </div>

@@ -4,7 +4,8 @@
     display: grid;
     gap: 5px;
     grid-template-columns: 40px auto;
-    margin-block-end: 10px;
+    padding-block: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.2);
 
     &__profile_pict {
         max-width: 40px;
@@ -31,6 +32,12 @@
 
             &__time {
                 font-size: 0.7rem;
+            }
+
+            &__menu {
+                margin-inline-start: auto;
+                position: relative;
+                cursor: pointer;
             }
         }
 

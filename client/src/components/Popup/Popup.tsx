@@ -3,16 +3,17 @@ import React, {useEffect} from "react";
 
 export default function Popup({children, hidePopUp}: { children: React.ReactNode, hidePopUp: () => void }) {
     useEffect(() => {
-        document.body.style.overflow = "hidden";
+        document.body.style.position = "fixed";
     })
 
-    const handleHidePopup = () => {
-        document.body.style.overflow = "scroll";
+    const handleHidePopup: React.MouseEventHandler = (e) => {
+        e.stopPropagation();
+        document.body.style.position = "static";
         hidePopUp();
     }
 
     return (
-        <div className={styles.dark_background}>
+        <div className={styles.dark_background} onClick={handleHidePopup}>
             <div className={styles.container}>
             <span className={styles.container__cancel} onClick={handleHidePopup}>
                 {/*cancel icon*/}
