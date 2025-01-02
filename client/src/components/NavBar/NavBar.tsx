@@ -1,17 +1,13 @@
 import Search from '../Search/Search.tsx';
 import styles from './NavBar.module.scss';
 import {useUser} from "../../lib/hooks.ts";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {Link} from "react-router-dom";
 import logo from '../../assets/logo-text-2.svg';
 
 export default function NavBar() {
     const {user} = useUser();
     const [zIndex, setZIndex] = useState(4);
-
-    useEffect(() => {
-        console.log("user", user);
-    }, [user]);
 
     const showAside: React.MouseEventHandler<HTMLDivElement> = () => {
         const left = document.getElementById("left");
