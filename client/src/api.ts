@@ -90,6 +90,18 @@ export async function getBestPosts(page: number = 0) {
     return { status: request.status, data: await request.json() };
 }
 
+// Get latest posts from subscribed communities
+export async function getLatestPostsFromMyCommunities(page: number = 0) {
+    const request = await fetch(base + `/post/myLatest?page=${page}`, { credentials: 'include' });
+    return { status: request.status, data: await request.json() };
+}
+
+// Get best posts from subscribed communities
+export async function getBestPostsFromMyCommunities(page: number = 0) {
+    const request = await fetch(base + `/post/myBest?page=${page}`, { credentials: 'include' });
+    return { status: request.status, data: await request.json() };
+}
+
 // Search post by query
 export async function searchPosts(query: string) {
     const request = await fetch(base + `/post/search?query=${query}`, { credentials: 'include' });
@@ -321,13 +333,13 @@ export async function createCommunity(name: string, description: string, tags: s
     return request.status;
 }
 
-// Get communities sorted by latest, activity, or members
-export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', page: number = 0) {
-    const request = await fetch(base + `/community/getCommunities?sortBy=${sortBy}&page=${page}`, {
+// Check if a community exists with the given name
+export async function communityExists(name: string) {
+    const request = await fetch(base + `/community/exists/${name}`, {
         method: 'GET',
         credentials: 'include'
     });
-    return { status: request.status, data: await request.json() };
+    return request.status === 200;
 }
 
 // Get community by ID
@@ -341,7 +353,16 @@ export async function getCommunityById(id: number) {
 
 // Get community by name
 export async function getCommunityByName(name: string) {
-    const request = await fetch(base + `/community/${name}`, {
+    const request = await fetch(base + `/community/getCommunityByName/${name}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
+// Get communities sorted by latest, activity, or members
+export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', page: number = 0) {
+    const request = await fetch(base + `/community/getCommunities?sortBy=${sortBy}&page=${page}`, {
         method: 'GET',
         credentials: 'include'
     });
