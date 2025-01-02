@@ -71,15 +71,13 @@ export default {
     async scheduled(controller: ScheduledController, env: Env) {
         console.log('Running cron-triggered cleanup...');
 
-        const MinutesAgo = Date.now() - (30 * 60 * 1000);
-
         try {
             const unreferencedAttachments = await env.DB.prepare(`
                 SELECT filename, created_at
                 FROM attachment
-                WHERE created_at <= ?
+                WHERE created_at <= datetime('%s', 'now', '-1 day')
                   AND NOT EXISTS (SELECT attachment FROM post WHERE attachment = filename)
-            `).bind(MinutesAgo).all<AttachmentRow>();
+            `).all<AttachmentRow>();
 
             const attachments: string[] = [];
             const R2Attachments: string[] = [];
