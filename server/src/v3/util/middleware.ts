@@ -34,8 +34,8 @@ export const authMiddleware = createMiddleware(
 export const postRateLimitMiddleware = createMiddleware(
     async (c, next) => {
         const env: Env = c.env;
-        const ipAddress: string = c.req.header('cf-connecting-ip') || '';
-        const { success } = await env.POSTS_RL.limit({ key: `postRequests_${ipAddress}` });
+        const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+        const { success } = await env.POSTS_RL.limit({ key: `postRequests_${sessionKey}` });
         if (!success) {
             return c.json({ success: false, message: 'Rate limit exceeded', status: 429, results: [] }, 429);
         }
@@ -47,8 +47,8 @@ export const postRateLimitMiddleware = createMiddleware(
 export const uploadAttachmentLimitMiddleware = createMiddleware(
     async (c, next) => {
         const env: Env = c.env;
-        const ipAddress: string = c.req.header('cf-connecting-ip') || '';
-        const { success } = await env.ATTACHMENT_RL.limit({ key: `postRequests_${ipAddress}` });
+        const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+        const { success } = await env.ATTACHMENT_RL.limit({ key: `postRequests_${sessionKey}` });
         if (!success) {
             return c.json({ success: false, message: 'Rate limit exceeded', status: 429, results: [] }, 429);
         }
