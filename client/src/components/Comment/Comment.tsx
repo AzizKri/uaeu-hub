@@ -5,12 +5,12 @@ import Content from "../Content/Content.tsx";
 import ReplyPopUp from "../ReplyPopUp/ReplyPopUp.tsx";
 import {useEffect, useState} from "react";
 import {getFormattedDate} from "../../lib/tools.ts";
+import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 
-export default function Comment({info}: {info: CommentInfo}) {
+export default function Comment({info, deleteComment}: {info: CommentInfo, deleteComment: (commentId: number) => void}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
     const [dateText, setDateText] = useState<string>("");
     const [repliesShown, setRepliesShown] = useState<boolean>(false);
-    const comment_count = 2;
 
     useEffect(() => {
         setDateText(getFormattedDate(info.postTime))
@@ -34,6 +34,8 @@ export default function Comment({info}: {info: CommentInfo}) {
          */
     }
 
+
+
     return (
         <div className={styles.comment}>
             {showReplyPopUp && <ReplyPopUp parent_comment_id={info.id} hideReplyPopUp={hideReplyPopUp}/>}
@@ -45,6 +47,9 @@ export default function Comment({info}: {info: CommentInfo}) {
                     <div className={styles.comment__content__header__display_name}>{info.displayName}</div>
                     <span>•</span>
                     <div className={styles.comment__content__header__time}>{dateText}</div>
+                    <div className={styles.comment__content__header__menu}>
+                        <OptionsMenu type={"COMMENT"} id={info.id} author={info.author} deleteComment={deleteComment}/>
+                    </div>
                 </div>
                 <div className={styles.comment__content__text}>
                     <Content id={info.id} content={info.content} filename={info.attachment} type={"comment"}/>
@@ -74,7 +79,7 @@ export default function Comment({info}: {info: CommentInfo}) {
                         <span>reply</span>
                     </button>
                 </div>
-                {comment_count > 0 && <div className={styles.view_comment} onClick={() => toggleReplies()}>{`${repliesShown ? "hide" : "view"} replies (${comment_count})`}</div>}
+                {info.commentCount > 0 && <div className={styles.view_comment} onClick={() => toggleReplies()}>{`${repliesShown ? "hide" : "view"} replies (${info.commentCount})`}</div>}
             </div>
         </div>
     );
