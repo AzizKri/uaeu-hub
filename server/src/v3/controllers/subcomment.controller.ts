@@ -32,6 +32,7 @@ export async function subcomment(c: Context) {
 
         return c.text('Comment created', { status: 201 });
     } catch (e) {
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }

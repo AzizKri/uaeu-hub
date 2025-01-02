@@ -222,6 +222,8 @@ SELECT comment.id,
 FROM comment
          JOIN user ON comment.author_id = user.id;
 
+/* Subcomment Table */
+
 CREATE TABLE IF NOT EXISTS subcomment
 (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -266,6 +268,7 @@ CREATE TABLE IF NOT EXISTS comment_like
 (
     comment_id INTEGER NOT NULL,
     user_id    TEXT    NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (comment_id, user_id),
     FOREIGN KEY (comment_id) REFERENCES comment (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
@@ -275,6 +278,7 @@ CREATE TABLE IF NOT EXISTS subcomment_like
 (
     subcomment_id INTEGER NOT NULL,
     user_id       TEXT    NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (subcomment_id, user_id),
     FOREIGN KEY (subcomment_id) REFERENCES subcomment (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
