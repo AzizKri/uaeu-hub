@@ -10,6 +10,7 @@ import { userSchema } from '../util/validationSchemas';
 // Simple check if this user has a session key or not
 export async function isUser(c: Context) {
     const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
+    // TODO return value instead of status code
     if (!sessionKey) return c.json({ message: 'Unauthorized', status: 401 }, 401);
     return c.json({ message: 'Authorized', status: 200 }, 200);
 }
@@ -19,6 +20,7 @@ export async function isAnon(c: Context) {
     const env: Env = c.env;
     const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
 
+    // TODO return value instead of status code
     // Not a user
     if (!sessionKey) return c.json({ message: 'Unauthorized', status: 401 }, 401);
 
