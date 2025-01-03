@@ -6,6 +6,7 @@ import comment from './routes/comment';
 import community from './routes/community';
 import subcomment from './routes/subcomment';
 import tags from './routes/tags';
+import websocket from './routes/websocket';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -16,5 +17,6 @@ app.route('/subcomment', subcomment)
 app.route('/attachment', attachment)
 app.route('/community', community)
 app.route('/tags', tags)
+app.route('/ws', websocket)
 
 export default app
