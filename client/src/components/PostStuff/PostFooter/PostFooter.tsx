@@ -2,7 +2,7 @@ import styles from './PostFooter.module.scss';
 import {toggleLike} from "../../../api.ts";
 import {useState} from "react";
 import {useNavigate} from "react-router-dom";
-import Popup from "../../Popup/Popup.tsx";
+import Popup from "../../Reusable/Popup/Popup.tsx";
 import ShareModal from "../ShareModal/ShareModal.tsx";
 // import {set} from "zod";
 

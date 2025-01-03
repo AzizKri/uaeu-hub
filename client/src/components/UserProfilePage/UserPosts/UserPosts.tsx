@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
-import {getPostsByUser} from "../../api.ts";
-import Post from "../PostStuff/Post/Post.tsx";
-import styles from "../../styles/UserContent.module.scss"
+import {getPostsByUser} from "../../../api.ts";
+import Post from "../../PostStuff/Post/Post.tsx";
+import styles from "../../../styles/UserContent.module.scss"
 
 export default function UserPosts () {
     const [userPosts, setUserPosts] = useState<React.ReactElement[]>([]);

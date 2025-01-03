@@ -15,7 +15,7 @@ import React, {
 import {comment, createPost, deleteAttachment, uploadAttachment} from "../../../api.ts";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 // import { useUpdatePosts } from "../../lib/hooks";
-import LoaderDots from "../../LoaderDots/LoaderDots.tsx";
+import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 import Post from "../Post/Post.tsx";
 
 interface UploadState {

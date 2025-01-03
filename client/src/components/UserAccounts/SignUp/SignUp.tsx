@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import styles from '../../styles/Forms.module.scss';
+import styles from '../../../styles/Forms.module.scss';
 import {Link, useNavigate} from 'react-router-dom';
-import {isAnon, signUp} from '../../api.ts';
-import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
-import {userSchema} from "../../userSchema.ts";
+import {isAnon, signUp} from '../../../api.ts';
+import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
+import {userSchema} from "../../../userSchema.ts";
 import { z } from 'zod';
-import {useUser} from "../../lib/hooks.ts";
+import {useUser} from "../../../lib/hooks.ts";
 import Requirement from "../Requirement/Requirement.tsx";
 
 export default function SignUp() {

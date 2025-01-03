@@ -1,5 +1,5 @@
 import styles from "./Content.module.scss"
-import LoadingImage from "../../LoadingImage/LoadingImage.tsx";
+import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
 import React, {useEffect, useState} from "react";
 import {getAttachmentDetails} from "../../../api.ts";
 import {useNavigate} from "react-router-dom";
