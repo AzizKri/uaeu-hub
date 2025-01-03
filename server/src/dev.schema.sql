@@ -305,9 +305,10 @@ CREATE TABLE IF NOT EXISTS notification
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     recipient_id INTEGER NOT NULL,
     sender_id    INTEGER,
-    action       TEXT    NOT NULL, /* 'like', 'comment', 'mention', 'follow' */
-    entity_id    INTEGER, /* Post ID, Comment ID, etc. */
-    entity_type  TEXT    NOT NULL, /* 'post', 'comment', 'subcomment', 'user' */
+    action       TEXT,      /* 'like', 'comment', 'mention', 'follow' */
+    entity_id    INTEGER,   /* Post ID, Comment ID, etc. */
+    entity_type  TEXT,      /* 'post', 'comment', 'subcomment', 'user' */
+    message      TEXT,
     read         BOOLEAN NOT NULL DEFAULT FALSE,
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (recipient_id) REFERENCES user (id) ON DELETE CASCADE,
