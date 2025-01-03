@@ -144,6 +144,10 @@ declare global {
         passSpecialError: boolean,
     }
 
+    interface WebSocketInterface {
+        ws: WebSocket | null;
+    }
+
     interface DocumentMetadata extends GenericMetadata {
 
     }
