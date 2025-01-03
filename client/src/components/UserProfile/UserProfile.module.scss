@@ -1,10 +1,13 @@
 .userProfileContainer {
+    background-color: #f6f6f6;
+}
+
+.userProfileHeader{
     padding: 1rem;
     border: 1px solid #ddd;
     border-radius: 8px;
-    background: #fff;
+    background-color: #fff;
 }
-
 
 .userHeader {
     display: flex;
@@ -84,7 +87,6 @@
 }
 
 .tabContent {
-    border-top: 1px solid #ddd;
     padding-top: 1rem;
 }
 
