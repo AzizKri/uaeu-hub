@@ -14,6 +14,16 @@ export function removeClient(clientId: string): void {
     clients.delete(clientId);
 }
 
+// Get clientId by user ID
+export function getClientByUserId(userId: number): WebSocket | null {
+    for (const [clientId, client] of clients) {
+        if (client.userId === userId) {
+            return client.ws;
+        }
+    }
+    return null;
+}
+
 // Send message to a specific client
 export function sendMessage(clientId: string, message: string): void {
     const client = clients.get(clientId);
@@ -31,7 +41,7 @@ export function broadcastMessage(message: string): void {
 
 // Generate a unique ID for the client
 function generateUniqueId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
 // Heartbeat to clean up inactive connections
@@ -40,6 +50,7 @@ setInterval(() => {
         if (client.ws.readyState === WebSocket.OPEN) {
             client.ws.ping();
         } else {
+            console.log(`Removing inactive client ${clientId}`);
             clients.delete(clientId);
         }
     });
