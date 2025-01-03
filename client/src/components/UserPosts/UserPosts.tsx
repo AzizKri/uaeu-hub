@@ -46,6 +46,7 @@ export default function UserPosts () {
                             postInfo={postInfo}
                             topCommentInfo={null}
                             communityInfo={communityInfo}
+                            from={`user/${username}`}
                         />
                     );
                 }

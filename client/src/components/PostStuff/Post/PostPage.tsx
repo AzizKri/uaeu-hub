@@ -4,7 +4,7 @@ import {getCommentsOnPost, getPostByID} from '../../../api.ts';
 import styles from "./post.module.scss";
 import Comment from "../Comment/Comment.tsx";
 import Editor from "../Editor/Editor.tsx";
-import {useNavigate, useParams} from 'react-router-dom';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import LoaderDots from "../../LoaderDots/LoaderDots.tsx"; // To access the postId from the URL
 
 interface CommentBack {
@@ -29,6 +29,7 @@ export default function PostPage() {
     const [comments, setComments] = useState<CommentInfo[]>([]);
     const [isFound, setIsFound] = useState<boolean>(true);
     const [isLoadingMoreComments, setLoadingMoreComments] = useState<boolean>(false);
+    const location = useLocation();
     const { postId } = useParams<{ postId: string }>(); // Get the postId from the URL
     const navigate = useNavigate();
 
@@ -93,9 +94,10 @@ export default function PostPage() {
     }, [postId]); // Fetch the post when postId changes
 
     const goBack = () => {
-        if (document.referrer && document.referrer.includes(location.origin)) {
+        // if (document.referrer && document.referrer.includes(location.origin)) {
+        if (location.state.from) {
             // we are coming from inside the website
-            navigate(-1);
+            navigate(`/${location.state.from}`);
         } else {
             // either there is no history or we are coming from an external website
             navigate('/');

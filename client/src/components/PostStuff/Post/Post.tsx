@@ -9,7 +9,7 @@ import { getFormattedDate } from "../../../lib/tools.ts";
 import Content from "../Content/Content.tsx";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 
-export default function Post({ postInfo, topCommentInfo, communityInfo}: PostAll) {
+export default function Post({ postInfo, topCommentInfo, communityInfo, from}: PostAll & {from?: string}) {
     const [dateText, setDateText] = useState<string>("");
     const [topComment, setTopComment] = useState<CommentInfo | null>(topCommentInfo);
 
@@ -68,6 +68,7 @@ export default function Post({ postInfo, topCommentInfo, communityInfo}: PostAll
                 content={postInfo.content}
                 filename={postInfo.filename}
                 type={postInfo.type}
+                from={from}
             />
             <PostFooter
                 id={postInfo.id}
