@@ -1,7 +1,12 @@
 import { Context } from 'hono';
 import { z } from 'zod';
 import { getSignedCookie, setCookie } from 'hono/cookie';
-import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
+import {
+    generateSalt,
+    hashPassword,
+    hashSessionKey,
+    verifyPassword
+} from '../util/crypto';
 import { getUserFromSessionKey, sendAuthCookie } from '../util/util';
 import { userSchema } from '../util/validationSchemas';
 
@@ -10,6 +15,7 @@ import { userSchema } from '../util/validationSchemas';
 // Simple check if this user has a session key or not
 export async function isUser(c: Context) {
     const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
+    // TODO return value instead of status code
     if (!sessionKey) return c.json({ message: 'Unauthorized', status: 401 }, 401);
     return c.json({ message: 'Authorized', status: 200 }, 200);
 }
@@ -19,6 +25,7 @@ export async function isAnon(c: Context) {
     const env: Env = c.env;
     const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
 
+    // TODO return value instead of status code
     // Not a user
     if (!sessionKey) return c.json({ message: 'Unauthorized', status: 401 }, 401);
 
@@ -124,8 +131,12 @@ export async function signup(c: Context) {
 
             if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
+            // Generate Session Key & Salt
             const PlainSessionKey = crypto.randomUUID();
             const sessionKey = await hashSessionKey(PlainSessionKey);
+
+            // const { encoded: sessionKeyEncoded } = generateSalt();
+            // const sessionKey = await hashSessionKey(PlainSessionKey, sessionKeyEncoded);
 
             await env.DB.prepare(`
                 INSERT INTO session (id, user_id)
@@ -172,6 +183,9 @@ export async function anonSignup(c: Context) {
         // All good, generate session key & hash it
         const PlainSessionKey = crypto.randomUUID();
         const sessionKey = await hashSessionKey(PlainSessionKey);
+
+        // const { encoded } = generateSalt();
+        // const sessionKey = await hashSessionKey(PlainSessionKey, encoded);
 
         // Insert into session table
         await env.DB.prepare(`
@@ -220,9 +234,12 @@ export async function login(c: Context) {
             WHERE id = ?
         `).bind(user.id).first<UserView>();
 
-        // Generate session key & hash it
+        // Generate Session Key & Salt
         const PlainSessionKey = crypto.randomUUID();
         const sessionKey = await hashSessionKey(PlainSessionKey);
+
+        // const { encoded: sessionKeyEncoded } = generateSalt();
+        // const sessionKey = await hashSessionKey(PlainSessionKey, sessionKeyEncoded);
 
         // Insert into session table
         await env.DB.prepare(`

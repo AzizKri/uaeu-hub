@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { JwtVariables } from 'hono/jwt';
 import { authMiddleware } from '../util/middleware';
 import {
-    addMemberToCommunity,
+    addMemberToCommunity, communityExists,
     createCommunity,
     deleteCommunity,
     editCommunity,
@@ -53,8 +53,9 @@ app.get('/getCommunities', (c) => {
             return getCommunitiesSortByMembers(c);
     }
 });
+app.get('/getCommunityByName/:name', (c) => getCommunityByName(c));
 app.get('/:id', (c) => getCommunityById(c));
-app.get('/:name', (c) => getCommunityByName(c));
+app.get('/exists/:name', (c) => communityExists(c));
 
 // Edit Community
 app.post('/:id',

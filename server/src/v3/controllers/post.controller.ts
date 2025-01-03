@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { getUserFromSessionKey } from '../util/util';
 import { getSignedCookie } from 'hono/cookie';
+import { createNotification } from '../util/notificationService';
 
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
@@ -38,10 +39,10 @@ export async function createPost(c: Context) {
         // Check if we have a file & insert into DB
         if (fileName) {
             const postId = await env.DB.prepare(
-                `INSERT INTO post (author_id, content, attachment, post_time, community_id)
-                 VALUES (?, ?, ?, ?, ?)
+                `INSERT INTO post (author_id, content, attachment, community_id)
+                 VALUES (?, ?, ?, ?)
                  RETURNING id`
-            ).bind(userid, trimmedContent, fileName, Date.now(), communityId || 0).first<PostView>();
+            ).bind(userid, trimmedContent, fileName, communityId || 0).first<PostView>();
 
             // Get the full post data to return
             const post = await env.DB.prepare(`
@@ -53,10 +54,10 @@ export async function createPost(c: Context) {
             return c.json(post, { status: 201 });
         } else {
             const postId = await env.DB.prepare(
-                `INSERT INTO post (author_id, content, post_time, community_id)
-                 VALUES (?, ?, ?, ?)
+                `INSERT INTO post (author_id, content, community_id)
+                 VALUES (?, ?, ?)
                  RETURNING id`
-            ).bind(userid, trimmedContent, Date.now(), communityId || 0).first<PostView>();
+            ).bind(userid, trimmedContent, communityId || 0).first<PostView>();
 
             // Get the full post data to return
             const post = await env.DB.prepare(`
@@ -279,9 +280,76 @@ export async function getBestPosts(c: Context) {
     }
 }
 
-export async function getPostsFromMyCommunities(c: Context) {
-    // TODO
-    return c.text('Not implemented', { status: 501 });
+export async function getLatestPostsFromMyCommunities(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    try {
+        // Get user from session key
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
+        if (!userid) {
+            return c.text('Unauthorized', { status: 403 });
+        }
+
+        // Get posts
+        const posts = await env.DB.prepare(
+            `SELECT pv.*,
+                    EXISTS (SELECT 1
+                            FROM post_like
+                            WHERE post_like.post_id = pv.id
+                              AND post_like.user_id = ?) AS liked
+             FROM post_view AS pv
+                      JOIN user_community AS uc ON pv.community_id = uc.community_id
+             WHERE uc.user_id = ?
+             ORDER BY pv.post_time DESC
+             LIMIT 10 OFFSET (? * 10)`
+        ).bind(userid, userid, page || 0).all<PostView>();
+
+        return c.json(posts.results, { status: 200 });
+    } catch (e) {
+        console.error(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
+export async function getBestPostsFromMyCommunities(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    try {
+        // Get user from session key
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
+        if (!userid) {
+            return c.text('Unauthorized', { status: 403 });
+        }
+
+        // Get posts
+        const posts = await env.DB.prepare(
+            `SELECT pv.*,
+                    EXISTS (SELECT 1
+                            FROM post_like
+                            WHERE post_like.post_id = pv.id
+                              AND post_like.user_id = ?) AS liked,
+                    (
+                        (pv.like_count * 10 + pv.comment_count * 5) /
+                        (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
+                              (3600 * 24)))) AS score -- 1 day
+             FROM post_view AS pv
+                      JOIN user_community AS uc ON pv.community_id = uc.community_id
+             WHERE uc.user_id = ?
+             ORDER BY score DESC
+             LIMIT 10 OFFSET (? * 10)`
+        ).bind(userid, userid, page || 0).all<PostView>();
+
+        return c.json(posts.results, { status: 200 });
+    } catch (e) {
+        console.error(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
 }
 
 // api.uaeu.chat/post/user/:username?page=0
@@ -432,6 +500,7 @@ export async function deletePost(c: Context) {
 
         return c.text('Post deleted', { status: 200 });
     } catch (e) {
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -448,6 +517,7 @@ export async function likePost(c: Context) {
     try {
         // Get user from session key
         const userid = await getUserFromSessionKey(c, sessionKey, true);
+        if (!userid) return c.text('Internal Server Error GUFSK_NUI', { status: 500 });
 
         // Check if there's already a like by this user on this post
         const like = await env.DB.prepare(`
@@ -471,10 +541,16 @@ export async function likePost(c: Context) {
                 INSERT INTO post_like (post_id, user_id)
                 VALUES (?, ?)
             `).bind(postid, userid).run();
+
+            // Create a notification
+            console.log('Creating notification');
+            await createNotification(c, {senderId: userid, entityId: postid, entityType: 'post', action: 'like'});
         }
 
+        console.log('Like toggled');
         return c.text('Like toggled', { status: 200 });
     } catch (e) {
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }

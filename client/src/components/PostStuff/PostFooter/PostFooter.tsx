@@ -1,5 +1,5 @@
 import styles from './PostFooter.module.scss';
-import {toggleLike} from "../../../api.ts";
+import { togglePostLike } from '../../../api.ts';
 import {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Popup from "../../Reusable/Popup/Popup.tsx";
@@ -39,7 +39,7 @@ export default function PostFooter({
     const handleToggleLike = () => {
         // TODO: check if this will trigger a rerender or not when the website work again if not create a state for is liked
         setLiked((prev) => !prev);
-        toggleLike(id);
+        togglePostLike(id);
     };
 
     const redirectToPost = () => {

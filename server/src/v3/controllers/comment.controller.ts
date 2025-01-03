@@ -24,40 +24,24 @@ export async function comment(c: Context) {
                 `INSERT INTO comment (parent_post_id, author_id, content, attachment)
                  VALUES (?, ?, ?, ?)
                  RETURNING id`
-            ).bind(postID, userid, content, fileName).first();
+            ).bind(postID, userid, content, fileName).first<CommentView>();
         } else {
             commentId = await env.DB.prepare(`
                 INSERT INTO comment (parent_post_id, author_id, content)
                 VALUES (?, ?, ?)
                 RETURNING id
-            `).bind(postID, userid, content).first();
+            `).bind(postID, userid, content).first<CommentView>();
         }
 
-        let comment;
-        // New user? Get without likes
-        if (!userid) {
-            comment = await env.DB.prepare(`
+        const comment = await env.DB.prepare(`
                 SELECT *
                 FROM comment_view
                 WHERE id = ?
             `).bind(commentId?.id).first<CommentView>();
-        } else {
-            // Returning user? Check if comments are liked
-            comment = await env.DB.prepare(`
-                SELECT cv.*,
-                    CASE
-                        WHEN cl.user_id IS NOT NULL then 1
-                        ELSE 0
-                        END AS liked
-                FROM comment_view cv
-                    LEFT JOIN comment_like cl
-                        ON cv.id = cl.comment_id AND cl.user_id = ?
-                WHERE id = ?
-            `).bind(userid, commentId?.id).first<CommentView>();
-        }
-        return c.json(comment, { status: 200 });
+
+        return c.json(comment, { status: 201 });
     } catch (e) {
-        console.log("comment error", e);
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -78,9 +62,9 @@ export async function getCommentsOnPost(c: Context) {
                 `SELECT *
                  FROM comment_view
                  WHERE parent_post_id = ?
-                 ORDER BY like_count DESC, post_time DESC
+                 ORDER BY like_count, post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(postID, page).all<CommentView>(); // should be page * 10, but I handled it in the frontend
+            ).bind(postID, page * 10).all<CommentView>();
 
             return c.json(comments.results, { status: 200 });
         } else {
@@ -95,9 +79,9 @@ export async function getCommentsOnPost(c: Context) {
                           LEFT JOIN comment_like cl
                                     ON cv.id = cl.comment_id AND cl.user_id = ?
                  WHERE parent_post_id = ?
-                 ORDER BY like_count DESC, post_time DESC
+                 ORDER BY like_count, post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(userid, postID, page).all<CommentView>(); // should be page * 10, but I handled it in the frontend
+            ).bind(userid, postID, page * 10).all<CommentView>();
 
             return c.json(comments.results, { status: 200 });
         }
