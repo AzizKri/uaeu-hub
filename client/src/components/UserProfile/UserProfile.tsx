@@ -1,8 +1,7 @@
 import {useEffect, useState} from 'react';
 import styles from './UserProfile.module.scss';
-import {Outlet, useNavigate, useParams} from "react-router-dom";
-import {getUserByUsername} from "../../api.ts";
-import {useUser} from "../../lib/hooks.ts";
+import {Outlet, useLocation, useNavigate, useParams} from "react-router-dom";
+import {getCurrentUser, getUserByUsername} from "../../api.ts";
 
 
 
@@ -19,17 +18,28 @@ const tabs = [
 
 export default function UserProfile () {
     // State for the current tab
+    const location = useLocation();
+    console.log(location);
     const [activeTab, setActiveTab] = useState('');
     const [profileUser, setProfileUser] = useState<userInfo>();
     const { username } =  useParams<{ username: string }>();
     const navigate = useNavigate();
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
-    const {user} = useUser();
-
 
     useEffect(() => {
+        const checkAuth = async (username : string) => {
+            const response = await getCurrentUser();
+            if (response.ok) {
+                const data = await response.json();
+                return data.username === username;
+            }
+            return false;
+        }
+        console.log(location);
+        setActiveTab(location.state?.data?.activeTab || '');
         if (username) {
-           getUserByUsername(username).then((res) => {
+            checkAuth(username).then((res) => setIsAuthorized(res));
+            getUserByUsername(username).then((res) => {
                console.log(username);
                const data = res.data;
                console.log(data);
@@ -43,17 +53,20 @@ export default function UserProfile () {
                        pfp: data.pfp,
                        isAnonymous: false,
                    });
-                   const auth : boolean = (user?.username === username);
-                   setIsAuthorized(auth);
                }
             });
         }
-    }, [username, navigate]);
+    }, []);
+
 
     const handleTabClick = (tabLabel: string) => {
         setActiveTab(tabLabel);
         const tab = tabLabel.toLowerCase();
-        navigate(tab);
+        navigate(tab, {state: {
+            data: {
+                activeTab: tabLabel,
+            }
+            }});
     };
 
     return (
