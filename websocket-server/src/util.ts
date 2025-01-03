@@ -16,25 +16,25 @@ async function signUUID(uuid: string, timestamp: string, nonce: string, secretKe
 
     // Import the secret key for HMAC
     const cryptoKey = await crypto.subtle.importKey(
-        "raw",
+        'raw',
         keyData,
-        { name: "HMAC", hash: { name: "SHA-256" } },
+        { name: 'HMAC', hash: { name: 'SHA-256' } },
         false,
-        ["sign"]
+        ['sign']
     );
 
     // Sign the UUID
-    const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, uuidData);
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, uuidData);
 
     // Convert the signature to a URL-safe Base64 string
     return btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)))
-        .replace(/\+/g, "-") // Replace "+" with "-"
-        .replace(/\//g, "_") // Replace "/" with "_"
-        .replace(/=+$/, ""); // Remove "=" padding
+        .replace(/\+/g, '-') // Replace "+" with "-"
+        .replace(/\//g, '_') // Replace "/" with "_"
+        .replace(/=+$/, ''); // Remove "=" padding
 }
 
 export async function getUserIdFromDatabase(uuid: string): Promise<number | null> {
-    const response = await fetch(`${base}/ws/${uuid}`)
+    const response = await fetch(`${base}/ws/${uuid}`);
     if (response.status !== 200) {
         return null;
     }
