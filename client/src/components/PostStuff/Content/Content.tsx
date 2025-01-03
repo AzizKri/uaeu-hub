@@ -4,11 +4,12 @@ import React, {useEffect, useState} from "react";
 import {getAttachmentDetails} from "../../../api.ts";
 import {useNavigate} from "react-router-dom";
 
-export default function Content({id, content, filename, type}: {
+export default function Content({id, content, filename, type, from}: {
     id: number,
     content: string,
     filename: string | undefined,
-    type: string
+    type: string,
+    from?: string
 }) {
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
     const [imageSrc, setImageSrc] = useState<string>("");
@@ -48,7 +49,7 @@ export default function Content({id, content, filename, type}: {
 
     const handleClickOnPost: React.MouseEventHandler<HTMLDivElement> = () => {
         if (type === 'post') {
-            navigate(`/post/${id}`);
+            navigate(`/post/${id}`, {state: {from: from} });
         }
     }
 

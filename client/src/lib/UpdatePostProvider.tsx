@@ -67,6 +67,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                         postInfo={postInfo}
                         topCommentInfo={topCommentInfo}
                         communityInfo={communityInfo}
+                        from=""
                     />
                 );
             }
