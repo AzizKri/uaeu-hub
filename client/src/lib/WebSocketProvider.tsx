@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { createWebsocketConnection } from '../api.ts';
 import { WebSocketContext } from './context.ts';
 
-export function WebSocketProvider({ children }: { children: ReactNode }) {
+export default function WebSocketProvider({ children }: { children: ReactNode }) {
     const [ws, setWs] = useState<WebSocket | null>(null);
 
     useEffect(() => {
@@ -26,5 +26,5 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         )
     }, [ws]);
 
-    return <WebSocketContext.Provider value={ws}>{children}</WebSocketContext.Provider>;
+    return <WebSocketContext.Provider value={{ ws }}>{children}</WebSocketContext.Provider>;
 }

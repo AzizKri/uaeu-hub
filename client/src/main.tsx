@@ -16,7 +16,7 @@ import ExploreCommunities from "./components/Communities/ExploreCommunities/Expl
 import UserPosts from './components/UserProfilePage/UserPosts/UserPosts.tsx';
 import UserComments from './components/UserProfilePage/UserComments/UserComments.tsx';
 import UserLikes from './components/UserProfilePage/UserLikes/UserLikes.tsx';
-import { WebSocketProvider } from './lib/WebSocketProvider.tsx';
+import WebSocketProvider from './lib/WebSocketProvider.tsx';
 
 const router = createBrowserRouter([
     {
