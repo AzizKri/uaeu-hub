@@ -7,4 +7,5 @@ interface Env {
     ATTACHMENT_RL: any;
     JWT_SECRET: string;
     ENVIRONMENT: string;
+    WS_SECRET: string
 }
