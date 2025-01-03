@@ -1,5 +1,5 @@
 import styles from "./NotFound.module.scss";
-import NavBar from '../NavBar/NavBar.tsx';
+import NavBar from '../../Nav/NavBar/NavBar.tsx';
 
 export default function NotFound() {
     return (

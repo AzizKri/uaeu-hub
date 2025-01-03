@@ -5,7 +5,7 @@ import styles from "./post.module.scss";
 import Comment from "../Comment/Comment.tsx";
 import Editor from "../Editor/Editor.tsx";
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
-import LoaderDots from "../../LoaderDots/LoaderDots.tsx"; // To access the postId from the URL
+import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx"; // To access the postId from the URL
 
 interface CommentBack {
     attachment: string,

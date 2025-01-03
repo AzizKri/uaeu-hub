@@ -1,5 +1,5 @@
 import Editor from "../Editor/Editor.tsx";
-import Popup from "../../Popup/Popup.tsx"
+import Popup from "../../Reusable/Popup/Popup.tsx"
 
 export default function ReplyPopUp({parent_comment_id, hideReplyPopUp}: {parent_comment_id: number, hideReplyPopUp: () => void}) {
 

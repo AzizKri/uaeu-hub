@@ -1,7 +1,7 @@
 import styles from './Search.module.scss';
 import React, {useState} from 'react';
 import SearchResultsList from '../SearchResultsList/SearchResultsList.tsx';
-import { searchPosts } from '../../api.ts';
+import { searchPosts } from '../../../api.ts';
 
 
 export default function Search() {

@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import styles from './UserProfile.module.scss';
 import {Outlet, useLocation, useNavigate, useParams} from "react-router-dom";
-import {getCurrentUser, getUserByUsername} from "../../api.ts";
+import {getCurrentUser, getUserByUsername} from "../../../api.ts";
 
 
 

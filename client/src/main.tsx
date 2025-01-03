@@ -2,20 +2,20 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './styles/index.scss';
 import App from './App.tsx';
-import Login from './components/Login/Login.tsx';
-import SignUp from './components/SignUp/SignUp.tsx';
+import Login from './components/UserAccounts/Login/Login.tsx';
+import SignUp from './components/UserAccounts/SignUp/SignUp.tsx';
 import Home from './components/Home/Home.tsx';
 import PostPage from './components/PostStuff/Post/PostPage.tsx';
-import LoadingImage from "./components/LoadingImage/LoadingImage.tsx";
+import LoadingImage from "./components/Reusable/LoadingImage/LoadingImage.tsx";
 import UserProvider from "./lib/userProvider.tsx";
 import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
-import UserProfile from "./components/UserProfile/UserProfile.tsx";
-import NotFound from './components/NotFound/NotFound.tsx';
+import UserProfile from "./components/UserProfilePage/UserProfile/UserProfile.tsx";
+import NotFound from './components/Reusable/NotFound/NotFound.tsx';
 import Community from "./components/Communities/Community/Community.tsx";
 import ExploreCommunities from "./components/Communities/ExploreCommunities/ExploreCommunities.tsx"
-import UserPosts from './components/UserPosts/UserPosts.tsx';
-import UserComments from './components/UserComments/UserComments.tsx';
-import UserLikes from './components/UserLikes/UserLikes.tsx';
+import UserPosts from './components/UserProfilePage/UserPosts/UserPosts.tsx';
+import UserComments from './components/UserProfilePage/UserComments/UserComments.tsx';
+import UserLikes from './components/UserProfilePage/UserLikes/UserLikes.tsx';
 
 const router = createBrowserRouter([
     {

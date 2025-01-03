@@ -1,9 +1,9 @@
 import Search from '../Search/Search.tsx';
 import styles from './NavBar.module.scss';
-import {useUser} from "../../lib/hooks.ts";
+import {useUser} from "../../../lib/hooks.ts";
 import React, {useState} from "react";
 import {Link} from "react-router-dom";
-import logo from '../../assets/logo-text-2.svg';
+import logo from '../../../assets/logo-text-2.svg';
 
 export default function NavBar() {
     const {user} = useUser();
