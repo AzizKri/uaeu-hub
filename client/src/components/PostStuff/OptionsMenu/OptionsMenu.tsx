@@ -1,8 +1,8 @@
 import styles from "./OptionsMenu.module.scss";
 import React, {useState} from "react";
-import {useUpdatePosts, useUser} from "../../lib/hooks.ts";
-import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
-import {deleteComment as apiDeleteComment, deletePost as apiDeletePost} from "../../api.ts";
+import {useUpdatePosts, useUser} from "../../../lib/hooks.ts";
+import YesNoPopUp from "../../YesNoPopUp/YesNoPopUp.tsx";
+import {deleteComment as apiDeleteComment, deletePost as apiDeletePost} from "../../../api.ts";
 
 interface OptionsMenuProps {
     type: "POST" | "COMMENT";

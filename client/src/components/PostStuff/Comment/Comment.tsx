@@ -1,10 +1,10 @@
-import profilePict from '../../assets/profile-picture.png';
+import profilePict from '../../../assets/profile-picture.png';
 import './comment.module.scss';
 import styles from './comment.module.scss';
 import Content from "../Content/Content.tsx";
 import ReplyPopUp from "../ReplyPopUp/ReplyPopUp.tsx";
 import {useEffect, useState} from "react";
-import {getFormattedDate} from "../../lib/tools.ts";
+import {getFormattedDate} from "../../../lib/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 
 export default function Comment({info, deleteComment}: {info: CommentInfo, deleteComment: (commentId: number) => void}) {

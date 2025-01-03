@@ -1,11 +1,11 @@
 import "./post.module.scss";
-import profilePicture from "../../assets/profile-picture.png";
-import communityIcon from "../../assets/community-icon.jpg"
+import profilePicture from "../../../assets/profile-picture.png";
+import communityIcon from "../../../assets/community-icon.jpg"
 import PostFooter from "../PostFooter/PostFooter.tsx";
 import Comment from "../Comment/Comment.tsx";
 import styles from "./post.module.scss";
 import { useEffect, useState } from "react";
-import { getFormattedDate } from "../../lib/tools.ts";
+import { getFormattedDate } from "../../../lib/tools.ts";
 import Content from "../Content/Content.tsx";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 
