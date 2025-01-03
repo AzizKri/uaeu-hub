@@ -4,6 +4,7 @@ import {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Popup from "../../Reusable/Popup/Popup.tsx";
 import ShareModal from "../ShareModal/ShareModal.tsx";
+import { useWebSocket } from '../../../lib/hooks.ts';
 // import {set} from "zod";
 
 export default function PostFooter({
@@ -20,6 +21,7 @@ export default function PostFooter({
     const [liked, setLiked] = useState(isLiked);
     const [showShareModal, setShowShareModal] = useState<boolean>(false);
     const navigate = useNavigate();
+    const webSocketInterface = useWebSocket();
 
     const handleShare = () => {
         if (navigator.share) {
@@ -39,7 +41,7 @@ export default function PostFooter({
     const handleToggleLike = () => {
         // TODO: check if this will trigger a rerender or not when the website work again if not create a state for is liked
         setLiked((prev) => !prev);
-        toggleLike(id);
+        toggleLike(id, webSocketInterface.ws);
     };
 
     const redirectToPost = () => {
