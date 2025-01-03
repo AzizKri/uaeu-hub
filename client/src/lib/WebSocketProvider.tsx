@@ -17,6 +17,7 @@ export default function WebSocketProvider({ children }: { children: ReactNode })
                 websocket.onopen = () => console.log('Connection established');
                 websocket.onclose = () => console.log('Connection closed');
                 websocket.onerror = (error) => console.log('WebSocket error:', error);
+                websocket.onmessage = (event) => console.log('Received message:', event.data);
 
                 return () => websocket.close();
             },
