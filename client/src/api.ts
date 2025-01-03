@@ -124,27 +124,11 @@ export async function getPostsByUser(username: string, page: number = 0) {
 }
 
 // Toggle like on post by its ID
-export async function toggleLike(post: number, ws: WebSocket | null) {
+export async function togglePostLike(post: number) {
     const request = await fetch(base + `/post/like/${post}`, {
         method: 'POST',
         credentials: 'include'
     });
-
-    if (request.status === 200) {
-        const notifData = await request.json();
-        const notification = {
-            type: 'notification',
-            payload: {
-                action: 'like',
-                recipientId: notifData.recipientId,
-                senderId: notifData.senderId,
-                entityType: 'post',
-                entityId: post
-            },
-        };
-
-        if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(notification));
-    }
     return request.status;
 }
 
@@ -466,7 +450,7 @@ export async function getTags() {
     return { status: request.status, data: await request.json() };
 }
 
-/* WebSockets & Notifications */
+/* WebSockets */
 
 export async function createWebsocketConnection() {
     // Generate the UUID
