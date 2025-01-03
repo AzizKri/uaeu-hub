@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { getUserFromSessionKey } from '../util/util';
 import { getSignedCookie } from 'hono/cookie';
+import { createNotification } from '../util/notificationService';
 
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
@@ -516,6 +517,7 @@ export async function likePost(c: Context) {
     try {
         // Get user from session key
         const userid = await getUserFromSessionKey(c, sessionKey, true);
+        if (!userid) return c.text('Internal Server Error GUFSK_NUI', { status: 500 });
 
         // Check if there's already a like by this user on this post
         const like = await env.DB.prepare(`
@@ -539,8 +541,13 @@ export async function likePost(c: Context) {
                 INSERT INTO post_like (post_id, user_id)
                 VALUES (?, ?)
             `).bind(postid, userid).run();
+
+            // Create a notification
+            console.log('Creating notification');
+            await createNotification(c, {senderId: userid, entityId: postid, entityType: 'post', action: 'like'});
         }
 
+        console.log('Like toggled');
         return c.text('Like toggled', { status: 200 });
     } catch (e) {
         console.log(e)
