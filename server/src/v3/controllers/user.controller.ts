@@ -1,7 +1,12 @@
 import { Context } from 'hono';
 import { z } from 'zod';
 import { getSignedCookie, setCookie } from 'hono/cookie';
-import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
+import {
+    generateSalt,
+    hashPassword,
+    hashSessionKey,
+    verifyPassword
+} from '../util/crypto';
 import { getUserFromSessionKey, sendAuthCookie } from '../util/util';
 import { userSchema } from '../util/validationSchemas';
 
@@ -126,8 +131,12 @@ export async function signup(c: Context) {
 
             if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
+            // Generate Session Key & Salt
             const PlainSessionKey = crypto.randomUUID();
             const sessionKey = await hashSessionKey(PlainSessionKey);
+
+            // const { encoded: sessionKeyEncoded } = generateSalt();
+            // const sessionKey = await hashSessionKey(PlainSessionKey, sessionKeyEncoded);
 
             await env.DB.prepare(`
                 INSERT INTO session (id, user_id)
@@ -174,6 +183,9 @@ export async function anonSignup(c: Context) {
         // All good, generate session key & hash it
         const PlainSessionKey = crypto.randomUUID();
         const sessionKey = await hashSessionKey(PlainSessionKey);
+
+        // const { encoded } = generateSalt();
+        // const sessionKey = await hashSessionKey(PlainSessionKey, encoded);
 
         // Insert into session table
         await env.DB.prepare(`
@@ -222,9 +234,12 @@ export async function login(c: Context) {
             WHERE id = ?
         `).bind(user.id).first<UserView>();
 
-        // Generate session key & hash it
+        // Generate Session Key & Salt
         const PlainSessionKey = crypto.randomUUID();
         const sessionKey = await hashSessionKey(PlainSessionKey);
+
+        // const { encoded: sessionKeyEncoded } = generateSalt();
+        // const sessionKey = await hashSessionKey(PlainSessionKey, sessionKeyEncoded);
 
         // Insert into session table
         await env.DB.prepare(`
