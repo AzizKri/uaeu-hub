@@ -1,0 +1,53 @@
+.container {
+    margin-top: 50px;
+    .title {
+        margin-block: 5px;
+    }
+    .communities {
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+        padding-block: 15px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        justify-content: space-around;
+        align-items: center;
+        gap: 10px;
+        column-gap: 25px;
+        justify-items: stretch;
+        font-size: 14px;
+
+        .communityPreview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+
+            .communityIcon {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+            }
+
+            .info {
+                .name {
+
+                }
+                .members {
+                    display: flex;
+                    align-items: center;
+                    .memberIcon {
+
+                    }
+                }
+            }
+
+            .join {
+                background: #2b4162ff;
+                color: white;
+                padding: 7px 12px;
+                border-radius: 10px;
+                margin-left: auto;
+            }
+        }
+    }
+}

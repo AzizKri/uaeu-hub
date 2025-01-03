@@ -1,4 +1,4 @@
-import NavBar from './components/NavBar/NavBar.tsx';
+import NavBar from './components/Nav/NavBar/NavBar.tsx';
 import { Outlet } from 'react-router-dom';
 import Right from "./components/Right/Right.tsx";
 import Aside from "./components/Aside/Aside.tsx";

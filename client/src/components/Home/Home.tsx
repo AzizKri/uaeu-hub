@@ -1,6 +1,6 @@
 import styles from "./Home.module.scss";
 import React, {useEffect, useRef} from "react";
-import WritePost from "../WritePost/WritePost.tsx";
+import WritePost from "../PostStuff/WritePost/WritePost.tsx";
 import {useUpdatePosts} from "../../lib/hooks.ts";
 
 export default function Home() {

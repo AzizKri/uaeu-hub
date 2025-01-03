@@ -2,17 +2,20 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './styles/index.scss';
 import App from './App.tsx';
-import Login from './components/Login/Login.tsx';
-import SignUp from './components/SignUp/SignUp.tsx';
+import Login from './components/UserAccounts/Login/Login.tsx';
+import SignUp from './components/UserAccounts/SignUp/SignUp.tsx';
 import Home from './components/Home/Home.tsx';
-import PostPage from './components/Post/PostPage.tsx';
-import LoadingImage from "./components/LoadingImage/LoadingImage.tsx";
+import PostPage from './components/PostStuff/Post/PostPage.tsx';
+import LoadingImage from "./components/Reusable/LoadingImage/LoadingImage.tsx";
 import UserProvider from "./lib/userProvider.tsx";
 import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
-import UserProfile from "./components/UserProfile/UserProfile.tsx";
-import NotFound from './components/NotFound/NotFound.tsx';
-import Community from "./components/Community/Community.tsx";
-
+import UserProfile from "./components/UserProfilePage/UserProfile/UserProfile.tsx";
+import NotFound from './components/Reusable/NotFound/NotFound.tsx';
+import Community from "./components/Communities/Community/Community.tsx";
+import ExploreCommunities from "./components/Communities/ExploreCommunities/ExploreCommunities.tsx"
+import UserPosts from './components/UserProfilePage/UserPosts/UserPosts.tsx';
+import UserComments from './components/UserProfilePage/UserComments/UserComments.tsx';
+import UserLikes from './components/UserProfilePage/UserLikes/UserLikes.tsx';
 
 const router = createBrowserRouter([
     {
@@ -34,7 +37,21 @@ const router = createBrowserRouter([
             },
             {
                 path: '/user/:username',
-                element: <UserProfile />
+                element: <UserProfile />,
+                children: [
+                    {
+                        path: '/user/:username/posts',
+                        element: <UserPosts />,
+                    },
+                    {
+                        path: '/user/:username/comments',
+                        element: <UserComments />,
+                    },
+                    {
+                        path: '/user/:username/likes',
+                        element: <UserLikes />,
+                    }
+                ]
             },
             {
                 // TODO: use same approach used in post
@@ -53,7 +70,15 @@ const router = createBrowserRouter([
                         memberCount: 5
                     }}
                 />
-            }
+            },
+            {
+                path: '/community/explore',
+                element: <ExploreCommunities />
+            },
+            // {
+            //     path: '/community/:communityId',
+            //     element: <Community />
+            // }
         ]
     },
     {

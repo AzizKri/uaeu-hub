@@ -13,7 +13,7 @@ import courseMaterial from '../../assets/course-material.svg'
 import professorIcon from '../../assets/professor.svg'
 import { createCommunity, logout } from '../../api.ts';
 import {useUser} from "../../lib/hooks.ts";
-import YesNoPopUp from "../YesNoPopUp/YesNoPopUp.tsx";
+import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import {Link, useNavigate} from "react-router-dom";
 
 export default function Aside() {

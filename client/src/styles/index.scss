@@ -32,6 +32,8 @@ button {
 
 body {
     background-color: var(--main-bg);
+    overflow-y: scroll;
+    width: 100%;
 }
 
 a {
