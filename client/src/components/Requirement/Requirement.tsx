@@ -1,5 +1,4 @@
 import styles from "./Requirement.module.scss";
-// import React from "react";
 
 export default function Requirement({text, error}: { text: string, error: boolean }) {
     return (

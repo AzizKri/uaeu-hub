@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import styles from './UserProfile.module.scss';
 import {useNavigate, useParams} from "react-router-dom";
 import {getPostsByUser, getUserByUsername} from "../../api.ts";
-import Post from "../Post/Post.tsx";
+import Post from "../PostStuff/Post/Post.tsx";
 
 
 

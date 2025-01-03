@@ -5,7 +5,7 @@ import App from './App.tsx';
 import Login from './components/Login/Login.tsx';
 import SignUp from './components/SignUp/SignUp.tsx';
 import Home from './components/Home/Home.tsx';
-import PostPage from './components/Post/PostPage.tsx';
+import PostPage from './components/PostStuff/Post/PostPage.tsx';
 import LoadingImage from "./components/LoadingImage/LoadingImage.tsx";
 import UserProvider from "./lib/userProvider.tsx";
 import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
