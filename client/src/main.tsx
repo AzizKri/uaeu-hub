@@ -13,7 +13,9 @@ import UserProfile from "./components/UserProfile/UserProfile.tsx";
 import NotFound from './components/NotFound/NotFound.tsx';
 import Community from "./components/Communities/Community/Community.tsx";
 import ExploreCommunities from "./components/Communities/ExploreCommunities/ExploreCommunities.tsx"
-
+import UserPosts from './components/UserPosts/UserPosts.tsx';
+import UserComments from './components/UserComments/UserComments.tsx';
+import UserLikes from './components/UserLikes/UserLikes.tsx';
 
 const router = createBrowserRouter([
     {
@@ -35,7 +37,21 @@ const router = createBrowserRouter([
             },
             {
                 path: '/user/:username',
-                element: <UserProfile />
+                element: <UserProfile />,
+                children: [
+                    {
+                        path: '/user/:username/posts',
+                        element: <UserPosts />,
+                    },
+                    {
+                        path: '/user/:username/comments',
+                        element: <UserComments />,
+                    },
+                    {
+                        path: '/user/:username/likes',
+                        element: <UserLikes />,
+                    }
+                ]
             },
             {
                 // TODO: use same approach used in post
