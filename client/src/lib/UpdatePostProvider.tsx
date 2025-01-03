@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {getLatestPosts} from "../api.ts";
-import Post from "../components/Post/Post.tsx";
+import Post from "../components/PostStuff/Post/Post.tsx";
 import {UpdatePostsContext} from "./context.ts";
 
 export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {

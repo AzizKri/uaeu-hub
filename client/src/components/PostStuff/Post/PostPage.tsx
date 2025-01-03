@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import Post from './Post';
-import {getCommentsOnPost, getPostByID} from '../../api.ts';
+import Post from './Post.tsx';
+import {getCommentsOnPost, getPostByID} from '../../../api.ts';
 import styles from "./post.module.scss";
 import Comment from "../Comment/Comment.tsx";
 import Editor from "../Editor/Editor.tsx";
 import {useNavigate, useParams} from 'react-router-dom';
-import LoaderDots from "../LoaderDots/LoaderDots.tsx"; // To access the postId from the URL
+import LoaderDots from "../../LoaderDots/LoaderDots.tsx"; // To access the postId from the URL
 
 interface CommentBack {
     attachment: string,

@@ -1,7 +1,7 @@
 import styles from "./Content.module.scss"
-import LoadingImage from "../LoadingImage/LoadingImage.tsx";
+import LoadingImage from "../../LoadingImage/LoadingImage.tsx";
 import React, {useEffect, useState} from "react";
-import {getAttachmentDetails} from "../../api.ts";
+import {getAttachmentDetails} from "../../../api.ts";
 import {useNavigate} from "react-router-dom";
 
 export default function Content({id, content, filename, type}: {

@@ -1,0 +1,59 @@
+.container {
+    padding: 10px;
+
+    .title {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee
+    }
+
+    .links {
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        margin: 40px 20px;
+
+        .link {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            overflow: hidden;
+            padding: 12px;
+
+            img {
+                width: 24px;
+                height: 24px;
+            }
+
+            &.facebook {
+                background-color: #e7f0ff;
+            }
+            &.x {
+                background-color: #ededed;
+            }
+            &.instagram {
+                background-color: #ffecec;
+            }
+            &.whatsapp {
+                background-color: #e8fff2;
+            }
+        }
+    }
+    .linkPreview {
+        width: 100%;
+        border-radius: 50px;
+        border: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 5px 5px 20px;
+
+        .postLink {
+
+        }
+        .copyButton {
+            background-color: #2b4162;
+            border-radius: 30px;
+            color: white;
+            padding: 10px 20px;        }
+    }
+}
