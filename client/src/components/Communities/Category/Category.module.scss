@@ -47,6 +47,11 @@
                 padding: 7px 12px;
                 border-radius: 10px;
                 margin-left: auto;
+                transition: background-color 200ms ease;
+
+                &:hover {
+                    background: #2b4162ff;
+                }
             }
         }
     }

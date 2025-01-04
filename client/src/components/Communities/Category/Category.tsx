@@ -43,8 +43,7 @@ export default function Category({tag}: {tag: string}) {
                             <div className={styles.communityName}>{com.name}</div>
                             <div className={styles.members}>
                                 <img src={memberIcon} alt="member"/>
-                                {`${com.members} `}
-                                {/*member*/}
+                                {com.members}
                             </div>
                         </div>
                         {!com.isMember && <button className={styles.join} onClick={() => joinCommunity(com.id)}>Join</button>}
