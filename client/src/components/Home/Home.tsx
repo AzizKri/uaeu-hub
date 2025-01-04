@@ -20,10 +20,11 @@ export default function Home() {
     return (
         <div className={styles.home} onScroll={handleScroll} ref={homeRef} style={{}}>
             <WritePost/>
-            <div className={styles.questionsRecent}>
-                <h3>Recent Questions</h3>
-                <span>20 new questions</span>
-            </div>
+            {/*Do we need this?*/}
+            {/*<div className={styles.questionsRecent}>*/}
+            {/*    <h3>Recent Questions</h3>*/}
+            {/*    <span>20 new questions</span>*/}
+            {/*</div>*/}
             <section className={styles.posts_container}>
                 {posts}
             </section>

@@ -31,12 +31,10 @@ declare global {
         content: string
         displayName: string
         id: number
-        level: number
         likeCount: number,
         commentCount: number,
         liked: boolean,
         parentPostId: number,
-        parentType: string,
         pfp: string,
         postTime: Date,
     }
@@ -56,7 +54,13 @@ declare global {
 
     interface CommunityInfoSimple {
         name: string,
-        icon: string | null,
+        icon?: string,
+    }
+
+    interface CommunityINI {
+        id: number;
+        name: string;
+        icon?: string;
     }
 
     interface PostAll {
