@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import {getPostsByUser} from "../../../api.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
-import styles from "../../../styles/UserContent.module.scss"
+import styles from "../UserContent.module.scss"
 
 export default function UserPosts () {
     const [userPosts, setUserPosts] = useState<React.ReactElement[]>([]);
@@ -15,7 +15,7 @@ export default function UserPosts () {
         setIsLoading(true);
         try {
             getPostsByUser(username, page).then((res) => {
-                console.log("profileUser posts results", res);
+                // console.log("profileUser posts results", res);
                 if (res.data.length == 0) {
                     setIsLoading(false);
                     return;

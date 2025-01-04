@@ -19,7 +19,7 @@ const tabs = [
 export default function UserProfile () {
     // State for the current tab
     const location = useLocation();
-    console.log(location);
+    // console.log(location);
     const [activeTab, setActiveTab] = useState('');
     const [profileUser, setProfileUser] = useState<userInfo>();
     const { username } =  useParams<{ username: string }>();
@@ -35,14 +35,14 @@ export default function UserProfile () {
             }
             return false;
         }
-        console.log(location);
+        // console.log(location);
         setActiveTab(location.state?.data?.activeTab || '');
         if (username) {
             checkAuth(username).then((res) => setIsAuthorized(res));
             getUserByUsername(username).then((res) => {
-               console.log(username);
+               // console.log(username);
                const data = res.data;
-               console.log(data);
+               // console.log(data);
                if (res.status !== 200){
                    navigate('/error');
                } else{
