@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import Post from './Post.tsx';
+import Post from '../Post/Post.tsx';
 import {getCommentsOnPost, getPostByID} from '../../../api.ts';
-import styles from "./post.module.scss";
+import styles from './PostPage.module.scss';
 import Comment from "../Comment/Comment.tsx";
 import Editor from "../Editor/Editor.tsx";
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
@@ -11,14 +11,13 @@ interface CommentBack {
     attachment: string,
     author: string,
     author_id: number,
+    comment_count: number,
     content: string,
     displayname: string,
     id: number,
-    level: number,
     like_count: number,
-    comment_count: number,
+    liked: boolean,
     parent_post_id: number,
-    parent_type: string,
     pfp: string,
     post_time: Date,
 }
@@ -35,7 +34,6 @@ export default function PostPage() {
 
     useEffect(() => {
         if (postId) {
-            // setPostIdInt(parseInt(postId, 10));
             getPostByID(parseInt(postId)).then((res) => {
                 if (!res.data || res.data.length === 0) {
                     setIsFound(false);
@@ -54,7 +52,7 @@ export default function PostPage() {
                     likeCount: post.like_count,
                     commentCount: post.comment_count,
                     type: "post-page",
-                    liked: post.like,
+                    liked: post.liked,
                 };
                 setTotalComments(postInfo.commentCount);
                 const communityInfo: CommunityInfoSimple = {
@@ -73,6 +71,7 @@ export default function PostPage() {
             });
 
             getCommentsOnPost(parseInt(postId), 0).then((res) => {
+                console.log("comments", res);
                 setComments(res.data.map((cd: CommentBack) => ({
                     attachment: cd.attachment,
                     author: cd.author,
@@ -80,12 +79,10 @@ export default function PostPage() {
                     content: cd.content,
                     displayName: cd.displayname,
                     id: cd.id,
-                    level: cd.level,
                     likeCount: cd.like_count,
                     commentCount: cd.comment_count,
-                    liked: cd.like_count,
+                    liked: cd.liked,
                     parentPostId: cd.parent_post_id,
-                    parentType: cd.parent_type,
                     pfp: cd.pfp,
                     postTime: cd.post_time,
                 })));
@@ -95,9 +92,10 @@ export default function PostPage() {
 
     const goBack = () => {
         // if (document.referrer && document.referrer.includes(location.origin)) {
-        if (location.state.from) {
+        if (location?.state?.from) {
             // we are coming from inside the website
-            navigate(`/${location.state.from}`);
+            // navigate(`/${location.state.from}`);
+            navigate(-1);
         } else {
             // either there is no history or we are coming from an external website
             navigate('/');
@@ -129,12 +127,10 @@ export default function PostPage() {
                 content: cd.content,
                 displayName: cd.displayname,
                 id: cd.id,
-                level: cd.level,
                 likeCount: cd.like_count,
                 commentCount: cd.comment_count,
                 liked: cd.like_count,
                 parentPostId: cd.parent_post_id,
-                parentType: cd.parent_type,
                 pfp: cd.pfp,
                 postTime: cd.post_time,
             }))]
