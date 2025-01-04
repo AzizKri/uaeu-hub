@@ -11,7 +11,8 @@ export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp, yesText
     noText?: string
 }) {
     const handleHidePopUp = () => {
-        document.body.style.overflow = "scroll";
+        document.body.style.overflowY = "scroll";
+        document.body.style.position = "static";
         hidePopUp();
     }
 
