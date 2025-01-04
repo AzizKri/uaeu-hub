@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import {
     anonSignup,
     getUserBySessionKey,
-    getUserByUsername,
+    getUserByUsername, getUserCommunities,
     getUserLikesOnComments,
     getUserLikesOnPosts,
     getUserLikesOnSubcomments,
@@ -34,6 +34,7 @@ app.get('/likes', (c) => {
             return getUserLikesOnPosts(c);
     }
 });
+app.get('/communities', (c) => getUserCommunities(c));
 app.get('/:username', (c) => getUserByUsername(c));
 
 export default app;
