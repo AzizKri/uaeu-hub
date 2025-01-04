@@ -5,7 +5,8 @@
     "main": "src/server.ts",
     "scripts": {
         "start": "ts-node src/server.ts",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "server": "npm install && tsc"
     },
     "devDependencies": {
         "@types/express": "^5.0.0",
