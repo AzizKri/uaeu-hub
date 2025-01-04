@@ -219,6 +219,76 @@ export async function getCommunityById(c: Context) {
     }
 }
 
+export async function getCommunitiesByTag(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+    const tag = c.req.query('tag');
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    // Check for required fields
+    if (!tag) return c.text('No tag provided', { status: 400 });
+
+    try {
+        // Get user ID from session key
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
+        if (!userid) {
+            // New user, get without memberships
+            const communities = await env.DB.prepare(`
+                SELECT *
+                FROM community
+                WHERE id IN (
+                    SELECT community_id
+                    FROM community_tag
+                    WHERE tag_id = (SELECT id FROM tag WHERE name = ?)
+                )
+                LIMIT 10 OFFSET ?
+            `).bind(tag, page * 10).all<CommunityRow>();
+
+            return c.json(communities.results, { status: 200 });
+        } else {
+            // Existing user, is it anon?
+            const user = await env.DB.prepare(`
+                SELECT is_anonymous
+                FROM user
+                WHERE id = ?
+            `).bind(userid).first<UserRow>();
+
+            if (user!.is_anonymous) {
+                // Anon, get without memberships
+                const communities = await env.DB.prepare(`
+                    SELECT *
+                    FROM community
+                    WHERE id IN (
+                        SELECT community_id
+                        FROM community_tag
+                        WHERE tag_id = (SELECT id FROM tag WHERE name = ?)
+                    )
+                    LIMIT 10 OFFSET ?
+                `).bind(tag, page * 10).all<CommunityRow>();
+
+                return c.json(communities.results, { status: 200 });
+            } else {
+                // Get communities with membership status
+                const communities = await env.DB.prepare(`
+                    SELECT *,
+                           (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
+                    FROM community c
+                    WHERE id IN (SELECT community_id
+                                 FROM community_tag
+                                 WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
+                    LIMIT 10 OFFSET ?
+                `).bind(userid, tag, page * 10).all<CommunityRow>();
+
+                return c.json(communities.results, { status: 200 });
+            }
+        }
+    } catch (e) {
+        console.log(e)
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
 export async function getCommunitiesSortByMembers(c: Context) {
     const env: Env = c.env;
     const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
@@ -390,6 +460,66 @@ export async function getCommunitiesSortByActivity(c: Context) {
         }
     } catch (e) {
         console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
+export async function searchCommunities(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+    const query = c.req.query('query');
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    // Check for required fields
+    if (!query) return c.text('No query provided', { status: 400 });
+
+    try {
+        // Get user ID from session key
+        const userid = await getUserFromSessionKey(c, sessionKey);
+
+        if (!userid) {
+            // New user, get without memberships
+            const communities = await env.DB.prepare(`
+                SELECT *
+                FROM community
+                WHERE name LIKE ?
+                LIMIT 10 OFFSET ?
+            `).bind(`%${query}%`, page * 10).all<CommunityRow>();
+
+            return c.json(communities.results, { status: 200 });
+        } else {
+            // Existing user, is it anon?
+            const user = await env.DB.prepare(`
+                SELECT is_anonymous
+                FROM user
+                WHERE id = ?
+            `).bind(userid).first<UserRow>();
+
+            if (user!.is_anonymous) {
+                // Anon, get without memberships
+                const communities = await env.DB.prepare(`
+                    SELECT *
+                    FROM community
+                    WHERE name LIKE ?
+                    LIMIT 10 OFFSET ?
+                `).bind(`%${query}%`, page * 10).all<CommunityRow>();
+
+                return c.json(communities.results, { status: 200 });
+            } else {
+                // Get communities with membership status
+                const communities = await env.DB.prepare(`
+                    SELECT *,
+                           (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
+                    FROM community c
+                    WHERE name LIKE ?
+                    LIMIT 10 OFFSET ?
+                `).bind(userid, `%${query}%`, page * 10).all<CommunityRow>();
+
+                return c.json(communities.results, { status: 200 });
+            }
+        }
+    } catch (e) {
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }

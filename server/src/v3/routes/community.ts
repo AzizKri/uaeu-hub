@@ -2,16 +2,22 @@ import { Hono } from 'hono';
 import { JwtVariables } from 'hono/jwt';
 import { authMiddleware } from '../util/middleware';
 import {
-    addMemberToCommunity, communityExists,
+    addMemberToCommunity,
+    communityExists,
     createCommunity,
     deleteCommunity,
     editCommunity,
+    getCommunitiesByTag,
     getCommunitiesSortByActivity,
     getCommunitiesSortByCreation,
     getCommunitiesSortByMembers,
     getCommunityById,
-    getCommunityByName, getCommunityMembers, joinCommunity, leaveCommunity,
-    removeMemberFromCommunity
+    getCommunityByName,
+    getCommunityMembers,
+    joinCommunity,
+    leaveCommunity,
+    removeMemberFromCommunity,
+    searchCommunities
 } from '../controllers/community.controller';
 import { validator } from 'hono/validator';
 import { communityEditingSchema, communitySchema } from '../util/validationSchemas';
@@ -53,6 +59,8 @@ app.get('/getCommunities', (c) => {
             return getCommunitiesSortByMembers(c);
     }
 });
+app.get('/getCommunitiesByTag', (c) => getCommunitiesByTag(c));
+app.get('/searchCommunities', (c) => searchCommunities(c));
 app.get('/getCommunityByName/:name', (c) => getCommunityByName(c));
 app.get('/:id', (c) => getCommunityById(c));
 app.get('/exists/:name', (c) => communityExists(c));

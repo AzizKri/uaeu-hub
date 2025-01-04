@@ -379,3 +379,27 @@ export async function getUserLikesOnSubcomments(c: Context) {
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
     }
 }
+
+export async function getUserCommunities(c: Context) {
+    const env: Env = c.env;
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+
+    // Get user from session key
+    const userId = await getUserFromSessionKey(c, sessionKey);
+    if (!userId) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    try {
+        // Get communities
+        const communities = await env.DB.prepare(`
+            SELECT c.id, c.name, c.icon
+            FROM community c
+                     JOIN community_member cm ON c.id = cm.community_id
+            WHERE cm.user_id = ?
+        `).bind(userId).all<CommunityRow>();
+
+        return c.json(communities.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}

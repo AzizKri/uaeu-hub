@@ -15,10 +15,9 @@ import React, {
 import {
     comment,
     createPost,
-    deleteAttachment,
-    getUserCommunities,
-    uploadAttachment,
-} from "../../../api.ts";
+    deleteAttachment, getCommunitiesCurrentUser,
+    uploadAttachment
+} from '../../../api.ts';
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 import Post from "../Post/Post.tsx";
@@ -275,9 +274,9 @@ export default function Editor({
     const handleSelectCommunityClick: React.MouseEventHandler = (e) => {
         e.stopPropagation();
         if (allCommunities.length === 0) {
-            getUserCommunities().then((res: CommunityINI[]) => {
-                setAllCommunities(res);
-                setDisplayedCommunities(res);
+            getCommunitiesCurrentUser().then((res: { status: number, data: CommunityINI[] }) => {
+                setAllCommunities(res.data);
+                setDisplayedCommunities(res.data);
                 setShowCommunities(true);
             });
         } else {
