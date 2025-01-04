@@ -364,19 +364,37 @@ export async function searchPosts(c: Context) {
 export async function getPostByID(c: Context) {
     const env: Env = c.env;
     const id: number = Number(c.req.param('id'));
+    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Check for post ID param
     if (!id || id == 0) return c.text('No post ID provided', { status: 400 });
 
     try {
-        // Get post by ID
-        const results = await env.DB.prepare(
-            `SELECT *
-             FROM post_view AS post
-             WHERE post.id = ?`
-        ).bind(id).all<PostView>();
+        const userid = await getUserFromSessionKey(c, sessionKey);
+        if (!userid) {
+            // New user, show posts without likes
+            const results = await env.DB.prepare(
+                `SELECT *
+                 FROM post_view AS post
+                 WHERE post.id = ?`
+            ).bind(id).all<PostView>();
 
-        return c.json(results.results, 200);
+            return c.json(results.results, { status: 200 });
+        } else {
+            // Returning user, show posts with likes
+            const results = await env.DB.prepare(`
+                SELECT post.*, EXISTS (
+                        SELECT 1
+                        FROM post_like
+                        WHERE post_like.post_id = post.id
+                        AND post_like.user_id = ?
+                    ) AS liked
+                FROM post_view AS post
+                WHERE post.id = ?
+            `).bind(userid, id).all<PostView>();
+
+            return c.json(results.results, 200);
+        }
     } catch (e) {
         console.error(e);
         return c.text('Internal Server Error', { status: 500 });
