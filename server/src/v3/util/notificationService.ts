@@ -24,11 +24,14 @@ export async function createNotification(
             if (!entityId || !entityType || !senderId) throw new Error('No entity ID or type provided');
 
             // Get the receiver ID and generate a message to send through websocket
-            const { receiverId: rid, message: msg } = await handleLike(env, senderId, entityId, entityType);
+            const {
+                receiverId: likeReceiverId,
+                message: likeMessage
+            } = await handleLike(env, senderId, entityId, entityType);
 
             // Reassign
-            receiverId = rid;
-            message = msg;
+            receiverId = likeReceiverId;
+            message = likeMessage;
             console.log(message);
 
             // Insert notification into DB
@@ -38,36 +41,82 @@ export async function createNotification(
             `).bind(senderId, receiverId, action, entityId, entityType).run();
 
             // Prepare payload
-            const payload = {
+            const likePayload = {
                 senderId: senderId,
                 receiverId: receiverId,
                 action: action,
                 entityId: entityId,
                 entityType: entityType
-            }
+            };
 
-            console.log('Sending to websocket');
             // Send to websocket
-            try {
-                const request = await fetch(env.WEBSOCKET_URL + '/notify', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                })
-                console.log(request, 'Notification sent');
-            } catch (e) {
-                console.error(e);
-                throw new Error('Failed to send notification');
-            }
-
+            await sendToWebSocket(env, likePayload);
             break;
         case 'comment':
-            message = `User ${senderId} commented on your post`;
+            // Check required fields
+            if (!entityId || !entityType || !senderId) throw new Error('No entity ID or type provided');
+
+            // Get the receiver ID and generate a message to send through websocket
+            const {
+                receiverId: commentReceiverId,
+                message: commentMessage
+            } = await handleComment(env, senderId, entityId);
+
+            // Reassign
+            receiverId = commentReceiverId;
+            message = commentMessage;
+            console.log(message);
+
+            // Insert notification into DB
+            await env.DB.prepare(`
+                INSERT INTO notification (sender_id, recipient_id, action, entity_id, entity_type)
+                VALUES (?, ?, ?, ?, ?)
+            `).bind(senderId, receiverId, action, entityId, entityType).run();
+
+            // Prepare payload
+            const commentPayload = {
+                senderId: senderId,
+                receiverId: receiverId,
+                action: action,
+                entityId: entityId,
+                entityType: entityType
+            };
+
+            // Send to websocket
+            await sendToWebSocket(env, commentPayload);
             break;
         case 'subcomment':
-            message = `User ${senderId} replied to your comment`;
+            // Check required fields
+            if (!entityId || !entityType || !senderId) throw new Error('No entity ID or type provided');
+
+            // Get the receiver ID and generate a message to send through websocket
+            const {
+                receiverId: subcommentReceiverId,
+                message: subcommentMessage
+            } = await handleSubcomment(env, senderId, entityId);
+
+            // Reassign
+            receiverId = subcommentReceiverId;
+            message = subcommentMessage;
+            console.log(message);
+
+            // Insert notification into DB
+            await env.DB.prepare(`
+                INSERT INTO notification (sender_id, recipient_id, action, entity_id, entity_type)
+                VALUES (?, ?, ?, ?, ?)
+            `).bind(senderId, receiverId, action, entityId, entityType).run();
+
+            // Prepare payload
+            const subcommentPayload = {
+                senderId: senderId,
+                receiverId: receiverId,
+                action: action,
+                entityId: entityId,
+                entityType: entityType
+            };
+
+            // Send to websocket
+            await sendToWebSocket(env, subcommentPayload);
             break;
         case 'mention':
             message = `User ${senderId} mentioned you in a comment`;
@@ -75,6 +124,39 @@ export async function createNotification(
         default:
             throw new Error('Invalid notification type');
     }
+}
+
+async function sendToWebSocket(env: Env, payload: {
+    senderId?: number;
+    receiverId: number;
+    action?: 'like' | 'comment' | 'subcomment' | 'mention';
+    entityId?: number;
+    entityType?: 'post' | 'comment' | 'subcomment';
+    message?: string;
+}) {
+    try {
+        const request = await fetch(env.WEBSOCKET_URL + '/notify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        console.log(request, 'Notification sent');
+    } catch (e) {
+        console.error(e);
+        throw new Error('Failed to send notification');
+    }
+}
+
+async function handleComment(env: Env, senderId: number, entityId: number) {
+    const parentPost = await getEntity(env, entityId, 'post') as PostRow;
+    return { receiverId: parentPost.author_id, message: `User ${senderId} commented your post` };
+}
+
+async function handleSubcomment(env: Env, senderId: number, entityId: number) {
+    const parentComment = await getEntity(env, entityId, 'comment') as CommentRow;
+    return { receiverId: parentComment.author_id, message: `User ${senderId} replied to your comment` };
 }
 
 async function handleLike(env: Env, senderId: number, entityId: number, entityType: 'post' | 'comment' | 'subcomment') {
