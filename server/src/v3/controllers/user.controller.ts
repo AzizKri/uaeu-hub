@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import { z } from 'zod';
-import { getSignedCookie, setCookie } from 'hono/cookie';
+import { getSignedCookie } from 'hono/cookie';
 import {
     generateSalt,
     hashPassword,
@@ -259,7 +259,7 @@ export async function login(c: Context) {
 
 export async function logout(c: Context) {
     // Set session key to empty and expire immediately
-    setCookie(c, 'sessionKey', '', { maxAge: 0 });
+    await sendAuthCookie(c, '', 0);
     return c.text('Logged out', 200);
 }
 
