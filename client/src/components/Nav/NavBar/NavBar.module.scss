@@ -13,6 +13,9 @@
     padding-inline: 20px;
     z-index: 10;
 
+    .navbar_logo {
+        min-width: 60px;
+    }
     .menu {
         display: none;
         cursor: pointer;

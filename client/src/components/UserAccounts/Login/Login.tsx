@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from '../../../styles/Forms.module.scss';
+import styles from '../Forms.module.scss';
 import {login} from '../../../api.ts';
 import {Link, useNavigate} from 'react-router-dom';
 import {useUser} from "../../../lib/hooks.ts";
