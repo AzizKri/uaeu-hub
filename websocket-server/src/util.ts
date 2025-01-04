@@ -1,4 +1,5 @@
-const base = 'http://127.0.0.1:8787';
+// const base = 'http://127.0.0.1:8787';
+const base = 'https://api.uaeu.chat';
 
 export async function validateSignature(uuid: string, timestamp: string, nonce: string, signature: string, secretKey: string): Promise<boolean> {
     const computedSignature = await signUUID(uuid, timestamp, nonce, secretKey);
