@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from '../../../styles/Forms.module.scss';
+import styles from '../Forms.module.scss';
 import {Link, useNavigate} from 'react-router-dom';
 import {isAnon, signUp} from '../../../api.ts';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";

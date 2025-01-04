@@ -4,7 +4,7 @@ import React, {useEffect} from "react";
 export default function Popup({children, hidePopUp}: { children: React.ReactNode, hidePopUp: () => void }) {
     useEffect(() => {
         document.body.style.position = "fixed";
-    })
+    }, []);
 
     const handleHidePopup: React.MouseEventHandler = (e) => {
         e.stopPropagation();
@@ -14,7 +14,7 @@ export default function Popup({children, hidePopUp}: { children: React.ReactNode
 
     return (
         <div className={styles.dark_background} onClick={handleHidePopup}>
-            <div className={styles.container}>
+            <div className={styles.container} onClick={(e) => e.stopPropagation()}>
             <span className={styles.container__cancel} onClick={handleHidePopup}>
                 {/*cancel icon*/}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path

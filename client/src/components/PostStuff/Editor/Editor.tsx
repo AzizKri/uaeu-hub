@@ -12,11 +12,19 @@ import React, {
     useRef,
     useState,
 } from "react";
-import {comment, createPost, deleteAttachment, uploadAttachment} from "../../../api.ts";
+import {
+    comment,
+    createPost,
+    deleteAttachment,
+    getUserCommunities,
+    uploadAttachment,
+} from "../../../api.ts";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-// import { useUpdatePosts } from "../../lib/hooks";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 import Post from "../Post/Post.tsx";
+import communityIcon from "../../../assets/community-icon.jpg";
+import arrowDownIcon from "../../../assets/chevron-down.svg";
+import { useUser } from "../../../lib/hooks.ts";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
@@ -24,6 +32,7 @@ interface UploadState {
     file: File | null;
     preview: string | ArrayBuffer | null;
 }
+
 
 const initialConfig = {
     namespace: "MyEditor",
@@ -38,7 +47,7 @@ export default function Editor({
     parent_id,
     handleSubmit,
     prependPost,
-    prependComment
+    prependComment,
 }: {
     type: string;
     parent_id: number | null;
@@ -53,10 +62,15 @@ export default function Editor({
         preview: null,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [allCommunities, setAllCommunities] = useState<CommunityINI[]>([]);
+    const [displayedCommunities, setDisplayedCommunities] = useState<CommunityINI[]>([]);
+    const [showCommunities, setShowCommunities] = useState<boolean>(false);
+    const [selectedCommunity, setSelectedCommunity] = useState<CommunityINI>();
+    const selectCommunityButtonRef = useRef<HTMLButtonElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{ clearEditorContent: () => void }>(null);
-    // const {updatePosts} = useUpdatePosts();
+    const { user } = useUser();
 
     useEffect(() => {
         const hasContent = !!(uploadState.file || plainText);
@@ -141,7 +155,10 @@ export default function Editor({
     };
 
     const removeImage = () => {
-        if (typeof uploadState.fileName === "string") deleteAttachment(uploadState.fileName).then(() => console.log("attachment deleted"))
+        if (typeof uploadState.fileName === "string")
+            deleteAttachment(uploadState.fileName).then(() =>
+                console.log("attachment deleted"),
+            );
         setUploadState({
             status: "IDLE",
             file: null,
@@ -153,7 +170,7 @@ export default function Editor({
     };
 
     const submitPost = async () => {
-        if (isSubmitting) return;
+        if (isSubmitting || plainText.length === 0) return;
 
         try {
             setIsSubmitting(true);
@@ -165,7 +182,11 @@ export default function Editor({
 
             // Submit the post or comment
             if (type === "post") {
-                const post = await createPost(plainText, uploadState.fileName);
+                if (!selectedCommunity) {
+                    selectCommunityButtonRef.current?.classList.add(styles.warning);
+                    return;
+                }
+                const post = await createPost(plainText, uploadState.fileName, selectedCommunity.id);
                 const postInfo: PostInfo = {
                     id: post.id,
                     content: post.content,
@@ -182,16 +203,24 @@ export default function Editor({
 
                 const communityInfo: CommunityInfoSimple = {
                     name: post.community,
-                    icon: post.community_icon
+                    icon: post.community_icon,
                 };
-                if (prependPost) prependPost(<Post
-                    key={post.id}
-                    postInfo={postInfo}
-                    topCommentInfo={null}
-                    communityInfo={communityInfo}
-                />);
+
+                if (prependPost)
+                    prependPost(
+                        <Post
+                            key={post.id}
+                            postInfo={postInfo}
+                            topCommentInfo={null}
+                            communityInfo={communityInfo}
+                        />,
+                    );
             } else if ((type === "comment" || type === "reply") && parent_id) {
-                const res = await comment(parent_id, plainText, uploadState.fileName);
+                const res = await comment(
+                    parent_id,
+                    plainText,
+                    uploadState.fileName,
+                );
                 if (type === "comment") {
                     const createdComment = {
                         attachment: res.attachment,
@@ -208,7 +237,7 @@ export default function Editor({
                         parentType: res.parent_id,
                         pfp: res.pfp,
                         postTime: res.post_time,
-                    }
+                    };
                     if (prependComment) prependComment(createdComment);
                 }
                 if (type === "reply" && handleSubmit) {
@@ -230,9 +259,50 @@ export default function Editor({
     };
 
     const handleChangeImage = () => {
-        if (typeof uploadState.fileName === "string") deleteAttachment(uploadState.fileName).then(() => console.log("attachment deleted"))
+        if (typeof uploadState.fileName === "string")
+            deleteAttachment(uploadState.fileName).then(() =>
+                console.log("attachment deleted"),
+            );
         imageInputRef.current?.click();
-    }
+    };
+
+    const handleSelect = (e: React.MouseEvent, community: CommunityINI) => {
+        e.stopPropagation();
+        setSelectedCommunity(community);
+        setShowCommunities(false);
+    };
+
+    const handleSelectCommunityClick: React.MouseEventHandler = (e) => {
+        e.stopPropagation();
+        if (allCommunities.length === 0) {
+            getUserCommunities().then((res: CommunityINI[]) => {
+                setAllCommunities(res);
+                setDisplayedCommunities(res);
+                setShowCommunities(true);
+            });
+        } else {
+            setShowCommunities(true);
+        }
+        const listener = () => {
+            setShowCommunities(false);
+            document.body.removeEventListener("click", listener);
+        };
+
+        document.body.addEventListener("click", listener);
+    };
+
+    // const handleFocusSearch = (e) => {
+    //     e.stopPropagation();
+    //     if (allCommunities.length === 0) return;
+    // };
+
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setDisplayedCommunities(
+            allCommunities.filter((com) =>
+                com.name.toLowerCase().includes(e.target.value.toLowerCase()),
+            ),
+        );
+    };
 
     return (
         <div ref={editorContainerRef} className={styles.editorContainer}>
@@ -287,6 +357,59 @@ export default function Editor({
             )}
 
             <div className={styles.buttons}>
+                {user && !user.isAnonymous && type === "post" && (
+                    <div className={styles.selectCommunity}>
+                        {showCommunities ? (
+                            <>
+                                <input
+                                    type="text"
+                                    onChange={handleSearch}
+                                    placeholder="select"
+                                    className={styles.input}
+                                    onBlur={() => setShowCommunities(false)}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                                <ul className={styles.communities}>
+                                    {displayedCommunities.map(
+                                        (community: CommunityINI) => (
+                                            <li
+                                                key={community.name}
+                                                className={
+                                                    styles.communityListItem
+                                                }
+                                                onClick={(e) =>
+                                                    handleSelect(e, community)
+                                                }
+                                            >
+                                                <CommunityPreview
+                                                    community={community}
+                                                />
+                                            </li>
+                                        ),
+                                    )}
+                                </ul>
+                            </>
+                        ) : (
+                            <button
+                                className={styles.showCommunities}
+                                onClick={handleSelectCommunityClick}
+                                ref={selectCommunityButtonRef}
+                            >
+                                {selectedCommunity ? (
+                                    <CommunityPreview
+                                        community={selectedCommunity}
+                                    />
+                                ) : (
+                                    <span>Select a community</span>
+                                )}
+                                <img
+                                    src={arrowDownIcon}
+                                    alt="arrow down icon"
+                                />
+                            </button>
+                        )}
+                    </div>
+                )}
                 <div
                     className={styles.buttonIcon}
                     onClick={() => imageInputRef.current?.click()}
@@ -320,6 +443,19 @@ export default function Editor({
                     )}
                 </div>
             </div>
+        </div>
+    );
+}
+
+function CommunityPreview({community}: {community: CommunityInfoSimple}) {
+    return (
+        <div className={styles.community}>
+            <img
+                src={community.icon || communityIcon}
+                alt={community.name}
+                className={styles.icon}
+            />
+            <span className={styles.communityName}>{community.name}</span>
         </div>
     );
 }

@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { getFormattedDate } from "../../../lib/tools.ts";
 import Content from "../Content/Content.tsx";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
+import {Link} from "react-router-dom";
 
 export default function Post({ postInfo, topCommentInfo, communityInfo, from}: PostAll & {from?: string}) {
     const [dateText, setDateText] = useState<string>("");
@@ -26,34 +27,42 @@ export default function Post({ postInfo, topCommentInfo, communityInfo, from}: P
         <div className={styles.post}>
             <div className={styles.post__info_bar}>
                 <div className={styles.pics}>
-                    <img
-                        src={
-                            communityInfo.icon == undefined
-                                ? communityIcon
-                                : communityInfo.icon
-                        }
-                        alt="community icon"
-                        className={styles.community_icon}
-                    />
-                    <img
-                        src={
-                            postInfo.pfp == undefined
-                                ? profilePicture
-                                : postInfo.pfp
-                        }
-                        alt="profile picture"
-                        className={styles.user_icon}
-                    />
+                    <Link to={`/community/${communityInfo.name}`}>
+                        <img
+                            src={
+                                communityInfo.icon == undefined
+                                    ? communityIcon
+                                    : communityInfo.icon
+                            }
+                            alt="community icon"
+                            className={styles.community_icon}
+                        />
+                    </Link>
+                    <Link to={`/user/${postInfo.authorUsername}`}>
+                        <img
+                            src={
+                                postInfo.pfp == undefined
+                                    ? profilePicture
+                                    : postInfo.pfp
+                            }
+                            alt="profile picture"
+                            className={styles.user_icon}
+                        />
+                    </Link>
                 </div>
                 <div className={styles.names}>
-                    <div className={styles.community_name}>
-                        {communityInfo.name}
-                    </div>
-                    <div className={styles.username}>
-                        {postInfo.authorDisplayName}
-                        <span className={styles.dot}>•</span>
-                        {dateText}
-                    </div>
+                    <Link to={`/community/${communityInfo.name}`}>
+                        <div className={styles.community_name}>
+                            {communityInfo.name}
+                        </div>
+                    </Link>
+                        <div className={styles.username}>
+                            <Link to={`user/${postInfo.authorUsername}`} className={styles.displayName}>
+                            {postInfo.authorDisplayName}
+                            </Link>
+                            <span className={styles.dot}>•</span>
+                            {dateText}
+                        </div>
                 </div>
                 <div className={styles.post__info_bar__dots}>
                     <OptionsMenu

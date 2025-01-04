@@ -440,6 +440,22 @@ export async function removeMemberFromCommunity(id: number, userId: number) {
     return request.status;
 }
 
+// export async function getUserCommunities(): Promise<CommunityINI[]> {
+export async function getUserCommunities(): Promise<CommunityINI[]> {
+    return [
+        {name: "Community1", id: 0},
+        {name: "Community2", id: 0},
+        {name: "Community3", id: 0},
+        {name: "Community4", id: 0},
+        {name: "Community5", id: 0},
+        {name: "Community6", id: 0},
+        {name: "Community7", id: 0},
+        {name: "Community8", id: 0},
+        {name: "Community9", id: 0},
+        {name: "Community10", id: 0}
+    ];
+}
+
 /* Tags */
 
 // Get All Tags

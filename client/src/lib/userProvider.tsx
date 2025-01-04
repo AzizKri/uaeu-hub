@@ -55,6 +55,7 @@ export default function UserProvider({children}: {children: ReactNode}) {
                 }
             } catch (error) {
                 console.log("Error fetching user data", error);
+                setUser(null);
             }
         };
 
