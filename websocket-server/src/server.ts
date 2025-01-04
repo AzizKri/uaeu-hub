@@ -56,7 +56,7 @@ server.on('upgrade', (request, socket, head) => {
 
 wss.on('connection', async (ws, req) => {
     console.log('Incoming connection');
-    const urlParams = new URL('http://localhost:8000' + req.url!).searchParams;
+    const urlParams = new URL('https://wss.uaeu.chat' + req.url!).searchParams;
     const uuid = urlParams.get('uuid');
     const signature = urlParams.get('signature');
     const timestamp = urlParams.get('timestamp');
