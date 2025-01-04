@@ -50,6 +50,12 @@ export async function getLikesCurrentUser(type: 'posts' | 'comments' | 'subcomme
     return { status: request.status, data: await request.json() };
 }
 
+// Returns the communities the current user is part of
+export async function getCommunitiesCurrentUser() {
+    const request = await fetch(base + `/user/communities`, { credentials: 'include' });
+    return { status: request.status, data: await request.json() };
+}
+
 /* Users */
 
 // Get user data by username
@@ -360,9 +366,27 @@ export async function getCommunityByName(name: string) {
     return { status: request.status, data: await request.json() };
 }
 
+// Get communities by tag
+export async function getCommunitiesByTag(tag: string, page: number = 0) {
+    const request = await fetch(base + `/community/getCommunitiesByTag?tag=${tag}&page=${page}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
 // Get communities sorted by latest, activity, or members
 export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', page: number = 0) {
     const request = await fetch(base + `/community/getCommunities?sortBy=${sortBy}&page=${page}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
+// Search communities by query
+export async function searchCommunities(query: string, page: number = 0) {
+    const request = await fetch(base + `/community/searchCommunities?query=${query}&page=${page}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -438,22 +462,6 @@ export async function removeMemberFromCommunity(id: number, userId: number) {
         credentials: 'include'
     });
     return request.status;
-}
-
-// export async function getUserCommunities(): Promise<CommunityINI[]> {
-export async function getUserCommunities(): Promise<CommunityINI[]> {
-    return [
-        {name: "Community1", id: 0},
-        {name: "Community2", id: 0},
-        {name: "Community3", id: 0},
-        {name: "Community4", id: 0},
-        {name: "Community5", id: 0},
-        {name: "Community6", id: 0},
-        {name: "Community7", id: 0},
-        {name: "Community8", id: 0},
-        {name: "Community9", id: 0},
-        {name: "Community10", id: 0}
-    ];
 }
 
 /* Tags */
