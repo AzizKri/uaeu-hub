@@ -542,9 +542,9 @@ export async function likePost(c: Context) {
                 VALUES (?, ?)
             `).bind(postid, userid).run();
 
-            // Create a notification
-            console.log('Creating notification');
-            await createNotification(c, {senderId: userid, entityId: postid, entityType: 'post', action: 'like'});
+            // Make sure the worker waits until the notification is actually sent through the websocket
+            // This will still return the response without waiting though
+            c.executionCtx.waitUntil(createNotification(c, {senderId: userid, entityId: postid, entityType: 'post', action: 'like'}))
         }
 
         console.log('Like toggled');

@@ -1,6 +1,7 @@
 import { Context } from 'hono';
 import { getUserFromSessionKey } from '../util/util';
 import { getSignedCookie } from 'hono/cookie';
+import { createNotification } from '../util/notificationService';
 
 export async function subcomment(c: Context) {
     const env: Env = c.env;
@@ -15,22 +16,34 @@ export async function subcomment(c: Context) {
 
     try {
         // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey, true);
+        const userid = await getUserFromSessionKey(c, sessionKey, true) as number;
 
+        let subcommentD1;
         // Check if we have a file & insert into DB
         if (fileName) {
-            await env.DB.prepare(
+            subcommentD1 = await env.DB.prepare(
                 `INSERT INTO subcomment (parent_comment_id, author_id, content, attachment)
-                 VALUES (?, ?, ?, ?)`
-            ).bind(commentID, userid, content, fileName).run();
+                 VALUES (?, ?, ?, ?)
+                 RETURNING id`
+            ).bind(commentID, userid, content, fileName).first<SubcommentRow>();
         } else {
-            await env.DB.prepare(
+            subcommentD1 = await env.DB.prepare(
                 `INSERT INTO subcomment (parent_comment_id, author_id, content)
-                 VALUES (?, ?, ?)`
-            ).bind(commentID, userid, content).run();
+                 VALUES (?, ?, ?)
+                 RETURNING id`
+            ).bind(commentID, userid, content).first<SubcommentRow>();
         }
 
-        return c.text('Comment created', { status: 201 });
+        const subcomment = await env.DB.prepare(`
+            SELECT *
+            FROM subcomment_view
+            WHERE id = ?
+            `).bind(subcommentD1?.id).first<SubcommentRow>();
+
+        // Begin sending a notification but do not wait
+        c.executionCtx.waitUntil(createNotification(c, {senderId: userid, action: 'subcomment', entityType:'comment', entityId: subcommentD1!.id}))
+
+        return c.json(subcomment, { status: 201 });
     } catch (e) {
         console.log(e)
         return c.text('Internal Server Error', { status: 500 });
@@ -129,7 +142,7 @@ export async function likeSubcomment(c: Context) {
 
     try {
         // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey, true);
+        const userId = await getUserFromSessionKey(c, sessionKey, true);
 
         // Check if the user has already liked the subcomment
         const like = await env.DB.prepare(
@@ -137,7 +150,7 @@ export async function likeSubcomment(c: Context) {
              FROM subcomment_like
              WHERE subcomment_id = ?
                AND user_id = ?`
-        ).bind(subcommentID, userid).first<PostLikeRow>();
+        ).bind(subcommentID, userId).first<PostLikeRow>();
 
         if (like) {
             // Unlike the subcomment
@@ -146,7 +159,7 @@ export async function likeSubcomment(c: Context) {
                  FROM subcomment_like
                  WHERE subcomment_id = ?
                    AND user_id = ?`
-            ).bind(subcommentID, userid).run();
+            ).bind(subcommentID, userId).run();
 
             return c.text('Subcomment unliked', { status: 200 });
         } else {
@@ -154,7 +167,10 @@ export async function likeSubcomment(c: Context) {
             await env.DB.prepare(
                 `INSERT INTO subcomment_like (subcomment_id, user_id)
                  VALUES (?, ?)`
-            ).bind(subcommentID, userid).run();
+            ).bind(subcommentID, userId).run();
+
+            // Send a notification but do not wait
+            c.executionCtx.waitUntil(createNotification(c, {senderId: userId!, entityId: subcommentID, entityType: 'subcomment', action: 'like'}))
 
             return c.text('Subcomment liked', { status: 200 });
         }
