@@ -107,7 +107,7 @@ export async function sendAuthCookie(c: Context, sessionKey: string, customExpir
         httpOnly: true,
         secure: true,
         sameSite: 'None',
-        maxAge: customExpires || COOKIE_EXPIRY
+        maxAge: (customExpires !== null)? customExpires as number : COOKIE_EXPIRY
     };
 
     // If in production, set domain to .uaeu.chat & sameSite to Strict
