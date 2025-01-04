@@ -42,10 +42,10 @@ export async function createCommunity(c: Context) {
 
         // Create the community
         const community = await env.DB.prepare(
-            `INSERT INTO community (name, description, icon, tags, created_at)
-             VALUES (?, ?, ?, ?, ?)
+            `INSERT INTO community (name, description, icon, tags)
+             VALUES (?, ?, ?, ?)
              RETURNING id`
-        ).bind(name, desc, icon || null, tags.join(','), Date.now()).first<CommunityRow>();
+        ).bind(name, desc, icon || null, tags.join(',')).first<CommunityRow>();
 
         // Add tags to community
         await Promise.all(tagIds.map(async (tagId) => {
@@ -72,9 +72,9 @@ export async function createCommunity(c: Context) {
 
         // Add the user as an administrator
         await env.DB.prepare(`
-            INSERT INTO user_community (user_id, community_id, role_id, joined_at)
-            VALUES (?, ?, ?, ?)
-        `).bind(userid, community!.id, adminRoleId!.id, Date.now()).run();
+            INSERT INTO user_community (user_id, community_id, role_id)
+            VALUES (?, ?, ?)
+        `).bind(userid, community!.id, adminRoleId!.id).run();
 
         return c.json(community, { status: 201 });
     } catch (e) {
@@ -121,7 +121,7 @@ export async function getCommunityByName(c: Context) {
             const community = await env.DB.prepare(`
                 SELECT *
                 FROM community
-                WHERE id = ?
+                WHERE name = ?
             `).bind(name).first<CommunityRow>();
 
             return c.json(community, { status: 200 });
@@ -138,7 +138,7 @@ export async function getCommunityByName(c: Context) {
                 const community = await env.DB.prepare(`
                     SELECT *
                     FROM community
-                    WHERE id = ?
+                    WHERE name = ?
                 `).bind(name).first<CommunityRow>();
 
                 return c.json(community, { status: 200 });
@@ -148,13 +148,14 @@ export async function getCommunityByName(c: Context) {
                     SELECT *,
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
                     FROM community c
-                    WHERE id = ?
+                    WHERE c.name = ?
                 `).bind(userid, name).first<CommunityRow>();
 
                 return c.json(community, { status: 200 });
             }
         }
     } catch (e) {
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -162,10 +163,13 @@ export async function getCommunityByName(c: Context) {
 export async function getCommunityById(c: Context) {
     const env: Env = c.env;
     const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
-    const id = Number(c.req.param('id'));
+    const idStr = c.req.param('id');
 
     // Check for required fields
-    if (!id) return c.text('No community ID provided', { status: 400 });
+    if (!idStr) return c.text('No community ID provided', { status: 400 });
+
+    // Convert to number after checking, since 0 (General community) returns false
+    const id = Number(idStr);
 
     try {
         // Get user ID from session key
@@ -210,6 +214,7 @@ export async function getCommunityById(c: Context) {
             }
         }
     } catch (e) {
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -266,6 +271,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
             }
         }
     } catch (e) {
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -322,6 +328,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
             }
         }
     } catch (e) {
+        console.log(e)
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -341,11 +348,11 @@ export async function getCommunitiesSortByActivity(c: Context) {
             // New user, get without memberships
             const communities = await env.DB.prepare(`
                 SELECT *,
-                       (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time >= ?) as activity_score
+                       (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
                 FROM community
                 ORDER BY ?
                 LIMIT 10 OFFSET ?
-            `).bind(Date.now() - (24 * 60 * 60 * 1000), `activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
+            `).bind(`activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -360,11 +367,11 @@ export async function getCommunitiesSortByActivity(c: Context) {
                 // Anon, get without memberships
                 const communities = await env.DB.prepare(`
                     SELECT *,
-                           (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time <= ?) as activity_score
+                           (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
                     FROM community
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(Date.now() - (24 * 60 * 60 * 1000), `activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(`activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -372,11 +379,11 @@ export async function getCommunitiesSortByActivity(c: Context) {
                 const communities = await env.DB.prepare(`
                     SELECT *,
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member,
-                           (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time <= ?)   as activity_score
+                           (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time >= datetime('%s', 'now', '-1 day'))   as activity_score
                     FROM community c
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(userid, Date.now() - (24 * 60 * 60 * 1000), `activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(userid, `activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -434,9 +441,9 @@ export async function addMemberToCommunity(c: Context) {
 
         // Add the user to the community
         await env.DB.prepare(`
-            INSERT INTO user_community (user_id, community_id, role_id, joined_at)
-            VALUES (?, ?, (SELECT id FROM community_role WHERE community_id = ? AND name = 'Member'), ?)
-        `).bind(userId, communityId, communityId, Date.now()).run();
+            INSERT INTO user_community (user_id, community_id, role_id)
+            VALUES (?, ?, (SELECT id FROM community_role WHERE community_id = ? AND name = 'Member'))
+        `).bind(userId, communityId, communityId).run();
 
         return c.text('User added to community', { status: 200 });
     } catch (e) {
@@ -538,9 +545,9 @@ export async function joinCommunity(c: Context) {
 
         // Add the user to the community
         await env.DB.prepare(`
-            INSERT INTO user_community (user_id, community_id, role_id, joined_at)
-            VALUES (?, ?, (SELECT id FROM community_role WHERE community_id = ? AND name = 'Member'), ?)
-        `).bind(userId, communityId, communityId, Date.now()).run();
+            INSERT INTO user_community (user_id, community_id, role_id)
+            VALUES (?, ?, (SELECT id FROM community_role WHERE community_id = ? AND name = 'Member'))
+        `).bind(userId, communityId, communityId).run();
 
         return c.text('User joined community', { status: 200 });
     } catch (e) {

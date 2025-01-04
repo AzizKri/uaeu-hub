@@ -49,3 +49,43 @@ export async function hashSessionKey(sessionKey: string): Promise<string> {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// export async function hashSessionKey(sessionKey: string, salt: string): Promise<string> {
+//     const data = new TextEncoder().encode(sessionKey + salt);
+//     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+//     const hashArray = Array.from(new Uint8Array(hashBuffer));
+//     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// }
+
+export async function validateWebSocketIdSignature(uuid: string, timestamp: string, nonce: string, signature: string, secretKey: string): Promise<boolean> {
+    const computedSignature = await signWebSocketId(uuid, timestamp, nonce, secretKey);
+
+    // Compare signatures securely to prevent timing attacks
+    return computedSignature === signature;
+}
+
+async function signWebSocketId(uuid: string, timestamp: string, nonce: string, secretKey: string): Promise<string> {
+    const encoder = new TextEncoder();
+
+    // Convert the UUID and secret key to Uint8Array
+    const keyData = encoder.encode(secretKey);
+    const uuidData = encoder.encode(`${uuid}:${timestamp}:${nonce}`);
+
+    // Import the secret key for HMAC
+    const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        keyData,
+        { name: "HMAC", hash: { name: "SHA-256" } },
+        false,
+        ["sign"]
+    );
+
+    // Sign the UUID
+    const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, uuidData);
+
+    // Convert the signature to a URL-safe Base64 string
+    return btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)))
+        .replace(/\+/g, "-") // Replace "+" with "-"
+        .replace(/\//g, "_") // Replace "/" with "_"
+        .replace(/=+$/, ""); // Remove "=" padding
+}

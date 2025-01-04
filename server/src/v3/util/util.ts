@@ -71,6 +71,11 @@ async function signupAnon(c: Context): Promise<number | null> {
     // Get cookie from context & hash it
     const sessionKey = c.get('sessionKey');
     console.log('signupAnon -> sessionKey: ', sessionKey);
+
+    // // Generate Session Key & Salt
+    // const { encoded: sessionKeyEncoded } = generateSalt();
+    // const newHashedKey = await hashSessionKey(sessionKey, sessionKeyEncoded);
+
     const newHashedKey = await hashSessionKey(sessionKey);
 
     try {
@@ -102,14 +107,14 @@ export async function sendAuthCookie(c: Context, sessionKey: string, customExpir
         httpOnly: true,
         secure: true,
         sameSite: 'None',
-        maxAge: customExpires || COOKIE_EXPIRY
+        maxAge: (customExpires !== null)? customExpires as number : COOKIE_EXPIRY
     };
 
-    // // If in production, set domain to .uaeu.chat & sameSite to Strict
-    // if (c.env.ENVIRONMENT === 'production') {
-    //     options.domain = '.uaeu.chat';
-    //     options.sameSite = 'Strict';
-    // }
+    // If in production, set domain to .uaeu.chat & sameSite to Strict
+    if (c.env.ENVIRONMENT === 'production') {
+        options.domain = '.uaeu.chat';
+        options.sameSite = 'Strict';
+    }
 
     // Set the cookie
     await setSignedCookie(c, 'sessionKey', sessionKey.toString(), c.env.JWT_SECRET, options);

@@ -137,6 +137,13 @@ type SessionRow = {
     created_at: number;
 }
 
+type WebSocketRow = {
+    user_id: number;
+    socket_id: string;
+    created_at: number;
+    used: boolean;
+}
+
 type CommunityRow = {
     id: number;
     name: string;
