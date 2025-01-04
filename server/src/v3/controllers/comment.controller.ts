@@ -1,6 +1,7 @@
 import { Context } from 'hono';
 import { getUserFromSessionKey } from '../util/util';
 import { getSignedCookie } from 'hono/cookie';
+import { createNotification } from '../util/notificationService';
 
 export async function comment(c: Context) {
     const env: Env = c.env;
@@ -15,7 +16,7 @@ export async function comment(c: Context) {
 
     try {
         // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey, true);
+        const userid = await getUserFromSessionKey(c, sessionKey, true) as number;
 
         let commentId;
         // Check if we have a file & insert into DB
@@ -33,11 +34,15 @@ export async function comment(c: Context) {
             `).bind(postID, userid, content).first<CommentView>();
         }
 
+        // Get the comment data to return
         const comment = await env.DB.prepare(`
-                SELECT *
-                FROM comment_view
-                WHERE id = ?
-            `).bind(commentId?.id).first<CommentView>();
+            SELECT *
+            FROM comment_view
+            WHERE id = ?
+        `).bind(commentId?.id).first<CommentView>();
+
+        // Begin sending a notification but do not wait
+        c.executionCtx.waitUntil(createNotification(c, {senderId: userid, action: 'comment', entityType:'post', entityId: commentId!.id}))
 
         return c.json(comment, { status: 201 });
     } catch (e) {
@@ -162,6 +167,9 @@ export async function likeComment(c: Context) {
                 INSERT INTO comment_like (comment_id, user_id)
                 VALUES (?, ?)`
             ).bind(commentId, userId).run();
+
+            // Send a notification but do not wait
+            c.executionCtx.waitUntil(createNotification(c, {senderId: userId, entityId: commentId, entityType: 'comment', action: 'like'}))
 
             return c.text('Comment liked', { status: 200 });
         }
