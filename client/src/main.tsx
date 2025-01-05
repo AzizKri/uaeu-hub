@@ -6,7 +6,6 @@ import Login from './components/UserAccounts/Login/Login.tsx';
 import SignUp from './components/UserAccounts/SignUp/SignUp.tsx';
 import Home from './components/Home/Home.tsx';
 import PostPage from './components/PostStuff/PostPage/PostPage.tsx';
-import LoadingImage from "./components/Reusable/LoadingImage/LoadingImage.tsx";
 import UserProvider from "./lib/userProvider.tsx";
 import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
 import UserProfile from "./components/UserProfilePage/UserProfile/UserProfile.tsx";
@@ -30,11 +29,6 @@ const router = createBrowserRouter([
             {
                 path: '/post/:postId',
                 element: <PostPage />
-            },
-            // just for testing
-            {
-                path: '/loading',
-                element: <LoadingImage />
             },
             {
                 path: '/user/:username',
