@@ -28,7 +28,7 @@
             padding: 8px;
             margin-right: 6px;
             border-radius: 9999px;
-            background-color: #f8f8f8;
+            //background-color: #f8f8f8;
             cursor: pointer;
             transition: background-color 0.2s ease;
 
@@ -38,7 +38,7 @@
                 color: #888;
             }
             &:hover {
-                background-color: #eee;
+                background-color: #f2f2f2;
             }
         }
 
@@ -64,8 +64,8 @@
 
             .showCommunities {
                 height: 40px;
-                padding: 8px;
-                background-color: #f8f8f8;
+                padding: 8px 16px;
+                //background-color: #f8f8f8;
                 border-radius: 50px;
                 display: flex;
                 align-items: center;
@@ -75,6 +75,8 @@
                 transition: background-color 0.2s ease,
                             box-shadow 0.2s ease;
                 overflow: hidden;
+                font-size: 12px;
+                border: 1px solid #c7c7c7;
 
                 &:hover {
                     background-color: #eee;
