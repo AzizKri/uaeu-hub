@@ -393,7 +393,7 @@ export async function getUserCommunities(c: Context) {
         const communities = await env.DB.prepare(`
             SELECT c.id, c.name, c.icon
             FROM community c
-                     JOIN community_member cm ON c.id = cm.community_id
+                     JOIN user_community cm ON c.id = cm.community_id
             WHERE cm.user_id = ?
         `).bind(userId).all<CommunityRow>();
 
