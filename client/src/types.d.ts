@@ -90,15 +90,15 @@ declare global {
         loading: boolean;
     }
 
-    interface userInfo {
+    interface UserInfo {
         username: string;
         displayName: string;
-        bio: string;
-        pfp: string;
-        isAnonymous: boolean;
+        bio?: string;
+        pfp?: string;
+        isAnonymous?: boolean;
     }
 
-    interface signUpErrors {
+    interface SignUpErrors {
         displayName?: string;
         email?: string;
         username?: string;
@@ -106,7 +106,7 @@ declare global {
         global?: string;
     }
 
-    interface loginErrors {
+    interface LoginErrors {
         identifier?: string;
         password?: string;
         global?: string;
@@ -125,7 +125,7 @@ declare global {
     }
 
     interface UserContextInterface {
-        user: userInfo | null;
+        user: UserInfo | null;
         updateUser: (userInfo) => void;
         removeUser: () => void;
     }

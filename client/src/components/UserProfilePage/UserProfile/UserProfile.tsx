@@ -21,7 +21,7 @@ export default function UserProfile () {
     const location = useLocation();
     // console.log(location);
     const [activeTab, setActiveTab] = useState('');
-    const [profileUser, setProfileUser] = useState<userInfo>();
+    const [profileUser, setProfileUser] = useState<UserInfo>();
     const { username } =  useParams<{ username: string }>();
     const navigate = useNavigate();
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);

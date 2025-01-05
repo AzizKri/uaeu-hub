@@ -3,10 +3,10 @@ import {UserContext} from "./context.ts";
 import {getCurrentUser} from "../api.ts";
 
 export default function UserProvider({children}: {children: ReactNode}) {
-    const [user, setUser] = useState<userInfo | null>(null);
+    const [user, setUser] = useState<UserInfo | null>(null);
 
     useEffect(() => {
-        const cashUserData = (userData: userInfo) => {
+        const cashUserData = (userData: UserInfo) => {
             const data = {
                 userData,
                 timestamp: Date.now(),
@@ -62,7 +62,7 @@ export default function UserProvider({children}: {children: ReactNode}) {
         fetchUserData().then(() => console.log("User Data fetched"));
     }, [])
 
-    const updateUser = (newUser: userInfo) => {
+    const updateUser = (newUser: UserInfo) => {
         localStorage.setItem("userData", JSON.stringify(newUser));
         setUser(newUser);
     }

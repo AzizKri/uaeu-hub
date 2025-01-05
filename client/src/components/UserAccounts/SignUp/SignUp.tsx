@@ -19,7 +19,7 @@ export default function SignUp() {
         password: '',
         includeAnon: true
     });
-    const [errors, setErrors] = useState<signUpErrors>({});
+    const [errors, setErrors] = useState<SignUpErrors>({});
     const [reqErrors, setReqErrors] = useState<requirementErrors>({
         passLengthError: true,
         passLowerError: true,
@@ -64,9 +64,9 @@ export default function SignUp() {
         setErrors({});
         const parseResult = userSchema.safeParse(formData);
         if (!parseResult.success) {
-            const newErrors: signUpErrors = {};
+            const newErrors: SignUpErrors = {};
             parseResult.error.issues.forEach((issue : z.ZodIssue) => {
-                const fieldName = issue.path[0] as keyof signUpErrors;
+                const fieldName = issue.path[0] as keyof SignUpErrors;
                 newErrors[fieldName] = issue.message;
             });
             console.log(newErrors);
@@ -105,7 +105,7 @@ export default function SignUp() {
             })
             navigate('/');
         } else {
-            const newErrors: signUpErrors = {};
+            const newErrors: SignUpErrors = {};
             if (response.status === 409) {
                 newErrors.global = 'User already exists';
             } else {
