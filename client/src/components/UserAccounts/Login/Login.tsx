@@ -12,7 +12,7 @@ export default function Login() {
         password: '',
     });
 
-    const [errors, setErrors] = useState<loginErrors>({});
+    const [errors, setErrors] = useState<LoginErrors>({});
 
     const [isLoading, setIsLoading] = useState(false);
     const [passwordShown, setPasswordShown] = useState<boolean>(false);
@@ -68,7 +68,7 @@ export default function Login() {
             })
             navigate('/');
         } else {
-            const newErrors: loginErrors = {};
+            const newErrors: LoginErrors = {};
             if (response.status === 404) {
                 newErrors.global = 'User not found check the entered email.';
             } else if (response.status === 401) {

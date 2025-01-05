@@ -15,15 +15,17 @@ import React, {
 import {
     comment,
     createPost,
-    deleteAttachment, getCommunitiesCurrentUser,
-    uploadAttachment
-} from '../../../api.ts';
+    deleteAttachment,
+    getCommunitiesCurrentUser,
+    uploadAttachment,
+} from "../../../api.ts";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 import Post from "../Post/Post.tsx";
 import communityIcon from "../../../assets/community-icon.jpg";
 import arrowDownIcon from "../../../assets/chevron-down.svg";
 import { useUser } from "../../../lib/hooks.ts";
+import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
@@ -31,7 +33,6 @@ interface UploadState {
     file: File | null;
     preview: string | ArrayBuffer | null;
 }
-
 
 const initialConfig = {
     namespace: "MyEditor",
@@ -62,10 +63,15 @@ export default function Editor({
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [allCommunities, setAllCommunities] = useState<CommunityINI[]>([]);
-    const [displayedCommunities, setDisplayedCommunities] = useState<CommunityINI[]>([]);
+    const [displayedCommunities, setDisplayedCommunities] = useState<
+        CommunityINI[]
+    >([]);
     const [showCommunities, setShowCommunities] = useState<boolean>(false);
     const [selectedCommunity, setSelectedCommunity] = useState<CommunityINI>();
+    const [loadingUserCommunities, setLoadingUserCommunities] =
+        useState<boolean>(false);
     const selectCommunityButtonRef = useRef<HTMLButtonElement>(null);
+    const selectCommunityInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{ clearEditorContent: () => void }>(null);
@@ -182,10 +188,16 @@ export default function Editor({
             // Submit the post or comment
             if (type === "post") {
                 if (!selectedCommunity) {
-                    selectCommunityButtonRef.current?.classList.add(styles.warning);
+                    selectCommunityButtonRef.current?.classList.add(
+                        styles.warning,
+                    );
                     return;
                 }
-                const post = await createPost(plainText, uploadState.fileName, selectedCommunity.id);
+                const post = await createPost(
+                    plainText,
+                    uploadState.fileName,
+                    selectedCommunity.id,
+                );
                 const postInfo: PostInfo = {
                     id: post.id,
                     content: post.content,
@@ -249,7 +261,6 @@ export default function Editor({
                 editorHelperRef.current.clearEditorContent();
             }
             removeImage();
-            // updatePosts();
         } catch (error) {
             console.error("Error submitting post:", error);
         } finally {
@@ -271,14 +282,22 @@ export default function Editor({
         setShowCommunities(false);
     };
 
+    useEffect(() => {
+        if (showCommunities) selectCommunityInputRef?.current?.focus();
+    }, [showCommunities]);
+
     const handleSelectCommunityClick: React.MouseEventHandler = (e) => {
         e.stopPropagation();
         if (allCommunities.length === 0) {
-            getCommunitiesCurrentUser().then((res: { status: number, data: CommunityINI[] }) => {
-                setAllCommunities(res.data);
-                setDisplayedCommunities(res.data);
-                setShowCommunities(true);
-            });
+            setLoadingUserCommunities(true);
+            setShowCommunities(true);
+            getCommunitiesCurrentUser().then(
+                (res: { status: number; data: CommunityINI[] }) => {
+                    setAllCommunities(res.data);
+                    setDisplayedCommunities(res.data);
+                    setLoadingUserCommunities(false);
+                },
+            );
         } else {
             setShowCommunities(true);
         }
@@ -289,11 +308,6 @@ export default function Editor({
 
         document.body.addEventListener("click", listener);
     };
-
-    // const handleFocusSearch = (e) => {
-    //     e.stopPropagation();
-    //     if (allCommunities.length === 0) return;
-    // };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setDisplayedCommunities(
@@ -367,24 +381,32 @@ export default function Editor({
                                     className={styles.input}
                                     onBlur={() => setShowCommunities(false)}
                                     onClick={(e) => e.stopPropagation()}
+                                    ref={selectCommunityInputRef}
                                 />
                                 <ul className={styles.communities}>
-                                    {displayedCommunities.map(
-                                        (community: CommunityINI) => (
-                                            <li
-                                                key={community.name}
-                                                className={
-                                                    styles.communityListItem
-                                                }
-                                                onClick={(e) =>
-                                                    handleSelect(e, community)
-                                                }
-                                            >
-                                                <CommunityPreview
-                                                    community={community}
-                                                />
-                                            </li>
-                                        ),
+                                    {loadingUserCommunities ? (
+                                        <LoadingImage width="24px" />
+                                    ) : (
+                                        displayedCommunities.map(
+                                            (community: CommunityINI) => (
+                                                <li
+                                                    key={community.name}
+                                                    className={
+                                                        styles.communityListItem
+                                                    }
+                                                    onClick={(e) =>
+                                                        handleSelect(
+                                                            e,
+                                                            community,
+                                                        )
+                                                    }
+                                                >
+                                                    <CommunityPreview
+                                                        community={community}
+                                                    />
+                                                </li>
+                                            ),
+                                        )
                                     )}
                                 </ul>
                             </>
@@ -446,7 +468,7 @@ export default function Editor({
     );
 }
 
-function CommunityPreview({community}: {community: CommunityInfoSimple}) {
+function CommunityPreview({ community }: { community: CommunityInfoSimple }) {
     return (
         <div className={styles.community}>
             <img

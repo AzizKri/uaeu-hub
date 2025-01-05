@@ -5,6 +5,7 @@
     font-optical-sizing: auto;
     font-style: normal;
     --main-bg: #f6f6f6;
+    --main-color: #d7420cff
 }
 
 input {
@@ -22,6 +23,7 @@ button {
     outline: none;
     cursor: pointer;
     background: none;
+    transition: background-color 0.2s ease;
 }
 
 * {

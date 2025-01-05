@@ -68,7 +68,7 @@ export default function Content({id, content, filename, type, from}: {
                 {!showContent && <span className={styles.show_more} onClick={handleShowMore}>show more</span>}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
-            {isLoading && !error && <LoadingImage/>}
+            {isLoading && !error && <LoadingImage width="100%"/>}
             {filename != null && !error && <div className={styles.image}
                                                 style={{
                                                     display: isLoading ? 'none' : 'block',
