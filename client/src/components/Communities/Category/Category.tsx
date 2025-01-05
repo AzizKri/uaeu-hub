@@ -1,10 +1,10 @@
 import styles from "./Category.module.scss";
-import communityIcon from "../../../assets/community-icon.jpg";
-import {joinCommunity} from "../../../api.ts";
+import { getCommunitiesByTag, joinCommunity } from "../../../api.ts";
 import memberIcon from "../../../assets/account-outline-thin-dot.svg";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
+import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 
-interface communityPreview {
+interface CommunityPreview {
     icon: string;
     name: string;
     id: number;
@@ -12,45 +12,113 @@ interface communityPreview {
     isMember: boolean;
 }
 
-const communitiesTemp: communityPreview[] = [
-    {icon: communityIcon, name: "Community1", id: 1, members: 100, isMember: false},
-    {icon: communityIcon, name: "Community2", id: 2, members: 200, isMember: true},
-    {icon: communityIcon, name: "longer name here", id: 3, members: 300, isMember: false},
-    {icon: communityIcon, name: "Community4", id: 4, members: 400, isMember: false},
-    {icon: communityIcon, name: "Community5", id: 5, members: 500, isMember: true},
-];
+export default function Category({ tag }: { tag: string }) {
+    const [communities, setCommunities] = useState<CommunityPreview[]>([]);
+    const [thereIsMore, setThereIsMore] = useState<boolean>(false);
+    const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+    const [page, setPage] = useState<number>(1);
 
-export default function Category({tag}: {tag: string}) {
-    const [communities, setCommunities] = useState<communityPreview[]>([]);
-    const [more, setMore] = useState<boolean>(true);
     useEffect(() => {
-        setCommunities(communitiesTemp);
-    }, [])
+        getCommunitiesByTag(tag).then((res) => {
+            setThereIsMore(res.data.length === 10);
+            setCommunities(
+                res.data.map(
+                    ({
+                        icon,
+                        name,
+                        id,
+                        member_count,
+                        is_member,
+                    }: {
+                        icon: string;
+                        name: string;
+                        id: number;
+                        member_count: number;
+                        is_member: boolean;
+                    }) => ({
+                        icon: icon,
+                        name: name,
+                        id: id,
+                        members: member_count,
+                        isMember: is_member,
+                    }),
+                ),
+            );
+        });
+    }, [tag]);
 
-    const handleShowAll = () => {
-        setCommunities((prev) => [...prev, ...communitiesTemp]);
-        setMore(false);
-    }
+    const handleShowMore = () => {
+        setIsLoadingMore(true);
+        getCommunitiesByTag(tag, page).then((res) => {
+            setThereIsMore(res.data.length === 10);
+            setCommunities((prev) => [
+                ...prev,
+                ...res.data.map(
+                    ({
+                        icon,
+                        name,
+                        id,
+                        member_count,
+                        is_member,
+                    }: {
+                        icon: string;
+                        name: string;
+                        id: number;
+                        member_count: number;
+                        is_member: boolean;
+                    }) => ({
+                        icon: icon,
+                        name: name,
+                        id: id,
+                        members: member_count,
+                        isMember: is_member,
+                    }),
+                ),
+            ]);
+            setIsLoadingMore(false);
+        });
+        setPage((prev) => prev + 1);
+    };
 
     return (
         <div className={styles.container}>
             <h4 className={styles.title}>{tag}</h4>
             <div className={styles.communities}>
                 {communities.map((com) => (
-                    <div className={styles.communityPreview}>
-                        <img src={com.icon} alt={`${com.name} Community`} className={styles.communityIcon}/>
+                    <div key={com.id} className={styles.communityPreview}>
+                        <img
+                            src={com.icon}
+                            alt={`${com.name} Community`}
+                            className={styles.communityIcon}
+                        />
                         <div className={styles.info}>
-                            <div className={styles.communityName}>{com.name}</div>
+                            <div className={styles.communityName}>
+                                {com.name}
+                            </div>
                             <div className={styles.members}>
-                                <img src={memberIcon} alt="member"/>
+                                <img src={memberIcon} alt="member" />
                                 {com.members}
                             </div>
                         </div>
-                        {!com.isMember && <button className={styles.join} onClick={() => joinCommunity(com.id)}>Join</button>}
+                        {!com.isMember && (
+                            <button
+                                className={styles.join}
+                                onClick={() => joinCommunity(com.id)}
+                            >
+                                Join
+                            </button>
+                        )}
                     </div>
                 ))}
-                {more && <button className={styles.showAll} onClick={handleShowAll}>Show All</button>}
+                {thereIsMore && (
+                    <button
+                        className={styles.showMore}
+                        onClick={handleShowMore}
+                    >
+                        {isLoadingMore ? <LoaderDots /> : "Show More"}
+                    </button>
+                )}
             </div>
         </div>
-    )
+    );
 }

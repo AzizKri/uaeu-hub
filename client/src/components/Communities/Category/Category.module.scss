@@ -26,6 +26,8 @@
                 width: 40px;
                 height: 40px;
                 border-radius: 50%;
+                //temp
+                background-color: #eee;
             }
 
             .info {
@@ -52,6 +54,19 @@
                 &:hover {
                     background: #2b4162ff;
                 }
+            }
+        }
+        .showMore {
+            grid-column: 1 / 2;
+            background-color: #eee;
+            padding: 10px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-family: inherit;
+            font-weight: 600;
+
+            &:hover {
+                background-color: #f2f2f2;
             }
         }
     }
