@@ -1,16 +1,16 @@
 import { Context } from 'hono';
 import { hashSessionKey } from './crypto';
-import { anonSignup } from '../controllers/user.controller';
+import { anonSignup } from '../controllers/auth.controller';
 import { setSignedCookie } from 'hono/cookie';
 
 /**
  * @Create A new anonymous user IF `createNewUser` is `true` and no `sessionKey` is provided.
  *
- * @returns `userId` or `null`
+ * @returns `{ userId, isAnonymous }` or `null`
  *
- * @Note `userId` is returned if provided with a sessionKey associated with a valid user. `null` values must be handled properly when expected.
+ * @Note `userId` and `isAnonymous` is returned if provided with a sessionKey associated with a valid user. `null` values must be handled properly when expected.
  */
-export async function getUserFromSessionKey(c: Context, sessionKey: string | undefined, createNewUser: boolean = false): Promise<number | null> {
+export async function getUserFromSessionKey(c: Context, sessionKey: string | undefined, createNewUser: boolean = false): Promise<UserAnonymousStatus | null> {
     const env: Env = c.env;
 
     console.log('getUserFromSessionKey: ', sessionKey);
@@ -19,7 +19,8 @@ export async function getUserFromSessionKey(c: Context, sessionKey: string | und
         // User is required (e.g. for likes, posts, etc.)
         if (createNewUser) {
             console.log('getUserFromSessionKey -> signupAnon');
-            return await signupAnon(c);
+            const userId = await anonSignup(c, true) as number;
+            return { userId: userId, isAnonymous: true };
         } else {
             // User is not required. This is for GETTING posts, comments, etc. Just return null and handle null in the controller
             console.log('getUserFromSessionKey -> No SK, no create');
@@ -34,64 +35,43 @@ export async function getUserFromSessionKey(c: Context, sessionKey: string | und
     try {
         // Get user from session key
         let userResult = await env.DB.prepare(
-            `SELECT user_id
+            `SELECT user_id, is_anonymous
              FROM session
              WHERE id = ?`
         ).bind(hashedKey).first<SessionRow>();
         console.log('getUserFromSessionKey -> userResult: ', userResult);
 
         // If user not found, create a new user. Normally this wouldn't happen, currently only for testing
-        // Need to reconsider this later
+        // TODO Need to reconsider this later
         if (!userResult) {
             console.log('getUserFromSessionKey -> User not found');
-            return await signupAnon(c);
+            const userId = await anonSignup(c, true) as number;
+            return { userId: userId, isAnonymous: true };
         }
 
         // Return user ID
-        return userResult.user_id;
+        return { userId: userResult.user_id, isAnonymous: userResult.is_anonymous };
     } catch (e) {
         console.log(e);
         return null;
     }
 }
 
-/**
- * @Create A new anonymous user and return a `userId` or `null` on Error.
- *
- * @returns `userId` or `null`
- *
- * @Note The `userId` is always returned as it creates a new anonymous user.
- */
-async function signupAnon(c: Context): Promise<number | null> {
-    const env: Env = c.env;
+export function getUserFromSessionToken(sessionToken: string | undefined): UserAnonymousStatus | null {
+    if (!sessionToken) return null;
 
-    // Normal signup logic. This is for the DB.
-    await anonSignup(c);
+    // Split the session token
+    const [userIdStr, isAnonymousStr] = sessionToken.split(':');
+    const userId = Number(userIdStr);
+    const isAnonymous = Number(isAnonymousStr);
 
-    // Get cookie from context & hash it
-    const sessionKey = c.get('sessionKey');
-    console.log('signupAnon -> sessionKey: ', sessionKey);
-
-    // // Generate Session Key & Salt
-    // const { encoded: sessionKeyEncoded } = generateSalt();
-    // const newHashedKey = await hashSessionKey(sessionKey, sessionKeyEncoded);
-
-    const newHashedKey = await hashSessionKey(sessionKey);
-
-    try {
-        // Get user from session key
-        const userResult = await env.DB.prepare(
-            `SELECT user_id
-             FROM session
-             WHERE id = ?`
-        ).bind(newHashedKey).first<SessionRow>();
-
-        // Return user ID
-        return userResult!.user_id;
-    } catch (e) {
-        console.log(e);
+    // If the user ID is not a number, then it's an invalid token
+    if (isNaN(userId) || isNaN(isAnonymous)) {
+        console.log('getUserFromSessionToken -> Invalid token');
         return null;
     }
+
+    return { userId: userId, isAnonymous: isAnonymous == 1 };
 }
 
 /**
@@ -107,7 +87,7 @@ export async function sendAuthCookie(c: Context, sessionKey: string, customExpir
         httpOnly: true,
         secure: true,
         sameSite: 'None',
-        maxAge: (customExpires !== null)? customExpires as number : COOKIE_EXPIRY
+        maxAge: (customExpires !== null) ? customExpires as number : COOKIE_EXPIRY
     };
 
     // If in production, set domain to .uaeu.chat & sameSite to Strict
@@ -118,4 +98,30 @@ export async function sendAuthCookie(c: Context, sessionKey: string, customExpir
 
     // Set the cookie
     await setSignedCookie(c, 'sessionKey', sessionKey.toString(), c.env.JWT_SECRET, options);
+}
+
+/**
+ * Send the `sessionToken` to the client as a signed cookie.
+ *
+ * `sessionToken` is the userId.
+ */
+export async function sendUserIdCookie(c: Context, userId: string, isAnonymous: boolean, customExpires?: number): Promise<void> {
+    const COOKIE_EXPIRY = 30 * 60; // 30 minutes
+
+    // Prepare cookie options
+    const options: cookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: (customExpires !== null) ? customExpires as number : COOKIE_EXPIRY
+    };
+
+    // If in production, set domain to .uaeu.chat & sameSite to Strict
+    if (c.env.ENVIRONMENT === 'production') {
+        options.domain = '.uaeu.chat';
+        options.sameSite = 'Strict';
+    }
+
+    // Set the cookie
+    await setSignedCookie(c, 'sessionToken', `${userId}:${Number(isAnonymous)}`, c.env.JWT_SECRET, options);
 }
