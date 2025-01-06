@@ -43,11 +43,11 @@ FROM user;
 
 CREATE TABLE IF NOT EXISTS session
 (
-    id         TEXT PRIMARY KEY,
-    user_id    INTEGER NOT NULL,
-    salt       TEXT    NOT NULL,
-    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    ip         TEXT,
+    id           TEXT PRIMARY KEY,
+    user_id      INTEGER NOT NULL,
+    created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_anonymous BOOLEAN NOT NULL,
+    ip           TEXT,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
@@ -305,9 +305,9 @@ CREATE TABLE IF NOT EXISTS notification
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     recipient_id INTEGER NOT NULL,
     sender_id    INTEGER,
-    action       TEXT,      /* 'like', 'comment', 'mention', 'follow' */
-    entity_id    INTEGER,   /* Post ID, Comment ID, etc. */
-    entity_type  TEXT,      /* 'post', 'comment', 'subcomment', 'user' */
+    action       TEXT, /* 'like', 'comment', 'mention', 'follow' */
+    entity_id    INTEGER, /* Post ID, Comment ID, etc. */
+    entity_type  TEXT, /* 'post', 'comment', 'subcomment', 'user' */
     message      TEXT,
     read         BOOLEAN NOT NULL DEFAULT FALSE,
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -318,11 +318,9 @@ CREATE TABLE IF NOT EXISTS notification
 CREATE VIEW IF NOT EXISTS notification_view AS
 SELECT notification.id,
        notification.recipient_id,
-       recipient.username    AS recipient,
-       recipient.displayname AS recipient_displayname,
        notification.sender_id,
-       sender.username       AS sender,
-       sender.displayname    AS sender_displayname,
+       sender.username    AS sender,
+       sender.displayname AS sender_displayname,
        notification.type,
        notification.entity_id,
        notification.entity_type,
