@@ -9,4 +9,5 @@ interface Env {
     ENVIRONMENT: string;
     WS_SECRET: string;
     WEBSOCKET_URL: string;
+    SYSTEM: string;
 }
