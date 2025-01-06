@@ -37,7 +37,7 @@ export default function NavBar() {
                 </Link>
                 <Search />
                 <div className={styles.right}>
-                    {user && !user.isAnonymous ? (
+                    {user && !user.new && !user.isAnonymous ? (
                         <>
                             <h3>{user.username}</h3>
                             <h4>{user.displayName}</h4>
