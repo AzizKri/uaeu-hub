@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS user_community
     user_id      INTEGER NOT NULL,
     community_id INTEGER NOT NULL,
     joined_at    INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    role_id      INTEGER NOT NULL DEFAULT 0,
+    role_id      INTEGER NOT NULL,
     PRIMARY KEY (user_id, community_id),
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
     FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
