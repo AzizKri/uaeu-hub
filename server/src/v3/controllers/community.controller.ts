@@ -1,11 +1,16 @@
 import { Context } from 'hono';
-import { getSignedCookie } from 'hono/cookie';
-import { getUserFromSessionKey } from '../util/util';
 import { getOrCreateTags } from './tags.controller';
 
 export async function createCommunity(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const { name, desc, icon, tags }: {
         name: string,
         desc: string,
@@ -15,18 +20,6 @@ export async function createCommunity(c: Context) {
     } = c.req.valid('form');
 
     try {
-        // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey, true);
-
-        // Is user anon?
-        const user = await env.DB.prepare(`
-            SELECT is_anonymous
-            FROM user
-            WHERE id = ?
-        `).bind(userid).first<UserRow>();
-
-        if (user!.is_anonymous) return c.text('Forbidden', { status: 403 });
-
         // First step, make sure the name is not taken
         const exists = await env.DB.prepare(
             `SELECT id
@@ -74,7 +67,7 @@ export async function createCommunity(c: Context) {
         await env.DB.prepare(`
             INSERT INTO user_community (user_id, community_id, role_id)
             VALUES (?, ?, ?)
-        `).bind(userid, community!.id, adminRoleId!.id).run();
+        `).bind(userId, community!.id, adminRoleId!.id).run();
 
         return c.json(community, { status: 201 });
     } catch (e) {
@@ -105,18 +98,19 @@ export async function communityExists(c: Context) {
 }
 
 export async function getCommunityByName(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const name = c.req.param('name');
 
     // Check for required fields
     if (!name) return c.text('No community name provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, get without memberships
             const community = await env.DB.prepare(`
                 SELECT *
@@ -127,13 +121,7 @@ export async function getCommunityByName(c: Context) {
             return c.json(community, { status: 200 });
         } else {
             // Existing user, is it anon?
-            const user = await env.DB.prepare(`
-                SELECT is_anonymous
-                FROM user
-                WHERE id = ?
-            `).bind(userid).first<UserRow>();
-
-            if (user!.is_anonymous) {
+            if (isAnonymous) {
                 // Anon, get without memberships
                 const community = await env.DB.prepare(`
                     SELECT *
@@ -149,7 +137,7 @@ export async function getCommunityByName(c: Context) {
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
                     FROM community c
                     WHERE c.name = ?
-                `).bind(userid, name).first<CommunityRow>();
+                `).bind(userId, name).first<CommunityRow>();
 
                 return c.json(community, { status: 200 });
             }
@@ -161,8 +149,12 @@ export async function getCommunityByName(c: Context) {
 }
 
 export async function getCommunityById(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const idStr = c.req.param('id');
 
     // Check for required fields
@@ -172,10 +164,7 @@ export async function getCommunityById(c: Context) {
     const id = Number(idStr);
 
     try {
-        // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, get without memberships
             const community = await env.DB.prepare(`
                 SELECT *
@@ -186,13 +175,7 @@ export async function getCommunityById(c: Context) {
             return c.json(community, { status: 200 });
         } else {
             // Existing user, is it anon?
-            const user = await env.DB.prepare(`
-                SELECT is_anonymous
-                FROM user
-                WHERE id = ?
-            `).bind(userid).first<UserRow>();
-
-            if (user!.is_anonymous) {
+            if (isAnonymous) {
                 // Anon, get without memberships
                 const community = await env.DB.prepare(`
                     SELECT *
@@ -208,7 +191,7 @@ export async function getCommunityById(c: Context) {
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
                     FROM community c
                     WHERE id = ?
-                `).bind(userid, id).first<CommunityRow>();
+                `).bind(userId, id).first<CommunityRow>();
 
                 return c.json(community, { status: 200 });
             }
@@ -220,8 +203,12 @@ export async function getCommunityById(c: Context) {
 }
 
 export async function getCommunitiesByTag(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const tag = c.req.query('tag');
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
@@ -229,10 +216,7 @@ export async function getCommunitiesByTag(c: Context) {
     if (!tag) return c.text('No tag provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, get without memberships
             const communities = await env.DB.prepare(`
                 SELECT *
@@ -248,13 +232,7 @@ export async function getCommunitiesByTag(c: Context) {
             return c.json(communities.results, { status: 200 });
         } else {
             // Existing user, is it anon?
-            const user = await env.DB.prepare(`
-                SELECT is_anonymous
-                FROM user
-                WHERE id = ?
-            `).bind(userid).first<UserRow>();
-
-            if (user!.is_anonymous) {
+            if (isAnonymous) {
                 // Anon, get without memberships
                 const communities = await env.DB.prepare(`
                     SELECT *
@@ -278,7 +256,7 @@ export async function getCommunitiesByTag(c: Context) {
                                  FROM community_tag
                                  WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
                     LIMIT 10 OFFSET ?
-                `).bind(userid, tag, page * 10).all<CommunityRow>();
+                `).bind(userId, tag, page * 10).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -290,16 +268,17 @@ export async function getCommunitiesByTag(c: Context) {
 }
 
 export async function getCommunitiesSortByMembers(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
     const page: number = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, get without memberships
             const communities = await env.DB.prepare(`
                 SELECT *
@@ -311,13 +290,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
             return c.json(communities.results, { status: 200 });
         } else {
             // Existing user, is it anon?
-            const user = await env.DB.prepare(`
-                SELECT is_anonymous
-                FROM user
-                WHERE id = ?
-            `).bind(userid).first<UserRow>();
-
-            if (user!.is_anonymous) {
+            if (isAnonymous) {
                 // Anon, get without memberships
                 const communities = await env.DB.prepare(`
                     SELECT *
@@ -335,7 +308,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
                     FROM community c
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(userid, `member_count ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(userId, `member_count ${order.toUpperCase()}`, page).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -347,16 +320,17 @@ export async function getCommunitiesSortByMembers(c: Context) {
 }
 
 export async function getCommunitiesSortByCreation(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
     const page: number = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, get without memberships
             const communities = await env.DB.prepare(`
                 SELECT *
@@ -368,13 +342,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
             return c.json(communities.results, { status: 200 });
         } else {
             // Existing user, is it anon?
-            const user = await env.DB.prepare(`
-                SELECT is_anonymous
-                FROM user
-                WHERE id = ?
-            `).bind(userid).first<UserRow>();
-
-            if (user!.is_anonymous) {
+            if (isAnonymous) {
                 // Anon, get without memberships
                 const communities = await env.DB.prepare(`
                     SELECT *
@@ -392,7 +360,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
                     FROM community c
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(userid, `created_at ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(userId, `created_at ${order.toUpperCase()}`, page).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -405,16 +373,17 @@ export async function getCommunitiesSortByCreation(c: Context) {
 
 // TODO - Implement global activity score updates using a new table & CRON triggers
 export async function getCommunitiesSortByActivity(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
     const page: number = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, get without memberships
             const communities = await env.DB.prepare(`
                 SELECT *,
@@ -427,13 +396,7 @@ export async function getCommunitiesSortByActivity(c: Context) {
             return c.json(communities.results, { status: 200 });
         } else {
             // Existing user, is it anon?
-            const user = await env.DB.prepare(`
-                SELECT is_anonymous
-                FROM user
-                WHERE id = ?
-            `).bind(userid).first<UserRow>();
-
-            if (user!.is_anonymous) {
+            if (isAnonymous) {
                 // Anon, get without memberships
                 const communities = await env.DB.prepare(`
                     SELECT *,
@@ -453,7 +416,7 @@ export async function getCommunitiesSortByActivity(c: Context) {
                     FROM community c
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(userid, `activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(userId, `activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -465,8 +428,12 @@ export async function getCommunitiesSortByActivity(c: Context) {
 }
 
 export async function searchCommunities(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const query = c.req.query('query');
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
@@ -474,10 +441,7 @@ export async function searchCommunities(c: Context) {
     if (!query) return c.text('No query provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, get without memberships
             const communities = await env.DB.prepare(`
                 SELECT *
@@ -489,13 +453,7 @@ export async function searchCommunities(c: Context) {
             return c.json(communities.results, { status: 200 });
         } else {
             // Existing user, is it anon?
-            const user = await env.DB.prepare(`
-                SELECT is_anonymous
-                FROM user
-                WHERE id = ?
-            `).bind(userid).first<UserRow>();
-
-            if (user!.is_anonymous) {
+            if (isAnonymous) {
                 // Anon, get without memberships
                 const communities = await env.DB.prepare(`
                     SELECT *
@@ -513,7 +471,7 @@ export async function searchCommunities(c: Context) {
                     FROM community c
                     WHERE name LIKE ?
                     LIMIT 10 OFFSET ?
-                `).bind(userid, `%${query}%`, page * 10).all<CommunityRow>();
+                `).bind(userId, `%${query}%`, page * 10).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -527,64 +485,71 @@ export async function searchCommunities(c: Context) {
 // TODO - Redo into inviteMemberToCommunity
 export async function addMemberToCommunity(c: Context) {
     return c.text('Not implemented', { status: 501 });
-    const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
-    const communityId = Number(c.req.param('id'));
-    const userId = Number(c.req.param('userId'));
-
-    // Check for required fields
-    if (!communityId || !userId) return c.text('No community ID or user ID provided', { status: 400 });
-
-    try {
-        // Check if user is anonymous
-        const user = await env.DB.prepare(`
-            SELECT is_anonymous
-            FROM user
-            WHERE id = ?
-        `).bind(userId).first<UserRow>();
-        if (user!.is_anonymous) return c.text('Forbidden', { status: 403 });
-
-        // Get user ID from session key
-        const adminId = await getUserFromSessionKey(c, sessionKey);
-        if (!adminId) return c.text('Unauthorized', { status: 401 });
-
-        // Check if the user is an administrator of the community
-        const role = await env.DB.prepare(
-            `SELECT 1
-             FROM user_community
-             WHERE user_id = ?
-               AND community_id = ?
-               AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
-        ).bind(adminId, communityId, communityId).first<CommunityMemberRow>();
-
-        if (!role) return c.text('Unauthorized', { status: 401 });
-
-        // Check if the user is already a member of the community
-        const member = await env.DB.prepare(
-            `SELECT 1
-             FROM user_community
-             WHERE user_id = ?
-               AND community_id = ?`
-        ).bind(userId, communityId).first<CommunityMemberRow>();
-
-        if (member) return c.text('User is already a member of the community', { status: 400 });
-
-        // Add the user to the community
-        await env.DB.prepare(`
-            INSERT INTO user_community (user_id, community_id, role_id)
-            VALUES (?, ?, (SELECT id FROM community_role WHERE community_id = ? AND name = 'Member'))
-        `).bind(userId, communityId, communityId).run();
-
-        return c.text('User added to community', { status: 200 });
-    } catch (e) {
-        console.log(e);
-        return c.text('Internal Server Error', { status: 500 });
-    }
+    // const env: Env = c.env;
+    // const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+    // const communityId = Number(c.req.param('id'));
+    // const userId = Number(c.req.param('userId'));
+    //
+    // // Check for required fields
+    // if (!communityId || !userId) return c.text('No community ID or user ID provided', { status: 400 });
+    //
+    // try {
+    //     // Check if user is anonymous
+    //     const user = await env.DB.prepare(`
+    //         SELECT is_anonymous
+    //         FROM user
+    //         WHERE id = ?
+    //     `).bind(userId).first<UserRow>();
+    //     if (user!.is_anonymous) return c.text('Forbidden', { status: 403 });
+    //
+    //     // Get user ID from session key
+    //     const adminFromSessionKey = await getUserFromSessionKey(c, sessionKey);
+    //     if (!adminFromSessionKey || adminFromSessionKey.isAnonymous) return c.text('Unauthorized', { status: 401 });
+    //
+    //     // Check if the user is an administrator of the community
+    //     const role = await env.DB.prepare(
+    //         `SELECT 1
+    //          FROM user_community
+    //          WHERE user_id = ?
+    //            AND community_id = ?
+    //            AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
+    //     ).bind(adminFromSessionKey.userId, communityId, communityId).first<CommunityMemberRow>();
+    //
+    //     if (!role) return c.text('Unauthorized', { status: 401 });
+    //
+    //     // Check if the user is already a member of the community
+    //     const member = await env.DB.prepare(
+    //         `SELECT 1
+    //          FROM user_community
+    //          WHERE user_id = ?
+    //            AND community_id = ?`
+    //     ).bind(userId, communityId).first<CommunityMemberRow>();
+    //
+    //     if (member) return c.text('User is already a member of the community', { status: 400 });
+    //
+    //     // Add the user to the community
+    //     await env.DB.prepare(`
+    //         INSERT INTO user_community (user_id, community_id, role_id)
+    //         VALUES (?, ?, (SELECT id FROM community_role WHERE community_id = ? AND name = 'Member'))
+    //     `).bind(userId, communityId, communityId).run();
+    //
+    //     return c.text('User added to community', { status: 200 });
+    // } catch (e) {
+    //     console.log(e);
+    //     return c.text('Internal Server Error', { status: 500 });
+    // }
 }
 
 export async function removeMemberFromCommunity(c: Context) {
+    // Get userId & isAnonymous from Context
+    const adminUserId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!adminUserId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const communityId = Number(c.req.param('id'));
     const userId = Number(c.req.param('userId'));
 
@@ -592,10 +557,6 @@ export async function removeMemberFromCommunity(c: Context) {
     if (!communityId || !userId) return c.text('No community ID or user ID provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const adminId = await getUserFromSessionKey(c, sessionKey);
-        if (!adminId) return c.text('Unauthorized', { status: 401 });
-
         // Check if the user is an administrator of the community
         const role = await env.DB.prepare(
             `SELECT 1
@@ -603,7 +564,7 @@ export async function removeMemberFromCommunity(c: Context) {
              WHERE user_id = ?
                AND community_id = ?
                AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
-        ).bind(adminId, communityId, communityId).first<CommunityMemberRow>();
+        ).bind(adminUserId, communityId, communityId).first<CommunityMemberRow>();
 
         if (!role) return c.text('Unauthorized', { status: 401 });
 
@@ -633,26 +594,21 @@ export async function removeMemberFromCommunity(c: Context) {
 }
 
 export async function joinCommunity(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const communityId = Number(c.req.param('id'));
 
     // Check for required fields
     if (!communityId) return c.text('No community ID provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const userId = await getUserFromSessionKey(c, sessionKey);
-        if (!userId) return c.text('Unauthorized', { status: 401 });
-
-        // Check if the user is anonymous
-        const user = await env.DB.prepare(`
-            SELECT is_anonymous
-            FROM user
-            WHERE id = ?
-        `).bind(userId).first<UserRow>();
-        if (user!.is_anonymous) return c.text('Forbidden', { status: 403 });
-
         // Check if community exists
         const community = await env.DB.prepare(`
             SELECT invite_only
@@ -687,34 +643,32 @@ export async function joinCommunity(c: Context) {
 }
 
 export async function leaveCommunity(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const communityId = Number(c.req.param('id'));
 
     // Check for required fields
     if (!communityId) return c.text('No community ID provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const userId = await getUserFromSessionKey(c, sessionKey);
-        if (!userId) return c.text('Unauthorized', { status: 401 });
-
-        // Check if the user is a member of the community
-        const member = await env.DB.prepare(`
-            SELECT 1
-            FROM user_community
-            WHERE user_id = ?
-              AND community_id = ?
-        `).bind(userId, communityId).first<CommunityMemberRow>();
-        if (!member) return c.text('User is not a member of the community', { status: 400 });
-
-        // Remove the user from the community
-        await env.DB.prepare(`
+        // Attempt to remove the user from the community
+        const result = await env.DB.prepare(`
             DELETE
             FROM user_community
             WHERE user_id = ?
               AND community_id = ?
-        `).bind(userId, communityId).run();
+            RETURNING 1
+        `).bind(userId, communityId).first<CommunityMemberRow>();
+
+        // Check if the user is a member of the community
+        if (!result) return c.text('User is not a member of the community', { status: 400 });
 
         return c.text('User left community', { status: 200 });
     } catch (e) {
@@ -724,8 +678,15 @@ export async function leaveCommunity(c: Context) {
 }
 
 export async function editCommunity(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const communityId = Number(c.req.param('id'));
     let { name, desc, icon, tags }: {
         name: string | null,
@@ -739,10 +700,6 @@ export async function editCommunity(c: Context) {
     if (!communityId) return c.text('No community ID provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const userId = await getUserFromSessionKey(c, sessionKey);
-        if (!userId) return c.text('Unauthorized', { status: 401 });
-
         // Check if community exists
         const community = await env.DB.prepare(`
             SELECT 1
@@ -834,18 +791,21 @@ export async function editCommunity(c: Context) {
 }
 
 export async function deleteCommunity(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const communityId = Number(c.req.param('id'));
 
     // Check for required fields
     if (!communityId) return c.text('No community ID provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const userId = await getUserFromSessionKey(c, sessionKey);
-        if (!userId) return c.text('Unauthorized', { status: 401 });
-
         // Check if the user is an administrator of the community
         const role = await env.DB.prepare(
             `SELECT 1
@@ -872,18 +832,21 @@ export async function deleteCommunity(c: Context) {
 }
 
 export async function getCommunityMembers(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'session_key') as string;
     const communityId = Number(c.req.param('id'));
 
     // Check for required fields
     if (!communityId) return c.text('No community ID provided', { status: 400 });
 
     try {
-        // Get user ID from session key
-        const userId = await getUserFromSessionKey(c, sessionKey);
-        if (!userId) return c.text('Unauthorized', { status: 401 });
-
         // Check if the user is an administrator of the community
         const role = await env.DB.prepare(
             `SELECT 1

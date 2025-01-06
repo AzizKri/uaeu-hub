@@ -1,7 +1,4 @@
 import { Context } from 'hono';
-import { HTTPException } from 'hono/http-exception';
-import { getUserFromSessionKey } from '../util/util';
-import { getSignedCookie } from 'hono/cookie';
 import { createNotification } from '../util/notificationService';
 
 // api.uaeu.chat/post/
@@ -11,7 +8,6 @@ export async function createPost(c: Context) {
     const content = formData['content'] as string;
     const communityId = Number(formData['communityId']);
     const fileName: string | null = formData['filename'] as string;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Check for required fields
     if (!content) return c.text('No content defined', { status: 400 });
@@ -20,18 +16,19 @@ export async function createPost(c: Context) {
     const trimmedContent = content.replace(/\n{3,}/g, '\n');
 
     try {
-        // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey, true);
+        // Get userId & isAnon from Context
+        const userId = c.get('userId') as number;
+        const isAnonymous = c.get('isAnonymous') as boolean;
 
-        // Check if user is in community
-        if (communityId != 0) {
-            console.log(userid, communityId);
+        // Check if user isn't anon and is in community
+        if (!isAnonymous && communityId != 0) {
+            console.log(userId, communityId);
             const inCommunity = await env.DB.prepare(`
                 SELECT *
                 FROM user_community
                 WHERE user_id = ?
                   AND community_id = ?
-            `).bind(userid, communityId).first();
+            `).bind(userId, communityId).first();
 
             if (!inCommunity) return c.text('User not in community', { status: 401 });
         }
@@ -42,7 +39,7 @@ export async function createPost(c: Context) {
                 `INSERT INTO post (author_id, content, attachment, community_id)
                  VALUES (?, ?, ?, ?)
                  RETURNING id`
-            ).bind(userid, trimmedContent, fileName, communityId || 0).first<PostView>();
+            ).bind(userId, trimmedContent, fileName, communityId || 0).first<PostView>();
 
             // Get the full post data to return
             const post = await env.DB.prepare(`
@@ -57,7 +54,7 @@ export async function createPost(c: Context) {
                 `INSERT INTO post (author_id, content, community_id)
                  VALUES (?, ?, ?)
                  RETURNING id`
-            ).bind(userid, trimmedContent, communityId || 0).first<PostView>();
+            ).bind(userId, trimmedContent, communityId || 0).first<PostView>();
 
             // Get the full post data to return
             const post = await env.DB.prepare(`
@@ -76,15 +73,15 @@ export async function createPost(c: Context) {
 
 // api.uaeu.chat/post/latest/:page?
 export async function getLatestPosts(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+
+    // Get the required fields
     const env: Env = c.env;
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     try {
-        // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, show posts without likes
             const posts = await env.DB.prepare(
                 `SELECT pv.*,
@@ -163,7 +160,7 @@ export async function getLatestPosts(c: Context) {
                                      LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(userid, page * 10).all<PostView>();
+            ).bind(userId, page * 10).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         }
@@ -175,15 +172,15 @@ export async function getLatestPosts(c: Context) {
 
 // api.uaeu.chat/post/best/:page?
 export async function getBestPosts(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+
+    // Get the required fields
     const env: Env = c.env;
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     try {
-        // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, show posts without likes
             const posts = await env.DB.prepare(
                 `SELECT pv.*,
@@ -270,7 +267,7 @@ export async function getBestPosts(c: Context) {
                                      LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY score DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(userid, page * 10).all<PostView>();
+            ).bind(userId, page * 10).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         }
@@ -281,18 +278,18 @@ export async function getBestPosts(c: Context) {
 }
 
 export async function getLatestPostsFromMyCommunities(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
-            return c.text('Unauthorized', { status: 403 });
-        }
-
         // Get posts
         const posts = await env.DB.prepare(
             `SELECT pv.*,
@@ -305,7 +302,7 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
              WHERE uc.user_id = ?
              ORDER BY pv.post_time DESC
              LIMIT 10 OFFSET (? * 10)`
-        ).bind(userid, userid, page || 0).all<PostView>();
+        ).bind(userId, userId, page || 0).all<PostView>();
 
         return c.json(posts.results, { status: 200 });
     } catch (e) {
@@ -315,18 +312,18 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
 }
 
 export async function getBestPostsFromMyCommunities(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
-            return c.text('Unauthorized', { status: 403 });
-        }
-
         // Get posts
         const posts = await env.DB.prepare(
             `SELECT pv.*,
@@ -337,13 +334,13 @@ export async function getBestPostsFromMyCommunities(c: Context) {
                     (
                         (pv.like_count * 10 + pv.comment_count * 5) /
                         (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
-                              (3600 * 24)))) AS score -- 1 day
+                              (3600 * 24))))             AS score -- 1 day
              FROM post_view AS pv
                       JOIN user_community AS uc ON pv.community_id = uc.community_id
              WHERE uc.user_id = ?
              ORDER BY score DESC
              LIMIT 10 OFFSET (? * 10)`
-        ).bind(userid, userid, page || 0).all<PostView>();
+        ).bind(userId, userId, page || 0).all<PostView>();
 
         return c.json(posts.results, { status: 200 });
     } catch (e) {
@@ -355,19 +352,19 @@ export async function getBestPostsFromMyCommunities(c: Context) {
 // api.uaeu.chat/post/user/:username?page=0
 // api.uaeu.chat/post/user/:id?page=0
 export async function getPostsByUser(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+
+    // Get the required fields
     const env: Env = c.env;
     const { user } = c.req.param();
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Check for user param
-    if (!user) throw new HTTPException(400, { res: new Response('No user defined', { status: 400 }) });
+    if (!user) return c.json([], { status: 400 });
 
     try {
-        // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        if (!userid) {
+        if (!userId) {
             // New user, show posts without likes
             const results = await env.DB.prepare(
                 `SELECT *
@@ -392,7 +389,7 @@ export async function getPostsByUser(c: Context) {
                     OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET (? * 10)`
-            ).bind(userid, user, Number(user), page || 0).all<PostView>();
+            ).bind(userId, user, Number(user), page || 0).all<PostView>();
 
             return c.json(results.results, { status: 200 });
         }
@@ -430,16 +427,18 @@ export async function searchPosts(c: Context) {
 
 // api.uaeu.chat/post/:id
 export async function getPostByID(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+
+    // Get the required fields
     const env: Env = c.env;
     const id: number = Number(c.req.param('id'));
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Check for post ID param
     if (!id || id == 0) return c.text('No post ID provided', { status: 400 });
 
     try {
-        const userid = await getUserFromSessionKey(c, sessionKey);
-        if (!userid) {
+        if (!userId) {
             // New user, show posts without likes
             const results = await env.DB.prepare(
                 `SELECT *
@@ -451,15 +450,14 @@ export async function getPostByID(c: Context) {
         } else {
             // Returning user, show posts with likes
             const results = await env.DB.prepare(`
-                SELECT post.*, EXISTS (
-                        SELECT 1
-                        FROM post_like
-                        WHERE post_like.post_id = post.id
-                        AND post_like.user_id = ?
-                    ) AS liked
+                SELECT post.*,
+                       EXISTS (SELECT 1
+                               FROM post_like
+                               WHERE post_like.post_id = post.id
+                                 AND post_like.user_id = ?) AS liked
                 FROM post_view AS post
                 WHERE post.id = ?
-            `).bind(userid, id).all<PostView>();
+            `).bind(userId, id).all<PostView>();
 
             return c.json(results.results, 200);
         }
@@ -471,20 +469,20 @@ export async function getPostByID(c: Context) {
 
 // api.uaeu.chat/post/:id
 export async function deletePost(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+
+    // Check if user is valid
+    if (!userId) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
     const env: Env = c.env;
     const postid = c.req.param('id');
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Check for post ID param
     if (!postid) return c.text('No post provided', { status: 400 });
 
     try {
-        // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey);
-
-        // No user, definitely unauthorized
-        if (!userid) return c.text('Unauthorized', { status: 403 });
-
         // Get the post's author
         const post = await env.DB.prepare(`
             SELECT author_id, attachment
@@ -494,19 +492,27 @@ export async function deletePost(c: Context) {
 
         // No post? 404
         if (!post) return c.text('Post not found', { status: 404 });
+
         // Not the author? 403
-        if (userid !== post.author_id) return c.text('Unauthorized', { status: 403 });
+        if (userId !== post.author_id) return c.text('Unauthorized', { status: 403 });
 
+        // Check for attachment and delete in the background
         if (post.attachment) {
-            // Delete the attachment from R2
-            await env.R2.delete(`attachments/${post.attachment}`);
+            c.executionCtx.waitUntil(Promise.resolve(async () => {
+                try {
+                    // Delete the attachment from R2
+                    await env.R2.delete(`attachments/${post.attachment}`);
 
-            // Delete the attachment from the DB
-            await env.DB.prepare(`
-                DELETE
-                FROM attachment
-                WHERE filename = ?
-            `).bind(post.attachment).run();
+                    // Delete the attachment from the DB
+                    await env.DB.prepare(`
+                        DELETE
+                        FROM attachment
+                        WHERE filename = ?
+                    `).bind(post.attachment).run();
+                } catch (e) {
+                    console.log(e);
+                }
+            }));
         }
 
         // Delete the post
@@ -518,32 +524,31 @@ export async function deletePost(c: Context) {
 
         return c.text('Post deleted', { status: 200 });
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
 
 // api.uaeu.chat/post/like/:id
 export async function likePost(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+
+    // Get the required fields
     const env: Env = c.env;
     const postid = Number(c.req.param('id'));
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Check for post ID param
     if (!postid) return c.text('No post provided', { status: 400 });
 
     try {
-        // Get user from session key
-        const userid = await getUserFromSessionKey(c, sessionKey, true);
-        if (!userid) return c.text('Internal Server Error GUFSK_NUI', { status: 500 });
-
         // Check if there's already a like by this user on this post
         const like = await env.DB.prepare(`
             SELECT *
             FROM post_like
             WHERE post_id = ?
               AND user_id = ?
-        `).bind(postid, userid).first<PostLikeRow>();
+        `).bind(postid, userId).first<PostLikeRow>();
 
         // If there is, remove it
         if (like) {
@@ -552,23 +557,28 @@ export async function likePost(c: Context) {
                 FROM post_like
                 WHERE post_id = ?
                   AND user_id = ?
-            `).bind(postid, userid).run();
+            `).bind(postid, userId).run();
         } else {
             // Not liked, add a like
             await env.DB.prepare(`
                 INSERT INTO post_like (post_id, user_id)
                 VALUES (?, ?)
-            `).bind(postid, userid).run();
+            `).bind(postid, userId).run();
 
             // Make sure the worker waits until the notification is actually sent through the websocket
             // This will still return the response without waiting though
-            c.executionCtx.waitUntil(createNotification(c, {senderId: userid, entityId: postid, entityType: 'post', action: 'like'}))
+            c.executionCtx.waitUntil(createNotification(c, {
+                senderId: userId,
+                entityId: postid,
+                entityType: 'post',
+                action: 'like'
+            }));
         }
 
         console.log('Like toggled');
         return c.text('Like toggled', { status: 200 });
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }

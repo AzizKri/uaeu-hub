@@ -1,12 +1,12 @@
 import { Context } from 'hono';
-import { getSignedCookie } from 'hono/cookie';
 import { validateWebSocketIdSignature } from '../util/crypto';
-import { getUserFromSessionKey } from '../util/util';
 
 export async function createWebSocketEntry(c: Context) {
-    const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+    // Check for userId. We don't need to create a websocket if there's no user
+    const userId = c.get('userId') as number;
+    if (!userId) return c.json({}, 200);
 
+    const env: Env = c.env;
     const formData = await c.req.parseBody();
     const uuid = formData['uuid'] as string;
     const signature = formData['signature'] as string;
@@ -20,10 +20,6 @@ export async function createWebSocketEntry(c: Context) {
     if (!await validateWebSocketIdSignature(uuid, timestamp, nonce, signature, env.WS_SECRET)) {
         return c.json({ message: 'Unauthorized', status: 401 }, 401);
     }
-
-    // Get user ID from session key
-    const userId = await getUserFromSessionKey(c, sessionKey);
-    if (!userId) return c.json({ message: 'Unauthorized', status: 401 }, 401);
 
     try {
         // Insert WebSocket entry
@@ -71,33 +67,26 @@ export async function getUserIdFromWebSocketId(c: Context) {
 }
 
 export async function deleteWebSocketEntry(c: Context) {
+    // Check for userId. Can't delete a websocket if there's no user
+    const userId = c.get('userId') as number;
+    if (!userId) return c.json({ message: "Unauthorized", status: 401 }, 401);
+
+    // Get required params
     const env: Env = c.env;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
     const uuid = c.req.param('uuid');
 
     // Check if UUID is provided
     if (!uuid) return c.json({ message: 'Bad Request', status: 400 }, 400);
 
-    // Get UserId from session key
-    const userId = await getUserFromSessionKey(c, sessionKey);
-
     try {
-        // Check if WebSocket entry exists
-        const websocket = await env.DB.prepare(`
-            SELECT user_id
-            FROM websocket
-            WHERE socket_id = ?
-        `).bind(uuid).first<WebSocketRow>();
-        if (!websocket) return c.json({ message: 'WebSocket Entry not found', status: 404 }, 404);
-
-        // Check if user is authorized to delete this entry
-        if (websocket.user_id !== userId) return c.json({ message: 'Unauthorized', status: 401 }, 401);
-
-        // Delete WebSocket entry
-        await env.DB.prepare(`
+        // Attempt to delete WebSocket entry
+        const result = await env.DB.prepare(`
             DELETE FROM websocket
             WHERE socket_id = ?
-        `).bind(uuid).run();
+            AND user_id = ?
+        `).bind(uuid, userId).first<WebSocketRow>();
+
+        if (!result) return c.json({ message: 'Failed to delete WebSocket entry', status: 400 }, 400);
 
         return c.json({ message: 'WebSocket Entry deleted', status: 200 }, 200);
     } catch (e) {

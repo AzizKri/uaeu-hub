@@ -1,28 +1,18 @@
 import { Hono } from 'hono';
 import {
-    anonSignup,
-    getUserBySessionKey,
-    getUserByUsername, getUserCommunities,
+    getCurrentUser,
+    getUserByUsername,
+    getUserCommunities,
     getUserLikesOnComments,
     getUserLikesOnPosts,
-    getUserLikesOnSubcomments,
-    isAnon,
-    isUser,
-    login,
-    logout,
-    signup
+    getUserLikesOnSubcomments
 } from '../controllers/user.controller';
+import { authMiddlewareCheckOnly } from '../util/middleware';
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get('/', (c) => getUserBySessionKey(c));
-app.post('/signup', (c) => signup(c));
-app.post('/login', (c) => login(c));
-app.get('/logout', (c) => logout(c));
-app.get('/anon', (c) => anonSignup(c));
-app.get('/isUser', (c) => isUser(c));
-app.get('/isAnon', (c) => isAnon(c));
-app.get('/likes', (c) => {
+app.get('/', authMiddlewareCheckOnly, (c) => getCurrentUser(c));
+app.get('/likes', authMiddlewareCheckOnly, (c) => {
     const type = c.req.query('type');
     switch (type) {
         case 'comments':
@@ -34,7 +24,7 @@ app.get('/likes', (c) => {
             return getUserLikesOnPosts(c);
     }
 });
-app.get('/communities', (c) => getUserCommunities(c));
+app.get('/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
 app.get('/:username', (c) => getUserByUsername(c));
 
 export default app;
