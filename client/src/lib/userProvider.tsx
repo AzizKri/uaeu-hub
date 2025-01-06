@@ -1,12 +1,13 @@
 import {ReactNode, useEffect, useState} from "react";
 import {UserContext} from "./context.ts";
-import {getCurrentUser} from "../api.ts";
+import { me } from '../api.ts';
 
 export default function UserProvider({children}: {children: ReactNode}) {
     const [user, setUser] = useState<UserInfo | null>(null);
+    const [userReady, setUserReady] = useState(false);
 
     useEffect(() => {
-        const cashUserData = (userData: UserInfo) => {
+        const cacheUserData = (userData: UserInfo) => {
             const data = {
                 userData,
                 timestamp: Date.now(),
@@ -14,11 +15,12 @@ export default function UserProvider({children}: {children: ReactNode}) {
             localStorage.setItem("userData", JSON.stringify(data));
         }
 
-        const getCashedUserData = () => {
-            const cashed = localStorage.getItem("userData");
-            if (!cashed) return null;
+        const getCachedUserData = () => {
+            const cached = localStorage.getItem("userData");
+            if (!cached) return null;
 
-            const {userData, timestamp} = JSON.parse(cashed);
+            const {userData, timestamp} = JSON.parse(cached);
+
             const now = Date.now();
             const maxAge = 24 * 60 * 60 * 1000; // 1 day
 
@@ -32,30 +34,34 @@ export default function UserProvider({children}: {children: ReactNode}) {
 
         const fetchUserData = async () => {
             try {
-                const cashedUser = getCashedUserData();
-                if (cashedUser) {
-                    setUser(cashedUser);
+                const cachedUser = getCachedUserData();
+                if (cachedUser) {
+                    setUser(cachedUser);
                     return;
                 }
 
-                const response = await getCurrentUser();
-                if (response.ok) {
-                    const data = await response.json();
+                const data = await me();
+                console.log("User data fetched from API", data);
+                if (data) {
                     const usefulData = {
+                        new: (!data.username),
                         username: data.username,
                         displayName: data.displayName,
                         bio: data.bio,
                         pfp: data.pfp,
                         isAnonymous: data.is_anonymous,
                     };
-                    cashUserData(usefulData);
+                    cacheUserData(usefulData);
                     setUser(usefulData)
+                    setUserReady(true);
                 } else {
                     setUser(null);
                 }
             } catch (error) {
                 console.log("Error fetching user data", error);
                 setUser(null);
+            } finally {
+                setUserReady(true);
             }
         };
 
@@ -73,7 +79,7 @@ export default function UserProvider({children}: {children: ReactNode}) {
     }
 
     return (
-        <UserContext.Provider value={{user, updateUser, removeUser}}>
+        <UserContext.Provider value={{user, userReady, updateUser, removeUser}}>
             {children}
         </UserContext.Provider>
     )
