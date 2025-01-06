@@ -1,9 +1,7 @@
 import {useEffect, useState} from 'react';
 import styles from './UserProfile.module.scss';
 import {Outlet, useLocation, useNavigate, useParams} from "react-router-dom";
-import {getCurrentUser, getUserByUsername} from "../../../api.ts";
-
-
+import { getUserByUsername, me } from '../../../api.ts';
 
 const authTabs = [
     { label: 'Posts' },
@@ -28,7 +26,7 @@ export default function UserProfile () {
 
     useEffect(() => {
         const checkAuth = async (username : string) => {
-            const response = await getCurrentUser();
+            const response = await me();
             if (response.ok) {
                 const data = await response.json();
                 return data.username === username;

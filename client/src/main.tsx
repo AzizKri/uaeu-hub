@@ -6,12 +6,12 @@ import Login from './components/UserAccounts/Login/Login.tsx';
 import SignUp from './components/UserAccounts/SignUp/SignUp.tsx';
 import Home from './components/Home/Home.tsx';
 import PostPage from './components/PostStuff/PostPage/PostPage.tsx';
-import UserProvider from "./lib/userProvider.tsx";
-import {UpdatePostProvider} from "./lib/UpdatePostProvider.tsx";
-import UserProfile from "./components/UserProfilePage/UserProfile/UserProfile.tsx";
+import UserProvider from './lib/userProvider.tsx';
+import { UpdatePostProvider } from './lib/UpdatePostProvider.tsx';
+import UserProfile from './components/UserProfilePage/UserProfile/UserProfile.tsx';
 import NotFound from './components/Reusable/NotFound/NotFound.tsx';
-import Community from "./components/Communities/Community/Community.tsx";
-import ExploreCommunities from "./components/Communities/ExploreCommunities/ExploreCommunities.tsx"
+import Community from './components/Communities/Community/Community.tsx';
+import ExploreCommunities from './components/Communities/ExploreCommunities/ExploreCommunities.tsx';
 import UserPosts from './components/UserProfilePage/UserPosts/UserPosts.tsx';
 import UserComments from './components/UserProfilePage/UserComments/UserComments.tsx';
 import UserLikes from './components/UserProfilePage/UserLikes/UserLikes.tsx';
@@ -36,15 +36,15 @@ const router = createBrowserRouter([
                 children: [
                     {
                         path: '/user/:username/posts',
-                        element: <UserPosts />,
+                        element: <UserPosts />
                     },
                     {
                         path: '/user/:username/comments',
-                        element: <UserComments />,
+                        element: <UserComments />
                     },
                     {
                         path: '/user/:username/likes',
-                        element: <UserLikes />,
+                        element: <UserLikes />
                     }
                 ]
             },
@@ -54,14 +54,14 @@ const router = createBrowserRouter([
                 element: <Community
                     info={{
                         id: 123,
-                        name: "Community1",
-                        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ",
+                        name: 'Community1',
+                        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ',
                         icon: null,
                         verified: true,
                         public: true,
                         inviteOnly: false,
                         createdAt: new Date(24, 12, 5),
-                        tags: "test",
+                        tags: 'test',
                         memberCount: 5
                     }}
                 />
@@ -69,7 +69,7 @@ const router = createBrowserRouter([
             {
                 path: '/community/explore',
                 element: <ExploreCommunities />
-            },
+            }
             // {
             //     path: '/community/:communityId',
             //     element: <Community />
@@ -91,11 +91,11 @@ const router = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById('root')!).render(
-    <WebSocketProvider>
-        <UserProvider>
+    <UserProvider>
+        <WebSocketProvider>
             <UpdatePostProvider>
                 <RouterProvider router={router} />
             </UpdatePostProvider>
-        </UserProvider>
-    </WebSocketProvider>
+        </WebSocketProvider>
+    </UserProvider>
 );

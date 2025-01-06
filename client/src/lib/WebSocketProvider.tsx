@@ -1,11 +1,15 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { createWebsocketConnection } from '../api.ts';
 import { WebSocketContext } from './context.ts';
+import { useUser } from './hooks.ts';
 
 export default function WebSocketProvider({ children }: { children: ReactNode }) {
+    const { userReady } = useUser();
     const [ws, setWs] = useState<WebSocket | null>(null);
 
     useEffect(() => {
+        if (!userReady) return;
+
         createWebsocketConnection().then(
             (websocket) => {
                 if (!websocket) {
@@ -25,7 +29,7 @@ export default function WebSocketProvider({ children }: { children: ReactNode })
                 console.error('Failed to create WebSocket connection:', error);
             }
         )
-    }, [ws]);
+    }, [userReady, ws]);
 
     return <WebSocketContext.Provider value={{ ws }}>{children}</WebSocketContext.Provider>;
 }

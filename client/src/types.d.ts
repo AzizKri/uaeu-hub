@@ -91,6 +91,7 @@ declare global {
     }
 
     interface UserInfo {
+        new?: boolean;
         username: string;
         displayName: string;
         bio?: string;
@@ -126,6 +127,7 @@ declare global {
 
     interface UserContextInterface {
         user: UserInfo | null;
+        userReady: boolean;
         updateUser: (userInfo) => void;
         removeUser: () => void;
     }

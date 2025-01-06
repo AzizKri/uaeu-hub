@@ -1,6 +1,4 @@
 import { Context } from 'hono';
-import { getSignedCookie } from 'hono/cookie';
-import { getUserFromSessionKey } from '../util/util';
 
 const allowedMimeTypes = [
     // Images
@@ -31,10 +29,10 @@ const allowedMimeTypes = [
 
 export async function uploadAttachment(c: Context) {
     const env: Env = c.env;
+    const userId = c.get('userId') as number;
     const formData: FormData = await c.req.formData();
     const uploadSource: string = formData.get('source') as string;
     const file: File = formData.get('files[]') as File;
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     // Make sure we have a file
     if (!file) {
@@ -45,8 +43,6 @@ export async function uploadAttachment(c: Context) {
     if (!allowedMimeTypes.includes(file.type)) {
         return new Response('File type not allowed', { status: 400 });
     }
-
-    const userId = await getUserFromSessionKey(c, sessionKey, true);
 
     try {
         // Create a random file name (uuidv4)
@@ -117,16 +113,18 @@ export async function getAttachmentDetails(c: Context) {
 
 export async function deleteAttachment(c: Context) {
     const env: Env = c.env;
+    const userId = c.get('userId') as number;
+
+    // Check if user is authenticated
+    if (!userId) return c.text('Unauthorized', { status: 403 });
+
     const filename: string = c.req.param('filename');
-    const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
 
     if (!filename) {
         return c.text('No filename provided', { status: 400 });
     }
 
     try {
-        const userId = await getUserFromSessionKey(c, sessionKey, true);
-
         // Get attachment details
         const attachmentAuthor = await env.DB.prepare(`
             SELECT author_id

@@ -1,8 +1,7 @@
 import { Hono } from 'hono';
 import { JwtVariables } from 'hono/jwt';
-import { authMiddleware } from '../util/middleware';
+import { authMiddlewareCheckOnly } from '../util/middleware';
 import {
-    addMemberToCommunity,
     communityExists,
     createCommunity,
     deleteCommunity,
@@ -26,8 +25,6 @@ type Variables = JwtVariables
 
 const app = new Hono<{ Bindings: Env, Variables: Variables }>();
 
-app.use('/', authMiddleware);
-
 // Create Community
 app.post('/',
     validator('form', (value, c) => {
@@ -37,17 +34,18 @@ app.post('/',
         }
         return parsed.data;
     }),
+    authMiddlewareCheckOnly,
     (c) => createCommunity(c));
 
 // Community Memberships
-app.post('/join/:id', (c) => joinCommunity(c));
-app.post('/leave/:id', (c) => leaveCommunity(c));
-app.get('/getMembers/:id', (c) => getCommunityMembers(c));
-app.post('/addMember/:id/:userId', (c) => addMemberToCommunity(c));
-app.delete('/removeMember/:id/:userId', (c) => removeMemberFromCommunity(c));
+app.post('/join/:id', authMiddlewareCheckOnly, (c) => joinCommunity(c));
+app.post('/leave/:id', authMiddlewareCheckOnly, (c) => leaveCommunity(c));
+app.get('/getMembers/:id', authMiddlewareCheckOnly, (c) => getCommunityMembers(c));
+// app.post('/addMember/:id/:userId', (c) => addMemberToCommunity(c));
+app.delete('/removeMember/:id/:userId', authMiddlewareCheckOnly, (c) => removeMemberFromCommunity(c));
 
 // Get Communities
-app.get('/getCommunities', (c) => {
+app.get('/getCommunities', authMiddlewareCheckOnly, (c) => {
     const { sortBy } = c.req.query();
     switch (sortBy) {
         case 'latest':
@@ -59,10 +57,10 @@ app.get('/getCommunities', (c) => {
             return getCommunitiesSortByMembers(c);
     }
 });
-app.get('/getCommunitiesByTag', (c) => getCommunitiesByTag(c));
-app.get('/searchCommunities', (c) => searchCommunities(c));
-app.get('/getCommunityByName/:name', (c) => getCommunityByName(c));
-app.get('/:id', (c) => getCommunityById(c));
+app.get('/getCommunitiesByTag', authMiddlewareCheckOnly, (c) => getCommunitiesByTag(c));
+app.get('/searchCommunities', authMiddlewareCheckOnly, (c) => searchCommunities(c));
+app.get('/getCommunityByName/:name', authMiddlewareCheckOnly, (c) => getCommunityByName(c));
+app.get('/:id', authMiddlewareCheckOnly, (c) => getCommunityById(c));
 app.get('/exists/:name', (c) => communityExists(c));
 
 // Edit Community
@@ -74,9 +72,11 @@ app.post('/:id',
             return c.text('Invalid community data', 400);
         }
         return parsed.data;
-    }), (c) => editCommunity(c));
+    }),
+    authMiddlewareCheckOnly,
+    (c) => editCommunity(c));
 
 // Delete Community
-app.delete('/:id', (c) => deleteCommunity(c));
+app.delete('/:id', authMiddlewareCheckOnly, (c) => deleteCommunity(c));
 
 export default app;
