@@ -1,8 +1,16 @@
 const base = import.meta.env.VITE_API_URL || 'https://api.uaeu.chat';
 
 /* Authentication */
+
+export async function me() {
+    console.log("me");
+    const request = await fetch(base + `/auth/me`, { credentials: 'include' });
+    const data = await request.json();
+    return data.user;
+}
+
 export async function signUp(formData: { displayname: string, email: string, username: string, password: string }) {
-    return await fetch(base + `/user/signup`, {
+    return await fetch(base + `/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -11,7 +19,7 @@ export async function signUp(formData: { displayname: string, email: string, use
 }
 
 export async function login(formData: { identifier: string, password: string }) {
-    return await fetch(base + `/user/login`, {
+    return await fetch(base + `/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -20,7 +28,7 @@ export async function login(formData: { identifier: string, password: string }) 
 }
 
 export async function logout() {
-    const data = await fetch(base + `/user/logout`, { credentials: 'include' });
+    const data = await fetch(base + `/auth/logout`, { credentials: 'include' });
     return data.status;
 }
 
@@ -28,13 +36,13 @@ export async function logout() {
 
 // This basically checks if there's a session key (Anon or normal user)
 export async function isUser() {
-    const request = await fetch(base + `/user/isUser`, { credentials: 'include' });
+    const request = await fetch(base + `/auth/isUser`, { credentials: 'include' });
     return request.status === 200; // true if status is 200, otherwise false (401 Unauthorized or 500 Internal Server Error)
 }
 
 // Returns true if anon, false otherwise
 export async function isAnon() {
-    const request = await fetch(base + `/user/isAnon`, { credentials: 'include' });
+    const request = await fetch(base + `/auth/isAnon`, { credentials: 'include' });
     const data = await request.json();
     return data.anon;
 }
@@ -86,6 +94,7 @@ export async function createPost(content: string, attachment?: string, community
 
 // Get latest posts
 export async function getLatestPosts(page: number = 0) {
+    console.log("getLatestPosts");
     const request = await fetch(base + `/post/latest?page=${page}`, { credentials: 'include' });
     return { status: request.status, data: await request.json() };
 }
@@ -477,6 +486,7 @@ export async function getTags() {
 /* WebSockets */
 
 export async function createWebsocketConnection() {
+    console.log("createWebsocketConnection");
     // Generate the UUID
     const uuid = crypto.randomUUID();
 
@@ -493,8 +503,7 @@ export async function createWebsocketConnection() {
 
     // Return the WebSocket connection
     try {
-        const ws = new WebSocket(import.meta.env.VITE_WS_URL + signedURL);
-        return ws
+        return new WebSocket(import.meta.env.VITE_WS_URL + signedURL)
     } catch (e) {
         console.error('Failed to create WebSocket connection:', e);
         await deleteWebSocketEntryFromDatabase(uuid);
