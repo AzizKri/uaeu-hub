@@ -114,10 +114,21 @@ export async function signup(c: Context) {
             // const { encoded: sessionKeyEncoded } = generateSalt();
             // const sessionKey = await hashSessionKey(PlainSessionKey, sessionKeyEncoded);
 
-            await env.DB.prepare(`
-                INSERT INTO session (id, user_id, is_anonymous, ip)
-                VALUES (?, ?, false, ?)
-            `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run();
+            // Insert session key into session table & add as member of the general community
+            c.executionCtx.waitUntil(Promise.resolve(async () => {
+                    // Insert into session table
+                    await env.DB.prepare(`
+                        INSERT INTO session (id, user_id, is_anonymous, ip)
+                        VALUES (?, ?, false, ?)
+                    `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run();
+
+                    // Add user to general community
+                    await env.DB.prepare(`
+                        INSERT INTO user_community (user_id, community_id, role_id)
+                        VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
+                    `).bind(user.id).run();
+                }
+            ));
 
             // Send session key & token
             await sendAuthCookie(c, PlainSessionKey);
@@ -269,7 +280,7 @@ export async function authenticateUser(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
 
-    if (!userId) return c.json({ user: {} }, 200)
+    if (!userId) return c.json({ user: {} }, 200);
 
     try {
         // Get user from DB
