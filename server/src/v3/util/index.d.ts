@@ -135,6 +135,8 @@ type SessionRow = {
     id: string;
     user_id: number;
     created_at: number;
+    is_anonymous: boolean;
+    ip: string;
 }
 
 type WebSocketRow = {
@@ -177,6 +179,24 @@ type CommunityMemberRow = {
 type TagRow = {
     id: number;
     name: string;
+}
+
+type NotificationView = {
+    id: number;
+    recipient_id: number;
+    sender_id: number;
+    sender: string;
+    sender_displayname: string;
+    type: string;
+    entity_id: number;
+    entity_type: string;
+    read: boolean;
+    created_at: number;
+}
+
+type UserAnonymousStatus = {
+    userId: number;
+    isAnonymous: boolean;
 }
 
 type cookieOptions = {
