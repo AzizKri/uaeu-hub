@@ -48,12 +48,14 @@ export default function Editor({
     handleSubmit,
     prependPost,
     prependComment,
+    communityId,
 }: {
     type: string;
-    parent_id: number | null;
-    handleSubmit: (() => void) | null;
+    parent_id?: number;
+    handleSubmit?: (() => void);
     prependPost?: (stuff: React.ReactElement) => void;
     prependComment?: (stuff: CommentInfo) => void;
+    communityId?: number;
 }): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [uploadState, setUploadState] = useState<UploadState>({
@@ -185,19 +187,30 @@ export default function Editor({
                 throw new Error("Please wait for file upload to complete");
             }
 
-            // Submit the post or comment
+            // // Submit the post or comment
+            // if (type === "communityPost") {
+            //     post =
+            // }
             if (type === "post") {
-                if (!selectedCommunity) {
+                console.log("type is post");
+                let post;
+                if (communityId !== undefined) {
+                    console.log("there is a community id");
+                    post = await createPost(plainText, uploadState.fileName, communityId);
+                } else if (!user || user.new || user.isAnonymous) {
+                    post = await createPost(plainText, uploadState.fileName, 0);
+                } else if (!selectedCommunity) {
                     selectCommunityButtonRef.current?.classList.add(
                         styles.warning,
                     );
                     return;
+                } else {
+                    post = await createPost(
+                        plainText,
+                        uploadState.fileName,
+                        selectedCommunity.id,
+                    );
                 }
-                const post = await createPost(
-                    plainText,
-                    uploadState.fileName,
-                    selectedCommunity.id,
-                );
                 const postInfo: PostInfo = {
                     id: post.id,
                     content: post.content,
@@ -217,7 +230,7 @@ export default function Editor({
                     icon: post.community_icon,
                 };
 
-                if (prependPost)
+                if (prependPost) {
                     prependPost(
                         <Post
                             key={post.id}
@@ -226,6 +239,7 @@ export default function Editor({
                             communityInfo={communityInfo}
                         />,
                     );
+                }
             } else if ((type === "comment" || type === "reply") && parent_id) {
                 const res = await comment(
                     parent_id,
@@ -288,9 +302,9 @@ export default function Editor({
 
     const handleSelectCommunityClick: React.MouseEventHandler = (e) => {
         e.stopPropagation();
+        setShowCommunities(true);
         if (allCommunities.length === 0) {
             setLoadingUserCommunities(true);
-            setShowCommunities(true);
             getCommunitiesCurrentUser().then(
                 (res: { status: number; data: CommunityINI[] }) => {
                     setAllCommunities(res.data);
@@ -298,8 +312,6 @@ export default function Editor({
                     setLoadingUserCommunities(false);
                 },
             );
-        } else {
-            setShowCommunities(true);
         }
         const listener = () => {
             setShowCommunities(false);
@@ -370,7 +382,7 @@ export default function Editor({
             )}
 
             <div className={styles.buttons}>
-                {user && !user.isAnonymous && type === "post" && (
+                {user && !user.new && !user.isAnonymous && type === "post" && communityId === undefined && (
                     <div className={styles.selectCommunity}>
                         {showCommunities ? (
                             <>
@@ -379,14 +391,13 @@ export default function Editor({
                                     onChange={handleSearch}
                                     placeholder="select"
                                     className={styles.input}
-                                    onBlur={() => setShowCommunities(false)}
                                     onClick={(e) => e.stopPropagation()}
                                     ref={selectCommunityInputRef}
                                 />
                                 <ul className={styles.communities}>
                                     {loadingUserCommunities ? (
                                         <LoadingImage width="24px" />
-                                    ) : (
+                                    ) : displayedCommunities.length > 0 ? (
                                         displayedCommunities.map(
                                             (community: CommunityINI) => (
                                                 <li
@@ -395,10 +406,7 @@ export default function Editor({
                                                         styles.communityListItem
                                                     }
                                                     onClick={(e) =>
-                                                        handleSelect(
-                                                            e,
-                                                            community,
-                                                        )
+                                                        handleSelect(e, community)
                                                     }
                                                 >
                                                     <CommunityPreview
@@ -407,6 +415,18 @@ export default function Editor({
                                                 </li>
                                             ),
                                         )
+                                    ) : (
+                                        <p
+                                            className={
+                                                styles.noCommunityMessage
+                                            }
+                                        >
+                                            You are not a member in any
+                                            community
+                                            <br />
+                                            Please join at least one community
+                                            to be able to post
+                                        </p>
                                     )}
                                 </ul>
                             </>
@@ -468,7 +488,7 @@ export default function Editor({
     );
 }
 
-function CommunityPreview({ community }: { community: CommunityInfoSimple }) {
+export function CommunityPreview({ community }: { community: CommunityInfoSimple }) {
     return (
         <div className={styles.community}>
             <img

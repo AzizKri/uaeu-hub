@@ -49,31 +49,13 @@ const router = createBrowserRouter([
                 ]
             },
             {
-                // TODO: use same approach used in post
-                path: '/community/community1',
-                element: <Community
-                    info={{
-                        id: 123,
-                        name: 'Community1',
-                        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ',
-                        icon: null,
-                        verified: true,
-                        public: true,
-                        inviteOnly: false,
-                        createdAt: new Date(24, 12, 5),
-                        tags: 'test',
-                        memberCount: 5
-                    }}
-                />
+                path: '/community/:communityName',
+                element: <Community />
             },
             {
                 path: '/community/explore',
                 element: <ExploreCommunities />
             }
-            // {
-            //     path: '/community/:communityId',
-            //     element: <Community />
-            // }
         ]
     },
     {

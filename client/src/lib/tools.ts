@@ -23,3 +23,12 @@ export function getFormattedDate(postDate: Date) {
         return `${months[postDate.getMonth()]} ${postDate.getDate()}, ${postDate.getFullYear()}`;
     }
 }
+
+export function debounce<T extends (...args: never[]) => void>(func: T, delay: number): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    return function (...args: Parameters<T>): void {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), delay);
+    };
+}

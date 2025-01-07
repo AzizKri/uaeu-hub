@@ -1,6 +1,6 @@
 import styles from './PostFooter.module.scss';
 import {togglePostLike} from "../../../api.ts";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Popup from "../../Reusable/Popup/Popup.tsx";
 import ShareModal from "../ShareModal/ShareModal.tsx";
@@ -40,7 +40,8 @@ export default function PostFooter({
         }
     };
 
-    const handleToggleLike = () => {
+    const handleToggleLike: React.MouseEventHandler = (e) => {
+        e.stopPropagation();
         setLikesCount(prev => prev + (liked ? -1 : 1));
         setLiked(prev => !prev);
         togglePostLike(id);
@@ -56,7 +57,7 @@ export default function PostFooter({
                 {/*likes button*/}
                 <div
                     className={styles.footerButton}
-                    onClick={() => handleToggleLike()}
+                    onClick={handleToggleLike}
                 >
                     <img
                         src={liked ? likedIcon : unLikedIcon}

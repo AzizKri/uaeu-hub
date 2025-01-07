@@ -1,33 +1,41 @@
 import styles from './Aside.module.scss';
-import community_icon_placeholder from "../../assets/community-icon.jpg"
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 import accountIcon from "../../assets/account-outline-thin.svg"
 import communityIcon from "../../assets/account-group-outline-thin.svg"
 import bookmarkIcon from "../../assets/bookmark-outline-thin.svg"
-import arrowDownIcon from "../../assets/chevron-down.svg"
 import settingIcon from "../../assets/cog-outline-thin.svg"
 import homeIcon from "../../assets/home-outline-thin.svg"
 import logoutIcon from "../../assets/logout-thin.svg"
 import courseMaterial from '../../assets/course-material.svg'
 import professorIcon from '../../assets/professor.svg'
-import { createCommunity, logout } from '../../api.ts';
+import {createCommunity, getCommunitiesCurrentUser, logout} from '../../api.ts';
 import {useUser} from "../../lib/hooks.ts";
 import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
+import LoaderDots from "../Reusable/LoaderDots/LoaderDots.tsx";
 
 export default function Aside() {
     const [showCommunity, setShowCommunity] = useState<boolean>(false);
     const [active, setActive] = useState<string>("home");
     const [logoutPopUpShown, setLogoutPopUpShown] = useState<boolean>(false);
-    const my_communities = [
-        {icon: community_icon_placeholder, name: "community1"},
-        {icon: community_icon_placeholder, name: "community2"}
-    ];
-    const {user, removeUser} = useUser();
+    const [myCommunities, setMyCommunities] = useState<CommunityINI[]>();
+    const [loadingMyCommunities, setLoadingMyCommunities] = useState<boolean>(false);
+    const {isUser, user, removeUser} = useUser();
     const navigate = useNavigate();
+    const location = useLocation()
     const [redirectPopUpShown, setRedirectPopUpShown] = useState<boolean>(false);
     const [selected, setSelected] = useState<string>("");
+
+    useEffect(() => {
+        const ptr = /\/(\w+)\//
+        const match = location.pathname.match(ptr)
+        if (!match) {
+            setActive("home");
+        } else {
+            setActive(match[1]);
+        }
+    }, [location.pathname]);
 
     const handleLogout = async () => {
         console.log("logout");
@@ -40,10 +48,17 @@ export default function Aside() {
     }
 
     const handleCommunities = () => {
-        if (user && !user.isAnonymous) {
-            setShowCommunity((prev) => !prev);
-        } else {
+        if (!isUser()) {
             navigate('/community/explore')
+        } else {
+            setShowCommunity((prev) => !prev);
+            if (myCommunities === undefined) {
+                setLoadingMyCommunities(true);
+                getCommunitiesCurrentUser().then(res => {
+                    setMyCommunities(res.data)
+                    setLoadingMyCommunities(false);
+                });
+            }
         }
     }
 
@@ -98,9 +113,9 @@ export default function Aside() {
                     </div>
                 </Link>
             </li>
-            {user && !user.isAnonymous && <li>
+            {isUser() && <li>
                 <Link to={`/user/${user?.username}`} onClick={() => setActive("profile")}>
-                    <div className={`${styles.top_element} ${styles.element} ${active === 'profile' && styles.active}`}>
+                    <div className={`${styles.top_element} ${styles.element} ${active === 'user' && styles.active}`}>
                         <img src={accountIcon} alt="profile icon"/>
                         <span>PROFILE</span>
                     </div>
@@ -111,13 +126,17 @@ export default function Aside() {
                     className={`
                         ${styles.top_element}
                         ${styles.element}
-                        ${active === 'communities' && styles.active}
+                        ${active === 'community' && styles.active}
                     `}
                     onClick={handleCommunities}
                 >
                     <img src={communityIcon} alt="community icon"/>
                     <span>COMMUNITIES</span>
-                    <img src={arrowDownIcon} alt="arrow down icon"/>
+                    {isUser() && (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24px" height="24px" fill="currentColor">
+                            <path d="M 7.122 8.87 C 7.337 8.653 7.47 8.663 7.679 8.849 L 11.713 12.883 C 11.941 13.11 12.038 13.103 12.287 12.883 L 16.321 8.849 L 16.59 8.58 L 16.854 8.846 L 17.714 9.712 L 18 10 L 17.67 10.33 L 12.727 15.273 C 12.122 15.829 11.904 15.839 11.273 15.273 L 6.247 10.247 C 6.059 10.059 6.072 9.941 6.26 9.739 L 7.122 8.87 Z"/>
+                        </svg>
+                    )}
                 </div>
                 <ul className={styles.inner_list} style={{maxHeight: showCommunity ? "100vh" : "0"}}>
                     <li>
@@ -141,17 +160,23 @@ export default function Aside() {
                             <span>Create</span>
                         </div>
                     </li>
-                    {my_communities.map((community) => (<li key={community.name}>
+                    {loadingMyCommunities ? (
+                        <div style={{height: "30px"}}>
+                            <LoaderDots />
+                        </div>
+                    ) : (
+                        myCommunities && myCommunities.map((community) => (<li key={community.name}>
                             <Link to={`/community/${community.name}`}>
                                 <div className={`${styles.user_community} ${styles.element}`}>
                                     <img src={community.icon} alt="community" className={styles.community_icon}/>
                                     <span>{community.name}</span>
                                 </div>
                             </Link>
-                        </li>))}
+                        </li>))
+                    )}
                 </ul>
             </li>
-            {user && !user.isAnonymous && <li>
+            {isUser() && <li>
                 <div className={`${styles.top_element} ${styles.element} ${active === 'setting' && styles.active}`}>
                     <img src={bookmarkIcon} alt="bookmark"/>
                     <span>SAVED</span>
@@ -175,7 +200,7 @@ export default function Aside() {
                     <span>SETTINGS</span>
                 </div>
             </li>
-            {user && !user.isAnonymous && <li>
+            {isUser() && <li>
                 <div className={`${styles.top_element} ${styles.element} ${active === 'logout' && styles.active}`}
                      onClick={() => setLogoutPopUpShown(true)}>
                     <img src={logoutIcon} alt="logut icon"/>

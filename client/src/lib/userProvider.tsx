@@ -65,7 +65,7 @@ export default function UserProvider({children}: {children: ReactNode}) {
             }
         };
 
-        fetchUserData().then(() => console.log("User Data fetched"));
+        fetchUserData();
     }, [])
 
     const updateUser = (newUser: UserInfo) => {
@@ -78,8 +78,12 @@ export default function UserProvider({children}: {children: ReactNode}) {
         setUser(null);
     }
 
+    const isUser = (): boolean => {
+        return user !== null && !user.isAnonymous && !user.new
+    }
+
     return (
-        <UserContext.Provider value={{user, userReady, updateUser, removeUser}}>
+        <UserContext.Provider value={{user, userReady, updateUser, removeUser, isUser}}>
             {children}
         </UserContext.Provider>
     )

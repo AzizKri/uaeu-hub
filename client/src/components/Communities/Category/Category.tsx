@@ -3,6 +3,7 @@ import { getCommunitiesByTag, joinCommunity } from "../../../api.ts";
 import memberIcon from "../../../assets/account-outline-thin-dot.svg";
 import { useEffect, useState } from "react";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import {useUser} from "../../../lib/hooks.ts";
 
 interface CommunityPreview {
     icon: string;
@@ -17,6 +18,7 @@ export default function Category({ tag }: { tag: string }) {
     const [thereIsMore, setThereIsMore] = useState<boolean>(false);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
     const [page, setPage] = useState<number>(1);
+    const {isUser} = useUser();
 
     useEffect(() => {
         getCommunitiesByTag(tag).then((res) => {
@@ -92,15 +94,15 @@ export default function Category({ tag }: { tag: string }) {
                             className={styles.communityIcon}
                         />
                         <div className={styles.info}>
-                            <div className={styles.communityName}>
+                            <h4 className={styles.communityName}>
                                 {com.name}
-                            </div>
+                            </h4>
                             <div className={styles.members}>
                                 <img src={memberIcon} alt="member" />
                                 {com.members}
                             </div>
                         </div>
-                        {!com.isMember && (
+                        {isUser() && !com.isMember && (
                             <button
                                 className={styles.join}
                                 onClick={() => joinCommunity(com.id)}

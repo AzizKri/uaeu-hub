@@ -130,6 +130,7 @@ declare global {
         userReady: boolean;
         updateUser: (userInfo) => void;
         removeUser: () => void;
+        isUser: () => boolean;
     }
 
     interface GenericMetadata {
