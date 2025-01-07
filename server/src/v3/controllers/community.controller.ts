@@ -1,5 +1,6 @@
 import { Context } from 'hono';
 import { getOrCreateTags } from './tags.controller';
+import { parseId } from '../util/util';
 
 export async function createCommunity(c: Context) {
     // Get userId & isAnonymous from Context
@@ -97,6 +98,100 @@ export async function communityExists(c: Context) {
     }
 }
 
+export async function getCommunityPostsLatest(c: Context) {
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    const env: Env = c.env;
+    const communityId = parseId(c.req.param('id'));
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    if (!communityId) return c.text('No community ID provided', { status: 400 });
+
+    try {
+        // Check if anonymous
+        if (isAnonymous) {
+            // Get posts without likes
+            const posts = await env.DB.prepare(`
+                SELECT *
+                FROM post_view
+                WHERE community_id = ?
+                ORDER BY post_time DESC
+                LIMIT 10 OFFSET ?
+            `).bind(communityId, page * 10).all<PostView>();
+
+            return c.json(posts.results, { status: 200 });
+        } else {
+            // Get posts with likes
+            const posts = await env.DB.prepare(`
+                SELECT *,
+                       (SELECT 1 FROM post_like WHERE post_id = p.id AND user_id = ?) AS liked
+                FROM post_view p
+                         LEFT JOIN post_like pl on p.id = pl.post_id
+                WHERE p.community_id = ?
+                ORDER BY p.post_time DESC
+                LIMIT 10 OFFSET ?
+            `).bind(userId, communityId, page * 10).all<PostView>();
+
+            return c.json(posts.results, { status: 200 });
+        }
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
+export async function getCommunityPostsBest(c: Context) {
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    const env: Env = c.env;
+    const communityId = parseId(c.req.param('id'));
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    if (!communityId) return c.text('No community ID provided', { status: 400 });
+
+    try {
+        // Check if anonymous
+        if (isAnonymous) {
+            // Get posts without likes
+            const posts = await env.DB.prepare(`
+                SELECT *,
+                       (
+                           (pv.like_count * 10 + pv.comment_count * 5) /
+                           (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
+                                 (3600 * 24)))) AS score -- 1 day
+                FROM post_view pv
+                WHERE community_id = ?
+                ORDER BY score DESC
+                LIMIT 10 OFFSET ?
+            `).bind(communityId, page * 10).all<PostView>();
+
+            return c.json(posts.results, { status: 200 });
+        } else {
+            // Get posts with likes
+            const posts = await env.DB.prepare(`
+                SELECT *,
+                       (SELECT 1 FROM post_like WHERE post_id = pv.id AND user_id = ?) AS liked,
+                       (
+                           (pv.like_count * 10 + pv.comment_count * 5) /
+                           (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
+                                 (3600 * 24))))             AS score -- 1 day
+                FROM post_view pv
+                         LEFT JOIN post_like pl on pv.id = pl.post_id
+                WHERE pv.community_id = ?
+                ORDER BY pv.post_time DESC
+                LIMIT 10 OFFSET ?
+            `).bind(userId, communityId, page * 10).all<PostView>();
+
+            return c.json(posts.results, { status: 200 });
+        }
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
 export async function getCommunityByName(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
@@ -143,7 +238,7 @@ export async function getCommunityByName(c: Context) {
             }
         }
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -197,7 +292,7 @@ export async function getCommunityById(c: Context) {
             }
         }
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -221,11 +316,9 @@ export async function getCommunitiesByTag(c: Context) {
             const communities = await env.DB.prepare(`
                 SELECT *
                 FROM community
-                WHERE id IN (
-                    SELECT community_id
-                    FROM community_tag
-                    WHERE tag_id = (SELECT id FROM tag WHERE name = ?)
-                )
+                WHERE id IN (SELECT community_id
+                             FROM community_tag
+                             WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
                 LIMIT 10 OFFSET ?
             `).bind(tag, page * 10).all<CommunityRow>();
 
@@ -237,11 +330,9 @@ export async function getCommunitiesByTag(c: Context) {
                 const communities = await env.DB.prepare(`
                     SELECT *
                     FROM community
-                    WHERE id IN (
-                        SELECT community_id
-                        FROM community_tag
-                        WHERE tag_id = (SELECT id FROM tag WHERE name = ?)
-                    )
+                    WHERE id IN (SELECT community_id
+                                 FROM community_tag
+                                 WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
                     LIMIT 10 OFFSET ?
                 `).bind(tag, page * 10).all<CommunityRow>();
 
@@ -262,7 +353,7 @@ export async function getCommunitiesByTag(c: Context) {
             }
         }
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -314,7 +405,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
             }
         }
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -366,7 +457,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
             }
         }
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -387,7 +478,10 @@ export async function getCommunitiesSortByActivity(c: Context) {
             // New user, get without memberships
             const communities = await env.DB.prepare(`
                 SELECT *,
-                       (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
+                       (SELECT COUNT(*)
+                        FROM post
+                        WHERE community_id = c.id
+                          AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
                 FROM community
                 ORDER BY ?
                 LIMIT 10 OFFSET ?
@@ -400,7 +494,10 @@ export async function getCommunitiesSortByActivity(c: Context) {
                 // Anon, get without memberships
                 const communities = await env.DB.prepare(`
                     SELECT *,
-                           (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
+                           (SELECT COUNT(*)
+                            FROM post
+                            WHERE community_id = c.id
+                              AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
                     FROM community
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
@@ -412,7 +509,10 @@ export async function getCommunitiesSortByActivity(c: Context) {
                 const communities = await env.DB.prepare(`
                     SELECT *,
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member,
-                           (SELECT COUNT(*) FROM post WHERE community_id = c.id AND post_time >= datetime('%s', 'now', '-1 day'))   as activity_score
+                           (SELECT COUNT(*)
+                            FROM post
+                            WHERE community_id = c.id
+                              AND post_time >= datetime('%s', 'now', '-1 day'))                     as activity_score
                     FROM community c
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
@@ -477,7 +577,7 @@ export async function searchCommunities(c: Context) {
             }
         }
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -776,10 +876,10 @@ export async function editCommunity(c: Context) {
         // Update the community
         await env.DB.prepare(`
             UPDATE community
-            SET name = CASE WHEN ? IS NOT NULL THEN ? ELSE name END,
+            SET name        = CASE WHEN ? IS NOT NULL THEN ? ELSE name END,
                 description = CASE WHEN ? IS NOT NULL THEN ? ELSE description END,
-                icon = CASE WHEN ? IS NOT NULL THEN ? ELSE icon END,
-                tags = CASE WHEN ? IS NOT NULL THEN ? ELSE tags END
+                icon        = CASE WHEN ? IS NOT NULL THEN ? ELSE icon END,
+                tags        = CASE WHEN ? IS NOT NULL THEN ? ELSE tags END
             WHERE id = ?
         `).bind(name, name, desc, desc, icon, icon, tags, tags, communityId).run();
 
@@ -867,8 +967,8 @@ export async function getCommunityMembers(c: Context) {
                    uc.joined_at,
                    cr.name as role
             FROM user_community uc
-            JOIN user u ON uc.user_id = u.id
-            JOIN community_role cr ON uc.role_id = cr.id
+                     JOIN user u ON uc.user_id = u.id
+                     JOIN community_role cr ON uc.role_id = cr.id
             WHERE uc.community_id = ?
         `).bind(communityId).all<CommunityMemberRow>();
 

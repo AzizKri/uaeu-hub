@@ -13,6 +13,8 @@ import {
     getCommunityById,
     getCommunityByName,
     getCommunityMembers,
+    getCommunityPostsBest,
+    getCommunityPostsLatest,
     joinCommunity,
     leaveCommunity,
     removeMemberFromCommunity,
@@ -43,6 +45,18 @@ app.post('/leave/:id', authMiddlewareCheckOnly, (c) => leaveCommunity(c));
 app.get('/getMembers/:id', authMiddlewareCheckOnly, (c) => getCommunityMembers(c));
 // app.post('/addMember/:id/:userId', (c) => addMemberToCommunity(c));
 app.delete('/removeMember/:id/:userId', authMiddlewareCheckOnly, (c) => removeMemberFromCommunity(c));
+
+// Get Community Posts
+app.get('/posts/:id', authMiddlewareCheckOnly, (c) => {
+    const { sortBy } = c.req.query();
+    switch (sortBy) {
+        case 'best':
+            return getCommunityPostsBest(c);
+        case 'latest':
+        default:
+            return getCommunityPostsLatest(c);
+    }
+});
 
 // Get Communities
 app.get('/getCommunities', authMiddlewareCheckOnly, (c) => {
