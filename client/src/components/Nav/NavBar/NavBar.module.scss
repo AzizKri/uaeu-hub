@@ -66,6 +66,12 @@
     padding-top: 2px;
 }
 
+.userIcon{
+    &:hover {
+        cursor: pointer;
+    }
+}
+
 @media screen and (max-width: 768px) {
     .navbar {
         grid-template-columns: 35px repeat(3, 1fr);
