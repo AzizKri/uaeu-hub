@@ -71,7 +71,6 @@ export default function PostPage() {
             });
 
             getCommentsOnPost(parseInt(postId), 0).then((res) => {
-                console.log("comments", res);
                 setComments(res.data.map((cd: CommentBack) => ({
                     attachment: cd.attachment,
                     author: cd.author,
@@ -157,8 +156,7 @@ export default function PostPage() {
                             <div className={styles.write_answer}>
                                 <Editor
                                     type="comment"
-                                    parent_id={postId ? parseInt(postId) : null}
-                                    handleSubmit={() => null}
+                                    parent_id={postId ? parseInt(postId) : undefined}
                                     prependComment={prependComment}
                                 />
                             </div>
