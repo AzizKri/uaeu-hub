@@ -61,10 +61,10 @@ export default function UserPosts () {
 
     return (
         <>
-        <div className={styles.userContentContainer}>
-            {userPosts}
-        </div>
-        {isLoading && <span>Loading...</span>}
+            <div className={styles.userContentContainer}>
+                {userPosts}
+            </div>
+            {isLoading && <span>Loading...</span>}
         </>
     )
 }
