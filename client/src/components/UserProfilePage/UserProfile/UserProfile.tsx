@@ -27,14 +27,13 @@ export default function UserProfile () {
     useEffect(() => {
         const checkAuth = async (username : string) => {
             const response = await me();
-            if (response.ok) {
-                const data = await response.json();
-                return data.username === username;
+            if (response) {
+                return response.username === username;
             }
             return false;
         }
         // console.log(location);
-        setActiveTab(location.state?.data?.activeTab || '');
+        setActiveTab(location.state?.data?.activeTab || 'Posts');
         if (username) {
             checkAuth(username).then((res) => setIsAuthorized(res));
             getUserByUsername(username).then((res) => {
@@ -52,6 +51,9 @@ export default function UserProfile () {
                        isAnonymous: false,
                    });
                }
+               if (!location.state){
+                   navigate('posts');
+               }
             });
         }
     }, []);
@@ -63,6 +65,7 @@ export default function UserProfile () {
         navigate(tab, {state: {
             data: {
                 activeTab: tabLabel,
+                auth: isAuthorized,
             }
             }});
     };
