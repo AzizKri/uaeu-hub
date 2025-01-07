@@ -6,7 +6,7 @@ export default function WritePost() {
     const {prependPost} = useUpdatePosts();
     return (
         <div className={styles.newPost}>
-            <Editor type="post" parent_id={null} handleSubmit={() => null} prependPost={prependPost} />
+            <Editor type="post" prependPost={prependPost} />
         </div>
     );
 }
