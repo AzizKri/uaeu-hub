@@ -28,10 +28,9 @@ export default function Home() {
             {/*    <span>20 new questions</span>*/}
             {/*</div>*/}
             <section className={styles.posts_container}>
-                {posts}
+                {(posts.length > 0) ? posts : (loading ? <div className={styles.posts_container_text}>Loading...</div> :
+                    <div className={styles.posts_container_text}>No posts yet... Be the first to write one!</div>)}
             </section>
-            {/*TODO: add a loader in case posts are still loading*/}
-            {loading && <div>Loading...</div>}
         </div>
     );
 }
