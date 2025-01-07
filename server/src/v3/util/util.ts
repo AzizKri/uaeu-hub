@@ -125,3 +125,10 @@ export async function sendUserIdCookie(c: Context, userId: string, isAnonymous: 
     // Set the cookie
     await setSignedCookie(c, 'sessionToken', `${userId}:${Number(isAnonymous)}`, c.env.JWT_SECRET, options);
 }
+
+export function parseId(id: string): number {
+    const parsed = Number(id);
+
+    if (isNaN(parsed)) return -1;
+    return parsed;
+}
