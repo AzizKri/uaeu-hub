@@ -52,7 +52,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                     </div>
                 </div>
                 <div className={styles.comment__content__text}>
-                    <Content id={info.id} content={info.content} filename={info.attachment} type={"comment"}/>
+                    <Content content={info.content} filename={info.attachment} type={"comment"}/>
                 </div>
                 <div className={styles.comment__content__footer}>
                     <button className={`${styles.vote_icon} ${styles.btn_hover}`}>
