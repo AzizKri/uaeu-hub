@@ -66,7 +66,7 @@ export default function Login() {
                 bio: data.bio,
                 pfp: data.pfp
             })
-            navigate('/');
+            navigate(-1);
         } else {
             const newErrors: LoginErrors = {};
             if (response.status === 404) {

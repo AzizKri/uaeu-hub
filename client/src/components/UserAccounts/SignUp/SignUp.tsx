@@ -103,7 +103,7 @@ export default function SignUp() {
                 bio: data.bio,
                 pfp: data.pfp
             })
-            navigate('/');
+            navigate(-1);
         } else {
             const newErrors: SignUpErrors = {};
             if (response.status === 409) {
