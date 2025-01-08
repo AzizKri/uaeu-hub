@@ -1,7 +1,7 @@
 import {base} from "./api.ts";
 
-// Subcomment on comment
-export async function subcomment(comment: number, content: string, attachment?: string) {
+// SubComment on comment
+export async function subComment(comment: number, content: string, attachment?: string) {
     const formData = new FormData();
     formData.append('commentId', comment.toString());
     formData.append('content', content);
@@ -15,11 +15,11 @@ export async function subcomment(comment: number, content: string, attachment?: 
         body: formData,
         credentials: 'include'
     });
-    return request.status;
+    return {status: request.status, data: await request.json()};
 }
 
-// Get subcomments on a comment by its ID
-export async function getSubcommentsOnComment(comment: number, page: number = 0) {
+// Get subComments on a comment by its ID
+export async function getSubCommentsOnComment(comment: number, page: number = 0) {
     const request = await fetch(base + `/subcomment/${comment}?page=${page}`, {
         method: 'GET',
         credentials: 'include'
@@ -27,18 +27,18 @@ export async function getSubcommentsOnComment(comment: number, page: number = 0)
     return { status: request.status, data: await request.json() };
 }
 
-// Like/unlike a subcomment by its ID
-export async function likeSubcomment(subcomment: number) {
-    const request = await fetch(base + `/subcomment/like/${subcomment}`, {
+// Like/unlike a subComment by its ID
+export async function likeSubComment(subComment: number) {
+    const request = await fetch(base + `/subcomment/like/${subComment}`, {
         method: 'POST',
         credentials: 'include'
     });
     return request.status;
 }
 
-// Delete subcomment by its ID
-export async function deleteSubcomment(subcomment: number) {
-    const request = await fetch(base + `/subcomment/${subcomment}`, {
+// Delete subComment by its ID
+export async function deleteSubComment(subComment: number) {
+    const request = await fetch(base + `/subcomment/${subComment}`, {
         method: 'DELETE',
         credentials: 'include'
     });

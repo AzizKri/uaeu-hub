@@ -47,7 +47,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     id: tc.id,
                     likeCount: tc.like_count,
                     liked: tc.liked,
-                    parentPostId: tc.parent_post_id,
+                    parentId: tc.parent_post_id,
                     pfp: tc.pfp,
                     postTime: tc.post_time,
                     commentCount: tc.comment_count,

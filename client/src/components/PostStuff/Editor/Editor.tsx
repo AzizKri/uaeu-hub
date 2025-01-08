@@ -23,6 +23,7 @@ import communityIcon from "../../../assets/community-icon.jpg";
 import arrowDownIcon from "../../../assets/chevron-down.svg";
 import { useUser } from "../../../lib/utils/hooks.ts";
 import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
+import {subComment} from "../../../api/subComments.ts";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
@@ -42,7 +43,6 @@ const initialConfig = {
 export default function Editor({
     type,
     parent_id,
-    handleSubmit,
     prependPost,
     prependComment,
     communityId,
@@ -237,34 +237,54 @@ export default function Editor({
                         />,
                     );
                 }
-            } else if ((type === "comment" || type === "reply") && parent_id) {
+            } else if (type === "comment"  && parent_id) {
                 const res = await comment(
                     parent_id,
                     plainText,
                     uploadState.fileName,
                 );
-                if (type === "comment") {
-                    const createdComment = {
-                        attachment: res.attachment,
-                        author: res.author,
-                        authorId: res.author_id,
-                        content: res.content,
-                        displayName: res.display_name,
-                        id: res.id,
-                        level: res.level,
-                        likeCount: res.like_count,
-                        commentCount: res.comment_count,
-                        liked: res.liked,
-                        parentPostId: res.parent_post_id,
-                        parentType: res.parent_id,
-                        pfp: res.pfp,
-                        postTime: res.post_time,
-                    };
-                    if (prependComment) prependComment(createdComment);
-                }
-                if (type === "reply" && handleSubmit) {
-                    handleSubmit();
-                }
+                const createdComment = {
+                    attachment: res.attachment,
+                    author: res.author,
+                    authorId: res.author_id,
+                    content: res.content,
+                    displayName: res.display_name,
+                    id: res.id,
+                    level: res.level,
+                    likeCount: res.like_count,
+                    commentCount: res.comment_count,
+                    liked: res.liked,
+                    parentId: res.parent_post_id,
+                    parentType: res.parent_id,
+                    pfp: res.pfp,
+                    postTime: res.post_time,
+                };
+                if (prependComment) prependComment(createdComment);
+            } else if (type === "reply" && parent_id) {
+                const res = await subComment(parent_id, plainText, uploadState.fileName);
+                console.log("subComment res", res);
+                const createdSubComment = {
+                    attachment: res.data.attachment,
+                    author: res.data.author,
+                    authorId: res.data.author_id,
+                    content: res.data.content,
+                    displayName: res.data.display_name,
+                    id: res.data.id,
+                    level: res.data.level,
+                    likeCount: res.data.like_count,
+                    commentCount: res.data.comment_count,
+                    liked: res.data.liked,
+                    parentId: res.data.parent_post_id,
+                    parentType: res.data.parent_id,
+                    pfp: res.data.pfp,
+                    postTime: res.data.post_time,
+                };
+
+                if (prependComment) prependComment(createdSubComment);
+
+                // if (type === "reply" && handleSubmit) {
+                //     handleSubmit();
+                // }
             }
 
             // Reset the editor

@@ -8,7 +8,7 @@ import Editor from "../Editor/Editor.tsx";
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx"; // To access the postId from the URL
 
-interface CommentBack {
+export interface CommentBack {
     attachment: string,
     author: string,
     author_id: number,
@@ -82,7 +82,7 @@ export default function PostPage() {
                     likeCount: cd.like_count,
                     commentCount: cd.comment_count,
                     liked: cd.liked,
-                    parentPostId: cd.parent_post_id,
+                    parentId: cd.parent_post_id,
                     pfp: cd.pfp,
                     postTime: cd.post_time,
                 })));
@@ -116,9 +116,7 @@ export default function PostPage() {
 
     const handleShowMore = async () => {
         setLoadingMoreComments(true);
-        console.log("total comments", totalComments);
         const nextPage = (await getCommentsOnPost(postId ? parseInt(postId) : 0, comments.length)).data;
-        console.log("nextPage", nextPage);
         setComments(prev =>
             [...prev, ...nextPage.map((cd: CommentBack) => ({
                 attachment: cd.attachment,
@@ -130,7 +128,7 @@ export default function PostPage() {
                 likeCount: cd.like_count,
                 commentCount: cd.comment_count,
                 liked: cd.like_count,
-                parentPostId: cd.parent_post_id,
+                parentId: cd.parent_post_id,
                 pfp: cd.pfp,
                 postTime: cd.post_time,
             }))]
