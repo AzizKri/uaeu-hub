@@ -1,9 +1,9 @@
 import styles from "./Category.module.scss";
-import { getCommunitiesByTag, joinCommunity } from "../../../api.ts";
+import { getCommunitiesByTag, joinCommunity } from "../../../api/communities.ts";
 import memberIcon from "../../../assets/account-outline-thin-dot.svg";
 import { useEffect, useState } from "react";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
-import {useUser} from "../../../lib/hooks.ts";
+import {useUser} from "../../../lib/utils/hooks.ts";
 
 interface CommunityPreview {
     icon: string;

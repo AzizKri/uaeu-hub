@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Post from '../Post/Post.tsx';
-import {getCommentsOnPost, getPostByID} from '../../../api.ts';
+import {getPostByID} from '../../../api/posts.ts';
+import {getCommentsOnPost} from '../../../api/comments.ts';
 import styles from './PostPage.module.scss';
 import Comment from "../Comment/Comment.tsx";
 import Editor from "../Editor/Editor.tsx";

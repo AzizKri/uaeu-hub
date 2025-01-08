@@ -1,5 +1,5 @@
 import styles from './PostFooter.module.scss';
-import {togglePostLike} from "../../../api.ts";
+import {togglePostLike} from "../../../api/posts.ts";
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Popup from "../../Reusable/Popup/Popup.tsx";

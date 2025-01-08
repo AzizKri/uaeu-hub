@@ -12,19 +12,16 @@ import React, {
     useRef,
     useState,
 } from "react";
-import {
-    comment,
-    createPost,
-    deleteAttachment,
-    getCommunitiesCurrentUser,
-    uploadAttachment,
-} from "../../../api.ts";
+import { comment } from "../../../api/comments.ts"
+import { createPost } from "../../../api/posts.ts";
+import {deleteAttachment, uploadAttachment} from "../../../api/attachmets.ts";
+import { getCommunitiesCurrentUser } from "../../../api/currentUser.ts";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 import Post from "../Post/Post.tsx";
 import communityIcon from "../../../assets/community-icon.jpg";
 import arrowDownIcon from "../../../assets/chevron-down.svg";
-import { useUser } from "../../../lib/hooks.ts";
+import { useUser } from "../../../lib/utils/hooks.ts";
 import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
 
 interface UploadState {

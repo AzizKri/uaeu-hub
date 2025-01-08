@@ -5,7 +5,7 @@ import PostFooter from "../PostFooter/PostFooter.tsx";
 import Comment from "../Comment/Comment.tsx";
 import styles from "./post.module.scss";
 import React, { useEffect, useState } from "react";
-import { getFormattedDate } from "../../../lib/tools.ts";
+import { getFormattedDate } from "../../../lib/utils/tools.ts";
 import Content from "../Content/Content.tsx";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import {useNavigate} from "react-router-dom";

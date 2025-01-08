@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import {getLatestPosts} from "../api.ts";
-import Post from "../components/PostStuff/Post/Post.tsx";
-import {UpdatePostsContext} from "./context.ts";
+import {getLatestPosts} from "../../api/posts.ts";
+import Post from "../../components/PostStuff/Post/Post.tsx";
+import {UpdatePostsContext} from "../utils/context.ts";
 
 export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);

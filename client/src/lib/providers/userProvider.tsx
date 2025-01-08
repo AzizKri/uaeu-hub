@@ -1,6 +1,6 @@
 import {ReactNode, useEffect, useState} from "react";
-import {UserContext} from "./context.ts";
-import { me } from '../api.ts';
+import {UserContext} from "../utils/context.ts";
+import { me } from '../../api/authentication.ts';
 
 export default function UserProvider({children}: {children: ReactNode}) {
     const [user, setUser] = useState<UserInfo | null>(null);

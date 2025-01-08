@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
-import {login} from '../../../api.ts';
+import {login} from '../../../api/authentication.ts';
 import {Link, useNavigate} from 'react-router-dom';
-import {useUser} from "../../../lib/hooks.ts";
+import {useUser} from "../../../lib/utils/hooks.ts";
 
 export default function Login() {
     const navigate = useNavigate();
