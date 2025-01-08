@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
-import {getLikesCurrentUser, getPostByID} from "../../../api.ts";
+import {getPostByID} from "../../../api/posts.ts";
+import {getLikesCurrentUser} from "../../../api/currentUser.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
 import styles from "../UserContent.module.scss"
 import {useLocation, useNavigate, useParams} from "react-router-dom";

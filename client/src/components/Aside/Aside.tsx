@@ -9,11 +9,13 @@ import homeIcon from "../../assets/home-outline-thin.svg"
 import logoutIcon from "../../assets/logout-thin.svg"
 import courseMaterial from '../../assets/course-material.svg'
 import professorIcon from '../../assets/professor.svg'
-import {createCommunity, getCommunitiesCurrentUser, logout} from '../../api.ts';
-import {useUser} from "../../lib/hooks.ts";
+import {useUser} from "../../lib/utils/hooks.ts";
 import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import {Link, useLocation, useNavigate} from "react-router-dom";
 import LoaderDots from "../Reusable/LoaderDots/LoaderDots.tsx";
+import {logout} from "../../api/authentication.ts";
+import {getCommunitiesCurrentUser} from "../../api/currentUser.ts";
+import {createCommunity} from "../../api/communities.ts";
 
 export default function Aside() {
     const [showCommunity, setShowCommunity] = useState<boolean>(false);

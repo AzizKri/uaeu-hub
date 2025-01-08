@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
-import {getPostsByUser} from "../../../api.ts";
+import {getPostsByUser} from "../../../api/posts.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
 import styles from "../UserContent.module.scss"
 

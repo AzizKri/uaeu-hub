@@ -2,7 +2,7 @@ import styles from "./ExploreCommunities.module.scss";
 import Search from "../Search/Search.tsx";
 import Category from "../Category/Category.tsx";
 import {useEffect, useState} from "react";
-import {getTags} from "../../../api.ts";
+import {getTags} from "../../../api/tags.ts";
 
 export default function ExploreCommunities() {
     const [tags, setTags] = useState([]);

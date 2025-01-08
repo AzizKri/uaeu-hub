@@ -9,9 +9,9 @@ import {
     joinCommunity,
     getAdminsOfCommunity,
     leaveCommunity
-} from "../../../api.ts";
+} from "../../../api/communities.ts";
 import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
-import {useUser} from "../../../lib/hooks.ts";
+import {useUser} from "../../../lib/utils/hooks.ts";
 import Popup from "../../Reusable/Popup/Popup.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
 

@@ -6,8 +6,8 @@ import Login from './components/UserAccounts/Login/Login.tsx';
 import SignUp from './components/UserAccounts/SignUp/SignUp.tsx';
 import Home from './components/Home/Home.tsx';
 import PostPage from './components/PostStuff/PostPage/PostPage.tsx';
-import UserProvider from './lib/userProvider.tsx';
-import { UpdatePostProvider } from './lib/UpdatePostProvider.tsx';
+import UserProvider from './lib/providers/userProvider.tsx';
+import { UpdatePostProvider } from './lib/providers/UpdatePostProvider.tsx';
 import UserProfile from './components/UserProfilePage/UserProfile/UserProfile.tsx';
 import NotFound from './components/Reusable/NotFound/NotFound.tsx';
 import Community from './components/Communities/Community/Community.tsx';
@@ -15,7 +15,7 @@ import ExploreCommunities from './components/Communities/ExploreCommunities/Expl
 import UserPosts from './components/UserProfilePage/UserPosts/UserPosts.tsx';
 import UserComments from './components/UserProfilePage/UserComments/UserComments.tsx';
 import UserLikes from './components/UserProfilePage/UserLikes/UserLikes.tsx';
-import WebSocketProvider from './lib/WebSocketProvider.tsx';
+import WebSocketProvider from './lib/providers/WebSocketProvider.tsx';
 
 const router = createBrowserRouter([
     {

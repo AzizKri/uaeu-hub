@@ -1,7 +1,7 @@
 import styles from "./Content.module.scss"
 import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
 import React, {useEffect, useState} from "react";
-import {getAttachmentDetails} from "../../../api.ts";
+import {getAttachmentDetails} from "../../../api/attachmets.ts";
 
 export default function Content({content, filename, type}: {
     content: string,

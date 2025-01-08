@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { createWebsocketConnection } from '../api.ts';
-import { WebSocketContext } from './context.ts';
-import { useUser } from './hooks.ts';
+import { createWebsocketConnection } from '../../api/webSockets.ts';
+import { WebSocketContext } from '../utils/context.ts';
+import { useUser } from '../utils/hooks.ts';
 
 export default function WebSocketProvider({ children }: { children: ReactNode }) {
     const { userReady } = useUser();
