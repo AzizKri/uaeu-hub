@@ -164,6 +164,7 @@ export default function PostPage() {
                                     key={cur.id}
                                     info={cur}
                                     deleteComment={deleteComment}
+                                    type="COMMENT"
                                 />
                             ))}
                             {(comments.length && comments.length < totalComments) ? (
