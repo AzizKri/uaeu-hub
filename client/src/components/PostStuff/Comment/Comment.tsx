@@ -2,17 +2,26 @@ import profilePict from '../../../assets/profile-picture.png';
 import './comment.module.scss';
 import styles from './comment.module.scss';
 import Content from "../Content/Content.tsx";
-import ReplyPopUp from "../ReplyPopUp/ReplyPopUp.tsx";
 import {useEffect, useState} from "react";
 import {getFormattedDate} from "../../../lib/utils/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
+import Popup from "../../Reusable/Popup/Popup.tsx";
+import Editor from "../Editor/Editor.tsx";
+import {getSubCommentsOnComment} from "../../../api/subComments.ts";
+import {CommentBack} from "../PostPage/PostPage.tsx";
+import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import {Link} from "react-router-dom";
 
 export default function Comment({info, deleteComment}: {info: CommentInfo, deleteComment: (commentId: number) => void}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
     const [dateText, setDateText] = useState<string>("");
     const [repliesShown, setRepliesShown] = useState<boolean>(false);
+    const [subComments, setSubComments] = useState<CommentInfo[]>([]);
+    const [totalSubComments, setTotalSubComments] = useState<number>(0);
+    const [isLoadingMoreSubComments, setIsLoadingMoreSubComments] = useState<boolean>(false);
 
     useEffect(() => {
+        setTotalSubComments(info.commentCount);
         setDateText(getFormattedDate(info.postTime))
     }, [info.postTime]);
 
@@ -22,29 +31,78 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
     }
 
     const hideReplyPopUp = () => {
-        document.body.style.overflow = "scroll";
         setShowReplyPopUp(false);
     }
 
     const toggleReplies = () => {
         setRepliesShown((prev) => !prev);
-        /**
-         *  TODO: add a component to hold the replies and show it based on the state of repliesShown
-         *  if it is the first time to show them you need to first get them
-         */
+        if (subComments === undefined || subComments.length === 0) {
+            getSubCommentsOnComment(info.id, 0).then((res) => {
+                setSubComments(res.data.map((cd: CommentBack) => ({
+                    attachment: cd.attachment,
+                    author: cd.author,
+                    authorId: cd.author_id,
+                    content: cd.content,
+                    displayName: cd.displayname,
+                    id: cd.id,
+                    likeCount: cd.like_count,
+                    commentCount: cd.comment_count,
+                    liked: cd.liked,
+                    parentId: cd.parent_post_id,
+                    pfp: cd.pfp,
+                    postTime: cd.post_time,
+                })));
+            })
+        }
     }
 
+    const prependSubComment = (subComment: CommentInfo) => {
+        document.body.style.position = "static";
+        setTotalSubComments(prev => prev + 1);
+        setSubComments(prev => [subComment, ...prev]);
+        setShowReplyPopUp(false);
+        setRepliesShown(true);
+    }
 
+    const handleShowMore = async () => {
+        setIsLoadingMoreSubComments(true);
+        getSubCommentsOnComment(info.id, subComments.length).then((res) => {
+            setSubComments(prev => [
+                ...prev,
+                ...res.data.map((cd: CommentBack) => ({
+                    attachment: cd.attachment,
+                    author: cd.author,
+                    authorId: cd.author_id,
+                    content: cd.content,
+                    displayName: cd.displayname,
+                    id: cd.id,
+                    likeCount: cd.like_count,
+                    commentCount: cd.comment_count,
+                    liked: cd.like_count,
+                    parentId: cd.parent_post_id,
+                    pfp: cd.pfp,
+                    postTime: cd.post_time,
+                }))
+            ])
+            setIsLoadingMoreSubComments(false);
+        })
+    }
 
     return (
         <div className={styles.comment}>
-            {showReplyPopUp && <ReplyPopUp parent_comment_id={info.id} hideReplyPopUp={hideReplyPopUp}/>}
+            {showReplyPopUp && (
+                <Popup hidePopUp={hideReplyPopUp}>
+                    <Editor type={"reply"} parent_id={info.id} prependComment={prependSubComment}/>
+                </Popup>
+            )}
             <div className={styles.comment__profile_pict}>
                 <img src={profilePict} alt="profile picture" />
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
-                    <div className={styles.comment__content__header__display_name}>{info.displayName}</div>
+                    <Link to={`/user/${info.authorId}`}>
+                        <div className={styles.comment__content__header__display_name}>{info.displayName}</div>
+                    </Link>
                     <span>•</span>
                     <div className={styles.comment__content__header__time}>{dateText}</div>
                     <div className={styles.comment__content__header__menu}>
@@ -79,7 +137,27 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                         <span>reply</span>
                     </button>
                 </div>
-                {info.commentCount > 0 && <div className={styles.view_comment} onClick={() => toggleReplies()}>{`${repliesShown ? "hide" : "view"} replies (${info.commentCount})`}</div>}
+                {info.commentCount > 0 && (
+                    <div className={styles.view_comment} onClick={toggleReplies}>
+                        {repliesShown ? "hide replies" : `show replies ${totalSubComments}`}
+                        {/*{`${repliesShown ? "hide" : "view"} replies (${totalSubComments})`}*/}
+                    </div>
+                )}
+                {repliesShown && (<>
+                    {subComments.map((cur) => (
+                        <Comment
+                            key={cur.id}
+                            info={cur}
+                            deleteComment={deleteComment}
+                        />
+                    ))}
+                    {subComments.length && subComments.length < totalSubComments && (
+                        <button className={styles.show_more} onClick={handleShowMore}>
+                            {isLoadingMoreSubComments ? <LoaderDots /> : "Show More"}
+                        </button>
+                    )}
+                </>)}
+
             </div>
         </div>
     );
