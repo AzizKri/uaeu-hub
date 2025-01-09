@@ -68,7 +68,7 @@ export async function getCommentsOnPost(c: Context) {
                 `SELECT *
                  FROM comment_view
                  WHERE parent_post_id = ?
-                 ORDER BY like_count, post_time DESC
+                 ORDER BY like_count DESC, post_time
                  LIMIT 10 OFFSET ?`
             ).bind(postID, page * 10).all<CommentView>();
 
@@ -85,7 +85,7 @@ export async function getCommentsOnPost(c: Context) {
                           LEFT JOIN comment_like cl
                                     ON cv.id = cl.comment_id AND cl.user_id = ?
                  WHERE parent_post_id = ?
-                 ORDER BY like_count, post_time DESC
+                 ORDER BY like_count DESC, post_time
                  LIMIT 10 OFFSET ?`
             ).bind(userId, postID, page * 10).all<CommentView>();
 
@@ -158,7 +158,7 @@ export async function likeComment(c: Context) {
     try {
         // Check if the user has already liked the comment
         const like = await env.DB.prepare(
-            `SELECT id
+            `SELECT user_id
              FROM comment_like
              WHERE comment_id = ?
                AND user_id = ?`
