@@ -174,7 +174,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
     return (
         <div className={styles.comment}>
             {showActionPopUp && (
-                <UnAuthorizedPopUp hidePopUp={hideActionPopUp}/>
+                <UnAuthorizedPopUp hidePopUp={hideActionPopUp} />
             )}
             {showReplyPopUp && (
                 <Popup hidePopUp={hideReplyPopUp}>
@@ -191,47 +191,87 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
-                    <Link to={`/user/${info.authorId}`}>
-                        <div className={styles.comment__content__header__display_name}>{info.displayName}</div>
-                    </Link>
-                    <span>•</span>
-                    <div className={styles.comment__content__header__time}>{dateText}</div>
+                    <div className={styles.comment__content__header__top_left}>
+                        <div className={styles.comment__content__header__top} >
+                            <Link to={`/user/${info.authorId}`}>
+                                <div
+                                    className={
+                                        styles.comment__content__header__display_name
+                                    }
+                                >
+                                    {info.displayName}
+                                </div>
+                            </Link>
+                            <span>•</span>
+                            <div className={styles.comment__content__header__time}>
+                                {dateText}
+                            </div>
+                        </div>
+                        <div className={styles.comment__content__header__username}>
+                            {info.author}
+                        </div>
+                    </div>
                     <div className={styles.comment__content__header__menu}>
-                        <OptionsMenu type={"COMMENT"} id={info.id} author={info.author} deleteComment={deleteComment}/>
+                        <OptionsMenu
+                            type={"COMMENT"}
+                            id={info.id}
+                            author={info.author}
+                            deleteComment={deleteComment}
+                        />
                     </div>
                 </div>
                 <div className={styles.comment__content__text}>
-                    <Content content={info.content} filename={info.attachment} type={"comment"}/>
+                    <Content
+                        content={info.content}
+                        filename={info.attachment}
+                        type={"comment"}
+                    />
                 </div>
                 <div className={styles.comment__content__footer}>
-                    <button className={`${styles.vote_icon} ${styles.btn_hover}`} onClick={handleUpVote}>
+                    <button
+                        className={`${styles.vote_icon} ${styles.btn_hover}`}
+                        onClick={handleUpVote}
+                    >
                         {likeState === "LIKE" ? (
-                            <img src={upvote} alt="upvoted"/>
+                            <img src={upvote} alt="upvoted" />
                         ) : (
                             <img src={upvote_outline} alt="upvote" />
                         )}
                     </button>
-                    <span className={styles.comment__content__footer__votes}>{likesCount}</span>
-                    <button className={`${styles.vote_icon} ${styles.btn_hover}`} onClick={handleDownVote}>
+                    <span className={styles.comment__content__footer__votes}>
+                        {likesCount}
+                    </span>
+                    <button
+                        className={`${styles.vote_icon} ${styles.btn_hover}`}
+                        onClick={handleDownVote}
+                    >
                         {likeState === "DISLIKE" ? (
-                            <img src={down_vote} alt="down voted"/>
+                            <img src={down_vote} alt="down voted" />
                         ) : (
                             <img src={down_vote_outline} alt="down vote" />
                         )}
                     </button>
-                    <button className={`${styles.comment__content__footer__reply} ${styles.btn_hover}`} onClick={handleReply}>
+                    <button
+                        className={`${styles.comment__content__footer__reply} ${styles.btn_hover}`}
+                        onClick={handleReply}
+                    >
                         <img src={reply} alt="reply" />
                         <span>reply</span>
                     </button>
                 </div>
                 {info.commentCount > 0 && (
-                    <div className={styles.view_comment} onClick={toggleReplies}>
-                        {repliesShown ? "hide replies" : `show replies (${totalSubComments})`}
+                    <div
+                        className={styles.view_comment}
+                        onClick={toggleReplies}
+                    >
+                        {repliesShown
+                            ? "hide replies"
+                            : `show replies (${totalSubComments})`}
                     </div>
                 )}
-                {repliesShown && (
-                    repliesLoading ? (
-                        <LoadingImage width={"20px"}/>
+                {repliesShown &&
+                    (repliesLoading ? (
+                        <LoadingImage width={"20px"} />
                     ) : (
                         <>
                             {subComments.map((cur) => (
@@ -243,13 +283,19 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                                 />
                             ))}
                             {subComments.length < totalSubComments && (
-                                <button className={styles.show_more} onClick={handleShowMore}>
-                                    {isLoadingMoreSubComments ? <LoaderDots /> : "Show More"}
+                                <button
+                                    className={styles.show_more}
+                                    onClick={handleShowMore}
+                                >
+                                    {isLoadingMoreSubComments ? (
+                                        <LoaderDots />
+                                    ) : (
+                                        "Show More"
+                                    )}
                                 </button>
                             )}
                         </>
-                    )
-               )}
+                    ))}
             </div>
         </div>
     );
