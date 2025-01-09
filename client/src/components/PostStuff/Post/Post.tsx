@@ -101,7 +101,7 @@ export default function Post({ postInfo, topCommentInfo, communityInfo, from}: P
             />
 
             {postInfo.type === "post" && topComment != null ? (
-                <Comment info={topComment} deleteComment={deleteTopComment} />
+                <Comment info={topComment} deleteComment={deleteTopComment} type="COMMENT"/>
             ) : null}
         </div>
     );
