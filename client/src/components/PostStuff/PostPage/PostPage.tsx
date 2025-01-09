@@ -8,7 +8,7 @@ import Editor from "../Editor/Editor.tsx";
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx"; // To access the postId from the URL
 
-export interface CommentBack {
+interface CommentBack {
     attachment: string,
     author: string,
     author_id: number,
@@ -84,14 +84,13 @@ export default function PostPage() {
                     liked: cd.liked,
                     parentId: cd.parent_post_id,
                     pfp: cd.pfp,
-                    postTime: cd.post_time,
+                    postTime: new Date(cd.post_time),
                 })));
             })
         }
     }, [postId]); // Fetch the post when postId changes
 
     const goBack = () => {
-        // if (document.referrer && document.referrer.includes(location.origin)) {
         if (location?.state?.from) {
             // we are coming from inside the website
             // navigate(`/${location.state.from}`);
@@ -130,7 +129,7 @@ export default function PostPage() {
                 liked: cd.like_count,
                 parentId: cd.parent_post_id,
                 pfp: cd.pfp,
-                postTime: cd.post_time,
+                postTime: new Date(cd.post_time),
             }))]
         )
         setLoadingMoreComments(false);
@@ -154,8 +153,8 @@ export default function PostPage() {
                         <div className={styles.comments}>
                             <div className={styles.write_answer}>
                                 <Editor
-                                    type="comment"
-                                    parent_id={postId ? parseInt(postId) : undefined}
+                                    type="COMMENT"
+                                    parentId={postId ? parseInt(postId) : undefined}
                                     prependComment={prependComment}
                                 />
                             </div>
@@ -164,7 +163,6 @@ export default function PostPage() {
                                     key={cur.id}
                                     info={cur}
                                     deleteComment={deleteComment}
-                                    type="COMMENT"
                                 />
                             ))}
                             {(comments.length && comments.length < totalComments) ? (

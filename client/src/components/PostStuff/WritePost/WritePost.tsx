@@ -6,7 +6,7 @@ export default function WritePost() {
     const {prependPost} = useUpdatePosts();
     return (
         <div className={styles.newPost}>
-            <Editor type="post" prependPost={prependPost} />
+            <Editor type="POST" prependPost={prependPost} />
         </div>
     );
 }

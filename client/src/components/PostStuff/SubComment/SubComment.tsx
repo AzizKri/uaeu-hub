@@ -1,63 +1,40 @@
 import profilePict from '../../../assets/profile-picture.png';
-import styles from './Comment.module.scss';
+import styles from '../Comment/Comment.module.scss';
 import Content from "../Content/Content.tsx";
 import {useEffect, useState} from "react";
 import {getFormattedDate} from "../../../lib/utils/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import Popup from "../../Reusable/Popup/Popup.tsx";
 import Editor from "../Editor/Editor.tsx";
-import {getSubCommentsOnComment} from "../../../api/subComments.ts";
-import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import {likeSubComment} from "../../../api/subComments.ts";
 import {Link} from "react-router-dom";
 import down_vote_outline from "../../../assets/down-vote-outline.svg"
 import upvote_outline from "../../../assets/up-vote-outline.svg"
 import down_vote from "../../../assets/down-vote.svg"
 import upvote from "../../../assets/up-vote.svg"
 import reply from "../../../assets/reply.svg"
-import {likeComment} from "../../../api/comments.ts";
 import {useUser} from "../../../lib/utils/hooks.ts";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
-import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
-import SubComment from "../SubComment/SubComment.tsx";
 
-interface SubCommentBack {
-    attachment: string,
-    author: string,
-    author_id: number,
-    comment_count: number,
-    content: string,
-    displayname: string,
-    id: number,
-    like_count: number,
-    liked: boolean,
-    parent_comment_id: number,
-    pfp: string,
-    post_time: Date,
-}
-
-export default function Comment({info, deleteComment}: {info: CommentInfo, deleteComment: (commentId: number) => void}) {
+export default function SubComment({info, deleteComment, parentPrependSubComment}: {info: CommentInfo, deleteComment: (commentId: number) => void, parentPrependSubComment?: (commentInfo: CommentInfo) => void}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
     const [dateText, setDateText] = useState<string>("");
-    const [repliesShown, setRepliesShown] = useState<boolean>(false);
-    const [repliesLoading, setRepliesLoading] = useState<boolean>(false);
-    const [subComments, setSubComments] = useState<CommentInfo[]>([]);
-    const [totalSubComments, setTotalSubComments] = useState<number>(0);
-    const [isLoadingMoreSubComments, setIsLoadingMoreSubComments] = useState<boolean>(false);
     const [likeState, setLikeState] = useState<"LIKE" | "DISLIKE" | "NONE">("NONE");
     const [likesCount, setLikesCount] = useState<number>(0);
     const [showActionPopUp, setShowActionPopUp] = useState<boolean>(false);
     const {isUser} = useUser();
+    const [initialText, setInitialText] = useState<string>("");
 
     useEffect(() => {
         setDateText(getFormattedDate(info.postTime))
         setLikesCount(info.likeCount);
-        setTotalSubComments(info.commentCount);
         if (info.liked) {
             setLikeState("LIKE");
         }
-    }, [info.postTime]);
+    }, []);
 
     const handleReply = () => {
+        setInitialText(`@${info.author}`);
         setShowReplyPopUp(true)
     }
 
@@ -65,61 +42,6 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
         setShowReplyPopUp(false);
     }
 
-    const toggleReplies = () => {
-        setRepliesShown((prev) => !prev);
-        if (subComments === undefined || subComments.length === 0) {
-            setRepliesLoading(true);
-            getSubCommentsOnComment(info.id, 0).then((res) => {
-                setSubComments(res.data.map((cd: SubCommentBack) => ({
-                    attachment: cd.attachment,
-                    author: cd.author,
-                    authorId: cd.author_id,
-                    content: cd.content,
-                    displayName: cd.displayname,
-                    id: cd.id,
-                    likeCount: cd.like_count,
-                    commentCount: cd.comment_count,
-                    liked: cd.liked,
-                    parentId: cd.parent_comment_id,
-                    pfp: cd.pfp,
-                    postTime: new Date(cd.post_time),
-                })));
-                setRepliesLoading(false);
-            })
-        }
-    }
-
-    const prependSubComment = (subComment: CommentInfo) => {
-        document.body.style.position = "static";
-        setTotalSubComments(prev => prev + 1);
-        setSubComments(prev => [...prev, subComment]);
-        setShowReplyPopUp(false);
-        setRepliesShown(true);
-    }
-
-    const handleShowMore = async () => {
-        setIsLoadingMoreSubComments(true);
-        getSubCommentsOnComment(info.id, subComments.length).then((res) => {
-            setSubComments(prev => [
-                ...prev,
-                ...res.data.map((cd: SubCommentBack) => ({
-                    attachment: cd.attachment,
-                    author: cd.author,
-                    authorId: cd.author_id,
-                    content: cd.content,
-                    displayName: cd.displayname,
-                    id: cd.id,
-                    likeCount: cd.like_count,
-                    commentCount: cd.comment_count,
-                    liked: cd.like_count,
-                    parentId: cd.parent_comment_id,
-                    pfp: cd.pfp,
-                    postTime: new Date(cd.post_time),
-                }))
-            ])
-            setIsLoadingMoreSubComments(false);
-        })
-    }
 
     const handleUpVote = () => {
         if (!isUser()) {
@@ -136,7 +58,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
             setLikeState("LIKE");
             setLikesCount(prev => prev + 1);
         }
-        likeComment(info.id);
+        likeSubComment(info.id);
     }
 
     const handleDownVote = () => {
@@ -157,18 +79,16 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
         }
 
         // TODO: implement this after it is implemented in the api
-        // dislikeComment(info.id);
+        // dislikeSubComment(info.id);
     }
 
     const hideActionPopUp = () => {
         setShowActionPopUp(false)
     }
 
-    const deleteSubComment = (subCommentId: number) => {
-        setTotalSubComments(prev => prev - 1);
-        setSubComments((prev) =>
-            prev.filter((c) => c.id !== subCommentId)
-        );
+    const prependSubComment = (subComment: CommentInfo) => {
+        if (parentPrependSubComment) parentPrependSubComment(subComment);
+        setShowReplyPopUp(false);
     }
 
     return (
@@ -179,9 +99,10 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
             {showReplyPopUp && (
                 <Popup hidePopUp={hideReplyPopUp}>
                     <Editor
-                        type="SUB-COMMENT"
-                        parentId={info.id}
+                        type={"SUB-COMMENT"}
+                        parentId={info.parentId}
                         prependComment={prependSubComment}
+                        initialText={initialText}
                         autoFocus={true}
                     />
                 </Popup>
@@ -224,32 +145,6 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                         <span>reply</span>
                     </button>
                 </div>
-                {info.commentCount > 0 && (
-                    <div className={styles.view_comment} onClick={toggleReplies}>
-                        {repliesShown ? "hide replies" : `show replies (${totalSubComments})`}
-                    </div>
-                )}
-                {repliesShown && (
-                    repliesLoading ? (
-                        <LoadingImage width={"20px"}/>
-                    ) : (
-                        <>
-                            {subComments.map((cur) => (
-                                <SubComment
-                                    key={cur.id}
-                                    info={cur}
-                                    deleteComment={deleteSubComment}
-                                    parentPrependSubComment={prependSubComment}
-                                />
-                            ))}
-                            {subComments.length < totalSubComments && (
-                                <button className={styles.show_more} onClick={handleShowMore}>
-                                    {isLoadingMoreSubComments ? <LoaderDots /> : "Show More"}
-                                </button>
-                            )}
-                        </>
-                    )
-               )}
             </div>
         </div>
     );

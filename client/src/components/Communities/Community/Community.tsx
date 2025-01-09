@@ -101,7 +101,7 @@ export default function Community() {
             {showEditor &&
                 <Popup hidePopUp={() => setShowEditor(false)}>
                     <Editor
-                        type="post"
+                        type="POST"
                         prependPost={prependPost}
                         communityId={info.id}
                     />

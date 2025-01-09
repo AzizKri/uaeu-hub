@@ -4,7 +4,7 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { $getRoot } from "lexical";
+import {$createParagraphNode, $createTextNode, $getRoot} from "lexical";
 import React, {
     forwardRef,
     useEffect,
@@ -15,7 +15,7 @@ import React, {
 import { comment } from "../../../api/comments.ts"
 import { createPost } from "../../../api/posts.ts";
 import {deleteAttachment, uploadAttachment} from "../../../api/attachmets.ts";
-import { getCommunitiesCurrentUser } from "../../../api/currentUser.ts";
+import {getCommunitiesCurrentUser} from "../../../api/currentUser.ts";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 import Post from "../Post/Post.tsx";
@@ -32,28 +32,47 @@ interface UploadState {
     preview: string | ArrayBuffer | null;
 }
 
-const initialConfig = {
-    namespace: "MyEditor",
-    theme: {},
-    onError: (error: Error) => {
-        console.error(error);
-    },
-};
-
-export default function Editor({
-    type,
-    parent_id,
-    prependPost,
-    prependComment,
-    communityId,
-}: {
-    type: string;
-    parent_id?: number;
+interface EditorProps {
+    type: "POST" | "COMMENT" | "SUB-COMMENT";
+    parentId?: number;
+    initialText?: string;
+    autoFocus?: boolean;
     handleSubmit?: (() => void);
     prependPost?: (stuff: React.ReactElement) => void;
     prependComment?: (stuff: CommentInfo) => void;
     communityId?: number;
-}): JSX.Element {
+}
+
+function prepareInitialState(initialText: string) {
+    return () => {
+        const root = $getRoot();
+        if (root.getFirstChild() === null && initialText) {
+            const paragraph = $createParagraphNode();
+            paragraph.append($createTextNode(initialText));
+            root.append(paragraph);
+        }
+    }
+}
+
+function AutoFocusPlugin(): null {
+    const [editor] = useLexicalComposerContext();
+
+    useEffect(() => {
+        editor.focus();
+    }, [editor]);
+
+    return null;
+}
+
+export default function Editor({
+    type,
+    parentId,
+    initialText = '',
+    prependPost,
+    prependComment,
+    communityId,
+    autoFocus,
+}: EditorProps ): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [uploadState, setUploadState] = useState<UploadState>({
         status: "IDLE",
@@ -74,7 +93,17 @@ export default function Editor({
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{ clearEditorContent: () => void }>(null);
-    const { user } = useUser();
+    const { user, isUser } = useUser();
+
+
+    const initialConfig = {
+        namespace: "MyEditor",
+        theme: {},
+        editorState: initialText ? prepareInitialState(initialText) : undefined,
+        onError: (error: Error) => {
+            console.error(error);
+        },
+    };
 
     useEffect(() => {
         const hasContent = !!(uploadState.file || plainText);
@@ -88,6 +117,17 @@ export default function Editor({
         const [editor] = useLexicalComposerContext();
 
         useEffect(() => {
+            if (initialText) {
+                editor.update(() => {
+                    const root = $getRoot();
+                    if (root.getFirstChild() === null) {
+                        const paragraph = $createParagraphNode();
+                        paragraph.append($createTextNode(initialText));
+                        root.append(paragraph);
+                    }
+                });
+            }
+
             const updatePlainText = () => {
                 editor.update(() => {
                     const root = $getRoot();
@@ -96,7 +136,7 @@ export default function Editor({
             };
 
             editor.registerUpdateListener(({ editorState }) => {
-                editorState.read(() => updatePlainText());
+                editorState.read(updatePlainText);
             });
         }, [editor]);
 
@@ -174,7 +214,11 @@ export default function Editor({
     };
 
     const submitPost = async () => {
-        if (isSubmitting || plainText.length === 0) return;
+        console.log(`submitPost: type is ${type}, parent id is ${parentId}`);
+        if (isSubmitting || plainText.length === 0) {
+            console.log("either is submitting or plainText.length is equal to 0");
+            return;
+        }
 
         try {
             setIsSubmitting(true);
@@ -184,11 +228,7 @@ export default function Editor({
                 throw new Error("Please wait for file upload to complete");
             }
 
-            // // Submit the post or comment
-            // if (type === "communityPost") {
-            //     post =
-            // }
-            if (type === "post") {
+            if (type === "POST") {
                 console.log("type is post");
                 let post;
                 if (communityId !== undefined) {
@@ -237,54 +277,47 @@ export default function Editor({
                         />,
                     );
                 }
-            } else if (type === "comment"  && parent_id) {
+            } else if (type === "COMMENT"  && parentId) {
                 const res = await comment(
-                    parent_id,
+                    parentId,
                     plainText,
                     uploadState.fileName,
                 );
-                const createdComment = {
+                console.log("comment result", res);
+                const createdComment: CommentInfo = {
                     attachment: res.attachment,
                     author: res.author,
                     authorId: res.author_id,
                     content: res.content,
-                    displayName: res.display_name,
+                    displayName: res.displayname,
                     id: res.id,
-                    level: res.level,
                     likeCount: res.like_count,
                     commentCount: res.comment_count,
                     liked: res.liked,
-                    parentId: res.parent_post_id,
-                    parentType: res.parent_id,
+                    parentId: res.parent_comment_id,
                     pfp: res.pfp,
                     postTime: res.post_time,
                 };
                 if (prependComment) prependComment(createdComment);
-            } else if (type === "reply" && parent_id) {
-                const res = await subComment(parent_id, plainText, uploadState.fileName);
+            } else if (type === "SUB-COMMENT" && parentId) {
+                const res = await subComment(parentId, plainText, uploadState.fileName);
                 console.log("subComment res", res);
-                const createdSubComment = {
+                const createdSubComment: CommentInfo = {
                     attachment: res.data.attachment,
                     author: res.data.author,
                     authorId: res.data.author_id,
                     content: res.data.content,
-                    displayName: res.data.display_name,
+                    displayName: res.data.displayname,
                     id: res.data.id,
-                    level: res.data.level,
                     likeCount: res.data.like_count,
                     commentCount: res.data.comment_count,
                     liked: res.data.liked,
-                    parentId: res.data.parent_post_id,
-                    parentType: res.data.parent_id,
+                    parentId: res.data.parent_comment_id,
                     pfp: res.data.pfp,
                     postTime: res.data.post_time,
                 };
 
                 if (prependComment) prependComment(createdSubComment);
-
-                // if (type === "reply" && handleSubmit) {
-                //     handleSubmit();
-                // }
             }
 
             // Reset the editor
@@ -355,17 +388,17 @@ export default function Editor({
                     }
                     placeholder={
                         <div className={styles.editorPlaceholder}>
-                            {type === "post"
+                            {type === "POST"
                                 ? "What's your question?"
-                                : type === "comment" || type === "reply"
-                                  ? "Reply..."
-                                  : ""}
+                                : "Reply..."
+                            }
                         </div>
                     }
                     ErrorBoundary={LexicalErrorBoundary}
                 />
                 <EditorHelper ref={editorHelperRef} />
                 <HistoryPlugin />
+                {autoFocus && <AutoFocusPlugin/>}
             </LexicalComposer>
 
             {uploadState.preview && (
@@ -399,7 +432,7 @@ export default function Editor({
             )}
 
             <div className={styles.buttons}>
-                {user && !user.new && !user.isAnonymous && type === "post" && communityId === undefined && (
+                {isUser() && type === "POST" && communityId === undefined && (
                     <div className={styles.selectCommunity}>
                         {showCommunities ? (
                             <>

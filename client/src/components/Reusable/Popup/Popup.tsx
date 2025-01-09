@@ -22,7 +22,6 @@ export default function Popup({children, hidePopUp}: { children: React.ReactNode
             </span>
                 {children}
             </div>
-            {/*<div className={styles.dark_background}/>*/}
         </div>
     )
 }

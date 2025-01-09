@@ -20,7 +20,6 @@ export async function createPost(content: string, attachment?: string, community
 
 // Get latest posts
 export async function getLatestPosts(page: number = 0) {
-    console.log("getLatestPosts");
     const request = await fetch(base + `/post/latest?page=${page}`, { credentials: 'include' });
     return { status: request.status, data: await request.json() };
 }
