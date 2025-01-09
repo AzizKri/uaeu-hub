@@ -49,7 +49,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     liked: tc.liked,
                     parentId: tc.parent_post_id,
                     pfp: tc.pfp,
-                    postTime: tc.post_time,
+                    postTime: new Date(tc.post_time),
                     commentCount: tc.comment_count,
                 }
 
