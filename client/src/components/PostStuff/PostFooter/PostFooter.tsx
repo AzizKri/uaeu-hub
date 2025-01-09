@@ -28,7 +28,8 @@ export default function PostFooter({
         setLikesCount(likes);
     }, [isLiked, likes]);
 
-    const handleShare = () => {
+    const handleShare: React.MouseEventHandler = (e) => {
+        e.stopPropagation();
         if (navigator.share) {
             navigator.share({
                 title: 'UAEU Chat',
