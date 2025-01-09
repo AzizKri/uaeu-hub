@@ -296,7 +296,7 @@ export default function Editor({
                     liked: res.liked,
                     parentId: res.parent_comment_id,
                     pfp: res.pfp,
-                    postTime: res.post_time,
+                    postTime: new Date(res.post_time),
                 };
                 if (prependComment) prependComment(createdComment);
             } else if (type === "SUB-COMMENT" && parentId) {
@@ -314,7 +314,7 @@ export default function Editor({
                     liked: res.data.liked,
                     parentId: res.data.parent_comment_id,
                     pfp: res.data.pfp,
-                    postTime: res.data.post_time,
+                    postTime: new Date(res.data.post_time),
                 };
 
                 if (prependComment) prependComment(createdSubComment);
