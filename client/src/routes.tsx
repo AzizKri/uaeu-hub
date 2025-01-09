@@ -29,7 +29,7 @@ const routes = [
                 path: 'user/:username',
                 element: <UserProfile />,
                 children: [
-                    { index: true, element: <UserPosts /> },
+                    { path: 'posts', element: <UserPosts /> },
                     { path: 'comments', element: <UserComments /> },
                     { path: 'likes', element: <UserLikes /> },
                 ],
