@@ -112,11 +112,26 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
-                    <Link to={`/user/${info.authorId}`}>
-                        <div className={styles.comment__content__header__display_name}>{info.displayName}</div>
-                    </Link>
-                    <span>•</span>
-                    <div className={styles.comment__content__header__time}>{dateText}</div>
+                    <div className={styles.comment__content__header__top_left}>
+                        <div className={styles.comment__content__header__top} >
+                            <Link to={`/user/${info.authorId}`}>
+                                <div
+                                    className={
+                                        styles.comment__content__header__display_name
+                                    }
+                                >
+                                    {info.displayName}
+                                </div>
+                            </Link>
+                            <span>•</span>
+                            <div className={styles.comment__content__header__time}>
+                                {dateText}
+                            </div>
+                        </div>
+                        <div className={styles.comment__content__header__username}>
+                            {info.author}
+                        </div>
+                    </div>
                     <div className={styles.comment__content__header__menu}>
                         <OptionsMenu type={"COMMENT"} id={info.id} author={info.author} deleteComment={deleteComment}/>
                     </div>

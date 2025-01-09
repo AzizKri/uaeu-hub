@@ -91,9 +91,8 @@ export default function PostPage() {
     }, [postId]); // Fetch the post when postId changes
 
     const goBack = () => {
-        if (location?.state?.from) {
+        if (location.key !== "default") {
             // we are coming from inside the website
-            // navigate(`/${location.state.from}`);
             navigate(-1);
         } else {
             // either there is no history or we are coming from an external website
