@@ -203,7 +203,7 @@ export default function Aside() {
                             <LoaderDots />
                         </div>
                     ) : (
-                        myCommunities &&
+                        myCommunities && myCommunities.length &&
                         myCommunities.map((community) => (
                             <li key={community.name}>
                                 <Link to={`/community/${community.name}`}>
