@@ -54,8 +54,8 @@ ul {
     right: 0;
     top: 0;
     bottom: 0;
-    transition: opacity 0.2s ease;
-    pointer-events: none;
+    transition: opacity 0.2s ease,
+                position 0.2s ease;
     z-index: 2;
 
     &.active {
@@ -94,27 +94,12 @@ ul {
 
     .middle {
         max-width: 600px;
-        //width: 700px;
-        //width: 100%;
-    }
-
-    .right {
-        //display: none;
-        //height: 100vh;
-        //position: sticky;
-        //top: 70px;
-        //overflow-y: auto;
     }
 }
 
 @media screen and (max-width: 1200px) {
     .main {
         grid-template-columns: 77px 600px 300px;
-        //padding-left: 90px;
-        //.left {
-        //    position: fixed;
-        //    top: 80px;
-        //}
         .middle {
         }
     }
@@ -137,16 +122,14 @@ ul {
 
 @media screen and (max-width: 768px) {
     .main {
-        grid-template-columns: minmax(300px, 600px);
+        grid-template-columns: 0 minmax(300px, 600px);
         gap: 0;
         width: 100%;
 
         .left {
-            position: absolute;
-            left: 0;
-            transform: translateX(-250px);
+            transform: translateX(-100vw);
             &.active {
-                transform: translateX(10px);
+                transform: translateX(min(10px, (600px - 100vw) / 2 + 20px));
                 .left-overlay {
                     pointer-events: auto;
                     opacity: 1;
