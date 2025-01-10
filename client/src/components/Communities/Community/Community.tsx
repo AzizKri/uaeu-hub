@@ -12,7 +12,7 @@ import {
 } from "../../../api/communities.ts";
 import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
 import {useUser} from "../../../lib/utils/hooks.ts";
-import Popup from "../../Reusable/Popup/Popup.tsx";
+import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
 
 // export default function Community({info}: {info: CommunityInfo}) {
@@ -99,13 +99,13 @@ export default function Community() {
     ) : (
         <div className={styles.container}>
             {showEditor &&
-                <Popup hidePopUp={() => setShowEditor(false)}>
+                <Modal onClose={() => setShowEditor(false)}>
                     <Editor
                         type="POST"
                         prependPost={prependPost}
                         communityId={info.id}
                     />
-                </Popup>
+                </Modal>
             }
             <div className={styles.header}>
                 <div className={styles.header_top}>

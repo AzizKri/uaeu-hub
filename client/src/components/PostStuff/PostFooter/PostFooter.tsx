@@ -2,7 +2,7 @@ import styles from './PostFooter.module.scss';
 import {togglePostLike} from "../../../api/posts.ts";
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import Popup from "../../Reusable/Popup/Popup.tsx";
+import Modal from "../../Reusable/Modal/Modal.tsx";
 import ShareModal from "../ShareModal/ShareModal.tsx";
 import likedIcon from "../../../assets/liked.svg"
 import unLikedIcon from "../../../assets/unliked.svg"
@@ -114,9 +114,9 @@ export default function PostFooter({
                 </div>
                 <div className={styles.modalContainer}>
                     {showShareModal && (
-                        <Popup hidePopUp={() => setShowShareModal(false)}>
+                        <Modal onClose={() => setShowShareModal(false)}>
                             <ShareModal id={id} />
-                        </Popup>
+                        </Modal>
                     )}
                 </div>
             </div>

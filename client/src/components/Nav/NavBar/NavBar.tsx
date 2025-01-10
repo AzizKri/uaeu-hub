@@ -1,7 +1,7 @@
 import Search from "../Search/Search.tsx";
 import styles from "./NavBar.module.scss";
 import { useUser } from "../../../lib/utils/hooks.ts";
-import React, { useState } from "react";
+import React, {startTransition, useState} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-text-2.svg";
 import UserDropDown from "../UserDropDown/UserDropDown.tsx";
@@ -21,7 +21,9 @@ export default function NavBar() {
     };
 
     const handleUsernameClick = () => {
-        navigate(`/user/${user?.username}`);
+        startTransition(() => {
+            navigate(`/user/${user?.username}`);
+        })
     };
 
     const handleNotificationClick = () => {
