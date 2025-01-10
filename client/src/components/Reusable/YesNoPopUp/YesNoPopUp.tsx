@@ -1,5 +1,5 @@
-import Popup from "../Popup/Popup.tsx";
 import styles from "./YesNoPopUp.module.scss";
+import Modal from "../Modal/Modal.tsx";
 
 export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp, yesText = "Yes", noText = "No"}: {
     title: string,
@@ -11,8 +11,6 @@ export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp, yesText
     noText?: string
 }) {
     const handleHidePopUp = () => {
-        document.body.style.overflowY = "scroll";
-        document.body.style.position = "static";
         hidePopUp();
     }
 
@@ -27,7 +25,7 @@ export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp, yesText
     }
 
     return (
-        <Popup hidePopUp={hidePopUp}>
+        <Modal onClose={hidePopUp}>
             <div className={styles.popupBackdrop}>
                 <div className={styles.popupContainer}>
                     <h3>{title}</h3>
@@ -42,6 +40,6 @@ export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp, yesText
                     </div>
                 </div>
             </div>
-        </Popup>
+        </Modal>
     );
 }

@@ -4,7 +4,7 @@ import Content from "../Content/Content.tsx";
 import {useEffect, useState} from "react";
 import {getFormattedDate} from "../../../lib/utils/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
-import Popup from "../../Reusable/Popup/Popup.tsx";
+import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../Editor/Editor.tsx";
 import {likeSubComment} from "../../../api/subComments.ts";
 import {Link} from "react-router-dom";
@@ -97,7 +97,7 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
                 <UnAuthorizedPopUp hidePopUp={hideActionPopUp}/>
             )}
             {showReplyPopUp && (
-                <Popup hidePopUp={hideReplyPopUp}>
+                <Modal onClose={hideReplyPopUp}>
                     <Editor
                         type={"SUB-COMMENT"}
                         parentId={info.parentId}
@@ -105,7 +105,7 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
                         initialText={initialText}
                         autoFocus={true}
                     />
-                </Popup>
+                </Modal>
             )}
             <div className={styles.comment__profile_pict}>
                 <img src={profilePict} alt="profile picture" />
@@ -129,7 +129,7 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
                             </div>
                         </div>
                         <div className={styles.comment__content__header__username}>
-                            {info.author}
+                            @{info.author}
                         </div>
                     </div>
                     <div className={styles.comment__content__header__menu}>
