@@ -1,7 +1,7 @@
 import Search from "../Search/Search.tsx";
 import styles from "./NavBar.module.scss";
 import { useUser } from "../../../lib/utils/hooks.ts";
-import React, {startTransition, useState} from "react";
+import {startTransition, useEffect} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-text-2.svg";
 import UserDropDown from "../UserDropDown/UserDropDown.tsx";
@@ -9,16 +9,23 @@ import { logout } from "../../../api/authentication.ts";
 
 export default function NavBar() {
     const { isUser, user, removeUser } = useUser();
-    const [zIndex, setZIndex] = useState(4);
     const navigate = useNavigate();
 
-    const showAside: React.MouseEventHandler<HTMLDivElement> = () => {
+    const showAside = () => {
         const left = document.getElementById("left");
         const overlay = document.getElementById("overlay");
         left?.classList.toggle("active");
         overlay?.classList.toggle("active");
-        setZIndex((prev) => (prev ? 4 : 10));
-    };
+    }
+
+    useEffect(() => {
+        const listener = () => {
+            showAside();
+            document.body.removeEventListener("click", listener);
+        };
+
+        document.body.addEventListener("click", listener);
+    }, []);
 
     const handleUsernameClick = () => {
         startTransition(() => {
@@ -42,7 +49,7 @@ export default function NavBar() {
 
     return (
         <>
-            <div className={styles.navbar} style={{ zIndex: zIndex }}>
+            <div className={styles.navbar}>
                 <div className={styles.menu} onClick={showAside}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
