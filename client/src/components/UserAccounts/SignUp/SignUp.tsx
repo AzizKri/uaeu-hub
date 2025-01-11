@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
 import {Link, useNavigate} from 'react-router-dom';
-import {isAnon, signUp} from '../../../api.ts';
+import {signUp} from '../../../api/authentication.ts';
+import {isAnon} from '../../../api/currentUser.ts';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../../userSchema.ts";
 import { z } from 'zod';
-import {useUser} from "../../../lib/hooks.ts";
+import {useUser} from "../../../lib/utils/hooks.ts";
 import Requirement from "../Requirement/Requirement.tsx";
 
 export default function SignUp() {
@@ -103,7 +104,7 @@ export default function SignUp() {
                 bio: data.bio,
                 pfp: data.pfp
             })
-            navigate('/');
+            navigate(-1);
         } else {
             const newErrors: SignUpErrors = {};
             if (response.status === 409) {

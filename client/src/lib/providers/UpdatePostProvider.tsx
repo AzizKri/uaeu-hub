@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import {getLatestPosts} from "../api.ts";
-import Post from "../components/PostStuff/Post/Post.tsx";
-import {UpdatePostsContext} from "./context.ts";
+import {getLatestPosts} from "../../api/posts.ts";
+import Post from "../../components/PostStuff/Post/Post.tsx";
+import {UpdatePostsContext} from "../utils/context.ts";
 
 export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
@@ -47,9 +47,9 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     id: tc.id,
                     likeCount: tc.like_count,
                     liked: tc.liked,
-                    parentPostId: tc.parent_post_id,
+                    parentId: tc.parent_post_id,
                     pfp: tc.pfp,
-                    postTime: tc.post_time,
+                    postTime: new Date(tc.post_time),
                     commentCount: tc.comment_count,
                 }
 

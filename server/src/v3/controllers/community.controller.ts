@@ -706,7 +706,7 @@ export async function joinCommunity(c: Context) {
     const communityId = Number(c.req.param('id'));
 
     // Check for required fields
-    if (!communityId) return c.text('No community ID provided', { status: 400 });
+    if (!isNaN(communityId)) return c.text('No community ID provided', { status: 400 });
 
     try {
         // Check if community exists
@@ -934,17 +934,16 @@ export async function deleteCommunity(c: Context) {
 export async function getCommunityMembers(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
-    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+    if (!userId) return c.text('Unauthorized', { status: 401 });
 
     // Get the required fields
     const env: Env = c.env;
     const communityId = Number(c.req.param('id'));
 
     // Check for required fields
-    if (!communityId) return c.text('No community ID provided', { status: 400 });
+    if (isNaN(communityId) || communityId === undefined) return c.text('No community ID provided', { status: 400 });
 
     try {
         // Check if the user is an administrator of the community

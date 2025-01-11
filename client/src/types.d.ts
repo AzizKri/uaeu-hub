@@ -34,7 +34,7 @@ declare global {
         likeCount: number,
         commentCount: number,
         liked: boolean,
-        parentPostId: number,
+        parentId: number,
         pfp: string,
         postTime: Date,
     }
@@ -68,19 +68,6 @@ declare global {
         topCommentInfo: CommentInfo | null;
         communityInfo: CommunityInfoSimple;
     }
-
-    // type PostInfoWithTopComment = PostInfo & {
-    //     [K in keyof CommentInfo as `top_comment_${K}`]: CommentInfo[K];
-    // };
-
-    // interface PostInfoWithTopComment extends PostInfo, CommentInfo {
-    //     to_id: number,
-    //     to_author_id: number,
-    //     to_author_username: string,
-    //     to_content: string,
-    //     to_like_count: number,
-    //     to_post_time: Date
-    // }
 
     interface UpdatePostsContextInterface {
         posts: React.ReactElement[];
@@ -130,6 +117,7 @@ declare global {
         userReady: boolean;
         updateUser: (userInfo) => void;
         removeUser: () => void;
+        isUser: () => boolean;
     }
 
     interface GenericMetadata {

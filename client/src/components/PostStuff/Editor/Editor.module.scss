@@ -1,6 +1,7 @@
 .editorContainer {
     max-height: calc(100vh - 160px);
     position: relative;
+    width: 100%;
 
     .editorInput {
         outline: none;
@@ -158,4 +159,9 @@
         height: 32px;
         border-radius: 50%;
     }
+}
+.noCommunityMessage {
+    font-size: 12px;
+    color: #333;
+    padding-block: 5px;
 }

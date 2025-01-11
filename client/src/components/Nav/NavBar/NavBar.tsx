@@ -1,47 +1,65 @@
-import Search from '../Search/Search.tsx';
-import styles from './NavBar.module.scss';
-import {useUser} from "../../../lib/hooks.ts";
-import React, {useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
-import logo from '../../../assets/logo-text-2.svg';
+import Search from "../Search/Search.tsx";
+import styles from "./NavBar.module.scss";
+import { useUser } from "../../../lib/utils/hooks.ts";
+import {startTransition, useEffect, useRef} from "react";
+import { Link, useNavigate } from "react-router-dom";
+import logo from "../../../assets/logo-text-2.svg";
 import UserDropDown from "../UserDropDown/UserDropDown.tsx";
-import {logout} from "../../../api.ts";
+import { logout } from "../../../api/authentication.ts";
+
 
 export default function NavBar() {
-    const {user, removeUser} = useUser();
-    const [zIndex, setZIndex] = useState(4);
+    const { isUser, user, removeUser } = useUser();
     const navigate = useNavigate();
+    const leftRef = useRef<HTMLElement | null>(null);
+    const overlayRef = useRef<HTMLElement | null>(null);
 
-    const showAside: React.MouseEventHandler<HTMLDivElement> = () => {
-        const left = document.getElementById("left");
-        const overlay = document.getElementById("overlay");
-        left?.classList.toggle("active");
-        overlay?.classList.toggle("active");
-        setZIndex(prev => prev ? 4 : 10);
+    useEffect(() => {
+        leftRef.current = document.getElementById("left");
+        overlayRef.current = document.getElementById("overlay");
+    }, []);
+
+    const handleShowAside = () => {
+        if (leftRef.current && overlayRef.current) {
+            leftRef.current?.classList.toggle("active");
+            overlayRef.current?.classList.toggle("active");
+
+            const handleOverlayClick = () => {
+                leftRef.current?.classList.remove("active");
+                overlayRef.current?.classList.remove("active");
+                overlayRef.current?.removeEventListener("click", handleOverlayClick);
+            }
+
+            if (leftRef.current.classList.contains("active")) {
+                overlayRef.current.addEventListener("click", handleOverlayClick);
+            }
+        }
     }
 
     const handleUsernameClick = () => {
-        navigate(`/user/${user?.username}`);
-    }
+        startTransition(() => {
+            navigate(`/user/${user?.username}`);
+        })
+    };
 
     const handleNotificationClick = () => {
         console.log("Notifcation");
-    }
+    };
 
     const handleLogoutClick = async () => {
         console.log("logout");
-        const response = await logout()
+        const response = await logout();
         if (response == 200) {
             removeUser();
         } else {
             console.log("Error logging out", response);
         }
-    }
+    };
 
     return (
         <>
-            <div className={styles.navbar} style={{zIndex: zIndex}}>
-                <div className={styles.menu} onClick={showAside}>
+            <div className={styles.navbar}>
+                <div className={styles.menu} onClick={handleShowAside}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -54,23 +72,30 @@ export default function NavBar() {
                 </div>
                 <Link to="/">
                     <div className={styles.navbar_logo}>
-                        <img src={logo} alt="main logo"/>
+                        <img src={logo} alt="main logo" />
                     </div>
                 </Link>
                 <Search />
                 <div className={styles.right}>
-                    {user && !user.new && !user.isAnonymous ? (
-                        <UserDropDown username={user?.username} onUsernameClick={handleUsernameClick} onNotificationClick={handleNotificationClick} onLogoutClick={handleLogoutClick} />
-                    ) : (
-                        <div className={styles.auth_buttons}>
-                            <Link to="/signup" className={styles.signup}>
-                                Sign Up
-                            </Link>
-                            <Link to="/login" className={styles.login}>
-                                Log In
-                            </Link>
-                        </div>
-                    )}
+                    <div className={styles.auth_buttons}>
+                        {isUser() ? (
+                            <UserDropDown
+                                username={user?.username}
+                                onUsernameClick={handleUsernameClick}
+                                onNotificationClick={handleNotificationClick}
+                                onLogoutClick={handleLogoutClick}
+                            />
+                        ) : (
+                            <>
+                                <Link to="/signup" className={styles.signup}>
+                                    Sign Up
+                                </Link>
+                                <Link to="/login" className={styles.login}>
+                                    Log In
+                                </Link>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </>

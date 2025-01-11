@@ -1,7 +1,7 @@
 .container {
     background-color: white;
     border-radius: 10px;
-    padding: 10px;
+    min-height: calc(100vh - 80px);
 
     .header {
         padding: 10px 20px 30px;
@@ -34,6 +34,7 @@
 
                 button {
                     padding: 5px 15px;
+                    height: 36px;
                     border-radius: 20px;
                     color: white;
                     font-weight: 400;
@@ -75,6 +76,11 @@
         display: flex;
         color: #888;
         font-size: 14px;
+        padding-inline: 10px;
+        position: sticky;
+        top: 70px;
+        background-color: white;
+        z-index: 2;
 
         .tab {
             padding: 5px 10px ;
@@ -89,4 +95,73 @@
             }
         }
     }
+    .main {
+        h5 {
+            display: inline-block;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 5px;
+        }
+        .posts {
+
+            > :not(:last-child) {
+                border-bottom: 1px solid #ccc;
+            }
+            > :not(:first-child) {
+                border-top: 1px solid #ccc;
+            }
+        }
+        .about {
+            padding: 0 10px 10px;
+
+            .info {
+                margin-block: 10px;
+
+                p {
+                    font-size: 14px;
+                }
+            }
+        }
+        .members {
+            padding: 10px;
+
+            .category {
+
+                .users {
+
+                }
+            }
+        }
+    }
+}
+
+.user {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-block: 5px;
+
+    &:hover {
+        background-color: #f5f5f5;
+    }
+
+    .pfp {
+        width: 40px;
+        height: 40px;
+    }
+    .names {
+        font-size: 14px;
+
+        .displayName {
+            font-weight: 500;
+        }
+        .username {
+            color: #888;
+        }
+    }
+}
+.message {
+    padding: 10px;
+    font-size: 14px;
+    color: #888;
+
 }

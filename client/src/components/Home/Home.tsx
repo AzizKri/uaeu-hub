@@ -1,7 +1,7 @@
 import styles from './Home.module.scss';
 import React, { useEffect, useRef } from 'react';
 import WritePost from '../PostStuff/WritePost/WritePost.tsx';
-import { useUpdatePosts, useUser } from '../../lib/hooks.ts';
+import { useUpdatePosts, useUser } from '../../lib/utils/hooks.ts';
 
 export default function Home() {
     const { posts, updatePosts, loading } = useUpdatePosts();

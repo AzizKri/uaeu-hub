@@ -1,6 +1,6 @@
 import {ReactNode, useEffect, useState} from "react";
-import {UserContext} from "./context.ts";
-import { me } from '../api.ts';
+import {UserContext} from "../utils/context.ts";
+import { me } from '../../api/authentication.ts';
 
 export default function UserProvider({children}: {children: ReactNode}) {
     const [user, setUser] = useState<UserInfo | null>(null);
@@ -65,7 +65,7 @@ export default function UserProvider({children}: {children: ReactNode}) {
             }
         };
 
-        fetchUserData().then(() => console.log("User Data fetched"));
+        fetchUserData();
     }, [])
 
     const updateUser = (newUser: UserInfo) => {
@@ -78,8 +78,12 @@ export default function UserProvider({children}: {children: ReactNode}) {
         setUser(null);
     }
 
+    const isUser = (): boolean => {
+        return user !== null && !user.isAnonymous && !user.new
+    }
+
     return (
-        <UserContext.Provider value={{user, userReady, updateUser, removeUser}}>
+        <UserContext.Provider value={{user, userReady, updateUser, removeUser, isUser}}>
             {children}
         </UserContext.Provider>
     )

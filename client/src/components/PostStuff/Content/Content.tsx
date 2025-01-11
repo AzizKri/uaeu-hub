@@ -1,22 +1,18 @@
 import styles from "./Content.module.scss"
 import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
 import React, {useEffect, useState} from "react";
-import {getAttachmentDetails} from "../../../api.ts";
-import {useNavigate} from "react-router-dom";
+import {getAttachmentDetails} from "../../../api/attachmets.ts";
 
-export default function Content({id, content, filename, type, from}: {
-    id: number,
+export default function Content({content, filename, type}: {
     content: string,
     filename: string | undefined,
     type: string,
-    from?: string
 }) {
     const [showContent, setShowContent] = useState<boolean>(content.length < 300);
     const [imageSrc, setImageSrc] = useState<string>("");
     const [imageDims, setImageDims] = useState<{ width: number, height: number }>({width: 0, height: 0});
     const [error, setError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(filename != null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         if (filename) {
@@ -47,16 +43,9 @@ export default function Content({id, content, filename, type, from}: {
         setShowContent(true)
     }
 
-    const handleClickOnPost: React.MouseEventHandler<HTMLDivElement> = () => {
-        if (type === 'post') {
-            navigate(`/post/${id}`, {state: {from: from} });
-        }
-    }
-
     return (
         <>
-            <div className={styles.text} onClick={handleClickOnPost}
-                 style={{cursor: type === 'post' ? 'pointer' : 'default'}}>
+            <div className={styles.text}>
                 {showContent || type === "post-page" ? (
                     content
                 ) : (

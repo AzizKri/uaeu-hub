@@ -1,7 +1,8 @@
 import {useEffect, useState} from 'react';
 import styles from './UserProfile.module.scss';
 import {Outlet, useLocation, useNavigate, useParams} from "react-router-dom";
-import { getUserByUsername, me } from '../../../api.ts';
+import { getUserByUsername} from '../../../api/users.ts';
+import {me} from "../../../api/authentication.ts";
 
 const authTabs = [
     { label: 'Posts' },

@@ -1,0 +1,77 @@
+.modal {
+    width: 550px;
+    max-height: 60vh;
+    min-height: 100px;
+    padding: 10px;
+    border-radius: 10px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: none;
+    box-shadow: hsla(0, 0%, 0%, 0.1) 0 0 0.5rem 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fade-out 0.25s ease-out;
+
+    &[open] {
+        animation: fade-in 0.25s ease-out;
+
+        &::backdrop {
+            animation: backdrop-fade-in 0.25s ease-out;
+        }
+    }
+
+    &::backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .cancel {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        padding: 6px;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        z-index: 1;
+
+        &:hover {
+            background-color: #f2f2f2;
+        }
+    }
+
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+        display: none;
+    }
+    100% {
+        opacity: 1;
+        display: flex;
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+        display: flex;
+    }
+    100% {
+        opacity: 0;
+        display: none;
+    }
+}
+
+@keyframes backdrop-fade-in {
+    0% {
+        background-color: rgba(0, 0, 0, 0);
+    }
+    100% {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+}

@@ -1,8 +1,8 @@
 import styles from './PostFooter.module.scss';
-import {togglePostLike} from "../../../api.ts";
-import {useEffect, useState} from "react";
+import {togglePostLike} from "../../../api/posts.ts";
+import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import Popup from "../../Reusable/Popup/Popup.tsx";
+import Modal from "../../Reusable/Modal/Modal.tsx";
 import ShareModal from "../ShareModal/ShareModal.tsx";
 import likedIcon from "../../../assets/liked.svg"
 import unLikedIcon from "../../../assets/unliked.svg"
@@ -28,7 +28,8 @@ export default function PostFooter({
         setLikesCount(likes);
     }, [isLiked, likes]);
 
-    const handleShare = () => {
+    const handleShare: React.MouseEventHandler = (e) => {
+        e.stopPropagation();
         if (navigator.share) {
             navigator.share({
                 title: 'UAEU Chat',
@@ -40,7 +41,8 @@ export default function PostFooter({
         }
     };
 
-    const handleToggleLike = () => {
+    const handleToggleLike: React.MouseEventHandler = (e) => {
+        e.stopPropagation();
         setLikesCount(prev => prev + (liked ? -1 : 1));
         setLiked(prev => !prev);
         togglePostLike(id);
@@ -56,7 +58,7 @@ export default function PostFooter({
                 {/*likes button*/}
                 <div
                     className={styles.footerButton}
-                    onClick={() => handleToggleLike()}
+                    onClick={handleToggleLike}
                 >
                     <img
                         src={liked ? likedIcon : unLikedIcon}
@@ -112,9 +114,9 @@ export default function PostFooter({
                 </div>
                 <div className={styles.modalContainer}>
                     {showShareModal && (
-                        <Popup hidePopUp={() => setShowShareModal(false)}>
+                        <Modal onClose={() => setShowShareModal(false)}>
                             <ShareModal id={id} />
-                        </Popup>
+                        </Modal>
                     )}
                 </div>
             </div>

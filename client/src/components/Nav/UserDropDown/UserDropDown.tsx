@@ -1,8 +1,8 @@
 import { useState } from "react";
-import styles from "./UserDropDown.module.scss"; // Create a CSS module for styling
+import styles from "./UserDropDown.module.scss";
 
 export default function UserDropDown ({username, onUsernameClick, onNotificationClick, onLogoutClick} : {
-    username: string,
+    username?: string,
     onUsernameClick: () => void,
     onNotificationClick: () => void,
     onLogoutClick: () => void,

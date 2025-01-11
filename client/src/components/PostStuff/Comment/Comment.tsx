@@ -1,85 +1,301 @@
 import profilePict from '../../../assets/profile-picture.png';
-import './comment.module.scss';
-import styles from './comment.module.scss';
+import styles from './Comment.module.scss';
 import Content from "../Content/Content.tsx";
-import ReplyPopUp from "../ReplyPopUp/ReplyPopUp.tsx";
 import {useEffect, useState} from "react";
-import {getFormattedDate} from "../../../lib/tools.ts";
+import {getFormattedDate} from "../../../lib/utils/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
+import Modal from "../../Reusable/Modal/Modal.tsx"
+import Editor from "../Editor/Editor.tsx";
+import {getSubCommentsOnComment} from "../../../api/subComments.ts";
+import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import {Link} from "react-router-dom";
+import down_vote_outline from "../../../assets/down-vote-outline.svg"
+import upvote_outline from "../../../assets/up-vote-outline.svg"
+import down_vote from "../../../assets/down-vote.svg"
+import upvote from "../../../assets/up-vote.svg"
+import reply from "../../../assets/reply.svg"
+import {likeComment} from "../../../api/comments.ts";
+import {useUser} from "../../../lib/utils/hooks.ts";
+import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
+import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
+import SubComment from "../SubComment/SubComment.tsx";
+
+interface SubCommentBack {
+    attachment: string,
+    author: string,
+    author_id: number,
+    comment_count: number,
+    content: string,
+    displayname: string,
+    id: number,
+    like_count: number,
+    liked: boolean,
+    parent_comment_id: number,
+    pfp: string,
+    post_time: Date,
+}
 
 export default function Comment({info, deleteComment}: {info: CommentInfo, deleteComment: (commentId: number) => void}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
     const [dateText, setDateText] = useState<string>("");
     const [repliesShown, setRepliesShown] = useState<boolean>(false);
+    const [repliesLoading, setRepliesLoading] = useState<boolean>(false);
+    const [subComments, setSubComments] = useState<CommentInfo[]>([]);
+    const [totalSubComments, setTotalSubComments] = useState<number>(0);
+    const [isLoadingMoreSubComments, setIsLoadingMoreSubComments] = useState<boolean>(false);
+    const [likeState, setLikeState] = useState<"LIKE" | "DISLIKE" | "NONE">("NONE");
+    const [likesCount, setLikesCount] = useState<number>(0);
+    const [showActionPopUp, setShowActionPopUp] = useState<boolean>(false);
+    const {isUser} = useUser();
 
     useEffect(() => {
         setDateText(getFormattedDate(info.postTime))
+        setLikesCount(info.likeCount);
+        setTotalSubComments(info.commentCount);
+        if (info.liked) {
+            setLikeState("LIKE");
+        }
     }, [info.postTime]);
 
     const handleReply = () => {
-        console.log("handle reply");
         setShowReplyPopUp(true)
     }
 
     const hideReplyPopUp = () => {
-        document.body.style.overflow = "scroll";
         setShowReplyPopUp(false);
     }
 
     const toggleReplies = () => {
         setRepliesShown((prev) => !prev);
-        /**
-         *  TODO: add a component to hold the replies and show it based on the state of repliesShown
-         *  if it is the first time to show them you need to first get them
-         */
+        if (subComments === undefined || subComments.length === 0) {
+            setRepliesLoading(true);
+            getSubCommentsOnComment(info.id, 0).then((res) => {
+                setSubComments(res.data.map((cd: SubCommentBack) => ({
+                    attachment: cd.attachment,
+                    author: cd.author,
+                    authorId: cd.author_id,
+                    content: cd.content,
+                    displayName: cd.displayname,
+                    id: cd.id,
+                    likeCount: cd.like_count,
+                    commentCount: cd.comment_count,
+                    liked: cd.liked,
+                    parentId: cd.parent_comment_id,
+                    pfp: cd.pfp,
+                    postTime: new Date(cd.post_time),
+                })));
+                setRepliesLoading(false);
+            })
+        }
     }
 
+    const prependSubComment = (subComment: CommentInfo) => {
+        document.body.style.position = "static";
+        setTotalSubComments(prev => prev + 1);
+        setSubComments(prev => [...prev, subComment]);
+        setShowReplyPopUp(false);
+        setRepliesShown(true);
+    }
 
+    const handleShowMore = async () => {
+        setIsLoadingMoreSubComments(true);
+        getSubCommentsOnComment(info.id, subComments.length).then((res) => {
+            setSubComments(prev => [
+                ...prev,
+                ...res.data.map((cd: SubCommentBack) => ({
+                    attachment: cd.attachment,
+                    author: cd.author,
+                    authorId: cd.author_id,
+                    content: cd.content,
+                    displayName: cd.displayname,
+                    id: cd.id,
+                    likeCount: cd.like_count,
+                    commentCount: cd.comment_count,
+                    liked: cd.like_count,
+                    parentId: cd.parent_comment_id,
+                    pfp: cd.pfp,
+                    postTime: new Date(cd.post_time),
+                }))
+            ])
+            setIsLoadingMoreSubComments(false);
+        })
+    }
+
+    const handleUpVote = () => {
+        if (!isUser()) {
+            setShowActionPopUp(true);
+            return;
+        }
+        if (likeState === "LIKE") {
+            setLikeState("NONE");
+            setLikesCount(prev => prev - 1);
+        } else if (likeState === "DISLIKE") {
+            setLikeState("LIKE");
+            setLikesCount(prev => prev + 2);
+        } else {
+            setLikeState("LIKE");
+            setLikesCount(prev => prev + 1);
+        }
+        likeComment(info.id);
+    }
+
+    const handleDownVote = () => {
+        if (!isUser()) {
+            setShowActionPopUp(true);
+            return;
+        }
+        setLikeState("DISLIKE");
+        if (likeState === "LIKE") {
+            setLikeState("DISLIKE");
+            setLikesCount(prev => prev - 2);
+        } else if (likeState === "DISLIKE") {
+            setLikeState("NONE");
+            setLikesCount(prev => prev + 1);
+        } else {
+            setLikeState("DISLIKE");
+            setLikesCount(prev => prev - 1);
+        }
+
+        // TODO: implement this after it is implemented in the api
+        // dislikeComment(info.id);
+    }
+
+    const hideActionPopUp = () => {
+        setShowActionPopUp(false)
+    }
+
+    const deleteSubComment = (subCommentId: number) => {
+        setTotalSubComments(prev => prev - 1);
+        setSubComments((prev) =>
+            prev.filter((c) => c.id !== subCommentId)
+        );
+    }
 
     return (
         <div className={styles.comment}>
-            {showReplyPopUp && <ReplyPopUp parent_comment_id={info.id} hideReplyPopUp={hideReplyPopUp}/>}
+            {showActionPopUp && (
+                <UnAuthorizedPopUp hidePopUp={hideActionPopUp} />
+            )}
+            {showReplyPopUp && (
+                <Modal onClose={hideReplyPopUp}>
+                    <Editor
+                        type="SUB-COMMENT"
+                        parentId={info.id}
+                        prependComment={prependSubComment}
+                        autoFocus={true}
+                    />
+                </Modal>
+            )}
             <div className={styles.comment__profile_pict}>
                 <img src={profilePict} alt="profile picture" />
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
-                    <div className={styles.comment__content__header__display_name}>{info.displayName}</div>
-                    <span>•</span>
-                    <div className={styles.comment__content__header__time}>{dateText}</div>
+                    <div className={styles.comment__content__header__top_left}>
+                        <div className={styles.comment__content__header__top} >
+                            <Link to={`/user/${info.authorId}`}>
+                                <div
+                                    className={
+                                        styles.comment__content__header__display_name
+                                    }
+                                >
+                                    {info.displayName}
+                                </div>
+                            </Link>
+                            <span>•</span>
+                            <div className={styles.comment__content__header__time}>
+                                {dateText}
+                            </div>
+                        </div>
+                        <div className={styles.comment__content__header__username}>
+                            @{info.author}
+                        </div>
+                    </div>
                     <div className={styles.comment__content__header__menu}>
-                        <OptionsMenu type={"COMMENT"} id={info.id} author={info.author} deleteComment={deleteComment}/>
+                        <OptionsMenu
+                            type={"COMMENT"}
+                            id={info.id}
+                            author={info.author}
+                            deleteComment={deleteComment}
+                        />
                     </div>
                 </div>
                 <div className={styles.comment__content__text}>
-                    <Content id={info.id} content={info.content} filename={info.attachment} type={"comment"}/>
+                    <Content
+                        content={info.content}
+                        filename={info.attachment}
+                        type={"comment"}
+                    />
                 </div>
                 <div className={styles.comment__content__footer}>
-                    <button className={`${styles.vote_icon} ${styles.btn_hover}`}>
-                        <svg fill="currentColor" height="16" icon-name="upvote-outline" viewBox="0 0 20 20"
-                             width="16" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M12.877 19H7.123A1.125 1.125 0 0 1 6 17.877V11H2.126a1.114 1.114 0 0 1-1.007-.7 1.249 1.249 0 0 1 .171-1.343L9.166.368a1.128 1.128 0 0 1 1.668.004l7.872 8.581a1.25 1.25 0 0 1 .176 1.348 1.113 1.113 0 0 1-1.005.7H14v6.877A1.125 1.125 0 0 1 12.877 19ZM7.25 17.75h5.5v-8h4.934L10 1.31 2.258 9.75H7.25v8ZM2.227 9.784l-.012.016c.01-.006.014-.01.012-.016Z"></path>
-                        </svg>
+                    <button
+                        className={`${styles.vote_icon} ${styles.btn_hover}`}
+                        onClick={handleUpVote}
+                    >
+                        {likeState === "LIKE" ? (
+                            <img src={upvote} alt="upvoted" />
+                        ) : (
+                            <img src={upvote_outline} alt="upvote" />
+                        )}
                     </button>
-                    <span className={styles.comment__content__footer__votes}>{info.likeCount}</span>
-                    <button className={`${styles.vote_icon} ${styles.btn_hover}`}>
-                        <svg fill="currentColor" height="16" icon-name="downvote-outline" viewBox="0 0 20 20"
-                             width="16" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M10 20a1.122 1.122 0 0 1-.834-.372l-7.872-8.581A1.251 1.251 0 0 1 1.118 9.7 1.114 1.114 0 0 1 2.123 9H6V2.123A1.125 1.125 0 0 1 7.123 1h5.754A1.125 1.125 0 0 1 14 2.123V9h3.874a1.114 1.114 0 0 1 1.007.7 1.25 1.25 0 0 1-.171 1.345l-7.876 8.589A1.128 1.128 0 0 1 10 20Zm-7.684-9.75L10 18.69l7.741-8.44H12.75v-8h-5.5v8H2.316Zm15.469-.05c-.01 0-.014.007-.012.013l.012-.013Z"></path>
-                        </svg>
+                    <span className={styles.comment__content__footer__votes}>
+                        {likesCount}
+                    </span>
+                    <button
+                        className={`${styles.vote_icon} ${styles.btn_hover}`}
+                        onClick={handleDownVote}
+                    >
+                        {likeState === "DISLIKE" ? (
+                            <img src={down_vote} alt="down voted" />
+                        ) : (
+                            <img src={down_vote_outline} alt="down vote" />
+                        )}
                     </button>
-                    <button className={`${styles.comment__content__footer__reply} ${styles.btn_hover}`} onClick={() => handleReply()}>
-                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
-                             fill="#5f6368">
-                            <path
-                                d="M80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z" />
-                        </svg>
+                    <button
+                        className={`${styles.comment__content__footer__reply} ${styles.btn_hover}`}
+                        onClick={handleReply}
+                    >
+                        <img src={reply} alt="reply" />
                         <span>reply</span>
                     </button>
                 </div>
-                {info.commentCount > 0 && <div className={styles.view_comment} onClick={() => toggleReplies()}>{`${repliesShown ? "hide" : "view"} replies (${info.commentCount})`}</div>}
+                {info.commentCount > 0 && (
+                    <div
+                        className={styles.view_comment}
+                        onClick={toggleReplies}
+                    >
+                        {repliesShown
+                            ? "hide replies"
+                            : `show replies (${totalSubComments})`}
+                    </div>
+                )}
+                {repliesShown &&
+                    (repliesLoading ? (
+                        <LoadingImage width={"20px"} />
+                    ) : (
+                        <>
+                            {subComments.map((cur) => (
+                                <SubComment
+                                    key={cur.id}
+                                    info={cur}
+                                    deleteComment={deleteSubComment}
+                                    parentPrependSubComment={prependSubComment}
+                                />
+                            ))}
+                            {subComments.length < totalSubComments && (
+                                <button
+                                    className={styles.show_more}
+                                    onClick={handleShowMore}
+                                >
+                                    {isLoadingMoreSubComments ? (
+                                        <LoaderDots />
+                                    ) : (
+                                        "Show More"
+                                    )}
+                                </button>
+                            )}
+                        </>
+                    ))}
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Post from '../Post/Post.tsx';
-import {getCommentsOnPost, getPostByID} from '../../../api.ts';
+import {getPostByID} from '../../../api/posts.ts';
+import {getCommentsOnPost} from '../../../api/comments.ts';
 import styles from './PostPage.module.scss';
 import Comment from "../Comment/Comment.tsx";
 import Editor from "../Editor/Editor.tsx";
@@ -71,7 +72,6 @@ export default function PostPage() {
             });
 
             getCommentsOnPost(parseInt(postId), 0).then((res) => {
-                console.log("comments", res);
                 setComments(res.data.map((cd: CommentBack) => ({
                     attachment: cd.attachment,
                     author: cd.author,
@@ -82,19 +82,17 @@ export default function PostPage() {
                     likeCount: cd.like_count,
                     commentCount: cd.comment_count,
                     liked: cd.liked,
-                    parentPostId: cd.parent_post_id,
+                    parentId: cd.parent_post_id,
                     pfp: cd.pfp,
-                    postTime: cd.post_time,
+                    postTime: new Date(cd.post_time),
                 })));
             })
         }
     }, [postId]); // Fetch the post when postId changes
 
     const goBack = () => {
-        // if (document.referrer && document.referrer.includes(location.origin)) {
-        if (location?.state?.from) {
+        if (location.key !== "default") {
             // we are coming from inside the website
-            // navigate(`/${location.state.from}`);
             navigate(-1);
         } else {
             // either there is no history or we are coming from an external website
@@ -116,9 +114,7 @@ export default function PostPage() {
 
     const handleShowMore = async () => {
         setLoadingMoreComments(true);
-        console.log("total comments", totalComments);
         const nextPage = (await getCommentsOnPost(postId ? parseInt(postId) : 0, comments.length)).data;
-        console.log("nextPage", nextPage);
         setComments(prev =>
             [...prev, ...nextPage.map((cd: CommentBack) => ({
                 attachment: cd.attachment,
@@ -130,9 +126,9 @@ export default function PostPage() {
                 likeCount: cd.like_count,
                 commentCount: cd.comment_count,
                 liked: cd.like_count,
-                parentPostId: cd.parent_post_id,
+                parentId: cd.parent_post_id,
                 pfp: cd.pfp,
-                postTime: cd.post_time,
+                postTime: new Date(cd.post_time),
             }))]
         )
         setLoadingMoreComments(false);
@@ -156,9 +152,8 @@ export default function PostPage() {
                         <div className={styles.comments}>
                             <div className={styles.write_answer}>
                                 <Editor
-                                    type="comment"
-                                    parent_id={postId ? parseInt(postId) : null}
-                                    handleSubmit={() => null}
+                                    type="COMMENT"
+                                    parentId={postId ? parseInt(postId) : undefined}
                                     prependComment={prependComment}
                                 />
                             </div>

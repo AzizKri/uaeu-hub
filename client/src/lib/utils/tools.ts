@@ -1,8 +1,4 @@
 export function getFormattedDate(postDate: Date) {
-    if (typeof postDate === 'string') {
-        postDate = new Date(postDate);
-    }
-
     const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     const curDate = new Date();
@@ -22,4 +18,13 @@ export function getFormattedDate(postDate: Date) {
     } else {
         return `${months[postDate.getMonth()]} ${postDate.getDate()}, ${postDate.getFullYear()}`;
     }
+}
+
+export function debounce<T extends (...args: never[]) => void>(func: T, delay: number): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    return function (...args: Parameters<T>): void {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), delay);
+    };
 }

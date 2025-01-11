@@ -86,7 +86,7 @@ export async function getSubcommentsOnComment(c: Context) {
                             END AS liked
                  FROM subcomment_view sv
                           LEFT JOIN subcomment_like sl
-                                    ON sl.id = sl.subcomment_id AND sl.user_id = ?
+                                    ON sv.id = sl.subcomment_id AND sl.user_id = ?
                  WHERE parent_comment_id = ?
                  ORDER BY like_count DESC
                  LIMIT 10 OFFSET ?`
@@ -95,7 +95,7 @@ export async function getSubcommentsOnComment(c: Context) {
             return c.json(subcomments.results, { status: 200 });
         }
     } catch (e) {
-        console.log(e);
+        console.log("error getting subComments on Comment", e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
