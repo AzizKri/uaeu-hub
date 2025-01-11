@@ -1,31 +1,40 @@
 import Search from "../Search/Search.tsx";
 import styles from "./NavBar.module.scss";
 import { useUser } from "../../../lib/utils/hooks.ts";
-import {startTransition, useEffect} from "react";
+import {startTransition, useEffect, useRef} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-text-2.svg";
 import UserDropDown from "../UserDropDown/UserDropDown.tsx";
 import { logout } from "../../../api/authentication.ts";
 
+
 export default function NavBar() {
     const { isUser, user, removeUser } = useUser();
     const navigate = useNavigate();
-
-    const showAside = () => {
-        const left = document.getElementById("left");
-        const overlay = document.getElementById("overlay");
-        left?.classList.toggle("active");
-        overlay?.classList.toggle("active");
-    }
+    const leftRef = useRef<HTMLElement | null>(null);
+    const overlayRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
-        const listener = () => {
-            showAside();
-            document.body.removeEventListener("click", listener);
-        };
-
-        document.body.addEventListener("click", listener);
+        leftRef.current = document.getElementById("left");
+        overlayRef.current = document.getElementById("overlay");
     }, []);
+
+    const handleShowAside = () => {
+        if (leftRef.current && overlayRef.current) {
+            leftRef.current?.classList.toggle("active");
+            overlayRef.current?.classList.toggle("active");
+
+            const handleOverlayClick = () => {
+                leftRef.current?.classList.remove("active");
+                overlayRef.current?.classList.remove("active");
+                overlayRef.current?.removeEventListener("click", handleOverlayClick);
+            }
+
+            if (leftRef.current.classList.contains("active")) {
+                overlayRef.current.addEventListener("click", handleOverlayClick);
+            }
+        }
+    }
 
     const handleUsernameClick = () => {
         startTransition(() => {
@@ -50,7 +59,7 @@ export default function NavBar() {
     return (
         <>
             <div className={styles.navbar}>
-                <div className={styles.menu} onClick={showAside}>
+                <div className={styles.menu} onClick={handleShowAside}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
