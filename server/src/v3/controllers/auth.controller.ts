@@ -206,10 +206,11 @@ export async function anonSignup(c: Context, returnInternal: boolean = false) {
 
 export async function login(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId');
+    const isAnonymous = c.get('isAnonymous');
 
     // Some idiot tries to log in when they're already logged in?
-    if (userId) return c.json({ message: 'Already Logged In', status: 401 }, 401);
+    if (userId && !isAnonymous) return c.json({ message: 'Already Logged In', status: 401 }, 401);
 
     // Get input data
     const { identifier, password }: { identifier: string, password: string } = await c.req.json();
@@ -265,10 +266,11 @@ export async function login(c: Context) {
 }
 
 export async function logout(c: Context) {
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId');
+    const isAnonymous = c.get('isAnonymous');
 
     // Some idiot tries to log out when they're not logged in
-    if (!userId) return c.text('Not logged in', 401);
+    if (!(userId && !isAnonymous)) return c.text('Not logged in', 401);
 
     // Set session key & token to empty and expire immediately
     await sendAuthCookie(c, '', 0);
