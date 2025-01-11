@@ -46,8 +46,10 @@ a {
 ul {
     list-style: none;
 }
+
 #overlay {
     opacity: 0;
+    display: none;
     position: fixed;
     background-color: rgba(73, 63, 57, 0.35);
     left: 0;
@@ -60,6 +62,7 @@ ul {
 
     &.active {
         opacity: 1;
+        display: block;
     }
 }
 
