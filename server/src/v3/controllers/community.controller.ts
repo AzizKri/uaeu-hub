@@ -960,16 +960,16 @@ export async function getCommunityMembers(c: Context) {
     if (isNaN(communityId) || communityId === undefined) return c.text('No community ID provided', { status: 400 });
 
     try {
-        // Check if the user is an administrator of the community
-        const role = await env.DB.prepare(
-            `SELECT 1
-             FROM user_community
-             WHERE user_id = ?
-               AND community_id = ?
-               AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
-        ).bind(userId, communityId, communityId).first<CommunityMemberRow>();
-
-        if (!role) return c.text('Unauthorized', { status: 401 });
+        // // Check if the user is an administrator of the community
+        // const role = await env.DB.prepare(
+        //     `SELECT 1
+        //      FROM user_community
+        //      WHERE user_id = ?
+        //        AND community_id = ?
+        //        AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
+        // ).bind(userId, communityId, communityId).first<CommunityMemberRow>();
+        //
+        // if (!role) return c.text('Unauthorized', { status: 401 });
 
         // Get the members of the community
         const members = await env.DB.prepare(`
