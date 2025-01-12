@@ -25,7 +25,8 @@ export async function communityExists(name: string) {
         method: 'GET',
         credentials: 'include'
     });
-    return request.status === 200;
+    const exist = await request.json();
+    return exist.exists;
 }
 
 // Get community by ID

@@ -15,7 +15,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import LoaderDots from "../Reusable/LoaderDots/LoaderDots.tsx";
 import { logout } from "../../api/authentication.ts";
 import { getCommunitiesCurrentUser } from "../../api/currentUser.ts";
-import { createCommunity } from "../../api/communities.ts";
+import CreateCommunity from "../Communities/CreateCommunity/CreateCommunity.tsx";
 
 export default function Aside() {
     const [showCommunity, setShowCommunity] = useState<boolean>(false);
@@ -28,6 +28,7 @@ export default function Aside() {
     const location = useLocation();
     const [redirectPopUpShown, setRedirectPopUpShown] = useState<boolean>(false);
     const [selected, setSelected] = useState<string>("");
+    const [showCreateCommunityModal, setShowCreateCommunityModal] = useState<boolean>(false);
 
     useEffect(() => {
         const ptr = /\/(\w+)\//;
@@ -74,37 +75,8 @@ export default function Aside() {
 
     // TEST FUNCTION
     const handleCreate = async () => {
-        const response = await createCommunity(
-            "General",
-            "This is the general community",
-            ["UAEU", "Study", "Gaming", "Hobbies", "Jobs"],
-        );
-        if (response == 200) {
-            console.log("Community created");
-        } else {
-            console.log("Error creating community", response);
-        }
+        setShowCreateCommunityModal(true);
     };
-
-    // TEST FUNCTION
-    // const handleJoin = async () => {
-    //     const response = await joinCommunity(6)
-    //     if (response == 200) {
-    //         console.log("Community joined")
-    //     } else {
-    //         console.log("Error joining community", response)
-    //     }
-    // }
-    //
-    // // TEST FUNCTION
-    // const handleLeave = async () => {
-    //     const response = await leaveCommunity(6)
-    //     if (response == 200) {
-    //         console.log("Community joined")
-    //     } else {
-    //         console.log("Error joining community", response)
-    //     }
-    // }
 
     return (
         <ul
@@ -289,6 +261,9 @@ export default function Aside() {
                     yesText="Go"
                     noText="Stay"
                 />
+            )}
+            {showCreateCommunityModal && (
+                <CreateCommunity onClose={() => setShowCreateCommunityModal(false)}/>
             )}
         </ul>
     );

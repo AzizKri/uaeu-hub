@@ -74,7 +74,7 @@
 
 @media screen and (max-width: 768px) {
     .navbar {
-        grid-template-columns: 35px repeat(3, 1fr);
+        grid-template-columns: 35px auto 1fr auto;
         //gap: 10px;
 
         .menu {
