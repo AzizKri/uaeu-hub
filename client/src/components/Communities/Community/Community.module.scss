@@ -96,6 +96,8 @@
         }
     }
     .main {
+        padding: 10px;
+
         h5 {
             display: inline-block;
             border-bottom: 1px solid #ccc;
@@ -111,25 +113,16 @@
             }
         }
         .about {
-            padding: 0 10px 10px;
-
             .info {
-                margin-block: 10px;
+                margin-block-end: 10px;
 
                 p {
                     font-size: 14px;
                 }
             }
         }
-        .members {
-            padding: 10px;
+        .settings {
 
-            .category {
-
-                .users {
-
-                }
-            }
         }
     }
 }
@@ -160,7 +153,6 @@
     }
 }
 .message {
-    padding: 10px;
     font-size: 14px;
     color: #888;
 
