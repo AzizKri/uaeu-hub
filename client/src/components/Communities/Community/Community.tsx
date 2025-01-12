@@ -7,7 +7,6 @@ import {
     getMembersOfCommunity,
     getCommunityByName,
     joinCommunity,
-    getAdminsOfCommunity,
     leaveCommunity
 } from "../../../api/communities.ts";
 import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
@@ -21,20 +20,22 @@ export default function Community() {
     // const {posts} = useUpdatePosts();
     const { communityName } = useParams<{ communityName: string }>(); // Get the postId from the URL
     const [info, setInfo] = useState<CommunityInfo>();
-    const [isMember, setIsMember] = useState<boolean>(false);
-    const [activeTab, setActiveTab] = useState<"POST" | "ABOUT" | "MEMBER">("POST");
+    const [role, setRole] = useState<string>();
+    const [activeTab, setActiveTab] = useState<
+        "POST" | "ABOUT" | "MEMBER" | "SETTINGS"
+    >("POST");
     const [members, setMembers] = useState<UserInfo[]>([]);
     const [admins, setAdmins] = useState<UserInfo[]>([]);
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
     const [loadingInfo, setLoadingInfo] = useState<boolean>(true);
     const [showEditor, setShowEditor] = useState<boolean>(false);
-    const {isUser} = useUser();
+    const { isUser } = useUser();
 
     useEffect(() => {
         if (communityName) {
             getCommunityByName(communityName).then((res) => {
-                console.log("community info", res.data);
-                setIsMember(res.data.is_member);
+                console.log("comm info", res.data);
+                setRole(res.data.role);
                 setInfo({
                     id: res.data.id,
                     name: res.data.name,
@@ -48,57 +49,66 @@ export default function Community() {
                     public: res.data.public,
                 });
                 setLoadingInfo(false);
-            })
+            });
         }
     }, [communityName]);
 
     useEffect(() => {
         if (info) {
-            setAdmins([
-                {displayName: "Display Name 1", username: "username1"},
-                {displayName: "Display Name 2", username: "username2"},
-                {displayName: "Display Name 3", username: "username3"}
-            ]);
-            getMembersOfCommunity(info.id).then(res => setMembers(res.data));
-            getAdminsOfCommunity(info.id).then(res => setAdmins(res.data));
+            getMembersOfCommunity(info.id).then((res) => {
+                setMembers(
+                    res.data.filter(
+                        (mem: { role: string }) => mem.role === "Member",
+                    ),
+                );
+                setAdmins(
+                    res.data.filter(
+                        (mem: { role: string }) => mem.role === "Administrator",
+                    ),
+                );
+            });
         }
     }, [info]);
 
     const handleJoinLeave = () => {
         if (info) {
-            if (isMember) {
+            if (role) {
                 leaveCommunity(info.id).then((res) => {
-                    if (res === 200) setIsMember(false);
-                })
+                    if (res === 200) setRole(undefined);
+                });
             } else {
                 joinCommunity(info.id).then((res) => {
-                    if (res === 200) setIsMember(true);
-                })
+                    if (res === 200) setRole("Member");
+                });
             }
         }
-    }
+    };
 
     const handlePosts = () => {
         setActiveTab("POST");
-    }
+    };
     const handleAbout = () => {
         setActiveTab("ABOUT");
-    }
-    const handleMembers= () => {
+    };
+    const handleMembers = () => {
         setActiveTab("MEMBER");
-    }
+    };
+
+    const handleSettings = () => {
+        setActiveTab("SETTINGS");
+    };
     const handleCreatePost = () => {
         setShowEditor(true);
-    }
+    };
     const prependPost = (post: React.ReactElement) => {
         setPosts((prev) => [...prev, post]);
-    }
+    };
 
-    return (loadingInfo || !info ? (
-        <LoadingImage width={"200px"}/>
+    return loadingInfo || !info ? (
+        <LoadingImage width={"200px"} />
     ) : (
         <div className={styles.container}>
-            {showEditor &&
+            {showEditor && (
                 <Modal onClose={() => setShowEditor(false)}>
                     <Editor
                         type="POST"
@@ -106,7 +116,7 @@ export default function Community() {
                         communityId={info.id}
                     />
                 </Modal>
-            }
+            )}
             <div className={styles.header}>
                 <div className={styles.header_top}>
                     <div className={styles.info}>
@@ -118,7 +128,7 @@ export default function Community() {
                         <div className={styles.community_name}>{info.name}</div>
                     </div>
                     <div className={styles.actions}>
-                        {isMember && (
+                        {role && (
                             <button
                                 className={styles.create}
                                 onClick={handleCreatePost}
@@ -141,7 +151,7 @@ export default function Community() {
                                 className={styles.join}
                                 onClick={handleJoinLeave}
                             >
-                                {isMember ? "Leave" : "Join"}
+                                {role ? "Leave" : "Join"}
                             </button>
                         )}
                     </div>
@@ -149,16 +159,41 @@ export default function Community() {
                 {/*<p className={styles.description}>{info.description}</p>*/}
             </div>
             <ul className={styles.tabs}>
-                <li className={`${styles.tab} ${(activeTab === "POST") && styles.active}`} onClick={handlePosts}>Posts</li>
-                <li className={`${styles.tab} ${activeTab === "ABOUT" && styles.active}`} onClick={handleAbout}>About</li>
-                <li className={`${styles.tab} ${activeTab === "MEMBER" && styles.active}`} onClick={handleMembers}>Members</li>
+                <li
+                    className={`${styles.tab} ${activeTab === "POST" && styles.active}`}
+                    onClick={handlePosts}
+                >
+                    Posts
+                </li>
+                <li
+                    className={`${styles.tab} ${activeTab === "ABOUT" && styles.active}`}
+                    onClick={handleAbout}
+                >
+                    About
+                </li>
+                <li
+                    className={`${styles.tab} ${activeTab === "MEMBER" && styles.active}`}
+                    onClick={handleMembers}
+                >
+                    Members
+                </li>
+                {role === "Administrator" && (
+                    <li
+                        className={`${styles.tab} ${activeTab === "SETTINGS" && styles.active}`}
+                        onClick={handleSettings}
+                    >
+                        Settings
+                    </li>
+                )}
             </ul>
             <div className={styles.main}>
                 {activeTab === "POST" ? (
                     posts && posts.length > 0 ? (
                         <div className={styles.posts}>{posts}</div>
                     ) : (
-                        <p className={styles.message}>There are no posts yet in this community</p>
+                        <p className={styles.message}>
+                            There are no posts yet in this community
+                        </p>
                     )
                 ) : activeTab === "ABOUT" ? (
                     <div className={styles.about}>
@@ -175,54 +210,65 @@ export default function Community() {
                             <p>{info.description}</p>
                         </div>
                     </div>
-                ) : (
+                ) : activeTab === "MEMBER" ? (
                     <div className={styles.members}>
                         <div className={styles.category}>
                             <h5 className={styles.membersInfo}>Admins</h5>
                             {admins && admins.length > 0 ? (
-                            <ul className={styles.users}>
-                                {admins.map((ad) => (
-                                    <li key={ad.username}>
-                                        <UserPreview user={ad}/>
-                                    </li>
-                                ))}
-                            </ul>
+                                <ul className={styles.users}>
+                                    {admins.map((ad) => (
+                                        <li key={ad.username}>
+                                            <UserPreview user={ad} />
+                                        </li>
+                                    ))}
+                                </ul>
                             ) : (
                                 <p className={styles.message}>No Admins</p>
                             )}
                         </div>
-                            <div className={styles.category}>
-                                <h5 className={styles.membersInfo}>Members</h5>
-                                {members && members.length > 0 ? (
+                        <div className={styles.category}>
+                            <h5 className={styles.membersInfo}>Members</h5>
+                            {members && members.length > 0 ? (
                                 <ul className={styles.users}>
                                     {members.map((mem) => (
                                         <li key={mem.username}>
-                                            <UserPreview user={mem}/>
+                                            <UserPreview user={mem} />
                                         </li>
                                     ))}
                                 </ul>
-                                ) : (
-                                    <p className={styles.message}>No members</p>
-                                )}
-                            </div>
+                            ) : (
+                                <p className={styles.message}>No members</p>
+                            )}
+                        </div>
                     </div>
-                )}
+                ) : activeTab === "SETTINGS" ? (
+                    <ul className={styles.settings}>
+                        <li className={styles.setting}>
+                            Edit Community Information
+                        </li>
+                        <li className={styles.setting}>Invite Members</li>
+                        <li className={styles.setting}>Add Admins</li>
+                    </ul>
+                ) : null}
             </div>
         </div>
-        )
     );
 }
 
-function UserPreview({user}: { user: UserInfo }) {
+function UserPreview({ user }: { user: UserInfo }) {
     return (
         <Link to={`/user/${user.username}`}>
             <div className={styles.user}>
-                <img className={styles.pfp} src={user.pfp ? user.pfp : profilePicture} alt="user profile picture"/>
+                <img
+                    className={styles.pfp}
+                    src={user.pfp ? user.pfp : profilePicture}
+                    alt="user profile picture"
+                />
                 <div className={styles.names}>
                     <div className={styles.displayName}>{user.displayName}</div>
                     <div className={styles.username}>@{user.username}</div>
                 </div>
             </div>
         </Link>
-    )
+    );
 }

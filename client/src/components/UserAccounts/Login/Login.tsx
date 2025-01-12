@@ -47,14 +47,6 @@ export default function Login() {
             return;
         }
 
-        // if (formData.email.split('@').length !== 1) {
-        //     setFormData({
-        //         username: formData.email,
-        //         email: '',
-        //         password: formData.password,
-        //     })
-        // }
-        console.log("form Data", formData);
         const response = await login(formData);
         console.log("login response:", response);
         const data = await response.json();

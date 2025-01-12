@@ -126,15 +126,6 @@ export async function getMembersOfCommunity(id: number) {
     return { status: request.status, data: await request.json() };
 }
 
-// Get admins of community by ID
-export async function getAdminsOfCommunity(id: number) {
-    const request = await fetch(base + `/community/getAdmins/${id}`, {
-        method: 'POST',
-        credentials: 'include'
-    })
-    return { status: request.status, data: await request.json() };
-}
-
 // TODO - Redo into inviteMemberToCommunity
 // Add member to community
 export async function addMemberToCommunity(id: number, userId: number) {

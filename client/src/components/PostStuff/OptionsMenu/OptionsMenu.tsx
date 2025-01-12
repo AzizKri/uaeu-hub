@@ -25,6 +25,7 @@ export default function OptionsMenu({
 
     const handleClickOptions: React.MouseEventHandler<HTMLDivElement> = (e) => {
         e.stopPropagation();
+        document.body.click();
         setOptionsDisplayed(true);
         const listener = () => {
             setOptionsDisplayed(false);
