@@ -50,6 +50,7 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
     const [nameExist, setNameExist] = useState<boolean>(true);
     const [checkingName, setCheckingName] = useState<boolean>(false);
     const [nameFocus, setNameFocus] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>("");
 
     useEffect(() => {
         getTags().then((res) => setUnSelectedTags(res.data));
@@ -88,9 +89,12 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
                     fileName: response.filename,
                 }));
             } else {
-                throw new Error(
-                    `Upload failed with status: ${response.status}`,
-                );
+                console.error(`Upload failed with status: ${response.status}`);
+                setUploadState({
+                    status: "ERROR",
+                    file: null,
+                    preview: null,
+                });
             }
         } catch (error) {
             console.error("File upload error:", error);
@@ -153,8 +157,10 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
             .then((status) => {
                 if (status === 201) {
                     navigate(`/community/${nameState}`);
+                    onClose();
+                } else {
+                    setErrorMessage("Something went wrong");
                 }
-                onClose();
             })
             .finally(() => {
                 setIsCreating(false);
@@ -248,6 +254,7 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
                         </div>
                     )}
                 </div>
+                {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
                 <form className={styles.form} onSubmit={handleFormSubmit}>
                     <input
                         id="image-upload"
