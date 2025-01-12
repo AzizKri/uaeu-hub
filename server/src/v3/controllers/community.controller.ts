@@ -227,9 +227,23 @@ export async function getCommunityByName(c: Context) {
                 return c.json(community, { status: 200 });
             } else {
                 // Get communities with membership status
+                // const community = await env.DB.prepare(`
+                //     SELECT *,
+                //            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
+                //     FROM community c
+                //     WHERE c.name = ?
+                // `).bind(userId, name).first<CommunityRow>();
+
                 const community = await env.DB.prepare(`
                     SELECT *,
-                           (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
+                           (SELECT cr.name
+                            FROM community_role as cr
+                            WHERE cr.id IN (
+                                SELECT role_id
+                                FROM user_community as uc
+                                WHERE uc.community_id = c.id AND uc.user_id = ?
+                                )
+                           ) as role
                     FROM community c
                     WHERE c.name = ?
                 `).bind(userId, name).first<CommunityRow>();
@@ -961,8 +975,8 @@ export async function getCommunityMembers(c: Context) {
         const members = await env.DB.prepare(`
             SELECT u.id,
                    u.username,
-                   u.display_name,
-                   u.avatar,
+                   u.displayname as displayName,
+                   u.pfp,
                    u.created_at,
                    uc.joined_at,
                    cr.name as role
