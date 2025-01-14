@@ -53,6 +53,7 @@ export default function Login() {
         if (response.status === 200) {
             console.log('Log in success:', response);
             updateUser({
+                new: false,
                 username: data.username,
                 displayName: data.displayName,
                 bio: data.bio,
