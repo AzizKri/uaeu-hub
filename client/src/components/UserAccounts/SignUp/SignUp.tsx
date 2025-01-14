@@ -8,6 +8,7 @@ import {userSchema} from "../../../userSchema.ts";
 import { z } from 'zod';
 import {useUser} from "../../../lib/utils/hooks.ts";
 import Requirement from "../Requirement/Requirement.tsx";
+import {useGoogleLogin} from "@react-oauth/google";
 
 export default function SignUp() {
     const navigate = useNavigate();
@@ -141,6 +142,10 @@ export default function SignUp() {
         setIsPasswordActive(true);
     }
 
+    const googleLogin = useGoogleLogin({
+        onSuccess: codeResponse => console.log(codeResponse),
+    });
+
     return (
         <div className={styles.formBody}>
             <div className={styles.formContainer}>
@@ -158,7 +163,7 @@ export default function SignUp() {
                         .
                     </p>
                     <div className={styles.socialForm}>
-                        <button className={styles.socialBtn}>
+                        <button className={styles.socialBtn} onClick={() => googleLogin()}>
                             <svg
                                 className="custom-icon"
                                 xmlns="http://www.w3.org/2000/svg"

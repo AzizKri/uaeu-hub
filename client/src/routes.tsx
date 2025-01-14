@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {GoogleOAuthProvider} from "@react-oauth/google";
 
 const App = lazy(() => import("./App.tsx"));
 const Login = lazy(() => import("./components/UserAccounts/Login/Login.tsx"));
@@ -81,5 +82,8 @@ const routes = [
 const router = createBrowserRouter(routes);
 
 export const Routes: React.FC = () => {
-    return <RouterProvider router={router} />;
+    return(
+    <GoogleOAuthProvider clientId={"test"}>
+        <RouterProvider router={router} />
+    </GoogleOAuthProvider>);
 };
