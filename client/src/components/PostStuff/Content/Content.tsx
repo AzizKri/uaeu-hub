@@ -54,7 +54,7 @@ export default function Content({content, filename, type}: {
                         <span>&#8230;</span>
                     </>
                 )}
-                {!showContent && <span className={styles.show_more} onClick={handleShowMore}>show more</span>}
+                {!showContent && !(type === "post-page") && <span className={styles.show_more} onClick={handleShowMore}>show more</span>}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
             {isLoading && !error && <LoadingImage width="100%"/>}
