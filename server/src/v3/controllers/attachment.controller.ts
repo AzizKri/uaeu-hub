@@ -36,12 +36,12 @@ export async function uploadAttachment(c: Context) {
 
     // Make sure we have a file
     if (!file) {
-        return new Response('No file provided', { status: 400 });
+        return c.text('No file provided', { status: 400 });
     }
 
     // Deny blacklisted files
     if (!allowedMimeTypes.includes(file.type)) {
-        return new Response('File type not allowed', { status: 400 });
+        return c.text('File type not allowed', { status: 400 });
     }
 
     try {
