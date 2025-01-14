@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import usernames from './usernames.json';
 
 export const communitySchema = z.object({
     name: z.string()
