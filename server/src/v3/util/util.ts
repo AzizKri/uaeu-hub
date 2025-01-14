@@ -97,7 +97,7 @@ export async function sendAuthCookie(c: Context, sessionKey: string, customExpir
     }
 
     // Set the cookie
-    await setSignedCookie(c, 'sessionKey', sessionKey.toString(), c.env.JWT_SECRET, options);
+    await setSignedCookie(c, 'sessionKey', sessionKey.toString(), c.env.EN_SECRET, options);
 }
 
 /**
@@ -123,7 +123,7 @@ export async function sendUserIdCookie(c: Context, userId: string, isAnonymous: 
     }
 
     // Set the cookie
-    await setSignedCookie(c, 'sessionToken', `${userId}:${Number(isAnonymous)}`, c.env.JWT_SECRET, options);
+    await setSignedCookie(c, 'sessionToken', `${userId}:${Number(isAnonymous)}`, c.env.EN_SECRET, options);
 }
 
 export function parseId(id: string): number {

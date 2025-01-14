@@ -9,7 +9,7 @@ import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../u
 
 // Simple check if this user has a session key or not
 export async function isUser(c: Context) {
-    const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
+    const sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
 
     // No session key, not a user
     if (!sessionKey) return c.json({ user: false, status: 200 }, 200);
@@ -86,7 +86,7 @@ export async function signup(c: Context) {
                 // I have trust issues
                 if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
-                const existingSessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+                const existingSessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
 
                 // Send session key & token
                 await sendAuthCookie(c, existingSessionKey);

@@ -5,7 +5,7 @@ interface Env {
     R2: R2Bucket;
     POSTS_RL: any;
     ATTACHMENT_RL: any;
-    JWT_SECRET: string;
+    EN_SECRET: string;
     ENVIRONMENT: string;
     WS_SECRET: string;
     WEBSOCKET_URL: string;
