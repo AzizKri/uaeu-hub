@@ -36,6 +36,7 @@ export default function UserProvider({children}: {children: ReactNode}) {
             try {
                 const cachedUser = getCachedUserData();
                 if (cachedUser) {
+                    console.log("user from cache")
                     setUser(cachedUser);
                     return;
                 }
@@ -79,8 +80,8 @@ export default function UserProvider({children}: {children: ReactNode}) {
     }
 
     const isUser = (): boolean => {
-        return user !== null && !user.isAnonymous;
-        // return user !== null && !user.isAnonymous && !user.new
+        // return user !== null && !user.isAnonymous;
+        return user !== null && !user.isAnonymous && !user.new
     }
 
     return (
