@@ -23,6 +23,10 @@ export default function Login() {
         setIsLoading(false);
         return;
     };
+    const handleChangeUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData({ ...formData, [id]: value.toLowerCase() });
+    };
 
     const handleFocus = () => {
         setErrors({});
@@ -112,7 +116,7 @@ export default function Login() {
                                 className={`${styles.formInput} ${errors.identifier ? styles.invalidInput : ''}`}
                                 id="identifier"
                                 value={formData.identifier}
-                                onChange={handleChange}
+                                onChange={handleChangeUsername}
                                 onFocus={() => handleFocus()}
                                 placeholder="Email or username"
                                 required
