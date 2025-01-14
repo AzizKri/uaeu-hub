@@ -6,13 +6,13 @@ import {me} from "../../../api/authentication.ts";
 
 const authTabs = [
     { label: 'Posts' },
-    { label: 'Comments' },
+    { label: 'Communities' },
     { label: 'Likes' },
 ];
 
 const tabs = [
     { label: 'Posts' },
-    { label: 'Comments' },
+    { label: 'Communities' },
 ];
 
 export default function UserProfile () {
@@ -87,28 +87,28 @@ export default function UserProfile () {
                     </div>
                     {isAuthorized ? (<button className={styles.editProfileButton}>Edit Profile</button>) : (<></>)}
                 </div>
-                <div className={styles.tabs}>
+                <ul className={styles.tabs}>
                 {isAuthorized ? authTabs.map((tab) => (
-                        <button
+                        <li
                             key={tab.label}
-                            className={`${styles.tabButton} ${
+                            className={`${styles.tabElement} ${
                                 activeTab === tab.label ? styles.active : ''
                             }`}
                             onClick={() => handleTabClick(tab.label)}
                         >
                             {tab.label}
-                        </button>
+                        </li>
                     )) : tabs.map((tab) => (
-                    <button
+                    <li
                         key={tab.label}
-                        className={`${styles.tabButton} ${
+                        className={`${styles.tabElement} ${
                             activeTab === tab.label ? styles.active : ''
                         }`}
                         onClick={() => handleTabClick(tab.label)}
                     >
                         {tab.label}
-                    </button>))}
-                </div>
+                    </li>))}
+                </ul>
             </div>
 
             <div className={styles.tabContent}>
