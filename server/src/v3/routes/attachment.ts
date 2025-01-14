@@ -8,9 +8,8 @@ import {
 } from '../controllers/attachment.controller';
 import { authMiddleware, authMiddlewareCheckOnly, uploadAttachmentLimitMiddleware } from '../util/middleware';
 
-type Variables = JwtVariables
 
-const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+const app = new Hono<{ Bindings: Env}>();
 
 app.post('/', uploadAttachmentLimitMiddleware, authMiddleware, (c) => uploadAttachment(c), bodyLimit({
     maxSize: 10 * 1024 * 1024,
