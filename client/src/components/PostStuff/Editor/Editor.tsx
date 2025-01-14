@@ -234,7 +234,7 @@ export default function Editor({
                 if (communityId !== undefined) {
                     console.log("there is a community id");
                     post = await createPost(plainText, uploadState.fileName, communityId);
-                } else if (!user || user.new || user.isAnonymous) {
+                } else if (!user || user.isAnonymous) {
                     post = await createPost(plainText, uploadState.fileName, 0);
                 } else if (!selectedCommunity) {
                     selectCommunityButtonRef.current?.classList.add(
@@ -380,57 +380,60 @@ export default function Editor({
     };
 
     return (
-        <div ref={editorContainerRef} className={styles.editorContainer}>
-            <LexicalComposer initialConfig={initialConfig}>
-                <RichTextPlugin
-                    contentEditable={
-                        <ContentEditable className={styles.editorInput} />
-                    }
-                    placeholder={
-                        <div className={styles.editorPlaceholder}>
-                            {type === "POST"
-                                ? "What's your question?"
-                                : "Reply..."
-                            }
-                        </div>
-                    }
-                    ErrorBoundary={LexicalErrorBoundary}
-                />
-                <EditorHelper ref={editorHelperRef} />
-                <HistoryPlugin />
-                {autoFocus && <AutoFocusPlugin/>}
-            </LexicalComposer>
-
-            {uploadState.preview && (
-                <div className={styles.imagePreview}>
-                    <img
-                        src={
-                            typeof uploadState.preview === "string"
-                                ? uploadState.preview
-                                : undefined
+        <div className={styles.container}>
+            <div ref={editorContainerRef} className={styles.editorContainer}>
+                <LexicalComposer initialConfig={initialConfig}>
+                    <RichTextPlugin
+                        contentEditable={
+                            <ContentEditable className={styles.editorInput}/>
                         }
-                        alt="uploaded image preview"
+                        placeholder={
+                            <div className={styles.editorPlaceholder}>
+                                {type === "POST"
+                                    ? "What's your question?"
+                                    : "Reply..."
+                                }
+                            </div>
+                        }
+                        ErrorBoundary={LexicalErrorBoundary}
                     />
-                    <div
-                        className={styles.changeImage}
-                        onClick={handleChangeImage}
-                    >
-                        change
-                    </div>
-                    <div className={styles.cancelImage} onClick={removeImage}>
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            width="20"
-                            height="20"
-                        >
-                            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
-                        </svg>
-                    </div>
-                </div>
-            )}
+                    <EditorHelper ref={editorHelperRef}/>
+                    <HistoryPlugin/>
+                    {autoFocus && <AutoFocusPlugin/>}
+                </LexicalComposer>
 
+                {uploadState.preview && (
+                    <div className={styles.imagePreview}>
+                        <img
+                            src={
+                                typeof uploadState.preview === "string"
+                                    ? uploadState.preview
+                                    : undefined
+                            }
+                            alt="uploaded image preview"
+                        />
+                        <div
+                            className={styles.changeImage}
+                            onClick={handleChangeImage}
+                        >
+                            change
+                        </div>
+                        <div className={styles.cancelImage} onClick={removeImage}>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                width="20"
+                                height="20"
+                            >
+                                <path
+                                    d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                )}
+
+            </div>
             <div className={styles.buttons}>
                 {isUser() && type === "POST" && communityId === undefined && (
                     <div className={styles.selectCommunity}>
@@ -446,7 +449,7 @@ export default function Editor({
                                 />
                                 <ul className={styles.communities}>
                                     {loadingUserCommunities ? (
-                                        <LoadingImage width="24px" />
+                                        <LoadingImage width="24px"/>
                                     ) : displayedCommunities.length > 0 ? (
                                         displayedCommunities.map(
                                             (community: CommunityINI) => (
@@ -473,7 +476,7 @@ export default function Editor({
                                         >
                                             You are not a member in any
                                             community
-                                            <br />
+                                            <br/>
                                             Please join at least one community
                                             to be able to post
                                         </p>
@@ -510,7 +513,8 @@ export default function Editor({
                         viewBox="0 -960 960 960"
                         fill="currentColor"
                     >
-                        <path d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z" />
+                        <path
+                            d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/>
                     </svg>
                 </div>
                 <input
@@ -522,14 +526,15 @@ export default function Editor({
                 />
                 <div className={styles.buttonIcon} onClick={submitPost}>
                     {isSubmitting || uploadState.status === "UPLOADING" ? (
-                        <LoaderDots />
+                        <LoaderDots/>
                     ) : (
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 -960 960 960"
                             fill="currentColor"
                         >
-                            <path d="M120-160v-640l760 320-760 320Zm80-120 474-200-474-200v140l240 60-240 60v140Zm0 0v-400 400Z" />
+                            <path
+                                d="M120-160v-640l760 320-760 320Zm80-120 474-200-474-200v140l240 60-240 60v140Zm0 0v-400 400Z"/>
                         </svg>
                     )}
                 </div>
@@ -538,7 +543,7 @@ export default function Editor({
     );
 }
 
-export function CommunityPreview({ community }: { community: CommunityInfoSimple }) {
+export function CommunityPreview({community}: { community: CommunityInfoSimple }) {
     return (
         <div className={styles.community}>
             <img

@@ -263,7 +263,7 @@ export default function Aside() {
                 />
             )}
             {showCreateCommunityModal && (
-                <CreateCommunity onClose={() => setShowCreateCommunityModal(false)}/>
+                <CreateCommunity type="CREATE" onClose={() => setShowCreateCommunityModal(false)}/>
             )}
         </ul>
     );

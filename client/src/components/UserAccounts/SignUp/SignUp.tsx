@@ -99,6 +99,7 @@ export default function SignUp() {
         if (response.status === 200) {
             console.log('Sign up success:', response);
             updateUser({
+                new: false,
                 username: data.username,
                 displayName: data.displayName,
                 bio: data.bio,

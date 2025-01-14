@@ -720,7 +720,7 @@ export async function joinCommunity(c: Context) {
     const communityId = Number(c.req.param('id'));
 
     // Check for required fields
-    if (!isNaN(communityId)) return c.text('No community ID provided', { status: 400 });
+    if (isNaN(communityId)) return c.text('No community ID provided', { status: 400 });
 
     try {
         // Check if community exists

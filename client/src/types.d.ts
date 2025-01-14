@@ -43,7 +43,7 @@ declare global {
         id: number
         name: string
         description: string
-        icon: string | null
+        icon?: string
         verified: boolean
         public: boolean
         inviteOnly: boolean

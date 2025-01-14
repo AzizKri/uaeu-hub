@@ -1,9 +1,10 @@
 import styles from "./Category.module.scss";
-import { getCommunitiesByTag, joinCommunity } from "../../../api/communities.ts";
+import {getCommunitiesByTag, joinCommunity} from "../../../api/communities.ts";
 import memberIcon from "../../../assets/account-outline-thin-dot.svg";
-import { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 import {useUser} from "../../../lib/utils/hooks.ts";
+import {useNavigate} from "react-router-dom";
 
 interface CommunityPreview {
     icon: string;
@@ -13,12 +14,14 @@ interface CommunityPreview {
     isMember: boolean;
 }
 
-export default function Category({ tag }: { tag: string }) {
+export default function Category({tag, joinedCommunity, setJoinedCommunity}: { tag: string, joinedCommunity: number, setJoinedCommunity: (id: number) => void}) {
     const [communities, setCommunities] = useState<CommunityPreview[]>([]);
     const [thereIsMore, setThereIsMore] = useState<boolean>(false);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+    const [joiningId, setJoiningId] = useState<number>(-1);
     const [page, setPage] = useState<number>(1);
     const {isUser} = useUser();
+    const navigate = useNavigate();
 
     useEffect(() => {
         getCommunitiesByTag(tag).then((res) => {
@@ -26,12 +29,12 @@ export default function Category({ tag }: { tag: string }) {
             setCommunities(
                 res.data.map(
                     ({
-                        icon,
-                        name,
-                        id,
-                        member_count,
-                        is_member,
-                    }: {
+                         icon,
+                         name,
+                         id,
+                         member_count,
+                         is_member,
+                     }: {
                         icon: string;
                         name: string;
                         id: number;
@@ -57,12 +60,12 @@ export default function Category({ tag }: { tag: string }) {
                 ...prev,
                 ...res.data.map(
                     ({
-                        icon,
-                        name,
-                        id,
-                        member_count,
-                        is_member,
-                    }: {
+                         icon,
+                         name,
+                         id,
+                         member_count,
+                         is_member,
+                     }: {
                         icon: string;
                         name: string;
                         id: number;
@@ -82,12 +85,42 @@ export default function Category({ tag }: { tag: string }) {
         setPage((prev) => prev + 1);
     };
 
+    const handleClickCommunity = (name: string) => {
+        navigate(`/community/${name}`);
+    }
+
+    useEffect(() => {
+        setCommunities((prev: CommunityPreview[]) => (
+            prev.map((com) => {
+                if (com.id === joinedCommunity) {
+                    return {...com, isMember: true};
+                } else {
+                    return com;
+                }
+            })
+        ))
+    }, [joinedCommunity]);
+
+    const handleJoinCommunity = (e: React.MouseEvent<HTMLButtonElement>, id: number) => {
+        e.stopPropagation();
+        setJoiningId(id);
+        joinCommunity(id).then((status) => {
+            if (status === 200) {
+                setJoinedCommunity(id);
+                // element.style.display = "none";
+            }
+        }).finally(() => {
+            setJoiningId(-1);
+        })
+    }
+
     return (
         <div className={styles.container}>
             <h4 className={styles.title}>{tag}</h4>
             <div className={styles.communities}>
                 {communities.map((com) => (
-                    <div key={com.id} className={styles.communityPreview}>
+                    <div key={com.id} className={styles.communityPreview}
+                         onClick={() => handleClickCommunity(com.name)}>
                         <img
                             src={com.icon}
                             alt={`${com.name} Community`}
@@ -98,16 +131,16 @@ export default function Category({ tag }: { tag: string }) {
                                 {com.name}
                             </h4>
                             <div className={styles.members}>
-                                <img src={memberIcon} alt="member" />
+                                <img src={memberIcon} alt="member"/>
                                 {com.members}
                             </div>
                         </div>
                         {isUser() && !com.isMember && (
                             <button
                                 className={styles.join}
-                                onClick={() => joinCommunity(com.id)}
+                                onClick={(e) => handleJoinCommunity(e, com.id)}
                             >
-                                Join
+                                {joiningId === com.id ? <LoaderDots/> : "Join"}
                             </button>
                         )}
                     </div>
@@ -117,7 +150,7 @@ export default function Category({ tag }: { tag: string }) {
                         className={styles.showMore}
                         onClick={handleShowMore}
                     >
-                        {isLoadingMore ? <LoaderDots /> : "Show More"}
+                        {isLoadingMore ? <LoaderDots/> : "Show More"}
                     </button>
                 )}
             </div>
