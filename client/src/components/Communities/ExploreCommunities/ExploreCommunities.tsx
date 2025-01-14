@@ -44,7 +44,7 @@ export default function ExploreCommunities() {
                 <Category key={tag.id} tag={tag.name}/>
             ))}
             {showCreateCommunityModal && (
-                <CreateCommunity onClose={() => setShowCreateCommunityModal(false)}/>
+                <CreateCommunity type="CREATE" onClose={() => setShowCreateCommunityModal(false)}/>
             )}
             {showUnAuthModal && <UnAuthorizedPopUp hidePopUp={() => setShowUnAuthModal(false)}/>}
         </div>

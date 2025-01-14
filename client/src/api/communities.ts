@@ -78,7 +78,7 @@ export async function searchCommunities(query: string, page: number = 0) {
 export async function editCommunity(id: number, name?: string, description?: string, icon?: string, tags?: string[]) {
     const formData = new FormData();
     if (name) formData.append('name', name);
-    if (description) formData.append('description', description);
+    if (description) formData.append('desc', description);
     if (icon) formData.append('icon', icon);
     if (tags) formData.append('tags', tags.join(','));
 

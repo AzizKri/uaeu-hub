@@ -1,7 +1,7 @@
 import styles from "./CreateCommunity.module.scss";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import React, {
-    ChangeEventHandler,
+    ChangeEventHandler, KeyboardEventHandler,
     useCallback,
     useEffect,
     useRef,
@@ -11,7 +11,11 @@ import { deleteAttachment, uploadAttachment } from "../../../api/attachmets.ts";
 import communityIcon from "../../../assets/community-icon.jpg";
 import editImage from "../../../assets/image-edit-outline.svg";
 import loadingGiv from "../../../assets/loading_gif.gif";
-import {communityExists, createCommunity} from "../../../api/communities.ts";
+import {
+    communityExists,
+    createCommunity,
+    editCommunity,
+} from "../../../api/communities.ts";
 import { getTags } from "../../../api/tags.ts";
 import xIcon from "../../../assets/x-14-white.svg";
 import plusIcon from "../../../assets/plus.svg";
@@ -26,16 +30,46 @@ interface UploadState {
     preview: string | ArrayBuffer | null;
 }
 
-export default function CreateCommunity({ onClose }: { onClose: () => void }) {
-    const [nameState, setNameState] = useState<string>("");
-    const [descriptionState, setDescriptionState] = useState<string>("");
+interface props {
+    type: "CREATE" | "EDIT";
+    onClose: () => void;
+    icon?: string;
+    name?: string;
+    description?: string;
+    tags?: string;
+    id?: number
+}
+
+export default function CreateCommunity({
+    type,
+    onClose,
+    icon,
+    name,
+    description,
+    tags,
+    id,
+}: props) {
+    const [nameState, setNameState] = useState<string>(
+        name !== undefined ? name : "",
+    );
+    const [descriptionState, setDescriptionState] = useState<string>(
+        description !== undefined ? description : "",
+    );
     const [nameError, setNameError] = useState<boolean>(false);
     const [descriptionError, setDescriptionError] = useState<boolean>(false);
-    const [uploadState, setUploadState] = useState<UploadState>({
-        status: "IDLE",
-        file: null,
-        preview: null,
-    });
+    const [uploadState, setUploadState] = useState<UploadState>(
+        icon !== undefined
+            ? {
+                  status: "IDLE",
+                  file: null,
+                  preview: icon,
+              }
+            : {
+                  status: "IDLE",
+                  file: null,
+                  preview: null,
+              },
+    );
     const imageInputRef = useRef<HTMLInputElement>(null);
     const [selectedTags, setSelectedTags] = useState<
         { id: number; name: string }[]
@@ -53,8 +87,23 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
     const [errorMessage, setErrorMessage] = useState<string>("");
 
     useEffect(() => {
-        getTags().then((res) => setUnSelectedTags(res.data));
-    }, []);
+        getTags().then((res) => {
+            if (tags) {
+                setSelectedTags(
+                    res.data.filter((tag: { name: string }) =>
+                        tags.includes(tag.name),
+                    ),
+                );
+                setUnSelectedTags(
+                    res.data.filter(
+                        (tag: { name: string }) => !tags.includes(tag.name),
+                    ),
+                );
+            } else {
+                setUnSelectedTags(res.data);
+            }
+        });
+    }, [tags]);
 
     const handleFileUpload = async (
         event: React.ChangeEvent<HTMLInputElement>,
@@ -149,24 +198,43 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
         }
         if (descriptionState === "" || nameState === "") return;
         setIsCreating(true);
-        createCommunity(
-            nameState,
-            descriptionState,
-            selectedTags.map((tag) => tag.name),
-        )
-            .then((status) => {
-                if (status === 201) {
-                    navigate(`/community/${nameState}`);
-                    onClose();
-                } else {
-                    setErrorMessage("Something went wrong");
-                }
-            })
-            .finally(() => {
-                setIsCreating(false);
-            });
+        if (type === "CREATE") {
+            createCommunity(
+                nameState,
+                descriptionState,
+                selectedTags.map((tag) => tag.name),
+                uploadState.fileName,
+            )
+                .then((status) => {
+                    if (status === 201) {
+                        onClose();
+                        navigate(`/community/${nameState}`);
+                    } else {
+                        setErrorMessage("Something went wrong");
+                    }
+                })
+                .finally(() => {
+                    setIsCreating(false);
+                });
+        } else if (type === "EDIT" && id) {
+            editCommunity(
+                id,
+                nameState,
+                descriptionState,
+                uploadState.fileName,
+                selectedTags.map((tag) => tag.name),
+            )
+                .then((status) => {
+                    if (status === 200) {
+                        onClose();
+                        navigate(`/community/${nameState}`);
+                    } else {
+                        setErrorMessage("Something went wrong");
+                    }
+                })
+                .finally(() => setIsCreating(false));
+        }
     };
-
 
     const checkName = useCallback(
         debounce(async (name: string) => {
@@ -214,6 +282,28 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
             setCheckingName(true);
             checkName(e.target.value);
         }
+    };
+
+    const handleKeyDownOnTags: KeyboardEventHandler<HTMLInputElement> = (e) => {
+        console.log(e.key);
+        if (e.key === "Enter" ) {
+            const val = e.currentTarget.value;
+            if (val.trim() !== "") {
+                setSelectedTags((prev) => [
+                    ...prev,
+                    { id: userTagsCounter, name: val.trim() },
+                ]);
+                setCurrentTag("");
+                setUserTagsCounter((prev) => prev - 1);
+            }
+        } else if (e.key === "Backspace" && currentTag === "") {
+            const prev = selectedTags;
+            const last = selectedTags.pop();
+            if (last) {
+                setSelectedTags(prev);
+                setCurrentTag(last.name);
+            }
+        }
     }
 
     return (
@@ -225,9 +315,12 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
                             uploadState.status === "COMPLETED" &&
                             typeof uploadState.preview === "string"
                                 ? uploadState.preview
-                                : uploadState.status === "UPLOADING"
-                                  ? loadingGiv
-                                  : communityIcon
+                                : uploadState.status === "IDLE" &&
+                                    typeof uploadState.preview === "string"
+                                  ? uploadState.preview
+                                  : uploadState.status === "UPLOADING"
+                                    ? loadingGiv
+                                    : communityIcon
                         }
                         alt="uploaded image preview"
                     />
@@ -254,7 +347,9 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
                         </div>
                     )}
                 </div>
-                {errorMessage && <div className={styles.errorMessage}>{errorMessage}</div>}
+                {errorMessage && (
+                    <div className={styles.errorMessage}>{errorMessage}</div>
+                )}
                 <form className={styles.form} onSubmit={handleFormSubmit}>
                     <input
                         id="image-upload"
@@ -285,7 +380,7 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
                         {nameFocus && nameState !== "" && (
                             <span className={styles.nameTooltip}>
                                 {checkingName ? (
-                                    <LoaderDots/>
+                                    <LoaderDots />
                                 ) : nameExist ? (
                                     "Not Available"
                                 ) : (
@@ -338,6 +433,8 @@ export default function CreateCommunity({ onClose }: { onClose: () => void }) {
                                 value={currentTag}
                                 onChange={handleTagChange}
                                 className={styles.tagInput}
+                                onSubmit={() => console.log("submit")}
+                                onKeyDown={handleKeyDownOnTags}
                             />
                         </ul>
                         <hr />

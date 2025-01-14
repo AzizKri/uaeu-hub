@@ -79,7 +79,8 @@ export default function UserProvider({children}: {children: ReactNode}) {
     }
 
     const isUser = (): boolean => {
-        return user !== null && !user.isAnonymous && !user.new
+        return user !== null && !user.isAnonymous;
+        // return user !== null && !user.isAnonymous && !user.new
     }
 
     return (

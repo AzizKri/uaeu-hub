@@ -13,6 +13,8 @@ import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
 import {useUser} from "../../../lib/utils/hooks.ts";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
+import arrowRight from "../../../assets/chevron-right.svg"
+import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
 
 // export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
@@ -29,12 +31,12 @@ export default function Community() {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
     const [loadingInfo, setLoadingInfo] = useState<boolean>(true);
     const [showEditor, setShowEditor] = useState<boolean>(false);
+    const [showCommunityEditor, setShowCommunityEditor] = useState<boolean>(false);
     const { isUser } = useUser();
 
     useEffect(() => {
         if (communityName) {
             getCommunityByName(communityName).then((res) => {
-                console.log("comm info", res.data);
                 setRole(res.data.role);
                 setInfo({
                     id: res.data.id,
@@ -103,6 +105,12 @@ export default function Community() {
     const prependPost = (post: React.ReactElement) => {
         setPosts((prev) => [...prev, post]);
     };
+    const handleEditCommunity = () => {
+        setShowCommunityEditor(true);
+    }
+    const handleCloseEditCommunity = () => {
+        setShowCommunityEditor(false);
+    }
 
     return loadingInfo || !info ? (
         <LoadingImage width={"200px"} />
@@ -243,14 +251,32 @@ export default function Community() {
                     </div>
                 ) : activeTab === "SETTINGS" ? (
                     <ul className={styles.settings}>
-                        <li className={styles.setting}>
+                        <li className={styles.setting} onClick={handleEditCommunity}>
                             Edit Community Information
+                            <img src={arrowRight} alt="arrowRight" />
                         </li>
-                        <li className={styles.setting}>Invite Members</li>
-                        <li className={styles.setting}>Add Admins</li>
+                        <li className={styles.setting}>
+                            Invite Members
+                            <img src={arrowRight} alt="arrowRight" />
+                        </li>
+                        <li className={styles.setting}>
+                            Add Admins
+                            <img src={arrowRight} alt="arrowRight" />
+                        </li>
                     </ul>
                 ) : null}
             </div>
+            {showCommunityEditor && (
+                <CreateCommunity
+                    type="EDIT"
+                    onClose={handleCloseEditCommunity}
+                    name={info.name}
+                    description={info.description}
+                    tags={info.tags}
+                    icon={info.icon}
+                    id={info.id}
+                />
+            )}
         </div>
     );
 }
