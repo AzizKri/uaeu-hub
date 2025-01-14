@@ -145,3 +145,44 @@ export async function getUserCommunities(c: Context) {
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
     }
 }
+
+export async function editUser(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // No user or is anonymous
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    // Parse body
+    let { displayname, pfp, bio }: {
+        displayname: string | null;
+        bio: string | null;
+        pfp: string | null;
+        // @ts-ignore
+    } = c.req.valid('form');
+
+    // No changes
+    if (!displayname && !bio && !pfp) return c.json({ message: 'No changes', status: 400 }, 400);
+
+    // Update null values
+    if (!displayname) displayname = null;
+    if (!bio) bio = null;
+    if (!pfp) pfp = null;
+
+    try {
+        // Update user
+        await env.DB.prepare(`
+            UPDATE user
+            SET displayname = CASE WHEN ? IS NOT NULL THEN ? ELSE displayname END,
+                bio         = CASE WHEN ? IS NOT NULL THEN ? ELSE bio END,
+                pfp         = CASE WHEN ? IS NOT NULL THEN ? ELSE pfps END
+            WHERE id = ?
+        `).bind(displayname, displayname, bio, bio, pfp, pfp, userId).run();
+
+        return c.json({ message: 'User updated', status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import {
+    editUser,
     getCurrentUser,
     getUserByUsername,
     getUserCommunities,
@@ -8,6 +9,8 @@ import {
     getUserLikesOnSubcomments
 } from '../controllers/user.controller';
 import { authMiddlewareCheckOnly } from '../util/middleware';
+import { validator } from 'hono/validator';
+import { userEditingSchema } from '../util/validationSchemas';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -26,5 +29,12 @@ app.get('/likes', authMiddlewareCheckOnly, (c) => {
 });
 app.get('/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
 app.get('/:username', (c) => getUserByUsername(c));
+app.post('/', validator('form', (value, c) => {
+    const parsed = userEditingSchema.safeParse(value);
+    if (!parsed.success) {
+        return c.text('Invalid user data', 400);
+    }
+    return parsed.data;
+}), (c) => editUser(c));
 
 export default app;
