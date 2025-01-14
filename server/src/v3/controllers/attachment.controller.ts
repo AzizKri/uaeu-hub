@@ -154,3 +154,66 @@ export async function deleteAttachment(c: Context) {
         return c.text('Internal Server Error', { status: 500 });
     }
 }
+
+const allowedPFPMimeTypes = [
+    'image/jpeg',           // .jpeg, .jpg
+    'image/png',            // .png
+    'image/gif',            // .gif
+    'image/webp',           // .webp
+    'image/bmp',            // .bmp
+    'image/tiff',           // .tiff
+];
+
+export async function uploadIcon(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as number;
+    const formData: FormData = await c.req.formData();
+    const file: File = formData.get('file') as File;
+    const type: string = formData.get('type') as string;
+
+    // Make sure we have a valid user
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Make sure we have a file
+    if (!file) return c.text('No file provided', { status: 400 });
+
+    // Make sure the type is sent
+    if (!type) return c.text('No type provided', { status: 400 })
+
+    // Deny blacklisted files
+    if (!allowedPFPMimeTypes.includes(file.type)) {
+        return c.text('File type not allowed', { status: 400 });
+    }
+
+    const fileBuffer: ArrayBuffer = await file.arrayBuffer();
+
+    try {
+        // Create a random file name (uuidv4)
+        const fileName = crypto.randomUUID();
+
+        // Upload to R2
+        const R2Response = await env.R2.put(
+            `${type}/${fileName}`,
+            fileBuffer
+        );
+
+        if (R2Response == null) {
+            // Upload failed
+            return c.json({ message: 'Upload failed' }, { status: 500 });
+        } else {
+            // Upload successful, insert into DB for reference
+            await env.DB.prepare(`
+                UPDATE user
+                SET pfp = ?
+                WHERE id = ?`
+            ).bind(fileName, userId).run();
+
+            // Return filename
+            return c.text(fileName, { status: 201 });
+        }
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
