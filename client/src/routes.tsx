@@ -28,8 +28,8 @@ const ExploreCommunities = lazy(
 const UserPosts = lazy(
     () => import("./components/UserProfilePage/UserPosts/UserPosts.tsx"),
 );
-const UserComments = lazy(
-    () => import("./components/UserProfilePage/UserComments/UserComments.tsx"),
+const UserCommunities = lazy(
+    () => import("./components/UserProfilePage/UserCommunities/UserCommunities.tsx"),
 );
 const UserLikes = lazy(
     () => import("./components/UserProfilePage/UserLikes/UserLikes.tsx"),
@@ -51,7 +51,7 @@ const routes = [
                 element: <UserProfile />,
                 children: [
                     { path: "posts", element: <UserPosts /> },
-                    { path: "comments", element: <UserComments /> },
+                    { path: "communities", element: <UserCommunities /> },
                     { path: "likes", element: <UserLikes /> },
                 ],
             },
