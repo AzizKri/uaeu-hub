@@ -906,7 +906,7 @@ export async function editCommunity(c: Context) {
                 icon        = CASE WHEN ? IS NOT NULL THEN ? ELSE icon END,
                 tags        = CASE WHEN ? IS NOT NULL THEN ? ELSE tags END
             WHERE id = ?
-        `).bind(name, name, desc, desc, icon, icon, tags, tags, communityId).run();
+        `).bind(name, name, desc, desc, icon, icon, tags?.join(), tags?.join(), communityId).run();
 
         return c.text('Community updated', { status: 200 });
     } catch (e) {

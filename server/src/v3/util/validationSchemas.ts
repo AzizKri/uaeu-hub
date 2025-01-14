@@ -22,7 +22,6 @@ export const communityEditingSchema = z.object({
     name: z.string().min(3, 'Community name must be at least 3 characters long').max(32, 'Community name must be at most 32 characters long').nullable().optional(),
     desc: z.string().max(1024, 'Community description must be at most 1024 characters long').optional().nullable(),
     icon: z.string().optional(),
-    // tags: z.string().transform((value) => value.split(',').map((tag) => tag.trim())).array().max(5, 'Community tags must be at most 5 tags long').nullable()
     tags: z
         .string()
         .transform((value) => value.split(',').map((tag) => tag.trim()))
