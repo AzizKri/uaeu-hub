@@ -11,6 +11,7 @@ export default function ExploreCommunities() {
     const [tags, setTags] = useState([]);
     const [showCreateCommunityModal, setShowCreateCommunityModal] = useState(false);
     const [showUnAuthModal, setShowUnAuthModal] = useState(false);
+    const [joinedCommunity, setJoinedCommunity] = useState<number>(-1);
     const {isUser} = useUser();
 
     useEffect(() => {
@@ -41,7 +42,7 @@ export default function ExploreCommunities() {
                 </div>
             </div>
             {tags.map((tag: { id: number, name: string }) => (
-                <Category key={tag.id} tag={tag.name}/>
+                <Category key={tag.id} tag={tag.name} joinedCommunity={joinedCommunity} setJoinedCommunity={setJoinedCommunity} />
             ))}
             {showCreateCommunityModal && (
                 <CreateCommunity type="CREATE" onClose={() => setShowCreateCommunityModal(false)}/>
