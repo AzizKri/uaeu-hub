@@ -4,6 +4,7 @@ import memberIcon from "../../../assets/account-outline-thin-dot.svg";
 import { useEffect, useState } from "react";
 import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
 import {useUser} from "../../../lib/utils/hooks.ts";
+import {useNavigate} from "react-router-dom";
 
 interface CommunityPreview {
     icon: string;
@@ -19,6 +20,7 @@ export default function Category({ tag }: { tag: string }) {
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
     const [page, setPage] = useState<number>(1);
     const {isUser} = useUser();
+    const navigate = useNavigate();
 
     useEffect(() => {
         getCommunitiesByTag(tag).then((res) => {
@@ -82,12 +84,16 @@ export default function Category({ tag }: { tag: string }) {
         setPage((prev) => prev + 1);
     };
 
+    const handleClickCommunity = (name: string) => {
+        navigate(`/community/${name}`);
+    }
+
     return (
         <div className={styles.container}>
             <h4 className={styles.title}>{tag}</h4>
             <div className={styles.communities}>
                 {communities.map((com) => (
-                    <div key={com.id} className={styles.communityPreview}>
+                    <div key={com.id} className={styles.communityPreview} onClick={() => handleClickCommunity(com.name)}>
                         <img
                             src={com.icon}
                             alt={`${com.name} Community`}
