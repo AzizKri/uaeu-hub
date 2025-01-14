@@ -6,7 +6,7 @@ import {
     getUserCommunities,
     getUserLikesOnComments,
     getUserLikesOnPosts,
-    getUserLikesOnSubcomments
+    getUserLikesOnSubcomments, searchUser
 } from '../controllers/user.controller';
 import { authMiddlewareCheckOnly } from '../util/middleware';
 import { validator } from 'hono/validator';
@@ -28,7 +28,10 @@ app.get('/likes', authMiddlewareCheckOnly, (c) => {
     }
 });
 app.get('/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
+
+app.get('/search', (c) => searchUser(c));
 app.get('/:username', (c) => getUserByUsername(c));
+
 app.post('/', validator('form', (value, c) => {
     const parsed = userEditingSchema.safeParse(value);
     if (!parsed.success) {

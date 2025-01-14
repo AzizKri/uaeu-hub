@@ -199,6 +199,21 @@ type UserAnonymousStatus = {
     isAnonymous: boolean;
 }
 
+type GoogleTokenResponse = {
+    "iss": string,
+    "azp": string,
+    "aud": string,
+    "sub": string,
+    "email": string,
+    "email_verified": string,
+    "name": string | null,
+    "picture": string | null,
+    "given_name": string | null,
+    "family_name": string | null,
+    "iat": string,
+    "exp": string,
+}
+
 type cookieOptions = {
     httpOnly: boolean;
     secure: boolean;

@@ -30,6 +30,31 @@ export async function getCurrentUser(c: Context) {
     }
 }
 
+export async function searchUser(c: Context) {
+    // Get the required fields
+    const env: Env = c.env;
+    const query = c.req.query('query');
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    // Check for required fields
+    if (!query) return c.text('No query provided', { status: 400 });
+
+    try {
+        // Search for users
+        const users = await env.DB.prepare(`
+            SELECT *
+            FROM user_view
+            WHERE displayname LIKE ? OR username LIKE ?
+            LIMIT 10 OFFSET ?
+        `).bind(`%${query}%`, `%${query}%`, page * 10).all<UserView>();
+
+        return c.json(users.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
 export async function getUserByUsername(c: Context) {
     // api.uaeu.chat/user/:username
     const env: Env = c.env;

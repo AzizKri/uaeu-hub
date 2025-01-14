@@ -145,6 +145,98 @@ export async function signup(c: Context) {
     }
 }
 
+export async function authenticateWithGoogle(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+
+    // Some idiot tries to log in when they're already logged in?
+    if (userId) return c.json({ message: 'Already Logged In', status: 401 }, 401);
+
+    // Get the token
+    const { credential } = await c.req.json();
+    if (!credential) return c.json({ message: 'Missing required fields', status: 400 }, 400);
+
+    // Verify
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+
+    // Get data & validate
+    const { email, email_verified, name, given_name, picture, sub, exp } = await response.json() as GoogleTokenResponse;
+    if (!email || !email_verified || !name || !given_name || !sub || !exp) return c.json({ message: 'Invalid token', status: 401 }, 401);
+    if (Number(exp) && Number(exp) < Date.now() / 1000) return c.json({ message: 'Token expired', status: 401 }, 401);
+
+    // Check if user exists
+    const user = await env.DB.prepare(`
+        SELECT id, username, email, bio, displayname, pfp, google_id, is_anonymous
+        FROM user
+        WHERE google_id = ?
+    `).bind(sub).first<UserRow>();
+
+    // If user exists, generate session key & token
+    if (user) {
+        const PlainSessionKey = crypto.randomUUID();
+        const sessionKey = await hashSessionKey(PlainSessionKey);
+
+        c.executionCtx.waitUntil(
+            env.DB.prepare(`
+                INSERT INTO session (id, user_id, is_anonymous, ip)
+                VALUES (?, ?, false, ?)
+            `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run()
+        )
+
+        await sendAuthCookie(c, PlainSessionKey);
+        await sendUserIdCookie(c, user.id.toString(), false);
+
+        return c.json(user, { status: 200 });
+    } else {
+        // Check if the email is already used
+        const existingUser = await env.DB.prepare(`
+            SELECT username
+            FROM user
+            WHERE email = ?
+        `).bind(email).all<UserRow>();
+
+        // May reconsider later
+        if (existingUser.results.length > 0) return c.json({ message: 'Email already in use', status: 409 }, 409);
+
+        // Generate username
+        const username = name.replace(/[^a-z0-9.\-_]/i, '') + (Math.floor(Math.random() * 1000).toString());
+
+        // Sign up
+        const newUser = await env.DB.prepare(`
+            INSERT INTO user (username, displayname, email, email_verified, google_id, pfp)
+            VALUES (?, ?, ?, true, ?, ?)
+            RETURNING id, username, displayname, bio, email, pfp, is_anonymous
+        `).bind(username, name, email, sub, picture).first<UserView>();
+
+        // I have trust issues
+        if (!newUser) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+
+        // Generate session key & token
+        const PlainSessionKey = crypto.randomUUID();
+        const sessionKey = await hashSessionKey(PlainSessionKey);
+
+        // Send cookies
+        await sendAuthCookie(c, PlainSessionKey);
+        await sendUserIdCookie(c, newUser.id.toString(), false);
+
+        c.executionCtx.waitUntil(Promise.resolve(async () => {
+            // Insert into session table
+            await env.DB.prepare(`
+                INSERT INTO session (id, user_id, is_anonymous, ip)
+                VALUES (?, ?, false, ?)
+            `).bind(sessionKey, newUser.id, c.req.header('cf-connecting-ip') || '').run()
+
+            // Add user to general community
+            await env.DB.prepare(`
+                INSERT INTO user_community (user_id, community_id, role_id)
+                VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
+            `).bind(newUser.id).run();
+        }))
+
+        return c.json(newUser, { status: 201 });
+    }
+}
+
 export async function anonSignup(c: Context, returnInternal: boolean = false) {
     const env: Env = c.env;
 
