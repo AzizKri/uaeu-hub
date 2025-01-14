@@ -10,15 +10,18 @@
         "cf-typegen": "wrangler types"
     },
     "devDependencies": {
-        "@cloudflare/vitest-pool-workers": "^0.5.2",
-        "@cloudflare/workers-types": "^4.20240925.0",
+        "@cloudflare/vitest-pool-workers": "^0.5.41",
+        "@cloudflare/workers-types": "^4.20250109.0",
         "@types/bcryptjs": "^2.4.6",
         "@types/uuid": "^10.0.0",
+        "cloudflare": "^3.5.0",
+        "jest-extended": "^4.0.2",
         "typescript": "^5.5.2",
-        "vitest": "2.0.5",
+        "vitest": "2.1.8",
         "wrangler": "^3.60.3"
     },
     "dependencies": {
+        "@cloudflare/types": "^6.29.1",
         "bcryptjs": "^2.4.3",
         "hono": "^4.6.3",
         "hono-rate-limiter": "^0.4.0",
