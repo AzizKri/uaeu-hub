@@ -11,12 +11,10 @@ import {
     likePost,
     searchPosts
 } from '../controllers/post.controller';
-import type { JwtVariables } from 'hono/jwt';
 import { authMiddleware, authMiddlewareCheckOnly, postRateLimitMiddleware } from '../util/middleware';
 
-type Variables = JwtVariables
 
-const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+const app = new Hono<{ Bindings: Env}>();
 
 // spent an hour trying to figure out why /latest/:page? works but /latest doesn't
 // do NOT place any route with parameters above /latest/:page? or the parameterless route will break, with your bones

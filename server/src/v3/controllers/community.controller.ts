@@ -600,7 +600,7 @@ export async function searchCommunities(c: Context) {
 export async function addMemberToCommunity(c: Context) {
     return c.text('Not implemented', { status: 501 });
     // const env: Env = c.env;
-    // const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+    // const sessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
     // const communityId = Number(c.req.param('id'));
     // const userId = Number(c.req.param('userId'));
     //
@@ -906,7 +906,7 @@ export async function editCommunity(c: Context) {
                 icon        = CASE WHEN ? IS NOT NULL THEN ? ELSE icon END,
                 tags        = CASE WHEN ? IS NOT NULL THEN ? ELSE tags END
             WHERE id = ?
-        `).bind(name, name, desc, desc, icon, icon, tags?.join(), tags?.join(), communityId).run();
+        `).bind(name, name, desc, desc, icon, icon, tags?.join(','), tags?.join(','), communityId).run();
 
         return c.text('Community updated', { status: 200 });
     } catch (e) {

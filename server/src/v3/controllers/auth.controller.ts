@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { getSignedCookie } from 'hono/cookie';
 import { z } from 'zod';
-import { userSchema } from '../util/validationSchemas';
+import { isUsernameValid, userSchema } from '../util/validationSchemas';
 import { sendAuthCookie, sendUserIdCookie } from '../util/util';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
 
@@ -9,7 +9,7 @@ import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../u
 
 // Simple check if this user has a session key or not
 export async function isUser(c: Context) {
-    const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
+    const sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
 
     // No session key, not a user
     if (!sessionKey) return c.json({ user: false, status: 200 }, 200);
@@ -52,6 +52,9 @@ export async function signup(c: Context) {
         }
     }
 
+    // Check if username is reserved
+    if (!isUsernameValid(username)) return c.json({ message: 'Username is reserved', status: 400 }, 400);
+
     // Check if username / email already used
     const existingUser = await env.DB.prepare(`
         SELECT username
@@ -86,7 +89,7 @@ export async function signup(c: Context) {
                 // I have trust issues
                 if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
-                const existingSessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+                const existingSessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
 
                 // Send session key & token
                 await sendAuthCookie(c, existingSessionKey);
@@ -134,7 +137,7 @@ export async function signup(c: Context) {
             await sendAuthCookie(c, PlainSessionKey);
             await sendUserIdCookie(c, user.id.toString(), false);
 
-            return c.json(user, { status: 200 });
+            return c.json(user, { status: 201 });
         }
     } catch (e) {
         console.log(e);
