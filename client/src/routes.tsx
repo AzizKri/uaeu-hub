@@ -1,89 +1,86 @@
-import React, { lazy, Suspense } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import {GoogleOAuthProvider} from "@react-oauth/google";
+import React, { lazy, Suspense } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-const App = lazy(() => import("./App.tsx"));
-const Login = lazy(() => import("./components/UserAccounts/Login/Login.tsx"));
+const App = lazy(() => import('./App.tsx'));
+const Login = lazy(() => import('./components/UserAccounts/Login/Login.tsx'));
 const SignUp = lazy(
-    () => import("./components/UserAccounts/SignUp/SignUp.tsx"),
+    () => import('./components/UserAccounts/SignUp/SignUp.tsx')
 );
-const Home = lazy(() => import("./components/Home/Home.tsx"));
+const Home = lazy(() => import('./components/Home/Home.tsx'));
 const PostPage = lazy(
-    () => import("./components/PostStuff/PostPage/PostPage.tsx"),
+    () => import('./components/PostStuff/PostPage/PostPage.tsx')
 );
 const UserProfile = lazy(
-    () => import("./components/UserProfilePage/UserProfile/UserProfile.tsx"),
+    () => import('./components/UserProfilePage/UserProfile/UserProfile.tsx')
 );
 const NotFound = lazy(
-    () => import("./components/Reusable/NotFound/NotFound.tsx"),
+    () => import('./components/Reusable/NotFound/NotFound.tsx')
 );
 const Community = lazy(
-    () => import("./components/Communities/Community/Community.tsx"),
+    () => import('./components/Communities/Community/Community.tsx')
 );
 const ExploreCommunities = lazy(
     () =>
         import(
-            "./components/Communities/ExploreCommunities/ExploreCommunities.tsx"
-        ),
+            './components/Communities/ExploreCommunities/ExploreCommunities.tsx'
+            )
 );
 const UserPosts = lazy(
-    () => import("./components/UserProfilePage/UserPosts/UserPosts.tsx"),
+    () => import('./components/UserProfilePage/UserPosts/UserPosts.tsx')
 );
 const UserComments = lazy(
-    () => import("./components/UserProfilePage/UserComments/UserComments.tsx"),
+    () => import('./components/UserProfilePage/UserComments/UserComments.tsx')
 );
 const UserLikes = lazy(
-    () => import("./components/UserProfilePage/UserLikes/UserLikes.tsx"),
+    () => import('./components/UserProfilePage/UserLikes/UserLikes.tsx')
 );
 
 const routes = [
     {
-        path: "/",
+        path: '/',
         element: (
             <Suspense fallback={<div>Loading...</div>}>
                 <App />
             </Suspense>
         ),
         children: [
-            { path: "/", element: <Home /> },
-            { path: "post/:postId", element: <PostPage /> },
+            { path: '/', element: <Home /> },
+            { path: 'post/:postId', element: <PostPage /> },
             {
-                path: "user/:username",
+                path: 'user/:username',
                 element: <UserProfile />,
                 children: [
-                    { path: "posts", element: <UserPosts /> },
-                    { path: "comments", element: <UserComments /> },
-                    { path: "likes", element: <UserLikes /> },
-                ],
+                    { path: 'posts', element: <UserPosts /> },
+                    { path: 'comments', element: <UserComments /> },
+                    { path: 'likes', element: <UserLikes /> }
+                ]
             },
-            { path: "community/:communityName", element: <Community /> },
-            { path: "community/explore", element: <ExploreCommunities /> },
-        ],
+            { path: 'community/:communityName', element: <Community /> },
+            { path: 'community/explore', element: <ExploreCommunities /> }
+        ]
     },
     {
-        path: "/login",
+        path: '/login',
         element: (
             <Suspense fallback={<div>Loading...</div>}>
                 <Login />
             </Suspense>
-        ),
+        )
     },
     {
-        path: "/signup",
+        path: '/signup',
         element: (
             <Suspense fallback={<div>Loading...</div>}>
                 <SignUp />
             </Suspense>
-        ),
+        )
     },
-    { path: "*", element: <NotFound /> },
+    { path: '*', element: <NotFound /> }
 ];
 
 const router = createBrowserRouter(routes);
 
 export const Routes: React.FC = () => {
-    return(
-    <GoogleOAuthProvider clientId={"test"}>
-        <RouterProvider router={router} />
-    </GoogleOAuthProvider>);
+    return (
+        <RouterProvider router={router} />);
 };
