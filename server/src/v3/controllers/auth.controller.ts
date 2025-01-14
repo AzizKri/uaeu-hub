@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { getSignedCookie } from 'hono/cookie';
 import { z } from 'zod';
-import { userSchema } from '../util/validationSchemas';
+import { isUsernameValid, userSchema } from '../util/validationSchemas';
 import { sendAuthCookie, sendUserIdCookie } from '../util/util';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
 
@@ -51,6 +51,9 @@ export async function signup(c: Context) {
             return c.json({ message: 'Internal Server Error', status: 500 }, 500);
         }
     }
+
+    // Check if username is reserved
+    if (!isUsernameValid(username)) return c.json({ message: 'Username is reserved', status: 400 }, 400);
 
     // Check if username / email already used
     const existingUser = await env.DB.prepare(`
@@ -134,7 +137,7 @@ export async function signup(c: Context) {
             await sendAuthCookie(c, PlainSessionKey);
             await sendUserIdCookie(c, user.id.toString(), false);
 
-            return c.json(user, { status: 200 });
+            return c.json(user, { status: 201 });
         }
     } catch (e) {
         console.log(e);
