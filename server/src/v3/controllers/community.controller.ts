@@ -801,7 +801,7 @@ export async function editCommunity(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const communityId = Number(c.req.param('id'));
+    const communityIdStr = c.req.param('id');
     let { name, desc, icon, tags }: {
         name: string | null,
         desc: string | null,
@@ -811,7 +811,10 @@ export async function editCommunity(c: Context) {
     } = c.req.valid('form');
 
     // Check for required fields
-    if (!communityId) return c.text('No community ID provided', { status: 400 });
+    if (communityIdStr === undefined) return c.text('No community ID provided', { status: 400 });
+
+    const communityId = Number(communityIdStr);
+    if (isNaN(communityId)) return c.text('Invalid community ID', { status: 400 });
 
     try {
         // Check if community exists
@@ -840,7 +843,15 @@ export async function editCommunity(c: Context) {
                  WHERE name = ?`
             ).bind(name).first<CommunityRow>();
             if (exists) return c.text('Community name already taken', { status: 400 });
+        } else {
+            name = null;
         }
+
+        // Check description
+        if (!desc) desc = null;
+
+        // Check icon
+        if (!icon) icon = null;
 
         // Check if tags are different
         const currentTags = await env.DB.prepare(`
@@ -849,7 +860,7 @@ export async function editCommunity(c: Context) {
             WHERE id = ?
         `).bind(communityId).first<CommunityRow>();
 
-        if (tags && currentTags!.tags === tags.join(',')) {
+        if (!tags || (tags && currentTags!.tags === tags.join(','))) {
             tags = null;
         } else {
             // Get the removed tags
