@@ -161,12 +161,22 @@ export async function authenticateWithGoogle(c: Context) {
 
     // Get data & validate
     const { email, email_verified, name, given_name, picture, sub, exp } = await response.json() as GoogleTokenResponse;
-    if (!email || !email_verified || !name || !given_name || !sub || !exp) return c.json({ message: 'Invalid token', status: 401 }, 401);
+    if (!email || !email_verified || !name || !given_name || !sub || !exp) return c.json({
+        message: 'Invalid token',
+        status: 401
+    }, 401);
     if (Number(exp) && Number(exp) < Date.now() / 1000) return c.json({ message: 'Token expired', status: 401 }, 401);
 
     // Check if user exists
     const user = await env.DB.prepare(`
-        SELECT id, username, email, bio, displayname, pfp, google_id, is_anonymous
+        SELECT id,
+               username,
+               email,
+               bio,
+               displayname,
+               pfp,
+               google_id,
+               is_anonymous
         FROM user
         WHERE google_id = ?
     `).bind(sub).first<UserRow>();
@@ -176,12 +186,13 @@ export async function authenticateWithGoogle(c: Context) {
         const PlainSessionKey = crypto.randomUUID();
         const sessionKey = await hashSessionKey(PlainSessionKey);
 
-        c.executionCtx.waitUntil(
-            env.DB.prepare(`
-                INSERT INTO session (id, user_id, is_anonymous, ip)
-                VALUES (?, ?, false, ?)
-            `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run()
-        )
+        c.executionCtx.waitUntil(Promise.resolve(async () => {
+                await env.DB.prepare(`
+                    INSERT INTO session (id, user_id, is_anonymous, ip)
+                    VALUES (?, ?, false, ?)
+                `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run();
+            })
+        );
 
         await sendAuthCookie(c, PlainSessionKey);
         await sendUserIdCookie(c, user.id.toString(), false);
@@ -224,14 +235,14 @@ export async function authenticateWithGoogle(c: Context) {
             await env.DB.prepare(`
                 INSERT INTO session (id, user_id, is_anonymous, ip)
                 VALUES (?, ?, false, ?)
-            `).bind(sessionKey, newUser.id, c.req.header('cf-connecting-ip') || '').run()
+            `).bind(sessionKey, newUser.id, c.req.header('cf-connecting-ip') || '').run();
 
             // Add user to general community
             await env.DB.prepare(`
                 INSERT INTO user_community (user_id, community_id, role_id)
                 VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
             `).bind(newUser.id).run();
-        }))
+        }));
 
         return c.json(newUser, { status: 201 });
     }
