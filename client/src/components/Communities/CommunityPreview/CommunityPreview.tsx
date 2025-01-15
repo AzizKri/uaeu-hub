@@ -7,14 +7,14 @@ import {joinCommunity} from "../../../api/communities.ts";
 import {useNavigate} from "react-router-dom";
 import communityIcon from "../../../assets/community-icon.jpg"
 
-interface CommunityPreviewProps {
-    icon?: string;
-    name: string;
-    id: number;
-    members: number;
-    isMember?: boolean;
-    onJoin?: (id: number) => void;
-}
+// interface CommunityPreviewProps {
+//     icon?: string;
+//     name: string;
+//     id: number;
+//     members: number;
+//     isMember?: boolean;
+//     onJoin?: (id: number) => void;
+// }
 
 export default function CommunityPreview({
     icon,
