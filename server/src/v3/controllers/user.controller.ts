@@ -30,6 +30,31 @@ export async function getCurrentUser(c: Context) {
     }
 }
 
+export async function searchUser(c: Context) {
+    // Get the required fields
+    const env: Env = c.env;
+    const query = c.req.query('query');
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    // Check for required fields
+    if (!query) return c.text('No query provided', { status: 400 });
+
+    try {
+        // Search for users
+        const users = await env.DB.prepare(`
+            SELECT *
+            FROM user_view
+            WHERE displayname LIKE ? OR username LIKE ?
+            LIMIT 10 OFFSET ?
+        `).bind(`%${query}%`, `%${query}%`, page * 10).all<UserView>();
+
+        return c.json(users.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
 export async function getUserByUsername(c: Context) {
     // api.uaeu.chat/user/:username
     const env: Env = c.env;
@@ -140,6 +165,47 @@ export async function getUserCommunities(c: Context) {
         `).bind(userId).all<CommunityRow>();
 
         return c.json(communities.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function editUser(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // No user or is anonymous
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    // Parse body
+    let { displayname, pfp, bio }: {
+        displayname: string | null;
+        bio: string | null;
+        pfp: string | null;
+        // @ts-ignore
+    } = c.req.valid('form');
+
+    // No changes
+    if (!displayname && !bio && !pfp) return c.json({ message: 'No changes', status: 400 }, 400);
+
+    // Update null values
+    if (!displayname) displayname = null;
+    if (!bio) bio = null;
+    if (!pfp) pfp = null;
+
+    try {
+        // Update user
+        await env.DB.prepare(`
+            UPDATE user
+            SET displayname = CASE WHEN ? IS NOT NULL THEN ? ELSE displayname END,
+                bio         = CASE WHEN ? IS NOT NULL THEN ? ELSE bio END,
+                pfp         = CASE WHEN ? IS NOT NULL THEN ? ELSE pfps END
+            WHERE id = ?
+        `).bind(displayname, displayname, bio, bio, pfp, pfp, userId).run();
+
+        return c.json({ message: 'User updated', status: 200 });
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);

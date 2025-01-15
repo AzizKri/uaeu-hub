@@ -3,7 +3,7 @@
 }
 
 .userProfileHeader{
-    padding: 1rem;
+    padding: 1rem 1rem 0;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #fff;
@@ -62,29 +62,27 @@
 
 .tabs {
     display: flex;
-    justify-content: space-evenly;
-    //gap: 1rem;
-    margin-bottom: 1rem;
+    color: #888;
+    font-size: 14px;
+    position: sticky;
+    top: 70px;
+    background-color: white;
+    z-index: 1;
+
+    .tabElement {
+        padding: 5px 10px ;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: #fafafa;
+        }
+        &.active {
+            border-bottom: 2px solid var(--main-color);
+        }
+    }
 }
 
-.tabButton {
-    padding: 1rem 2rem;
-    border: none;
-    background: #f2f2f2;
-    cursor: pointer;
-    border-radius: 20px;
-    transition: background-color 0.2s ease;
-}
-
-.tabButton:hover {
-    background: #d1d1d1;
-}
-
-
-.tabButton.active {
-    background-color: rgb(215, 66, 12);
-    color: #fff;
-}
 
 .tabContent {
     padding-top: 1rem;

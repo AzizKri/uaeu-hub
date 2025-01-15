@@ -29,3 +29,12 @@ export async function logout() {
     const data = await fetch(base + `/auth/logout`, { credentials: 'include' });
     return data.status;
 }
+
+export async function signInWithGoogle(credential: string) {
+    return await fetch(base + `/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+        credentials: 'include'
+    });
+}

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import usernames from './usernames.json';
 
 export const communitySchema = z.object({
     name: z.string()
@@ -68,3 +69,13 @@ export const userSchema = z.object({
     email: emailSchema,
     password: passwordSchema
 });
+
+export const userEditingSchema = z.object({
+    displayname: displaynameSchema.optional(),
+    bio: z.string().max(1024, 'Bio must be at most 1024 characters long').optional(),
+    pfp: z.string().optional()
+})
+
+export function isUsernameValid(username: string): boolean {
+    return !usernames.includes(username);
+}

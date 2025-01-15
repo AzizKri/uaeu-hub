@@ -38,7 +38,7 @@ export const authMiddleware = createMiddleware(
 
 async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
     // Begin with checking the session key before token. No token without key
-    const sessionKey = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
+    const sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
 
     if (!sessionKey) {
         console.log("authMiddleware -> No session key");
@@ -55,7 +55,7 @@ async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
         console.log("authMiddleware -> sessionKey");
 
         // There is a session key, check if there's a valid token
-        const sessionToken = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionToken') as string;
+        const sessionToken = await getSignedCookie(c, c.env.EN_SECRET, 'sessionToken') as string;
 
         if (sessionToken) {
             console.log("authMiddleware -> sessionKey -> sessionToken");
@@ -106,7 +106,7 @@ async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
 export const postRateLimitMiddleware = createMiddleware(
     async (c, next) => {
         const env: Env = c.env;
-        const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+        const sessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
         const { success } = await env.POSTS_RL.limit({ key: `postRequests_${sessionKey}` });
         if (!success) {
             return c.json({ success: false, message: 'Rate limit exceeded', status: 429, results: [] }, 429);
@@ -119,7 +119,7 @@ export const postRateLimitMiddleware = createMiddleware(
 export const uploadAttachmentLimitMiddleware = createMiddleware(
     async (c, next) => {
         const env: Env = c.env;
-        const sessionKey = await getSignedCookie(c, env.JWT_SECRET, 'sessionKey') as string;
+        const sessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
         const { success } = await env.ATTACHMENT_RL.limit({ key: `postRequests_${sessionKey}` });
         if (!success) {
             return c.json({ success: false, message: 'Rate limit exceeded', status: 429, results: [] }, 429);

@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { JwtVariables } from 'hono/jwt';
 import { authMiddlewareCheckOnly } from '../util/middleware';
 import {
     communityExists,
@@ -23,9 +22,8 @@ import {
 import { validator } from 'hono/validator';
 import { communityEditingSchema, communitySchema } from '../util/validationSchemas';
 
-type Variables = JwtVariables
 
-const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+const app = new Hono<{ Bindings: Env}>();
 
 // Create Community
 app.post('/',

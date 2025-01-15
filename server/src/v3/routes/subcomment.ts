@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import type { JwtVariables } from 'hono/jwt';
 import { authMiddleware, authMiddlewareCheckOnly, postRateLimitMiddleware } from '../util/middleware';
 import {
     deleteSubcomment,
@@ -8,9 +7,8 @@ import {
     subcomment
 } from '../controllers/subcomment.controller';
 
-type Variables = JwtVariables
 
-const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+const app = new Hono<{ Bindings: Env}>();
 
 app.post('/', postRateLimitMiddleware, authMiddleware, (c) => subcomment(c));
 app.post('/like/:scid', authMiddleware, (c) => likeSubcomment(c));
