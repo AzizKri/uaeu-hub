@@ -72,8 +72,8 @@ declare global {
 
     interface UpdatePostsContextInterface {
         posts: React.ReactElement[];
-        updatePosts: (page? : number) => void;
-        deletePost: (postId : number) => void;
+        updatePosts: (page?: number) => void;
+        deletePost: (postId: number) => void;
         prependPost: (post: React.ReactElement) => void;
         loading: boolean;
     }
@@ -137,6 +137,16 @@ declare global {
         passUpperError: boolean,
         passNumberError: boolean,
         passSpecialError: boolean,
+    }
+
+    interface CommunityPreviewProps {
+        icon?: string,
+        name: string,
+        id: number,
+        members: number,
+        isMember?: boolean,
+        onJoin?: (id: number) => void,
+        communityInfo?: boolean
     }
 
     interface WebSocketInterface {
