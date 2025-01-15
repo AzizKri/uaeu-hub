@@ -1,7 +1,57 @@
 import styles from "./Right.module.scss";
-import communityIcon from "../../assets/community-icon.jpg"
+import { useEffect, useState } from "react";
+import { getCommunities } from "../../api/communities.ts";
+import CommunityPreview from "../Communities/CommunityPreview/CommunityPreview.tsx";
 
 export default function Right() {
+    const [trendingCommunities, setTrendingCommunities] = useState<
+        CommunityInfo[]
+    >([]);
+
+    useEffect(() => {
+        getCommunities("members").then((res) => {
+            setTrendingCommunities(
+                res.data.map(
+                    (com: {
+                        id: number;
+                        name: string;
+                        description: string;
+                        icon?: string;
+                        public: boolean;
+                        inviteOnly: boolean;
+                        created_at: string | number | Date;
+                        tags: string;
+                        member_count: number;
+                        is_member: boolean;
+                    }) => ({
+                        id: com.id,
+                        name: com.name,
+                        description: com.description,
+                        icon: com.icon,
+                        public: com.public,
+                        inviteOnly: com.inviteOnly,
+                        createdAt: new Date(com.created_at),
+                        tags: com.tags,
+                        memberCount: com.member_count,
+                        isMember: com.is_member,
+                    }),
+                ),
+            );
+        });
+    }, []);
+
+    const onJoin = (id: number) => {
+        setTrendingCommunities((prev) => (
+            prev.map((com) => {
+                if (com.id === id) {
+                    return {...com, isMember: true};
+                } else {
+                    return com;
+                }
+            })
+        ))
+    }
+
     return (
         <div className={styles.container}>
             <div className={styles.title}>
@@ -16,54 +66,25 @@ export default function Right() {
                 </svg>
             </div>
             <ul className={styles.list}>
-                <li className={styles.community}>
-                    <img
-                        src={communityIcon}
-                        alt="Community Icon"
-                        className={styles.communityIcon}
+                {trendingCommunities.map((com) => (
+                    <CommunityPreview
+                        key={com.id}
+                        icon={com.icon}
+                        name={com.name}
+                        id={com.id}
+                        members={com.memberCount}
+                        isMember={com.isMember}
+                        onJoin={onJoin}
                     />
-                    <span className={styles.communityName}>Community name</span>
-                </li>
-                <li className={styles.community}>
-                    <img
-                        src={communityIcon}
-                        alt="Community Icon"
-                        className={styles.communityIcon}
-                    />
-                    <span className={styles.communityName}>Community name</span>
-                </li>
-                <li className={styles.community}>
-                    <img
-                        src={communityIcon}
-                        alt="Community Icon"
-                        className={styles.communityIcon}
-                    />
-                    <span className={styles.communityName}>Community name</span>
-                </li>
-                <li className={styles.community}>
-                    <img
-                        src={communityIcon}
-                        alt="Community Icon"
-                        className={styles.communityIcon}
-                    />
-                    <span className={styles.communityName}>Community name</span>
-                </li>
-                <li className={styles.community}>
-                    <img
-                        src={communityIcon}
-                        alt="Community Icon"
-                        className={styles.communityIcon}
-                    />
-                    <span className={styles.communityName}>Community name</span>
-                </li>
-                <li className={styles.community}>
-                    <img
-                        src={communityIcon}
-                        alt="Community Icon"
-                        className={styles.communityIcon}
-                    />
-                    <span className={styles.communityName}>Community name</span>
-                </li>
+                    // <li className={styles.community}>
+                    //     <img
+                    //         src={com.icon ? com.icon : communityIcon}
+                    //         alt="Community Icon"
+                    //         className={styles.communityIcon}
+                    //     />
+                    //     <span className={styles.communityName}>{com.name}</span>
+                    // </li>
+                ))}
             </ul>
         </div>
     );

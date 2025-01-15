@@ -1,0 +1,45 @@
+.communityPreview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #fafafa;
+    }
+    .communityIcon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        //temp
+        background-color: #eee;
+    }
+
+    .info {
+        .communityName {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .members {
+            display: flex;
+            align-items: center;
+            .memberIcon {
+
+            }
+        }
+    }
+
+    .join {
+        background: #2b4162ff;
+        color: white;
+        padding: 7px 12px;
+        border-radius: 10px;
+        margin-left: auto;
+        transition: background-color 200ms ease;
+
+        &:hover {
+            background: #2b4162ff;
+        }
+    }
+}
