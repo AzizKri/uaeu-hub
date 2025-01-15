@@ -38,7 +38,13 @@ export const authMiddleware = createMiddleware(
 
 async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
     // Begin with checking the session key before token. No token without key
-    const sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
+    let sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
+    const sessionKeyJWT = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
+
+    console.log("authMiddleware -> sessionKey", sessionKey);
+    console.log("authMiddleware -> sessionKeyJWT", sessionKeyJWT);
+
+    if (!sessionKey && sessionKeyJWT) sessionKey = sessionKeyJWT;
 
     if (!sessionKey) {
         console.log("authMiddleware -> No session key");
@@ -55,7 +61,13 @@ async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
         console.log("authMiddleware -> sessionKey");
 
         // There is a session key, check if there's a valid token
-        const sessionToken = await getSignedCookie(c, c.env.EN_SECRET, 'sessionToken') as string;
+        let sessionToken = await getSignedCookie(c, c.env.EN_SECRET, 'sessionToken') as string;
+        const sessionTokenJWT = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionToken') as string;
+
+        console.log("authMiddleware -> sessionKey -> sessionToken", sessionToken);
+        console.log("authMiddleware -> sessionKey -> sessionTokenJWT", sessionTokenJWT);
+
+        if (!sessionToken && sessionTokenJWT) sessionToken = sessionTokenJWT;
 
         if (sessionToken) {
             console.log("authMiddleware -> sessionKey -> sessionToken");

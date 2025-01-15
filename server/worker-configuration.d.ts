@@ -6,6 +6,7 @@ interface Env {
     POSTS_RL: any;
     ATTACHMENT_RL: any;
     EN_SECRET: string;
+    JWT_SECRET: string;
     ENVIRONMENT: string;
     WS_SECRET: string;
     WEBSOCKET_URL: string;
