@@ -50,6 +50,7 @@ declare global {
         createdAt: Date
         tags: string
         memberCount: number
+        isMember?: boolean
     }
 
     interface CommunityInfoSimple {
@@ -140,10 +141,6 @@ declare global {
 
     interface WebSocketInterface {
         ws: WebSocket | null;
-    }
-
-    interface DocumentMetadata extends GenericMetadata {
-
     }
 }
 

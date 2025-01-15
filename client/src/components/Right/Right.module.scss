@@ -15,23 +15,8 @@
     }
 
     .list {
-
-        .community {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-block: 10px;
-            cursor: pointer;
-
-            .communityName {
-
-            }
-
-            .communityIcon {
-                width: 45px;
-                height: 45px;
-                border-radius: 50%;
-            }
+        > div {
+            margin-block: 5px;
         }
     }
 }
