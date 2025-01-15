@@ -174,6 +174,11 @@ export default function SignUp() {
         });
     };
 
+    const handleGoToLogin = () => {
+        // navigate(-1);
+        navigate('/login');
+    }
+
     return (
         <div className={styles.formBody}>
             <div className={styles.formContainer}>
@@ -370,9 +375,9 @@ export default function SignUp() {
                     </form>
                     <p className={styles.textParagraph}>
                         Already a member?{" "}
-                        <Link to="/login" className={styles.formLink}>
+                        <span className={styles.formLink} onClick={handleGoToLogin}>
                             Login
-                        </Link>
+                        </span>
                     </p>
                 </div>
             </div>

@@ -51,6 +51,7 @@ export default function NavBar() {
         const response = await logout();
         if (response == 200) {
             removeUser();
+            window.location.reload();
         } else {
             console.log("Error logging out", response);
         }
