@@ -498,21 +498,19 @@ export async function deletePost(c: Context) {
 
         // Check for attachment and delete in the background
         if (post.attachment) {
-            c.executionCtx.waitUntil(Promise.resolve(async () => {
-                try {
+            c.executionCtx.waitUntil(Promise.all([
                     // Delete the attachment from R2
-                    await env.R2.delete(`attachments/${post.attachment}`);
+                    env.R2.delete(`attachments/${post.attachment}`),
 
                     // Delete the attachment from the DB
-                    await env.DB.prepare(`
+                    env.DB.prepare(`
                         DELETE
                         FROM attachment
                         WHERE filename = ?
-                    `).bind(post.attachment).run();
-                } catch (e) {
-                    console.log(e);
-                }
-            }));
+                    `).bind(post.attachment).run()
+                ]).then(() => console.log('Attachment deleted'))
+                    .catch((e) => console.log('Attachment delete failed', e))
+            );
         }
 
         // Delete the post
