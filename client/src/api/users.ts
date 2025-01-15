@@ -6,3 +6,10 @@ export async function getUserByUsername(username: string) {
     return { status: request.status, data: await request.json() };
 }
 
+export async function searchUser(query: string, page: number = 0) {
+    const request = await fetch(base + `/user/search?query=${query}&page=${page}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
