@@ -118,20 +118,21 @@ export async function signup(c: Context) {
             // const sessionKey = await hashSessionKey(PlainSessionKey, sessionKeyEncoded);
 
             // Insert session key into session table & add as member of the general community
-            c.executionCtx.waitUntil(Promise.resolve(async () => {
+            c.executionCtx.waitUntil(Promise.all([
                     // Insert into session table
                     await env.DB.prepare(`
                         INSERT INTO session (id, user_id, is_anonymous, ip)
                         VALUES (?, ?, false, ?)
-                    `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run();
+                    `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run(),
 
                     // Add user to general community
                     await env.DB.prepare(`
                         INSERT INTO user_community (user_id, community_id, role_id)
                         VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
-                    `).bind(user.id).run();
-                }
-            ));
+                    `).bind(user.id).run()
+                ]).then(() => console.log('User created successfully'))
+                    .catch((e) => console.log('User creation failed', e))
+            );
 
             // Send session key & token
             await sendAuthCookie(c, PlainSessionKey);
@@ -190,12 +191,11 @@ export async function authenticateWithGoogle(c: Context) {
             const PlainSessionKey = crypto.randomUUID();
             const sessionKey = await hashSessionKey(PlainSessionKey);
 
-            c.executionCtx.waitUntil(Promise.resolve(async () => {
-                    await env.DB.prepare(`
-                        INSERT INTO session (id, user_id, is_anonymous, ip)
-                        VALUES (?, ?, false, ?)
-                    `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run();
-                })
+            c.executionCtx.waitUntil(
+                env.DB.prepare(`
+                    INSERT INTO session (id, user_id, is_anonymous, ip)
+                    VALUES (?, ?, false, ?)
+                `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run()
             );
 
             await sendAuthCookie(c, PlainSessionKey);
@@ -234,19 +234,21 @@ export async function authenticateWithGoogle(c: Context) {
             await sendAuthCookie(c, PlainSessionKey);
             await sendUserIdCookie(c, newUser.id.toString(), false);
 
-            c.executionCtx.waitUntil(Promise.resolve(async () => {
-                // Insert into session table
-                await env.DB.prepare(`
-                    INSERT INTO session (id, user_id, is_anonymous, ip)
-                    VALUES (?, ?, false, ?)
-                `).bind(sessionKey, newUser.id, c.req.header('cf-connecting-ip') || '').run();
+            c.executionCtx.waitUntil(Promise.all([
+                    // Insert into session table
+                    env.DB.prepare(`
+                        INSERT INTO session (id, user_id, is_anonymous, ip)
+                        VALUES (?, ?, false, ?)
+                    `).bind(sessionKey, newUser.id, c.req.header('cf-connecting-ip') || '').run(),
 
-                // Add user to general community
-                await env.DB.prepare(`
-                    INSERT INTO user_community (user_id, community_id, role_id)
-                    VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
-                `).bind(newUser.id).run();
-            }));
+                    // Add user to general community
+                    env.DB.prepare(`
+                        INSERT INTO user_community (user_id, community_id, role_id)
+                        VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
+                    `).bind(newUser.id).run()
+                ]).then(() => console.log('User created successfully'))
+                    .catch((e) => console.log('User creation failed', e))
+            );
 
             return c.json(newUser, { status: 201 });
         }
@@ -302,7 +304,6 @@ export async function anonSignup(c: Context, returnInternal: boolean = false) {
                 VALUES (?, ?, true, ?)
             `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run()
         );
-
 
         // Send the session key & token
         await sendAuthCookie(c, PlainSessionKey);
