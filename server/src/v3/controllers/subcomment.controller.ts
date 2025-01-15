@@ -95,7 +95,7 @@ export async function getSubcommentsOnComment(c: Context) {
             return c.json(subcomments.results, { status: 200 });
         }
     } catch (e) {
-        console.log("error getting subComments on Comment", e);
+        console.log('error getting subComments on Comment', e);
         return c.text('Internal Server Error', { status: 500 });
     }
 }
@@ -116,28 +116,27 @@ export async function deleteSubcomment(c: Context) {
         const result = await env.DB.prepare(
             `DELETE
              FROM subcomment
-             WHERE id = ? AND author_id = ?`
+             WHERE id = ?
+               AND author_id = ?`
         ).bind(subcommentID, userId).first<SubcommentRow>();
 
         if (!result) return c.text('Failed to delete subcomment', { status: 400 });
 
         // Check for attachment and delete in the background
         if (result.attachment) {
-            c.executionCtx.waitUntil(Promise.resolve(async () => {
-                try {
+            c.executionCtx.waitUntil(Promise.all([
                     // Delete the attachment from R2
-                    await env.R2.delete(`attachments/${result.attachment}`);
+                    env.R2.delete(`attachments/${result.attachment}`),
 
                     // Delete the attachment from the DB
-                    await env.DB.prepare(`
+                    env.DB.prepare(`
                         DELETE
                         FROM attachment
                         WHERE filename = ?
-                    `).bind(result.attachment).run();
-                } catch (e) {
-                    console.log(e);
-                }
-            }));
+                    `).bind(result.attachment).run()
+                ]).then(() => console.log('Attachment deleted'))
+                    .catch((e) => console.log('Attachment delete failed', e))
+            );
         }
 
         return c.text('Subcomment deleted', { status: 200 });
