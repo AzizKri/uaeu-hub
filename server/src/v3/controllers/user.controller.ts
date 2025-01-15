@@ -67,7 +67,7 @@ export async function getUserByUsername(c: Context) {
         // Get user data
         const result: UserView | null = await env.DB.prepare(
             'SELECT * FROM user_view WHERE username = ?'
-        ).bind(username.toLowerCase()).first<UserView>();
+        ).bind(username).first<UserView>();
         // No result found, 404
         if (!result) return c.json({ message: 'User not found', status: 404 }, 404);
         // Result found, return it
