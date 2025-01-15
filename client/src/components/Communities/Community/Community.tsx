@@ -1,8 +1,7 @@
 import styles from "./Community.module.scss";
 import pfp from "../../../assets/community-icon.jpg"
 import React, {useEffect, useState} from "react";
-import profilePicture from "../../../assets/profile-picture.png";
-import {Link, useParams} from "react-router-dom";
+import {useParams} from "react-router-dom";
 import {
     getMembersOfCommunity,
     getCommunityByName,
@@ -15,6 +14,7 @@ import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
 import arrowRight from "../../../assets/chevron-right.svg"
 import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
+import UserPreview from "../../UserPreview/UserPreview.tsx";
 
 // export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
@@ -281,20 +281,3 @@ export default function Community() {
     );
 }
 
-function UserPreview({ user }: { user: UserInfo }) {
-    return (
-        <Link to={`/user/${user.username}`}>
-            <div className={styles.user}>
-                <img
-                    className={styles.pfp}
-                    src={user.pfp ? user.pfp : profilePicture}
-                    alt="user profile picture"
-                />
-                <div className={styles.names}>
-                    <div className={styles.displayName}>{user.displayName}</div>
-                    <div className={styles.username}>@{user.username}</div>
-                </div>
-            </div>
-        </Link>
-    );
-}
