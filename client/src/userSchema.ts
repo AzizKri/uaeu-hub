@@ -9,7 +9,7 @@ const usernameSchema = z
     .string()
     .min(3, 'Username must be at least 3 characters long')
     .max(20)
-    .regex(/^[a-zA-Z0-9.\-_]+$/,
+    .regex(/^(?!.*[_.-]{2})[a-z0-9._-]+$/,
         'Username can only contain alphanumeric characters, underscores, dashes, and dots, but not consecutively');
 
 const emailSchema = z

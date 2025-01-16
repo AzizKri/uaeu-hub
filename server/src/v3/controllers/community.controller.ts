@@ -176,7 +176,7 @@ export async function getCommunityPostsBest(c: Context) {
                        (
                            (pv.like_count * 10 + pv.comment_count * 5) /
                            (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
-                                 (3600 * 24))))             AS score -- 1 day
+                                 (3600 * 24))))                                        AS score -- 1 day
                 FROM post_view pv
                          LEFT JOIN post_like pl on pv.id = pl.post_id
                 WHERE pv.community_id = ?
@@ -238,12 +238,10 @@ export async function getCommunityByName(c: Context) {
                     SELECT *,
                            (SELECT cr.name
                             FROM community_role as cr
-                            WHERE cr.id IN (
-                                SELECT role_id
-                                FROM user_community as uc
-                                WHERE uc.community_id = c.id AND uc.user_id = ?
-                                )
-                           ) as role
+                            WHERE cr.id IN (SELECT role_id
+                                            FROM user_community as uc
+                                            WHERE uc.community_id = c.id
+                                              AND uc.user_id = ?)) as role
                     FROM community c
                     WHERE c.name = ?
                 `).bind(userId, name).first<CommunityRow>();
@@ -389,8 +387,8 @@ export async function getCommunitiesSortByMembers(c: Context) {
                 SELECT *
                 FROM community
                 ORDER BY ?
-                LIMIT 10 OFFSET ?
-            `).bind(`member_count ${order.toUpperCase()}`, page).all<CommunityRow>();
+                LIMIT 5 OFFSET ?
+            `).bind(`member_count ${order.toUpperCase()}`, page * 5).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -401,8 +399,8 @@ export async function getCommunitiesSortByMembers(c: Context) {
                     SELECT *
                     FROM community
                     ORDER BY ?
-                    LIMIT 10 OFFSET ?
-                `).bind(`member_count ${order.toUpperCase()}`, page).all<CommunityRow>();
+                    LIMIT 5 OFFSET ?
+                `).bind(`member_count ${order.toUpperCase()}`, page * 5).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -412,8 +410,8 @@ export async function getCommunitiesSortByMembers(c: Context) {
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
                     FROM community c
                     ORDER BY ?
-                    LIMIT 10 OFFSET ?
-                `).bind(userId, `member_count ${order.toUpperCase()}`, page).all<CommunityRow>();
+                    LIMIT 5 OFFSET ?
+                `).bind(userId, `member_count ${order.toUpperCase()}`, page * 5).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -959,9 +957,7 @@ export async function deleteCommunity(c: Context) {
 export async function getCommunityMembers(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
-
-    // Check if user is valid and not anonymous
-    if (!userId) return c.text('Unauthorized', { status: 401 });
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
@@ -971,33 +967,40 @@ export async function getCommunityMembers(c: Context) {
     if (isNaN(communityId) || communityId === undefined) return c.text('No community ID provided', { status: 400 });
 
     try {
-        // // Check if the user is an administrator of the community
-        // const role = await env.DB.prepare(
-        //     `SELECT 1
-        //      FROM user_community
-        //      WHERE user_id = ?
-        //        AND community_id = ?
-        //        AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
-        // ).bind(userId, communityId, communityId).first<CommunityMemberRow>();
-        //
-        // if (!role) return c.text('Unauthorized', { status: 401 });
-
         // Get the members of the community
-        const members = await env.DB.prepare(`
-            SELECT u.id,
-                   u.username,
-                   u.displayname as displayName,
-                   u.pfp,
-                   u.created_at,
-                   uc.joined_at,
-                   cr.name as role
-            FROM user_community uc
-                     JOIN user u ON uc.user_id = u.id
-                     JOIN community_role cr ON uc.role_id = cr.id
-            WHERE uc.community_id = ?
-        `).bind(communityId).all<CommunityMemberRow>();
+        if (!userId || isAnonymous) {
+            // Get the members of the community without their roles
+            const members = await env.DB.prepare(`
+                SELECT u.id,
+                       u.username,
+                       u.displayname as displayName,
+                       u.pfp,
+                       u.created_at,
+                       uc.joined_at
+                FROM user_community uc
+                         JOIN user u ON uc.user_id = u.id
+                WHERE uc.community_id = ?
+            `).bind(communityId).all<CommunityMemberRow>();
 
-        return c.json(members.results, { status: 200 });
+            return c.json(members.results, { status: 200 });
+        } else {
+            // Get the members of the community with their roles
+            const members = await env.DB.prepare(`
+                SELECT u.id,
+                       u.username,
+                       u.displayname as displayName,
+                       u.pfp,
+                       u.created_at,
+                       uc.joined_at,
+                       cr.name       as role
+                FROM user_community uc
+                         JOIN user u ON uc.user_id = u.id
+                         JOIN community_role cr ON uc.role_id = cr.id
+                WHERE uc.community_id = ?
+            `).bind(communityId).all<CommunityMemberRow>();
+
+            return c.json(members.results, { status: 200 });
+        }
     } catch (e) {
         console.log(e);
         return c.text('Internal Server Error', { status: 500 });
