@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import {
-    editUser,
+    editCurrentUser,
     getCurrentUser,
     getUserByUsername,
-    getUserCommunities,
-    getUserLikesOnComments,
-    getUserLikesOnPosts,
-    getUserLikesOnSubcomments, searchUser
+    getCurrentUserCommunities,
+    getCurrentUserLikesOnComments,
+    getCurrentUserLikesOnPosts,
+    getCurrentUserLikesOnSubcomments, searchUser, getUserCommunities
 } from '../controllers/user.controller';
 import { authMiddlewareCheckOnly } from '../util/middleware';
 import { validator } from 'hono/validator';
@@ -19,15 +19,15 @@ app.get('/likes', authMiddlewareCheckOnly, (c) => {
     const type = c.req.query('type');
     switch (type) {
         case 'comments':
-            return getUserLikesOnComments(c);
+            return getCurrentUserLikesOnComments(c);
         case 'subcomments':
-            return getUserLikesOnSubcomments(c);
+            return getCurrentUserLikesOnSubcomments(c);
         case 'posts':
         default:
-            return getUserLikesOnPosts(c);
+            return getCurrentUserLikesOnPosts(c);
     }
 });
-app.get('/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
+app.get('/communities', authMiddlewareCheckOnly, (c) => getCurrentUserCommunities(c));
 
 app.get('/search', (c) => searchUser(c));
 app.get('/:userId/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
@@ -39,6 +39,6 @@ app.post('/', validator('form', (value, c) => {
         return c.text('Invalid user data', 400);
     }
     return parsed.data;
-}), (c) => editUser(c));
+}), (c) => editCurrentUser(c));
 
 export default app;

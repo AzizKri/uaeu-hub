@@ -2,6 +2,8 @@ import { Context } from 'hono';
 
 /* User information */
 
+// Current User
+
 export async function getCurrentUser(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
@@ -29,6 +31,142 @@ export async function getCurrentUser(c: Context) {
         return c.json({ message: 'Unauthorized', status: 401 }, 401);
     }
 }
+
+export async function getCurrentUserLikesOnPosts(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // No user or is anonymous
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    try {
+        // Get user likes
+        const likes = await env.DB.prepare(`
+            SELECT post_id
+            FROM post_like
+            WHERE user_id = ?
+        `).bind(userId).all<PostLikeRow>();
+
+        return c.json(likes.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getCurrentUserLikesOnComments(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // No user or is anonymous
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    try {
+        // Get user likes
+        const likes = await env.DB.prepare(`
+            SELECT comment_id
+            FROM comment_like
+            WHERE user_id = ?
+        `).bind(userId).all<CommentLikeRow>();
+
+        return c.json(likes.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getCurrentUserLikesOnSubcomments(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // No user or is anonymous
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    try {
+        // Get user likes
+        const likes = await env.DB.prepare(`
+            SELECT subcomment_id
+            FROM subcomment_like
+            WHERE user_id = ?
+        `).bind(userId).all<SubcommentLikeRow>();
+
+        return c.json(likes.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getCurrentUserCommunities(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // No user or is anonymous
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    try {
+        // Get communities
+        const communities = await env.DB.prepare(`
+            SELECT c.id, c.name, c.icon
+            FROM community c
+                     JOIN user_community cm ON c.id = cm.community_id
+            WHERE cm.user_id = ?
+        `).bind(userId).all<CommunityRow>();
+
+        return c.json(communities.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function editCurrentUser(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // No user or is anonymous
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    // Parse body
+    let { displayname, pfp, bio }: {
+        displayname: string | null;
+        bio: string | null;
+        pfp: string | null;
+        // @ts-ignore
+    } = c.req.valid('form');
+
+    // No changes
+    if (!displayname && !bio && !pfp) return c.json({ message: 'No changes', status: 400 }, 400);
+
+    // Update null values
+    if (!displayname) displayname = null;
+    if (!bio) bio = null;
+    if (!pfp) pfp = null;
+
+    try {
+        // Update user
+        await env.DB.prepare(`
+            UPDATE user
+            SET displayname = CASE WHEN ? IS NOT NULL THEN ? ELSE displayname END,
+                bio         = CASE WHEN ? IS NOT NULL THEN ? ELSE bio END,
+                pfp         = CASE WHEN ? IS NOT NULL THEN ? ELSE pfps END
+            WHERE id = ?
+        `).bind(displayname, displayname, bio, bio, pfp, pfp, userId).run();
+
+        return c.json({ message: 'User updated', status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+// All
 
 export async function searchUser(c: Context) {
     // Get the required fields
@@ -72,140 +210,6 @@ export async function getUserByUsername(c: Context) {
         if (!result) return c.json({ message: 'User not found', status: 404 }, 404);
         // Result found, return it
         return c.json(result, 200);
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function getUserLikesOnPosts(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
-
-    // No user or is anonymous
-    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
-
-    try {
-        // Get user likes
-        const likes = await env.DB.prepare(`
-            SELECT post_id
-            FROM post_like
-            WHERE user_id = ?
-        `).bind(userId).all<PostLikeRow>();
-
-        return c.json(likes.results, { status: 200 });
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function getUserLikesOnComments(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
-
-    // No user or is anonymous
-    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
-
-    try {
-        // Get user likes
-        const likes = await env.DB.prepare(`
-            SELECT comment_id
-            FROM comment_like
-            WHERE user_id = ?
-        `).bind(userId).all<CommentLikeRow>();
-
-        return c.json(likes.results, { status: 200 });
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function getUserLikesOnSubcomments(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
-
-    // No user or is anonymous
-    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
-
-    try {
-        // Get user likes
-        const likes = await env.DB.prepare(`
-            SELECT subcomment_id
-            FROM subcomment_like
-            WHERE user_id = ?
-        `).bind(userId).all<SubcommentLikeRow>();
-
-        return c.json(likes.results, { status: 200 });
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function getUserCommunities(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
-
-    // No user or is anonymous
-    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
-
-    try {
-        // Get communities
-        const communities = await env.DB.prepare(`
-            SELECT c.id, c.name, c.icon
-            FROM community c
-                     JOIN user_community cm ON c.id = cm.community_id
-            WHERE cm.user_id = ?
-        `).bind(userId).all<CommunityRow>();
-
-        return c.json(communities.results, { status: 200 });
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function editUser(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
-
-    // No user or is anonymous
-    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
-
-    // Parse body
-    let { displayname, pfp, bio }: {
-        displayname: string | null;
-        bio: string | null;
-        pfp: string | null;
-        // @ts-ignore
-    } = c.req.valid('form');
-
-    // No changes
-    if (!displayname && !bio && !pfp) return c.json({ message: 'No changes', status: 400 }, 400);
-
-    // Update null values
-    if (!displayname) displayname = null;
-    if (!bio) bio = null;
-    if (!pfp) pfp = null;
-
-    try {
-        // Update user
-        await env.DB.prepare(`
-            UPDATE user
-            SET displayname = CASE WHEN ? IS NOT NULL THEN ? ELSE displayname END,
-                bio         = CASE WHEN ? IS NOT NULL THEN ? ELSE bio END,
-                pfp         = CASE WHEN ? IS NOT NULL THEN ? ELSE pfps END
-            WHERE id = ?
-        `).bind(displayname, displayname, bio, bio, pfp, pfp, userId).run();
-
-        return c.json({ message: 'User updated', status: 200 });
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
