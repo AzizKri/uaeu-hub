@@ -110,6 +110,11 @@ export default function Login() {
         });
     };
 
+    const handleGoToSignup = () => {
+        // navigate(-1);
+        navigate('/signup');
+    }
+
     return (
         <div className={styles.formBody}>
             <div className={styles.formContainer}>
@@ -215,7 +220,7 @@ export default function Login() {
                         </button>
                     </form>
                     <p className={styles.textParagraph}>
-                        New to UAEU Chat? <Link to="/signup" className={styles.formLink}>Sign Up</Link>
+                        New to UAEU Chat? <span className={styles.formLink} onClick={handleGoToSignup}>Sign Up</span>
                     </p>
                 </div>
             </div>

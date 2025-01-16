@@ -1,0 +1,25 @@
+.user {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-block: 5px;
+
+    &:hover {
+        background-color: #f5f5f5;
+    }
+
+    .pfp {
+        width: 40px;
+        height: 40px;
+    }
+    .names {
+        font-size: 14px;
+
+        .displayName {
+            font-weight: 500;
+        }
+        .username {
+            color: #888;
+        }
+    }
+}
