@@ -42,13 +42,14 @@ export async function getCurrentUserLikesOnPosts(c: Context) {
 
     try {
         // Get user likes
-        const likes = await env.DB.prepare(`
-            SELECT post_id
-            FROM post_like
-            WHERE user_id = ?
-        `).bind(userId).all<PostLikeRow>();
+        const likedPosts = await env.DB.prepare(`
+            SELECT *, 1 as liked
+            FROM post_view pv
+                     JOIN post_like pl ON pv.id = pl.post_id
+            WHERE pl.user_id = ?
+        `).bind(userId).all<PostView>();
 
-        return c.json(likes.results, { status: 200 });
+        return c.json(likedPosts.results, { status: 200 });
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
@@ -182,7 +183,8 @@ export async function searchUser(c: Context) {
         const users = await env.DB.prepare(`
             SELECT *
             FROM user_view
-            WHERE displayname LIKE ? OR username LIKE ?
+            WHERE displayname LIKE ?
+               OR username LIKE ?
             LIMIT 10 OFFSET ?
         `).bind(`%${query}%`, `%${query}%`, page * 10).all<UserView>();
 
@@ -234,7 +236,11 @@ export async function getUserCommunities(c: Context) {
         // Get communities
         if (currentUserId && !currentIsAnonymous) {
             const communities = await env.DB.prepare(`
-                SELECT c.id, c.name, c.icon, c.member_count, (SELECT 1 FROM user_community WHERE user_id = ? AND community_id = c.id) AS is_member
+                SELECT c.id,
+                       c.name,
+                       c.icon,
+                       c.member_count,
+                       (SELECT 1 FROM user_community WHERE user_id = ? AND community_id = c.id) AS is_member
                 FROM community c
                          JOIN user_community cm ON c.id = cm.community_id
                 WHERE cm.user_id = ?
