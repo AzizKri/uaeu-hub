@@ -30,6 +30,7 @@ app.get('/likes', authMiddlewareCheckOnly, (c) => {
 app.get('/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
 
 app.get('/search', (c) => searchUser(c));
+app.get('/:userId/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
 app.get('/:username', (c) => getUserByUsername(c));
 
 app.post('/', validator('form', (value, c) => {
