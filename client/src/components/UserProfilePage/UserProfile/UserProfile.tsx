@@ -2,7 +2,8 @@ import {useEffect, useState} from 'react';
 import styles from './UserProfile.module.scss';
 import {Outlet, useLocation, useNavigate, useParams} from "react-router-dom";
 import { getUserByUsername} from '../../../api/users.ts';
-import {me} from "../../../api/authentication.ts";
+// import {me} from "../../../api/authentication.ts";
+import {useUser} from "../../../lib/utils/hooks.ts";
 
 const authTabs = [
     { label: 'Posts' },
@@ -24,19 +25,20 @@ export default function UserProfile () {
     const { username } =  useParams<{ username: string }>();
     const navigate = useNavigate();
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
+    const {user} = useUser()
 
     useEffect(() => {
-        const checkAuth = async (username : string) => {
-            const response = await me();
-            if (response) {
-                return response.username === username;
-            }
-            return false;
-        }
+        // const checkAuth = async (username : string) => {
+        //     const response = await me();
+        //     if (response) {
+        //         return response.username === username;
+        //     }
+        //     return false;
+        // }
         // console.log(location);
         setActiveTab(location.state?.data?.activeTab || 'Posts');
         if (username) {
-            checkAuth(username).then((res) => setIsAuthorized(res));
+            setIsAuthorized(user?.username === username);
             getUserByUsername(username).then((res) => {
                // console.log(username);
                const data = res.data;
