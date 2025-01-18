@@ -79,6 +79,7 @@ declare global {
     }
 
     interface UserInfo {
+        id?: number;
         new?: boolean;
         username: string;
         displayName: string;
