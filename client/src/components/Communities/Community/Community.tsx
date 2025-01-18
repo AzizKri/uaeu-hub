@@ -1,25 +1,26 @@
 import styles from "./Community.module.scss";
-import pfp from "../../../assets/community-icon.jpg"
-import React, {useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
+import pfp from "../../../assets/community-icon.jpg";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
-    getMembersOfCommunity,
     getCommunityByName,
+    getLatestCommunityPosts,
+    getMembersOfCommunity,
     joinCommunity,
-    leaveCommunity
+    leaveCommunity,
 } from "../../../api/communities.ts";
 import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
-import {useUser} from "../../../lib/utils/hooks.ts";
+import { useUser } from "../../../lib/utils/hooks.ts";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
-import arrowRight from "../../../assets/chevron-right.svg"
+import arrowRight from "../../../assets/chevron-right.svg";
 import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
 import UserPreview from "../../UserPreview/UserPreview.tsx";
+import Post from "../../PostStuff/Post/Post.tsx";
 
 // export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
     // TODO: replace by getCommunityPosts() once it is implemented
-    // const {posts} = useUpdatePosts();
     const { communityName } = useParams<{ communityName: string }>(); // Get the postId from the URL
     const [info, setInfo] = useState<CommunityInfo>();
     const [role, setRole] = useState<string>();
@@ -31,7 +32,8 @@ export default function Community() {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
     const [loadingInfo, setLoadingInfo] = useState<boolean>(true);
     const [showEditor, setShowEditor] = useState<boolean>(false);
-    const [showCommunityEditor, setShowCommunityEditor] = useState<boolean>(false);
+    const [showCommunityEditor, setShowCommunityEditor] =
+        useState<boolean>(false);
     const { isUser } = useUser();
 
     useEffect(() => {
@@ -57,15 +59,38 @@ export default function Community() {
 
     useEffect(() => {
         if (info) {
-            getMembersOfCommunity(info.id).then((res) => {
-                setMembers(
-                    res.data.filter(
-                        (mem: { role: string }) => mem.role === "Member",
-                    ),
-                );
-                setAdmins(
-                    res.data.filter(
-                        (mem: { role: string }) => mem.role === "Administrator",
+            getLatestCommunityPosts(info.id).then((res) => {
+                setPosts(
+                    res.data.map(
+                        (post: {
+                            id: number;
+                            author: string;
+                            displayname: string;
+                            post_time: string | number | Date;
+                            content: string;
+                            pfp: string;
+                            attachment: string;
+                            like_count: number;
+                            comment_count: number;
+                            liked: boolean;
+                        }) => (
+                            <Post
+                                key={post.id}
+                                postInfo={{
+                                    id: post.id,
+                                    authorUsername: post.author,
+                                    authorDisplayName: post.displayname,
+                                    postDate: new Date(post.post_time),
+                                    content: post.content,
+                                    pfp: post.pfp,
+                                    filename: post.attachment,
+                                    likeCount: post.like_count,
+                                    commentCount: post.comment_count,
+                                    type: "NO_COMMUNITY",
+                                    liked: post.liked,
+                                }}
+                            />
+                        ),
                     ),
                 );
             });
@@ -93,6 +118,20 @@ export default function Community() {
         setActiveTab("ABOUT");
     };
     const handleMembers = () => {
+        if (info) {
+            getMembersOfCommunity(info.id).then((res) => {
+                setMembers(
+                    res.data.filter(
+                        (mem: { role: string }) => mem.role === "Member",
+                    ),
+                );
+                setAdmins(
+                    res.data.filter(
+                        (mem: { role: string }) => mem.role === "Administrator",
+                    ),
+                );
+            });
+        }
         setActiveTab("MEMBER");
     };
 
@@ -107,10 +146,10 @@ export default function Community() {
     };
     const handleEditCommunity = () => {
         setShowCommunityEditor(true);
-    }
+    };
     const handleCloseEditCommunity = () => {
         setShowCommunityEditor(false);
-    }
+    };
 
     return loadingInfo || !info ? (
         <LoadingImage width={"200px"} />
@@ -251,7 +290,10 @@ export default function Community() {
                     </div>
                 ) : activeTab === "SETTINGS" ? (
                     <ul className={styles.settings}>
-                        <li className={styles.setting} onClick={handleEditCommunity}>
+                        <li
+                            className={styles.setting}
+                            onClick={handleEditCommunity}
+                        >
                             Edit Community Information
                             <img src={arrowRight} alt="arrowRight" />
                         </li>
@@ -280,4 +322,3 @@ export default function Community() {
         </div>
     );
 }
-
