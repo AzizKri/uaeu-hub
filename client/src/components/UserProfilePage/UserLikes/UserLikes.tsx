@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from "react";
-import {getPostByID} from "../../../api/posts.ts";
 import {getLikesCurrentUser} from "../../../api/currentUser.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
 import styles from "../UserContent.module.scss"
@@ -26,39 +25,35 @@ export default function UserLikes () {
                     return;
                 }
                 const data = res.data;
-                for (const idx of data) {
-                    getPostByID(idx.post_id).then((res) => {
-                        const fetchedPosts: React.ReactElement[] = []
-                        for (const post of res.data) {
-                            const postInfo: PostInfo = {
-                                id: post.id,
-                                content: post.content,
-                                authorUsername: post.author,
-                                authorDisplayName: post.displayname,
-                                pfp: post.pfp,
-                                postDate: new Date(post.post_time),
-                                filename: post.attachment,
-                                likeCount: post.like_count,
-                                commentCount: post.comment_count,
-                                type: "post",
-                                liked: post.like,
-                            };
-                            const communityInfo: CommunityInfoSimple = {
-                                name: post.community,
-                                icon: post.community_icon
-                            }
-                            fetchedPosts.push(
-                                <Post
-                                    key={post.id}
-                                    postInfo={postInfo}
-                                    topCommentInfo={null}
-                                    communityInfo={communityInfo}
-                                    from={`user/${username}`}
-                                />
-                            );
-                        }
-                        setLikedPosts((prevPosts) => [...fetchedPosts, ...prevPosts]);
-                    });
+                const fetchedPosts: React.ReactElement[] = []
+                for (const post of data) {
+                    const postInfo: PostInfo = {
+                        id: post.id,
+                        content: post.content,
+                        authorUsername: post.author,
+                        authorDisplayName: post.displayname,
+                        pfp: post.pfp,
+                        postDate: new Date(post.post_time),
+                        filename: post.attachment,
+                        likeCount: post.like_count,
+                        commentCount: post.comment_count,
+                        type: "post",
+                        liked: post.liked,
+                    };
+                    const communityInfo: CommunityInfoSimple = {
+                        name: post.community,
+                        icon: post.community_icon
+                    }
+                    fetchedPosts.push(
+                        <Post
+                            key={post.id}
+                            postInfo={postInfo}
+                            topCommentInfo={null}
+                            communityInfo={communityInfo}
+                            from={`user/${username}`}
+                        />
+                    );
+                    setLikedPosts((prevPosts) => [...fetchedPosts, ...prevPosts]);
                 }
             });
         } catch (error) {

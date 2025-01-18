@@ -2,6 +2,8 @@ import { Context } from 'hono';
 
 /* User information */
 
+// Current User
+
 export async function getCurrentUser(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
@@ -30,55 +32,7 @@ export async function getCurrentUser(c: Context) {
     }
 }
 
-export async function searchUser(c: Context) {
-    // Get the required fields
-    const env: Env = c.env;
-    const query = c.req.query('query');
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
-
-    // Check for required fields
-    if (!query) return c.text('No query provided', { status: 400 });
-
-    try {
-        // Search for users
-        const users = await env.DB.prepare(`
-            SELECT *
-            FROM user_view
-            WHERE displayname LIKE ? OR username LIKE ?
-            LIMIT 10 OFFSET ?
-        `).bind(`%${query}%`, `%${query}%`, page * 10).all<UserView>();
-
-        return c.json(users.results, { status: 200 });
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function getUserByUsername(c: Context) {
-    // api.uaeu.chat/user/:username
-    const env: Env = c.env;
-    const username: string = c.req.param('username');
-
-    // This is likely impossible but yeah
-    if (username === '') return c.text('Bad Request', 400);
-
-    try {
-        // Get user data
-        const result: UserView | null = await env.DB.prepare(
-            'SELECT * FROM user_view WHERE username = ?'
-        ).bind(username).first<UserView>();
-        // No result found, 404
-        if (!result) return c.json({ message: 'User not found', status: 404 }, 404);
-        // Result found, return it
-        return c.json(result, 200);
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function getUserLikesOnPosts(c: Context) {
+export async function getCurrentUserLikesOnPosts(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
     const isAnonymous = c.get('isAnonymous') as boolean;
@@ -88,20 +42,21 @@ export async function getUserLikesOnPosts(c: Context) {
 
     try {
         // Get user likes
-        const likes = await env.DB.prepare(`
-            SELECT post_id
-            FROM post_like
-            WHERE user_id = ?
-        `).bind(userId).all<PostLikeRow>();
+        const likedPosts = await env.DB.prepare(`
+            SELECT *, 1 as liked
+            FROM post_view pv
+                     JOIN post_like pl ON pv.id = pl.post_id
+            WHERE pl.user_id = ?
+        `).bind(userId).all<PostView>();
 
-        return c.json(likes.results, { status: 200 });
+        return c.json(likedPosts.results, { status: 200 });
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
     }
 }
 
-export async function getUserLikesOnComments(c: Context) {
+export async function getCurrentUserLikesOnComments(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
     const isAnonymous = c.get('isAnonymous') as boolean;
@@ -124,7 +79,7 @@ export async function getUserLikesOnComments(c: Context) {
     }
 }
 
-export async function getUserLikesOnSubcomments(c: Context) {
+export async function getCurrentUserLikesOnSubcomments(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
     const isAnonymous = c.get('isAnonymous') as boolean;
@@ -147,7 +102,7 @@ export async function getUserLikesOnSubcomments(c: Context) {
     }
 }
 
-export async function getUserCommunities(c: Context) {
+export async function getCurrentUserCommunities(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
     const isAnonymous = c.get('isAnonymous') as boolean;
@@ -171,7 +126,7 @@ export async function getUserCommunities(c: Context) {
     }
 }
 
-export async function editUser(c: Context) {
+export async function editCurrentUser(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
     const isAnonymous = c.get('isAnonymous') as boolean;
@@ -206,6 +161,102 @@ export async function editUser(c: Context) {
         `).bind(displayname, displayname, bio, bio, pfp, pfp, userId).run();
 
         return c.json({ message: 'User updated', status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+// All
+
+export async function searchUser(c: Context) {
+    // Get the required fields
+    const env: Env = c.env;
+    const query = c.req.query('query');
+    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+
+    // Check for required fields
+    if (!query) return c.text('No query provided', { status: 400 });
+
+    try {
+        // Search for users
+        const users = await env.DB.prepare(`
+            SELECT *
+            FROM user_view
+            WHERE displayname LIKE ?
+               OR username LIKE ?
+            LIMIT 10 OFFSET ?
+        `).bind(`%${query}%`, `%${query}%`, page * 10).all<UserView>();
+
+        return c.json(users.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getUserByUsername(c: Context) {
+    // api.uaeu.chat/user/:username
+    const env: Env = c.env;
+    const username: string = c.req.param('username');
+
+    // This is likely impossible but yeah
+    if (username === '') return c.text('Bad Request', 400);
+
+    try {
+        // Get user data
+        const result: UserView | null = await env.DB.prepare(
+            'SELECT * FROM user_view WHERE username = ?'
+        ).bind(username).first<UserView>();
+        // No result found, 404
+        if (!result) return c.json({ message: 'User not found', status: 404 }, 404);
+        // Result found, return it
+        return c.json(result, 200);
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function getUserCommunities(c: Context) {
+    const env: Env = c.env;
+    const currentUserId = c.get('userId') as number;
+    const currentIsAnonymous = c.get('isAnonymous') as boolean;
+
+    // Get the required fields
+    let userId: string | number = c.req.param('userId');
+    console.log(userId);
+    // Check for required fields
+    if (userId === undefined) return c.text('No user ID provided', { status: 400 });
+    userId = Number(userId);
+    if (isNaN(userId)) return c.text('Invalid user ID', { status: 400 });
+    console.log(userId);
+
+    try {
+        // Get communities
+        if (currentUserId && !currentIsAnonymous) {
+            const communities = await env.DB.prepare(`
+                SELECT c.id,
+                       c.name,
+                       c.icon,
+                       c.member_count,
+                       (SELECT 1 FROM user_community WHERE user_id = ? AND community_id = c.id) AS is_member
+                FROM community c
+                         JOIN user_community cm ON c.id = cm.community_id
+                WHERE cm.user_id = ?
+            `).bind(currentUserId, userId).all<CommunityRow>();
+
+            return c.json(communities.results, { status: 200 });
+        } else {
+            const communities = await env.DB.prepare(`
+                SELECT c.id, c.name, c.icon, c.member_count, 0 AS is_member
+                FROM community c
+                         JOIN user_community cm ON c.id = cm.community_id
+                WHERE cm.user_id = ?
+            `).bind(userId).all<CommunityRow>();
+
+            return c.json(communities.results, { status: 200 });
+        }
     } catch (e) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);

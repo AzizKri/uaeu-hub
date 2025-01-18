@@ -13,3 +13,8 @@ export async function searchUser(query: string, page: number = 0) {
     });
     return { status: request.status, data: await request.json() };
 }
+
+export async function getUserCommunities(userId: number) {
+    const request = await fetch(base + `/user/${userId}/communities`, { credentials: 'include' });
+    return { status: request.status, data: await request.json() };
+}
