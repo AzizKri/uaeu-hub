@@ -20,6 +20,7 @@ export default function UserCommunities() {
                     return;
                 }
                 const data = res.data;
+                console.log(data);
                 const fetchedCommunities: React.ReactElement[] = []
                 for (const idx of data) {
                     console.log(idx);

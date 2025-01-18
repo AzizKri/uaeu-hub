@@ -27,6 +27,8 @@
     border: 2px solid rgb(215, 66, 12);
     border-radius: 50%;
     object-fit: cover;
+    object-position: center;
+    position: relative;
 }
 
 .userInfo {
@@ -99,4 +101,17 @@
     margin-bottom: 1rem;
     font-size: 0.95rem;
     color: #444;
+}
+
+.changeImage {
+    width: 30px;
+    border-radius: 50px;
+    position: absolute;
+    background-color: rgb(23 24 43 / 73%);
+    color: white;
+    display: flex;
+    cursor: pointer;
+    padding: 5px;
+    bottom: 0;
+    right: 0;
 }
