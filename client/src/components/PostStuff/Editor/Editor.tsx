@@ -258,7 +258,7 @@ export default function Editor({
                     filename: post.attachment,
                     likeCount: post.like_count,
                     commentCount: post.comment_count,
-                    type: "post",
+                    type: "POST",
                     liked: post.like,
                 };
 
@@ -272,7 +272,6 @@ export default function Editor({
                         <Post
                             key={post.id}
                             postInfo={postInfo}
-                            topCommentInfo={null}
                             communityInfo={communityInfo}
                         />,
                     );

@@ -52,7 +52,7 @@ export default function PostPage() {
                     filename: post.attachment,
                     likeCount: post.like_count,
                     commentCount: post.comment_count,
-                    type: "post-page",
+                    type: "POST-PAGE",
                     liked: post.liked,
                 };
                 setTotalComments(postInfo.commentCount);
@@ -64,7 +64,6 @@ export default function PostPage() {
                     <Post
                         key={post.id}
                         postInfo={postInfo}
-                        topCommentInfo={null}
                         communityInfo={communityInfo}
                     />
                 );

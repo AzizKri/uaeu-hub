@@ -106,7 +106,7 @@ export async function getCommunityPostsLatest(c: Context) {
     const communityId = parseId(c.req.param('id'));
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
-    if (!communityId) return c.text('No community ID provided', { status: 400 });
+    if (communityId === -1) return c.text('No community ID provided', { status: 400 });
 
     try {
         // Check if anonymous

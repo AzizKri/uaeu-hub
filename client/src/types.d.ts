@@ -20,7 +20,7 @@ declare global {
         filename?: string,
         likeCount: number,
         commentCount: number,
-        type: string,
+        type: "POST" | "POST-PAGE" | "NO_COMMUNITY",
         liked: boolean
     }
 
@@ -66,8 +66,8 @@ declare global {
 
     interface PostAll {
         postInfo: PostInfo;
-        topCommentInfo: CommentInfo | null;
-        communityInfo: CommunityInfoSimple;
+        topCommentInfo?: CommentInfo;
+        communityInfo?: CommunityInfoSimple;
     }
 
     interface UpdatePostsContextInterface {

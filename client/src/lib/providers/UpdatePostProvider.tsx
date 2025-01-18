@@ -33,25 +33,25 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     filename: post.attachment,
                     likeCount: post.like_count,
                     commentCount: post.comment_count,
-                    type: "post",
+                    type: "POST",
                     liked: post.liked,
                 };
 
                 const tc = JSON.parse(post.top_comment);
-                const topCommentInfo: CommentInfo | null = !tc ? null : {
-                    attachment: tc.attachment,
-                    author: tc.author,
-                    authorId: tc.author_id,
-                    content: tc.content,
-                    displayName: tc.displayname,
-                    id: tc.id,
-                    likeCount: tc.like_count,
-                    liked: tc.liked,
-                    parentId: tc.parent_post_id,
-                    pfp: tc.pfp,
-                    postTime: new Date(tc.post_time),
-                    commentCount: tc.comment_count,
-                }
+                const topCommentInfo: CommentInfo | undefined = tc ? {
+                        attachment: tc.attachment,
+                        author: tc.author,
+                        authorId: tc.author_id,
+                        content: tc.content,
+                        displayName: tc.displayname,
+                        id: tc.id,
+                        likeCount: tc.like_count,
+                        liked: tc.liked,
+                        parentId: tc.parent_post_id,
+                        pfp: tc.pfp,
+                        postTime: new Date(tc.post_time),
+                        commentCount: tc.comment_count,
+                    } : undefined;
 
                 const communityInfo: CommunityInfoSimple = {
                     name: post.community,

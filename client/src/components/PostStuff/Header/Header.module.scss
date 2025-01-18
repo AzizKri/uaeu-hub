@@ -1,0 +1,92 @@
+.post__info_bar {
+    display: flex;
+    gap: 10px;
+    margin-block: 10px;
+
+    .pics {
+        position: relative;
+
+        .community_icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .user_icon {
+            position: absolute;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            background-color: white;
+            top: 16px;
+            left: 18px;
+            padding: 1px;
+            cursor: pointer;
+        }
+
+        .user_icon_no_community {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            cursor: pointer;
+        }
+    }
+
+    .names {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+
+        .mainName {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .secondaryName {
+            cursor: pointer;
+        }
+
+        .secondaryName, .timeText, .dot {
+            color: #888;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .dot {
+            margin-inline: 4px;
+        }
+    }
+
+
+    &__time {
+        color: #888;
+        font-size: 0.8rem;
+        line-height: 1.25rem;
+    }
+
+    &__dots {
+        margin-inline-start: auto;
+        color: #4a4a4a;
+        cursor: pointer;
+        position: relative;
+    }
+
+    &__community {
+        position: fixed;
+        display: flex;
+        align-items: start;
+        gap: 5px;
+
+        &__icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+        }
+
+        &__name {
+            color: #888;
+        }
+    }
+}

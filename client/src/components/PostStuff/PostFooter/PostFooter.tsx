@@ -12,11 +12,13 @@ export default function PostFooter({
     likes,
     comments,
     isLiked,
+    type
 }: {
     id: number;
     likes: number;
     comments: number;
     isLiked: boolean;
+    type?: string
 }) {
     const [liked, setLiked] = useState(false);
     const [likesCount, setLikesCount] = useState<number>(0);
@@ -49,7 +51,7 @@ export default function PostFooter({
     };
 
     const redirectToPost = () => {
-        navigate(`/post/${id}`);
+        if (type !== "POST-PAGE") navigate(`/post/${id}`);
     };
 
     return (

@@ -1,93 +1,51 @@
 import "./post.module.scss";
-import profilePicture from "../../../assets/profile-picture.png";
-import communityIcon from "../../../assets/community-icon.jpg"
 import PostFooter from "../PostFooter/PostFooter.tsx";
 import Comment from "../Comment/Comment.tsx";
 import styles from "./post.module.scss";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { getFormattedDate } from "../../../lib/utils/tools.ts";
 import Content from "../Content/Content.tsx";
-import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import Header from "../Header/Header.tsx";
 
-export default function Post({ postInfo, topCommentInfo, communityInfo, from}: PostAll & {from?: string}) {
-    const [dateText, setDateText] = useState<string>("");
-    const [topComment, setTopComment] = useState<CommentInfo | null>(topCommentInfo);
+export default function Post({
+    postInfo,
+    topCommentInfo,
+    communityInfo,
+    from,
+}: PostAll & { from?: string }) {
+    const [topComment, setTopComment] = useState<CommentInfo | undefined>(
+        topCommentInfo,
+    );
     const navigate = useNavigate();
 
-
-    useEffect(() => {
-        setDateText(getFormattedDate(postInfo.postDate));
-    }, [postInfo.postDate]);
-
     const deleteTopComment = () => {
-        setTopComment(null);
-    }
+        setTopComment(undefined);
+    };
 
     const handleClickOnPost: React.MouseEventHandler<HTMLDivElement> = () => {
-        if (postInfo.type === 'post') {
-            navigate(`/post/${postInfo.id}`, {state: {from: from} });
-        }
-    }
-
-    const goToCommunity: React.MouseEventHandler = (e) => {
-        e.stopPropagation()
-        navigate(`/community/${communityInfo.name}`);
-    }
-
-    const goToAuthor: React.MouseEventHandler = (e) => {
-        e.stopPropagation()
-        navigate(`/user/${postInfo.authorUsername}`);
-    }
+        if (postInfo.type === "POST-PAGE") return;
+        navigate(`/post/${postInfo.id}`, { state: { from: from } });
+    };
 
     return (
-        <div className={styles.post}
-             style={{cursor: postInfo.type === 'post' ? 'pointer' : 'default'}}
-             onClick={handleClickOnPost}>
-            <div className={styles.post__info_bar}>
-                <div className={styles.pics}>
-                    <img
-                        src={
-                            communityInfo.icon == undefined
-                                ? communityIcon
-                                : communityInfo.icon
-                        }
-                        alt="community icon"
-                        className={styles.community_icon}
-                        onClick={goToCommunity}
-                    />
-                    <img
-                        src={
-                            postInfo.pfp == undefined
-                                ? profilePicture
-                                : postInfo.pfp
-                        }
-                        alt="profile picture"
-                        className={styles.user_icon}
-                        onClick={goToAuthor}
-                    />
-                </div>
-                <div className={styles.names}>
-                    <div
-                        className={styles.community_name}
-                        onClick={goToCommunity}
-                    >
-                        {communityInfo.name}
-                    </div>
-                    <div className={styles.username}>
-                        <span onClick={goToAuthor}>{postInfo.authorDisplayName}</span>
-                        <span className={styles.dot}>•</span>
-                        {dateText}
-                    </div>
-                </div>
-                <div className={styles.post__info_bar__dots}>
-                    <OptionsMenu
-                        type="POST"
-                        id={postInfo.id}
-                        author={postInfo.authorUsername}
-                    />
-                </div>
-            </div>
+        <div
+            className={styles.post}
+            style={{
+                cursor: postInfo.type === "POST-PAGE" ? "default" : "pointer",
+            }}
+            onClick={handleClickOnPost}
+        >
+            <Header
+                type={postInfo.type === "NO_COMMUNITY" ? "DISPLAYNAME+USERNAME" : "COMMUNITY+DISPLAYNAME"}
+                username={postInfo.authorUsername}
+                displayName={postInfo.authorDisplayName}
+                timeText={getFormattedDate(postInfo.postDate)}
+                postId={postInfo.id}
+                userIcon={postInfo.pfp}
+                communityIcon={communityInfo?.icon}
+                community={communityInfo?.name}
+            />
             <Content
                 content={postInfo.content}
                 filename={postInfo.filename}
@@ -98,9 +56,10 @@ export default function Post({ postInfo, topCommentInfo, communityInfo, from}: P
                 likes={postInfo.likeCount}
                 comments={postInfo.commentCount}
                 isLiked={postInfo.liked}
+                type={postInfo.type}
             />
 
-            {postInfo.type === "post" && topComment != null ? (
+            {postInfo.type === "POST" && topComment != null ? (
                 <Comment info={topComment} deleteComment={deleteTopComment} />
             ) : null}
         </div>

@@ -145,3 +145,12 @@ export async function removeMemberFromCommunity(id: number, userId: number) {
     return request.status;
 }
 
+// Get latest community posts
+export async function getLatestCommunityPosts(id: number, page: number = 0) {
+    const request = await fetch(base + `/community/posts/${id}?page=${page}`, {
+        method: 'GET',
+        credentials: 'include'
+    })
+
+    return {status: request.status, data: await request.json() };
+}
