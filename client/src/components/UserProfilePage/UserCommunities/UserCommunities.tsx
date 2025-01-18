@@ -1,19 +1,20 @@
 import React, {useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
-import {getCommunitiesCurrentUser} from "../../../api/currentUser.ts";
+import {useLocation, useParams} from "react-router-dom";
 import CommunityPreview from "../../Communities/CommunityPreview/CommunityPreview.tsx";
 import styles from "../UserContent.module.scss";
+import {getUserCommunities} from "../../../api/users.ts";
 
 export default function UserCommunities() {
     const [userCommunities, setUserCommunities] = useState<React.ReactElement[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { username } =  useParams<{ username: string }>();
+    const location = useLocation();
 
     useEffect(() => {
         if (!username) return;
         setIsLoading(true);
         try {
-            getCommunitiesCurrentUser().then((res) => {
+            getUserCommunities(location?.state?.userId).then((res) => {
                 // console.log("profileUser posts results", res);
                 if (res.data.length == 0) {
                     setIsLoading(false);
