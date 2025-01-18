@@ -105,7 +105,7 @@
         }
         .posts {
 
-            > :not(:last-child) {
+            > div {
                 border-bottom: 1px solid #ccc;
             }
             > :not(:first-child) {
@@ -124,8 +124,6 @@
         .settings {
 
             .setting {
-                //font-weight: 500;
-                //border-bottom: 1px solid #888;
                 padding: 8px 4px;
                 cursor: pointer;
                 display: flex;
