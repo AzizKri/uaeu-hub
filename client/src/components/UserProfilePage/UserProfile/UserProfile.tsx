@@ -61,6 +61,7 @@ export default function UserProfile () {
                    navigate('/error');
                } else{
                    setProfileUser({
+                       id: data.id,
                        username: data.username,
                        displayName: data.displayname,
                        bio: data.bio,
@@ -88,6 +89,7 @@ export default function UserProfile () {
             data: {
                 activeTab: tabLabel,
                 auth: isAuthorized,
+                user_id: profileUser?.id
             }
             }});
     };
