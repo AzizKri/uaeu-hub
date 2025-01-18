@@ -102,6 +102,7 @@ export default function Category({tag, joinedCommunity, setJoinedCommunity}: { t
             <div className={styles.communities}>
                 {communities.map((com) => (
                     <CommunityPreview
+                        key={com.id}
                         icon={com.icon}
                         name={com.name}
                         id={com.id}
