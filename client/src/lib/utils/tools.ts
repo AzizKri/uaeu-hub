@@ -1,7 +1,9 @@
 export function getFormattedDate(postDate: Date) {
     const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    const curDate = new Date();
+    let curDate = new Date();
+    curDate = new Date(curDate.getTime() + curDate.getTimezoneOffset() * 60 * 1000);
+
     const diffInMs = curDate.getTime() - postDate.getTime();
     const diffInSeconds = Math.floor(diffInMs / 1000);
     const diffInMinutes = Math.floor(diffInSeconds / 60);
