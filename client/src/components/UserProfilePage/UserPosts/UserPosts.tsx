@@ -33,7 +33,7 @@ export default function UserPosts () {
                         filename: post.attachment,
                         likeCount: post.like_count,
                         commentCount: post.comment_count,
-                        type: "post",
+                        type: "POST",
                         liked: post.like,
                     };
                     const communityInfo: CommunityInfoSimple = {
@@ -44,7 +44,6 @@ export default function UserPosts () {
                         <Post
                             key={post.id}
                             postInfo={postInfo}
-                            topCommentInfo={null}
                             communityInfo={communityInfo}
                             from={`user/${username}`}
                         />
