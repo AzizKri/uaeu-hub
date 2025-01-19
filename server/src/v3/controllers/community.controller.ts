@@ -126,10 +126,10 @@ export async function getCommunityPostsLatest(c: Context) {
             // Get posts with likes
             const posts = await env.DB.prepare(`
                 SELECT *,
-                       (SELECT 1 FROM post_like WHERE post_id = p.id AND user_id = ?) AS liked
-                FROM post_view p
-                WHERE p.community_id = ?
-                ORDER BY p.post_time DESC
+                       (SELECT 1 FROM post_like WHERE post_id = pv.id AND user_id = ?) AS liked
+                FROM post_view pv
+                WHERE pv.community_id = ?
+                ORDER BY pv.post_time DESC
                 LIMIT 10 OFFSET ?
             `).bind(userId, communityId, page * 10).all<PostView>();
 
@@ -371,8 +371,8 @@ export async function getCommunitiesByTag(c: Context) {
 
 export async function getCommunitiesByTags(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId');
-    const isAnonymous = c.get('isAnonymous');
+    const userId = c.get('userId') as number    ;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get tags string from query
     const tagsParam = c.req.query('tags');
