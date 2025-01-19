@@ -31,6 +31,7 @@
     font-size: 0.8rem;
     border: 1px solid #ccc;
     border-radius: 20px;
+    resize: none;
 }
 
 .buttons {
@@ -65,4 +66,14 @@
 
 .cancelButton:hover {
     background-color: #b3b3b3;
+}
+
+.saveButton:disabled {
+    cursor: not-allowed;
+    color: grey;
+}
+
+.cancelButton:disabled {
+    cursor: not-allowed;
+    color: grey;
 }
