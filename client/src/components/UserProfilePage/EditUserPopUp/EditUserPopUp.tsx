@@ -8,7 +8,7 @@ interface EditUserPopUpProps {
     currentProfilePicture?: string;
     currentDisplayName: string;
     currentBio: string;
-    onSave: (updatedDisplayName: string, updatedBio: string) => void;
+    onSave: (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => void;
 }
 
 export default function EditUserPopUp({
@@ -28,7 +28,7 @@ export default function EditUserPopUp({
     );
 
     const handleSave = () => {
-        onSave(displayName, bio);
+        onSave(displayName, bio, (uploadState?.fileName ? uploadState.fileName : ''));
         onClose();
     };
 
@@ -55,10 +55,10 @@ export default function EditUserPopUp({
                 />
 
                 <div className={styles.buttons}>
-                    <button onClick={handleSave} className={styles.saveButton}>
+                    <button onClick={handleSave} className={styles.saveButton} disabled={uploadState.status === "UPLOADING"}>
                         Save
                     </button>
-                    <button onClick={onClose} className={styles.cancelButton}>
+                    <button onClick={onClose} className={styles.cancelButton} disabled={uploadState.status === "UPLOADING"}>
                         Cancel
                     </button>
                 </div>
