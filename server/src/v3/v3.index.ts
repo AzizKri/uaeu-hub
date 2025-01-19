@@ -12,15 +12,15 @@ import auth from './routes/auth';
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.route('/auth', auth)
-app.route('/user', user)
-app.route('/post', post)
-app.route('/comment', comment)
-app.route('/subcomment', subcomment)
-app.route('/attachment', attachment)
-app.route('/community', community)
-app.route('/tags', tags)
-app.route('/notification', notification)
-app.route('/ws', websocket)
+app.route('/auth', auth);
+app.route('/user', user);
+app.route('/post', post);
+app.route('/comment', comment);
+app.route('/subcomment', subcomment);
+app.route('/attachment', attachment);
+app.route('/community', community);
+app.route('/tags', tags);
+app.route('/notification', notification);
+app.route('/ws', websocket);
 
-export default app
+export default app;

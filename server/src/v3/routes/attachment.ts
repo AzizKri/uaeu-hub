@@ -9,7 +9,7 @@ import {
 import { authMiddleware, authMiddlewareCheckOnly, uploadAttachmentLimitMiddleware } from '../util/middleware';
 
 
-const app = new Hono<{ Bindings: Env}>();
+const app = new Hono<{ Bindings: Env }>();
 
 app.post('/', uploadAttachmentLimitMiddleware, authMiddleware, (c) => uploadAttachment(c), bodyLimit({
     maxSize: 10 * 1024 * 1024,

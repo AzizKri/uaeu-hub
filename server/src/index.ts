@@ -22,10 +22,15 @@ app.post('/init', async (c) => {
     const env: Env = c.env;
 
     // Validate request
-    if (c.req.header('Authorization') !== `Bearer ${env.SYSTEM}`) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+    if (c.req.header('Authorization') !== `Bearer ${env.SYSTEM}`) return c.json({
+        message: 'Unauthorized',
+        status: 401
+    }, 401);
 
     // Check if already initialized
-    const system = await env.DB.prepare(`SELECT 1 FROM user WHERE id = 0`).first<number>();
+    const system = await env.DB.prepare(`SELECT 1
+                                         FROM user
+                                         WHERE id = 0`).first<number>();
     if (system) return c.json({ message: 'Already initialized', status: 200 });
 
     // Create System User

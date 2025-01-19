@@ -9,7 +9,7 @@ import { Context } from 'hono';
  */
 export const authMiddlewareCheckOnly = createMiddleware(
     async (c, next) => {
-        console.log("AUTH MIDDLEWARE CHECK ONLY")
+        console.log('AUTH MIDDLEWARE CHECK ONLY');
 
         // Check if the user is authenticated without creating a new anon user
         await sharedAuthMiddleware(c, true);
@@ -26,7 +26,7 @@ export const authMiddlewareCheckOnly = createMiddleware(
  */
 export const authMiddleware = createMiddleware(
     async (c, next) => {
-        console.log("AUTH MIDDLEWARE")
+        console.log('AUTH MIDDLEWARE');
 
         // Check if the user is authenticated, create a new anon user if invalid
         await sharedAuthMiddleware(c, false);
@@ -41,13 +41,13 @@ async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
     let sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
     const sessionKeyJWT = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
 
-    console.log("authMiddleware -> sessionKey", sessionKey);
-    console.log("authMiddleware -> sessionKeyJWT", sessionKeyJWT);
+    console.log('authMiddleware -> sessionKey', sessionKey);
+    console.log('authMiddleware -> sessionKeyJWT', sessionKeyJWT);
 
     if (!sessionKey && sessionKeyJWT) sessionKey = sessionKeyJWT;
 
     if (!sessionKey) {
-        console.log("authMiddleware -> No session key");
+        console.log('authMiddleware -> No session key');
 
         // No session key, first interaction. Do we want to check only?
         if (checkOnly) return;
@@ -58,36 +58,36 @@ async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
         c.set('userId', userId);
         c.set('isAnonymous', true);
     } else {
-        console.log("authMiddleware -> sessionKey");
+        console.log('authMiddleware -> sessionKey');
 
         // There is a session key, check if there's a valid token
         let sessionToken = await getSignedCookie(c, c.env.EN_SECRET, 'sessionToken') as string;
         const sessionTokenJWT = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionToken') as string;
 
-        console.log("authMiddleware -> sessionKey -> sessionToken", sessionToken);
-        console.log("authMiddleware -> sessionKey -> sessionTokenJWT", sessionTokenJWT);
+        console.log('authMiddleware -> sessionKey -> sessionToken', sessionToken);
+        console.log('authMiddleware -> sessionKey -> sessionTokenJWT', sessionTokenJWT);
 
         if (!sessionToken && sessionTokenJWT) sessionToken = sessionTokenJWT;
 
         if (sessionToken) {
-            console.log("authMiddleware -> sessionKey -> sessionToken");
+            console.log('authMiddleware -> sessionKey -> sessionToken');
 
             const [userIdStr, isAnonymousStr] = sessionToken.split(':');
             const userId = Number(userIdStr);
             const isAnonymous = Number(isAnonymousStr);
 
-            console.log("authMiddleware -> sessionKey -> sessionToken -> userId", userId);
-            console.log("authMiddleware -> sessionKey -> sessionToken -> isAnonymous", isAnonymous);
+            console.log('authMiddleware -> sessionKey -> sessionToken -> userId', userId);
+            console.log('authMiddleware -> sessionKey -> sessionToken -> isAnonymous', isAnonymous);
 
             // If the user ID is not a number, then it's an invalid token
             if (isNaN(userId) || isNaN(isAnonymous)) {
-                console.log("authMiddleware -> sessionKey -> sessionToken -> Invalid token");
+                console.log('authMiddleware -> sessionKey -> sessionToken -> Invalid token');
                 // Do we want to check only?
                 if (checkOnly) return;
                 // Invalid token, sign up as anonymous
                 await anonSignup(c);
             } else {
-                console.log("authMiddleware -> sessionKey -> sessionToken -> Valid token");
+                console.log('authMiddleware -> sessionKey -> sessionToken -> Valid token');
                 // Both are valid, send em
                 c.set('userId', userId);
                 c.set('isAnonymous', isAnonymous == 1);
