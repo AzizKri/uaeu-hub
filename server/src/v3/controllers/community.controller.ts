@@ -111,7 +111,7 @@ export async function getCommunityPostsLatest(c: Context) {
 
     try {
         // Check if anonymous
-        if (isAnonymous) {
+        if (!userId || isAnonymous) {
             // Get posts without likes
             const posts = await env.DB.prepare(`
                 SELECT *
@@ -154,7 +154,7 @@ export async function getCommunityPostsBest(c: Context) {
 
     try {
         // Check if anonymous
-        if (isAnonymous) {
+        if (!userId || isAnonymous) {
             // Get posts without likes
             const posts = await env.DB.prepare(`
                 SELECT *,
