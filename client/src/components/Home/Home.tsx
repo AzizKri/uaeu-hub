@@ -1,7 +1,8 @@
 import styles from './Home.module.scss';
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import WritePost from '../PostStuff/WritePost/WritePost.tsx';
 import { useUpdatePosts, useUser } from '../../lib/utils/hooks.ts';
+import {debounce} from "../../lib/utils/tools.ts";
 
 export default function Home() {
     const { posts, updatePosts, loading } = useUpdatePosts();
@@ -13,20 +14,28 @@ export default function Home() {
         updatePosts();
     }, [userReady]);
 
-    const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-        if (!loading && event.currentTarget.scrollHeight - event.currentTarget.scrollTop < 2 * window.innerHeight) {
-            updatePosts();
-        }
-    };
+    useEffect(() => {
+        const handleScroll = debounce(() => {
+            const {scrollHeight, scrollTop} = document.documentElement;
+            const nearBottom = scrollHeight - scrollTop <= 2 * window.innerHeight;
+
+            if (!loading && nearBottom) {
+                updatePosts();
+            }
+        }, 200)
+
+        window.addEventListener("scroll", handleScroll);
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+        };
+
+    }, [updatePosts, loading]);
+
 
     return (
-        <div className={styles.home} onScroll={handleScroll} ref={homeRef} style={{}}>
+        <div className={styles.home} ref={homeRef} style={{}}>
             <WritePost />
-            {/*Do we need this?*/}
-            {/*<div className={styles.questionsRecent}>*/}
-            {/*    <h3>Recent Questions</h3>*/}
-            {/*    <span>20 new questions</span>*/}
-            {/*</div>*/}
             <section className={styles.posts_container}>
                 {(posts.length > 0) ? posts : (loading ? <div className={styles.posts_container_text}>Loading...</div> :
                     <div className={styles.posts_container_text}>No posts yet... Be the first to write one!</div>)}
