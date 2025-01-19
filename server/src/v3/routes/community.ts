@@ -6,6 +6,7 @@ import {
     deleteCommunity,
     editCommunity,
     getCommunitiesByTag,
+    getCommunitiesByTags,
     getCommunitiesSortByActivity,
     getCommunitiesSortByCreation,
     getCommunitiesSortByMembers,
@@ -14,16 +15,17 @@ import {
     getCommunityMembers,
     getCommunityPostsBest,
     getCommunityPostsLatest,
+    inviteUserToCommunity,
     joinCommunity,
     leaveCommunity,
     removeMemberFromCommunity,
     searchCommunities
 } from '../controllers/community.controller';
 import { validator } from 'hono/validator';
-import { communityEditingSchema, communitySchema } from '../util/validationSchemas';
+import { communityEditingSchema, communityInviteSchema, communitySchema } from '../util/validationSchemas';
 
 
-const app = new Hono<{ Bindings: Env}>();
+const app = new Hono<{ Bindings: Env }>();
 
 // Create Community
 app.post('/',
@@ -40,6 +42,16 @@ app.post('/',
 // Community Memberships
 app.post('/join/:id', authMiddlewareCheckOnly, (c) => joinCommunity(c));
 app.post('/leave/:id', authMiddlewareCheckOnly, (c) => leaveCommunity(c));
+app.post('/invite',
+    validator('form', (value, c) => {
+        const parsed = communityInviteSchema.safeParse(value);
+        if (!parsed.success) {
+            return c.text('Invalid invite data', 400);
+        }
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c) => inviteUserToCommunity(c));
 app.get('/getMembers/:id', authMiddlewareCheckOnly, (c) => getCommunityMembers(c));
 // app.post('/addMember/:id/:userId', (c) => addMemberToCommunity(c));
 app.delete('/removeMember/:id/:userId', authMiddlewareCheckOnly, (c) => removeMemberFromCommunity(c));
@@ -70,6 +82,7 @@ app.get('/getCommunities', authMiddlewareCheckOnly, (c) => {
     }
 });
 app.get('/getCommunitiesByTag', authMiddlewareCheckOnly, (c) => getCommunitiesByTag(c));
+app.get('/getCommunitiesByTags', authMiddlewareCheckOnly, (c) => getCommunitiesByTags(c));
 app.get('/searchCommunities', authMiddlewareCheckOnly, (c) => searchCommunities(c));
 app.get('/getCommunityByName/:name', authMiddlewareCheckOnly, (c) => getCommunityByName(c));
 app.get('/:id', authMiddlewareCheckOnly, (c) => getCommunityById(c));

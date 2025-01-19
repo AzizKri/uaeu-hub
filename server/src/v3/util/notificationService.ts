@@ -8,31 +8,24 @@ export async function createNotification(
         entityId,
         entityType,
         message
-    }: {
-        senderId?: number;
-        receiverId?: number;
-        action?: 'like' | 'comment' | 'subcomment' | 'mention';
-        entityId?: number;
-        entityType?: 'post' | 'comment' | 'subcomment';
-        message?: string;
-    }) {
+    }: NotificationPayload.default) {
     const env: Env = c.env;
 
     switch (action) {
         case 'like':
             // Check required fields
             if (!entityId || !entityType || !senderId) throw new Error('No entity ID or type provided');
+            if (entityType === 'community') throw new Error('Invalid entity type');
 
             // Get the receiver ID and generate a message to send through websocket
             const {
                 receiverId: likeReceiverId,
                 message: likeMessage
-            } = await handleLike(env, senderId, entityId, entityType);
+            } = await handleLike(env, { senderId, entityId, entityType });
 
             // Reassign
             receiverId = likeReceiverId;
             message = likeMessage;
-            console.log(message);
 
             // Insert notification into DB
             await env.DB.prepare(`
@@ -93,7 +86,7 @@ export async function createNotification(
             const {
                 receiverId: subcommentReceiverId,
                 message: subcommentMessage
-            } = await handleSubcomment(env, senderId, entityId);
+            } = await handleSubcomment(env, { senderId: senderId, entityId: entityId });
 
             // Reassign
             receiverId = subcommentReceiverId;
@@ -126,14 +119,7 @@ export async function createNotification(
     }
 }
 
-async function sendToWebSocket(env: Env, payload: {
-    senderId?: number;
-    receiverId: number;
-    action?: 'like' | 'comment' | 'subcomment' | 'mention';
-    entityId?: number;
-    entityType?: 'post' | 'comment' | 'subcomment';
-    message?: string;
-}) {
+async function sendToWebSocket(env: Env, payload: NotificationPayload.default) {
     try {
         const request = await fetch(env.WEBSOCKET_URL + '/notify', {
             method: 'POST',
@@ -154,12 +140,12 @@ async function handleComment(env: Env, senderId: number, entityId: number) {
     return { receiverId: parentPost.author_id, message: `User ${senderId} commented your post` };
 }
 
-async function handleSubcomment(env: Env, senderId: number, entityId: number) {
+async function handleSubcomment(env: Env, { senderId, entityId }: NotificationPayload.Subcomment) {
     const parentComment = await getEntity(env, entityId, 'comment') as CommentRow;
     return { receiverId: parentComment.author_id, message: `User ${senderId} replied to your comment` };
 }
 
-async function handleLike(env: Env, senderId: number, entityId: number, entityType: 'post' | 'comment' | 'subcomment') {
+async function handleLike(env: Env, {senderId, entityId, entityType}: NotificationPayload.Like) {
     switch (entityType) {
         case 'post':
             const postEntity = await getEntity(env, entityId, entityType) as PostRow;
