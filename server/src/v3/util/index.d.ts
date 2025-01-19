@@ -176,6 +176,14 @@ type CommunityMemberRow = {
     role_id: number;
 }
 
+type CommunityInviteRow = {
+    id: number;
+    community_id: number;
+    sender_id: number;
+    recipient_id: number;
+    created_at: number;
+}
+
 type TagRow = {
     id: number;
     name: string;
@@ -192,6 +200,47 @@ type NotificationView = {
     entity_type: string;
     read: boolean;
     created_at: number;
+}
+
+namespace NotificationPayload {
+    export default interface NotificationPayload {
+        senderId: number;
+        receiverId?: number;
+        action: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
+        entityId: number;
+        entityType: 'post' | 'comment' | 'subcomment' | 'community';
+        message?: string;
+    }
+    export type Like = {
+        senderId: number;
+        entityId: number;
+        entityType: 'post' | 'comment' | 'subcomment';
+    }
+    export type Comment = {
+        senderId: number;
+        receiverId: number;
+        action: 'comment';
+        entityId: number;
+        entityType: 'post' | 'comment';
+    }
+    export type Subcomment = {
+        senderId: number;
+        entityId: number;
+    }
+    export type Mention = {
+        senderId: number;
+        receiverId: number;
+        action: 'mention';
+        entityId: number;
+        entityType: 'post' | 'comment' | 'subcomment';
+    }
+    export type Invite = {
+        senderId: number;
+        receiverId: number;
+        action: 'invite';
+        entityId: number;
+        entityType: 'community';
+    }
 }
 
 type UserAnonymousStatus = {
