@@ -15,7 +15,6 @@ export default function UserPosts () {
         setIsLoading(true);
         try {
             getPostsByUser(username, page).then((res) => {
-                // console.log("profileUser posts results", res);
                 if (res.data.length == 0) {
                     setIsLoading(false);
                     return;

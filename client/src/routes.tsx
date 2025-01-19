@@ -25,15 +25,6 @@ const ExploreCommunities = lazy(
             "./components/Communities/ExploreCommunities/ExploreCommunities.tsx"
         ),
 );
-const UserPosts = lazy(
-    () => import("./components/UserProfilePage/UserPosts/UserPosts.tsx"),
-);
-const UserCommunities = lazy(
-    () => import("./components/UserProfilePage/UserCommunities/UserCommunities.tsx"),
-);
-const UserLikes = lazy(
-    () => import("./components/UserProfilePage/UserLikes/UserLikes.tsx"),
-);
 
 const routes = [
     {
@@ -49,11 +40,6 @@ const routes = [
             {
                 path: "user/:username",
                 element: <UserProfile />,
-                children: [
-                    { path: "posts", element: <UserPosts /> },
-                    { path: "communities", element: <UserCommunities /> },
-                    { path: "likes", element: <UserLikes /> },
-                ],
             },
             { path: "community/:communityName", element: <Community /> },
             { path: "community/explore", element: <ExploreCommunities /> },
