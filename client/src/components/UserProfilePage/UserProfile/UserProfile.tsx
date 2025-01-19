@@ -28,11 +28,6 @@ export default function UserProfile () {
     const { user } = useUser();
     const navigate = useNavigate();
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
-    const [uploadState, setUploadState] = useState<UploadState>({
-                status: "IDLE",
-                file: null,
-                preview: null,}
-    );
 
 
     useEffect(() => {
@@ -92,17 +87,24 @@ export default function UserProfile () {
         console.log(updatedDisplayName);
         console.log(updatedBio);
         setShowPopup(false);
+        editCurrentUser(updatedDisplayName, updatedBio, updatedPfp).then((status) => {
+            console.log("edit result", status)
+            if (status === 200) {
+                setProfileUser(prev => prev && ({
+                    ...prev,
+                    displayName: updatedDisplayName,
+                    bio: updatedBio,
+                    pfp: updatedPfp,
+                }))
+            }
+        })
     }
     return (
         <div className={styles.userProfileContainer}>
             <div className={styles.userProfileHeader}>
                 <div className={styles.userHeader}>
                     <div className={styles.userAvatar}>
-                        {username && username === user?.username ? (
-                            <ImageUploader uploadState={uploadState} setUploadState={setUploadState} type="PROFILE" />
-                        ) : (
-                            <img src={profileUser?.pfp ? profileUser.pfp : defaultProfilePicture} alt="profile picture"/>
-                        )}
+                        <img src={profileUser?.pfp ? profileUser.pfp : defaultProfilePicture} alt="profile picture"/>
                     </div>
                     <div className={styles.userInfo}>
                         <h1 className={styles.displayName}>{profileUser ? profileUser.displayName : ''}</h1>
