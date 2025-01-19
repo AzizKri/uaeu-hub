@@ -1,6 +1,6 @@
-import styles from "./LoaderDots.module.scss";
+import styles from "./ThreeDotsLine.module.scss";
 
-export default function LoaderDots() {
+export default function ThreeDotsLine() {
 
     return (
         <div className={styles.loader}>

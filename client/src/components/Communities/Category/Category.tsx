@@ -1,7 +1,7 @@
 import styles from "./Category.module.scss";
 import {getCommunitiesByTag} from "../../../api/communities.ts";
 import {useEffect, useState} from "react";
-import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import CommunityPreview from "../CommunityPreview/CommunityPreview.tsx";
 
 interface CommunityPreviewInfo {
@@ -116,7 +116,7 @@ export default function Category({tag, joinedCommunity, setJoinedCommunity}: { t
                         className={styles.showMore}
                         onClick={handleShowMore}
                     >
-                        {isLoadingMore ? <LoaderDots/> : "Show More"}
+                        {isLoadingMore ? <ThreeDotsLine/> : "Show More"}
                     </button>
                 )}
             </div>

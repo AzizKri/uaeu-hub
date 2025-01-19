@@ -1,0 +1,63 @@
+.container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+
+    //background-color: #eee;
+    //border-radius: 50%;
+
+    //width: var(--parent-width);
+    //height: var(--parent-width);
+    --parent-width: 100px;
+    --inner-width: 20px;
+    --animation-duration: 1000ms;
+    --animation-dif: calc(var(--animation-duration) / 4);
+    --r: 40px;
+
+    display: grid;
+
+
+    .inner {
+        //width: var(--inner-width);
+        //height: var(--inner-width);
+        width: 100%;
+        height: 100%;
+        background-color: red;
+        position: absolute;
+        border-radius: 50%;
+
+        animation-name: blinking;
+        animation-duration: var(--animation-duration);
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+
+        @for $i from 1 through 8 {
+            &:nth-child(#{$i}) {
+                top: calc(var(--r) * sin(45deg * #{$i}));
+                left: calc(var(--r) * cos(45deg * #{$i}));
+                //transform: translate(calc(var(--r) * cos(60deg * #{$i})), calc(var(--r) * sin(60deg * #{$i})));
+                animation-delay: calc((#{$i} - 6) * var(--animation-dif));
+            }
+        }
+    }
+}
+
+@keyframes blinking {
+  0% {
+    opacity: 0;
+    transform: scale(1) ;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}

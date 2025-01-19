@@ -12,7 +12,7 @@ import professorIcon from "../../assets/professor.svg";
 import { useUser } from "../../lib/utils/hooks.ts";
 import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import LoaderDots from "../Reusable/LoaderDots/LoaderDots.tsx";
+import ThreeDotsLine from "../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import { logout } from "../../api/authentication.ts";
 import { getCommunitiesCurrentUser } from "../../api/currentUser.ts";
 import CreateCommunity from "../Communities/CreateCommunity/CreateCommunity.tsx";
@@ -172,7 +172,7 @@ export default function Aside() {
                     </li>
                     {loadingMyCommunities ? (
                         <div style={{ height: "30px" }}>
-                            <LoaderDots />
+                            <ThreeDotsLine />
                         </div>
                     ) : (
                         myCommunities && myCommunities.length &&

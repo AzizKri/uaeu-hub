@@ -16,7 +16,7 @@ import { getTags } from "../../../api/tags.ts";
 import xIcon from "../../../assets/x-14-white.svg";
 import plusIcon from "../../../assets/plus.svg";
 import { useNavigate } from "react-router-dom";
-import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import { debounce } from "../../../lib/utils/tools.ts";
 import ImageUploader, {ImageUploaderMethods} from "../../Reusable/ImageUploader/ImageUploader.tsx";
 
@@ -229,7 +229,9 @@ export default function CreateCommunity({
     return (
         <Modal onClose={onClose}>
             <div className={styles.container}>
-                <ImageUploader type="COMMUNITY" setUploadState={setUploadState} uploadState={uploadState} ref={childRef}/>
+                <div className={styles.loaderWrapper}>
+                    <ImageUploader type="COMMUNITY" setUploadState={setUploadState} uploadState={uploadState} ref={childRef}/>
+                </div>
                 {errorMessage && (
                     <div className={styles.errorMessage}>{errorMessage}</div>
                 )}
@@ -254,7 +256,7 @@ export default function CreateCommunity({
                         {nameFocus && nameState !== "" && (
                             <span className={styles.nameTooltip}>
                                 {checkingName ? (
-                                    <LoaderDots />
+                                    <ThreeDotsLine />
                                 ) : nameExist ? (
                                     "Not Available"
                                 ) : (
@@ -336,7 +338,7 @@ export default function CreateCommunity({
                         Cancel
                     </button>
                     <button className="btn-primary" onClick={handleCreate}>
-                        {isCreating ? <LoaderDots /> : "Create"}
+                        {isCreating ? <ThreeDotsLine /> : "Create"}
                     </button>
                 </div>
             </div>

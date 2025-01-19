@@ -17,12 +17,12 @@ import { createPost } from "../../../api/posts.ts";
 import {deleteAttachment, uploadAttachment} from "../../../api/attachmets.ts";
 import {getCommunitiesCurrentUser} from "../../../api/currentUser.ts";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import Post from "../Post/Post.tsx";
 import communityIcon from "../../../assets/community-icon.jpg";
 import arrowDownIcon from "../../../assets/chevron-down.svg";
 import { useUser } from "../../../lib/utils/hooks.ts";
-import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
+import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import {subComment} from "../../../api/subComments.ts";
 
 interface UploadState {
@@ -448,7 +448,7 @@ export default function Editor({
                                 />
                                 <ul className={styles.communities}>
                                     {loadingUserCommunities ? (
-                                        <LoadingImage width="24px"/>
+                                        <LineSpinner width="24px"/>
                                     ) : displayedCommunities.length > 0 ? (
                                         displayedCommunities.map(
                                             (community: CommunityINI) => (
@@ -525,7 +525,7 @@ export default function Editor({
                 />
                 <div className={styles.buttonIcon} onClick={submitPost}>
                     {isSubmitting || uploadState.status === "UPLOADING" ? (
-                        <LoaderDots/>
+                        <ThreeDotsLine/>
                     ) : (
                         <svg
                             xmlns="http://www.w3.org/2000/svg"

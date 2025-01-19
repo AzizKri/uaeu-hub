@@ -3,7 +3,7 @@ import searchIcon from "../../../assets/search.svg";
 import React, { useCallback, useState } from "react";
 import { debounce } from "../../../lib/utils/tools.ts";
 import { searchCommunities } from "../../../api/communities.ts";
-import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
+import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import { CommunityPreview } from "../../PostStuff/Editor/Editor.tsx";
 import { useNavigate } from "react-router-dom";
 
@@ -61,7 +61,7 @@ export default function Search() {
                 {showResults && (
                     <ul className={styles.communities}>
                         {loadingUserCommunities ? (
-                            <LoadingImage width="24px" />
+                            <LineSpinner width="24px" />
                         ) : results.length > 0 ? (
                             results.map((community: CommunityINI) => (
                                 <li
