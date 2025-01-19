@@ -56,6 +56,15 @@ export async function getCommunitiesByTag(tag: string, page: number = 0) {
     return { status: request.status, data: await request.json() };
 }
 
+// Get communities by multiple tags
+export async function getCommunitiesByTags(tags: string[]) {
+    const request = await fetch(base + `/community/getCommunitiesByTags?tags=${tags.join(',')}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
+
 // Get communities sorted by latest, activity, or members
 export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', page: number = 0) {
     const request = await fetch(base + `/community/getCommunities?sortBy=${sortBy}&page=${page}`, {
@@ -126,12 +135,16 @@ export async function getMembersOfCommunity(id: number) {
     return { status: request.status, data: await request.json() };
 }
 
-// TODO - Redo into inviteMemberToCommunity
-// Add member to community
-export async function addMemberToCommunity(id: number, userId: number) {
-    const request = await fetch(base + `/community/addMember/${id}/${userId}`, {
+// Invite user to community
+export async function inviteUserToCommunity(id: number, userId: number) {
+    const formData = new FormData();
+    formData.append('communityId', id.toString());
+    formData.append('userId', userId.toString());
+
+    const request = await fetch(base + `/community/invite`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        body: formData
     });
     return request.status;
 }
@@ -141,6 +154,20 @@ export async function removeMemberFromCommunity(id: number, userId: number) {
     const request = await fetch(base + `/community/removeMember/${id}/${userId}`, {
         method: 'DELETE',
         credentials: 'include'
+    });
+    return request.status;
+}
+
+// Add admin to community
+export async function addAdminToCommunity(userId: number, communityId: number) {
+    const formData = new FormData();
+    formData.append('userId', userId.toString());
+    formData.append('communityId', communityId.toString());
+
+    const request = await fetch(base + `/community/addAdmin`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
     });
     return request.status;
 }

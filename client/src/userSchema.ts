@@ -31,3 +31,9 @@ export const userSchema = z.object({
     email: emailSchema,
     password: passwordSchema
 });
+
+export const userEditingSchema = z.object({
+    displayname: displayNameSchema.optional(),
+    bio: z.string().max(1024, 'Bio must be at most 1024 characters long').optional(),
+    pfp: z.string().optional()
+})

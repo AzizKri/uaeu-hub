@@ -30,3 +30,14 @@ export async function getCommunitiesCurrentUser() {
     return { status: request.status, data: await request.json() };
 }
 
+export async function editCurrentUser({ displayname, bio, pfp }: { displayname?: string, bio?: string, pfp?: string }) {
+    const request = await fetch(base + `/user`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ displayname, bio, pfp }),
+        credentials: 'include'
+    });
+    return { status: request.status, data: await request.json() };
+}
