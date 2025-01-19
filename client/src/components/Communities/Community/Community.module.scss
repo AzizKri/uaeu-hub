@@ -107,14 +107,49 @@
 
             > div {
                 position: relative;
+                border: 1px solid #ccc;
+                margin-bottom: 10px;
                 &::after {
-                    content: "";
+                    //content: "";
                     width: 100%;
                     height: 1px;
                     position: absolute;
                     border-bottom: 1px solid #ccc;
                     left: 0;
                 }
+            }
+        }
+        .members {
+            .searchMembersLabel {
+                position: relative;
+
+                .clear {
+                    font-size: 30px;
+                    position: absolute;
+                    right: 8px;
+                    top: -2px;
+                    width: 24px;
+                    height: 24px;
+                    line-height: 24px;
+                    border-radius: 50%;
+                    text-align: center;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease;
+
+                    &:hover {
+                        background-color: #e4e4e4;
+                    }
+                }
+            }
+            .searchMembers {
+                border: 1px solid #ccc;
+                border-radius: 30px;
+                padding: 8px 10px;
+                width: 100%;
+                margin-bottom: 10px;
+                display: inline-block;
+                font-size: 14px;
+                position: relative;
             }
         }
         .about {
@@ -129,11 +164,14 @@
         .settings {
 
             .setting {
-                padding: 8px 4px;
+                padding: 8px 4px 8px 8px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                border: 1px solid #ccc;
+                margin-bottom: 5px;
+                border-radius: 5px;
 
                 &:hover {
                     background-color: #fafafa;

@@ -3,7 +3,7 @@ import communityIcon from "../../../assets/community-icon.jpg";
 import editImage from "../../../assets/image-edit-outline.svg";
 import React, {useRef, forwardRef, useImperativeHandle} from "react";
 import {deleteAttachment, uploadAttachment} from "../../../api/attachmets.ts";
-import EightDotsSpinner from "../Animations/EightDotsSpinner/EightDotsSpinner.tsx";
+import DotsSpinner from "../Animations/DotsSpinner/DotsSpinner.tsx";
 
 interface ImageUploaderProps {
     type: "COMMUNITY" | "PROFILE";
@@ -109,9 +109,8 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(function Ima
 
     return (
         <div className={styles.imagePreview} style={{width: type === "COMMUNITY" ? "150px" : "100px"}}>
-            {/*<div className={styles.imageWrapper}>*/}
                 {uploadState.status === "UPLOADING" ? (
-                    <EightDotsSpinner />
+                    <DotsSpinner />
                 ) : (
                     <img
                         src={
@@ -126,7 +125,6 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(function Ima
                         alt="uploaded image preview"
                     />
                 )}
-            {/*</div>*/}
             <div className={styles.changeImage} onClick={handleChangeImage}>
                 <img src={editImage} alt="edit image"/>
             </div>
