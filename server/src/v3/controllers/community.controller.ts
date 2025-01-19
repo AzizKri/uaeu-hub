@@ -128,7 +128,6 @@ export async function getCommunityPostsLatest(c: Context) {
                 SELECT *,
                        (SELECT 1 FROM post_like WHERE post_id = p.id AND user_id = ?) AS liked
                 FROM post_view p
-                         LEFT JOIN post_like pl on p.id = pl.post_id
                 WHERE p.community_id = ?
                 ORDER BY p.post_time DESC
                 LIMIT 10 OFFSET ?
@@ -179,7 +178,6 @@ export async function getCommunityPostsBest(c: Context) {
                            (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
                                  (3600 * 24))))                                        AS score -- 1 day
                 FROM post_view pv
-                         LEFT JOIN post_like pl on pv.id = pl.post_id
                 WHERE pv.community_id = ?
                 ORDER BY pv.post_time DESC
                 LIMIT 10 OFFSET ?
@@ -668,7 +666,6 @@ export async function searchCommunities(c: Context) {
     }
 }
 
-// TODO - Redo into inviteUserToCommunity
 export async function inviteUserToCommunity(c: Context) {
     const env: Env = c.env;
     const adminUserId = c.get('userId') as number;
@@ -779,7 +776,7 @@ export async function removeMemberFromCommunity(c: Context) {
     }
 }
 
-// TODO - Implement addAdminToCommunity
+// TODO - Implement addAdminToCommunity - Waiting for isOwner Implementation
 export async function addAdminToCommunity(c: Context) {
     return c.text('Not implemented', { status: 501 });
 }
