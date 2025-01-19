@@ -170,7 +170,7 @@ export async function uploadIcon(c: Context) {
     const isAnonymous = c.get('isAnonymous') as number;
     const formData: FormData = await c.req.formData();
     const file: File = formData.get('file') as File;
-    const type: string = formData.get('type') as string;
+    const source: string = formData.get('source') as string;
 
     // Make sure we have a valid user
     if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
@@ -179,7 +179,7 @@ export async function uploadIcon(c: Context) {
     if (!file) return c.text('No file provided', { status: 400 });
 
     // Make sure the type is sent
-    if (!type) return c.text('No type provided', { status: 400 })
+    if (!source) return c.text('No source provided', { status: 400 })
 
     // Deny blacklisted files
     if (!allowedPFPMimeTypes.includes(file.type)) {
@@ -194,7 +194,7 @@ export async function uploadIcon(c: Context) {
 
         // Upload to R2
         const R2Response = await env.R2.put(
-            `${type}/${fileName}`,
+            `${source}/${fileName}`,
             fileBuffer
         );
 
