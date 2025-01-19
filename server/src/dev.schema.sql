@@ -64,7 +64,9 @@ CREATE TABLE IF NOT EXISTS community
     invite_only  BOOLEAN NOT NULL DEFAULT FALSE, /* Can anyone join? */
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     tags         TEXT,
-    member_count INTEGER NOT NULL DEFAULT 0
+    member_count INTEGER NOT NULL DEFAULT 0,
+    owner_id     INTEGER NOT NULL,
+    FOREIGN KEY (owner_id) REFERENCES user (id) ON DELETE CASCADE /* TODO implement */
 );
 
 /* Community role Table */
@@ -77,6 +79,7 @@ CREATE TABLE IF NOT EXISTS community_role
     level         INTEGER NOT NULL DEFAULT 0, /* 0 = member, 100 = administrator */
     read_posts    BOOLEAN NOT NULL DEFAULT administrator, /* This should override the community's privacy */
     write_posts   BOOLEAN NOT NULL DEFAULT administrator,
+    delete_posts  BOOLEAN NOT NULL DEFAULT administrator,
     /* read_comments    BOOLEAN NOT NULL DEFAULT read_posts,
     write_comments   BOOLEAN NOT NULL DEFAULT write_posts,
     invite_users     BOOLEAN NOT NULL DEFAULT administrator,
@@ -99,6 +102,20 @@ CREATE TABLE IF NOT EXISTS user_community
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
     FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES community_role (id)
+);
+
+/* Community Invite Table */
+
+CREATE TABLE IF NOT EXISTS community_invite
+(
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    community_id INTEGER NOT NULL,
+    sender_id    INTEGER NOT NULL,
+    recipient_id INTEGER NOT NULL,
+    created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 /* Community Tag Table */
