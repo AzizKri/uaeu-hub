@@ -14,7 +14,7 @@ export default function UserCommunities() {
         if (!username) return;
         setIsLoading(true);
         try {
-            getUserCommunities(location?.state?.userId).then((res) => {
+            getUserCommunities(location?.state?.data?.user_id).then((res) => {
                 // console.log("profileUser posts results", res);
                 if (res.data.length == 0) {
                     setIsLoading(false);
