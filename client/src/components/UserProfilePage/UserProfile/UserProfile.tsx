@@ -5,6 +5,7 @@ import { getUserByUsername} from '../../../api/users.ts';
 import {useUser} from "../../../lib/utils/hooks.ts";
 import ImageUploader from "../../Reusable/ImageUploader/ImageUploader.tsx";
 import defaultProfilePicture from "../../../assets/profile-picture.png";
+import EditUserPopUp from "../EditUserPopUp/EditUserPopUp.tsx";
 
 const authTabs = [
     { label: 'Posts' },
@@ -20,7 +21,7 @@ const tabs = [
 export default function UserProfile () {
     // State for the current tab
     const location = useLocation();
-    // console.log(location);
+    const [showPopup, setShowPopup] = useState(false);
     const [activeTab, setActiveTab] = useState('');
     const [profileUser, setProfileUser] = useState<UserInfo>();
     const { username } =  useParams<{ username: string }>();
@@ -35,14 +36,6 @@ export default function UserProfile () {
 
 
     useEffect(() => {
-        // const checkAuth = async (username : string) => {
-        //     const response = await me();
-        //     if (response) {
-        //         return response.username === username;
-        //     }
-        //     return false;
-        // }
-        // console.log(location);
         setActiveTab(location.state?.data?.activeTab || 'Posts');
         if (username) {
             setIsAuthorized(user?.username === username);
@@ -87,6 +80,19 @@ export default function UserProfile () {
             }});
     };
 
+    const handleClick = () => {
+        setShowPopup(true);
+    }
+
+    const onClose = () => {
+        setShowPopup(false);
+    }
+
+    const onSave = (updatedDisplayName: string, updatedBio: string) => {
+        console.log(updatedDisplayName);
+        console.log(updatedBio);
+        setShowPopup(false);
+    }
     return (
         <div className={styles.userProfileContainer}>
             <div className={styles.userProfileHeader}>
@@ -105,7 +111,7 @@ export default function UserProfile () {
                             {profileUser ? (profileUser.bio ? profileUser.bio : '') : ''}
                         </p>
                     </div>
-                    {isAuthorized ? (<button className={styles.editProfileButton}>Edit Profile</button>) : (<></>)}
+                    {isAuthorized ? (<button className={styles.editProfileButton} onClick={handleClick}>Edit Profile</button>) : (<></>)}
                 </div>
                 <ul className={styles.tabs}>
                     {isAuthorized ? authTabs.map((tab) => (
@@ -134,6 +140,14 @@ export default function UserProfile () {
             <div className={styles.tabContent}>
                 <Outlet />
             </div>
+            {showPopup && (
+                <EditUserPopUp
+                    onClose={onClose}
+                    currentDisplayName={profileUser?.displayName ? profileUser.displayName : ''}
+                    currentBio={profileUser?.bio ? profileUser.bio : ''}
+                    onSave={onSave}
+                />
+            )}
         </div>
     );
 };
