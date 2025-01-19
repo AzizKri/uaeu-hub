@@ -1,6 +1,8 @@
 import { Context } from 'hono';
 import { createNotification } from '../util/notificationService';
 
+// TODO - Remove all top_comment queries
+
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
     const env: Env = c.env;

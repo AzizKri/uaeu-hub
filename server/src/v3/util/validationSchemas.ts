@@ -38,6 +38,11 @@ export const communityEditingSchema = z.object({
     // inviteOnly: z.boolean(),
 });
 
+export const communityInviteSchema = z.object({
+    userId: z.number(),
+    communityId: z.number()
+})
+
 const displaynameSchema = z
     .union([z.string().min(4, 'Display name must be at least 3 characters long'), z.string().length(0)])
     .optional()

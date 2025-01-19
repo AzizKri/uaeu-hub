@@ -1,6 +1,7 @@
 import { Context } from 'hono';
 import { getOrCreateTags } from './tags.controller';
 import { parseId } from '../util/util';
+import { createNotification } from '../util/notificationService';
 
 export async function createCommunity(c: Context) {
     // Get userId & isAnonymous from Context
@@ -370,6 +371,79 @@ export async function getCommunitiesByTag(c: Context) {
     }
 }
 
+export async function getCommunitiesByTags(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId');
+    const isAnonymous = c.get('isAnonymous');
+
+    // Get tags string from query
+    const tagsParam = c.req.query('tags');
+    if (!tagsParam) return c.text('No tags provided', { status: 400 });
+
+    // Convert to array
+    const tags = tagsParam.split(',');
+
+    try {
+        // Convert tag names into array of objects {id, tag}
+        const tagObjects = await Promise.all(tags.map(async (tagName) => {
+            const tag = await env.DB.prepare(`
+                SELECT id
+                FROM tag
+                WHERE name = ?
+            `).bind(tagName).first<TagRow>();
+
+            return {
+                id: tag?.id,
+                tag: tagName
+            };
+        }));
+
+        // Return an empty JSON if none of the tags exist
+        if (tagObjects.length === 0) return c.json({}, { status: 200 });
+
+        // Define our object to return
+        const communities: any = {};
+
+        // Iterate through tags
+        await Promise.all(tagObjects.map(async (tag) => {
+            if (userId && !isAnonymous) {
+                // Get communities with membership
+                const communitiesWithTag = await env.DB.prepare(`
+                    SELECT *,
+                           (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
+                    FROM community c
+                    WHERE id in (SELECT community_id
+                                 FROM community_tag
+                                 WHERE tag_id = ?)
+                    LIMIT 5
+                `).bind(userId, tag.id).all<CommunityRow>();
+
+                // Set the communities array to the tag name
+                communities[`${tag.tag}`] = communitiesWithTag.results;
+            } else {
+                // Get communities without membership
+                const communitiesWithTag = await env.DB.prepare(`
+                    SELECT *
+                    FROM community
+                    WHERE id in (SELECT community_id
+                                 FROM community_tag
+                                 WHERE tag_id = ?)
+                    LIMIT 5
+                `).bind(tag.id).all<CommunityRow>();
+
+                // Set the communities array to the tag name
+                communities[`${tag.tag}`] = communitiesWithTag.results;
+            }
+        }));
+
+        // Return our communities
+        return c.json(communities, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
 export async function getCommunitiesSortByMembers(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
@@ -594,62 +668,62 @@ export async function searchCommunities(c: Context) {
     }
 }
 
-// TODO - Redo into inviteMemberToCommunity
-export async function addMemberToCommunity(c: Context) {
-    return c.text('Not implemented', { status: 501 });
-    // const env: Env = c.env;
-    // const sessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
-    // const communityId = Number(c.req.param('id'));
-    // const userId = Number(c.req.param('userId'));
-    //
-    // // Check for required fields
-    // if (!communityId || !userId) return c.text('No community ID or user ID provided', { status: 400 });
-    //
-    // try {
-    //     // Check if user is anonymous
-    //     const user = await env.DB.prepare(`
-    //         SELECT is_anonymous
-    //         FROM user
-    //         WHERE id = ?
-    //     `).bind(userId).first<UserRow>();
-    //     if (user!.is_anonymous) return c.text('Forbidden', { status: 403 });
-    //
-    //     // Get user ID from session key
-    //     const adminFromSessionKey = await getUserFromSessionKey(c, sessionKey);
-    //     if (!adminFromSessionKey || adminFromSessionKey.isAnonymous) return c.text('Unauthorized', { status: 401 });
-    //
-    //     // Check if the user is an administrator of the community
-    //     const role = await env.DB.prepare(
-    //         `SELECT 1
-    //          FROM user_community
-    //          WHERE user_id = ?
-    //            AND community_id = ?
-    //            AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
-    //     ).bind(adminFromSessionKey.userId, communityId, communityId).first<CommunityMemberRow>();
-    //
-    //     if (!role) return c.text('Unauthorized', { status: 401 });
-    //
-    //     // Check if the user is already a member of the community
-    //     const member = await env.DB.prepare(
-    //         `SELECT 1
-    //          FROM user_community
-    //          WHERE user_id = ?
-    //            AND community_id = ?`
-    //     ).bind(userId, communityId).first<CommunityMemberRow>();
-    //
-    //     if (member) return c.text('User is already a member of the community', { status: 400 });
-    //
-    //     // Add the user to the community
-    //     await env.DB.prepare(`
-    //         INSERT INTO user_community (user_id, community_id, role_id)
-    //         VALUES (?, ?, (SELECT id FROM community_role WHERE community_id = ? AND name = 'Member'))
-    //     `).bind(userId, communityId, communityId).run();
-    //
-    //     return c.text('User added to community', { status: 200 });
-    // } catch (e) {
-    //     console.log(e);
-    //     return c.text('Internal Server Error', { status: 500 });
-    // }
+// TODO - Redo into inviteUserToCommunity
+export async function inviteUserToCommunity(c: Context) {
+    const env: Env = c.env;
+    const adminUserId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!adminUserId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
+    // @ts-ignore
+    const { userId, communityId } = c.req.valid('form');
+
+    try {
+        // Check if the user is an administrator of the community
+        const role = await env.DB.prepare(
+            `SELECT 1
+             FROM user_community
+             WHERE user_id = ?
+               AND community_id = ?
+               AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
+        ).bind(adminUserId, communityId, communityId).first<CommunityMemberRow>();
+
+        if (!role) return c.text('Unauthorized', { status: 401 });
+
+        // Check if the user is already a member of the community
+        const member = await env.DB.prepare(
+            `SELECT 1
+             FROM user_community
+             WHERE user_id = ?
+               AND community_id = ?`
+        ).bind(userId, communityId).first<CommunityMemberRow>();
+
+        if (member) return c.text('User is already a member of the community', { status: 400 });
+
+        // Invite the user to the community
+        const invite = await env.DB.prepare(`
+            INSERT INTO community_invite (community_id, sender_id, recipient_id)
+            VALUES (?, ?, ?)
+            RETURNING id
+        `).bind(communityId, adminUserId, userId).first<CommunityInviteRow>();
+
+        // Send notification to user in the background
+        c.executionCtx.waitUntil(createNotification(c, {
+            senderId: adminUserId,
+            receiverId: userId,
+            entityType: 'community',
+            entityId: invite!.id,
+            action: 'invite'
+        }));
+
+        return c.text('User invited to community', { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
 }
 
 export async function removeMemberFromCommunity(c: Context) {
@@ -703,6 +777,11 @@ export async function removeMemberFromCommunity(c: Context) {
         console.log(e);
         return c.text('Internal Server Error', { status: 500 });
     }
+}
+
+// TODO - Implement addAdminToCommunity
+export async function addAdminToCommunity(c: Context) {
+    return c.text('Not implemented', { status: 501 });
 }
 
 export async function joinCommunity(c: Context) {
