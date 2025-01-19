@@ -14,7 +14,9 @@ function App() {
     return (
         <>
             <div id="overlay" onClick={inActivateLeft}></div>
-            <NavBar />
+            <div className="navbar-wrapper">
+                <NavBar />
+            </div>
             <div className="main">
                 <div id="left" className="left">
                     <Aside />
