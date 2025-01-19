@@ -18,3 +18,17 @@ export async function getUserCommunities(userId: number) {
     const request = await fetch(base + `/user/${userId}/communities`, { credentials: 'include' });
     return { status: request.status, data: await request.json() };
 }
+
+export async function editCurrentUser(name?: string, bio?: string, pfp?: string) {
+    const formData = new FormData();
+    if (name) formData.append('displayname', name);
+    if (bio) formData.append('bio', bio);
+    if (pfp) formData.append('pfp', pfp);
+
+    const request = await fetch(base + `/user`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+    return request.status;
+}
