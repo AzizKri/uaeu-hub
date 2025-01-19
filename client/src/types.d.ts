@@ -153,6 +153,14 @@ declare global {
     interface WebSocketInterface {
         ws: WebSocket | null;
     }
+
+    interface UploadState {
+        status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
+        fileName?: string;
+        file: File | null;
+        preview: string | ArrayBuffer | null;
+    }
+
 }
 
 export {};

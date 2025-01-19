@@ -106,10 +106,15 @@
         .posts {
 
             > div {
-                border-bottom: 1px solid #ccc;
-            }
-            > :not(:first-child) {
-                border-top: 1px solid #ccc;
+                position: relative;
+                &::after {
+                    content: "";
+                    width: 100%;
+                    height: 1px;
+                    position: absolute;
+                    border-bottom: 1px solid #ccc;
+                    left: 0;
+                }
             }
         }
         .about {
