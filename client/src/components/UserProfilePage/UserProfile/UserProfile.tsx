@@ -1,11 +1,13 @@
 import {useEffect, useState} from 'react';
 import styles from './UserProfile.module.scss';
-import {Outlet, useLocation, useNavigate, useParams} from "react-router-dom";
-import { getUserByUsername} from '../../../api/users.ts';
+import {useNavigate, useParams} from "react-router-dom";
+import {editCurrentUser, getUserByUsername} from '../../../api/users.ts';
 import {useUser} from "../../../lib/utils/hooks.ts";
-import ImageUploader from "../../Reusable/ImageUploader/ImageUploader.tsx";
 import defaultProfilePicture from "../../../assets/profile-picture.png";
 import EditUserPopUp from "../EditUserPopUp/EditUserPopUp.tsx";
+import UserPosts from "../UserPosts/UserPosts.tsx";
+import UserCommunities from "../UserCommunities/UserCommunities.tsx";
+import UserLikes from "../UserLikes/UserLikes.tsx";
 
 const authTabs = [
     { label: 'Posts' },
@@ -19,8 +21,6 @@ const tabs = [
 ];
 
 export default function UserProfile () {
-    // State for the current tab
-    const location = useLocation();
     const [showPopup, setShowPopup] = useState(false);
     const [activeTab, setActiveTab] = useState('');
     const [profileUser, setProfileUser] = useState<UserInfo>();
@@ -31,13 +31,11 @@ export default function UserProfile () {
 
 
     useEffect(() => {
-        setActiveTab(location.state?.data?.activeTab || 'Posts');
+        setActiveTab('Posts');
         if (username) {
             setIsAuthorized(user?.username === username);
             getUserByUsername(username).then((res) => {
-               // console.log(username);
                const data = res.data;
-               // console.log(data);
                if (res.status !== 200){
                    navigate('/error');
                } else{
@@ -50,14 +48,6 @@ export default function UserProfile () {
                        isAnonymous: false,
                    });
                }
-               if (!location.state){
-                   navigate('posts');
-               }
-                setUploadState({
-                    status: "IDLE",
-                    file: null,
-                    preview: data.pfp,
-                });
             });
         }
     }, []);
@@ -65,14 +55,6 @@ export default function UserProfile () {
 
     const handleTabClick = (tabLabel: string) => {
         setActiveTab(tabLabel);
-        const tab = tabLabel.toLowerCase();
-        navigate(tab, {state: {
-            data: {
-                activeTab: tabLabel,
-                auth: isAuthorized,
-                user_id: profileUser?.id
-            }
-            }});
     };
 
     const handleClick = () => {
@@ -83,9 +65,7 @@ export default function UserProfile () {
         setShowPopup(false);
     }
 
-    const onSave = (updatedDisplayName: string, updatedBio: string) => {
-        console.log(updatedDisplayName);
-        console.log(updatedBio);
+    const onSave = (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => {
         setShowPopup(false);
         editCurrentUser(updatedDisplayName, updatedBio, updatedPfp).then((status) => {
             console.log("edit result", status)
@@ -140,11 +120,18 @@ export default function UserProfile () {
             </div>
 
             <div className={styles.tabContent}>
-                <Outlet />
+                {activeTab === "Posts" ? (
+                    <UserPosts />
+                ) : activeTab === "Communities" ? (
+                    <UserCommunities id={profileUser?.id ? profileUser.id : -1} />
+                ) : activeTab === "Likes" ? (
+                    <UserLikes />
+                ) : <></>}
             </div>
             {showPopup && (
                 <EditUserPopUp
                     onClose={onClose}
+                    currentProfilePicture={profileUser?.pfp}
                     currentDisplayName={profileUser?.displayName ? profileUser.displayName : ''}
                     currentBio={profileUser?.bio ? profileUser.bio : ''}
                     onSave={onSave}

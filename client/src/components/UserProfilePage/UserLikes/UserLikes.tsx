@@ -2,24 +2,18 @@ import React, {useEffect, useState} from "react";
 import {getLikesCurrentUser} from "../../../api/currentUser.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
 import styles from "../UserContent.module.scss"
-import {useLocation, useNavigate, useParams} from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 export default function UserLikes () {
     const [likedPosts, setLikedPosts] = useState<React.ReactElement[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { username } =  useParams<{ username: string }>();
-    const location = useLocation();
-    const navigate = useNavigate();
 
     useEffect(() => {
         if (!username) return;
-        if (!location || !location.state?.data?.auth){
-            navigate("unauthorized");
-        }
         setIsLoading(true);
         try {
             getLikesCurrentUser().then((res) => {
-                // console.log("profileUser posts results", res);
                 if (res.data.length == 0) {
                     setIsLoading(false);
                     return;
