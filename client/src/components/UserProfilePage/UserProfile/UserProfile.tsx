@@ -4,6 +4,7 @@ import {Outlet, useLocation, useNavigate, useParams} from "react-router-dom";
 import { getUserByUsername} from '../../../api/users.ts';
 import {useUser} from "../../../lib/utils/hooks.ts";
 import ImageUploader from "../../Reusable/ImageUploader/ImageUploader.tsx";
+import defaultProfilePicture from "../../../assets/profile-picture.png";
 
 const authTabs = [
     { label: 'Posts' },
@@ -91,7 +92,11 @@ export default function UserProfile () {
             <div className={styles.userProfileHeader}>
                 <div className={styles.userHeader}>
                     <div className={styles.userAvatar}>
-                        <ImageUploader uploadState={uploadState} setUploadState={setUploadState} type="PROFILE" />
+                        {username && username === user?.username ? (
+                            <ImageUploader uploadState={uploadState} setUploadState={setUploadState} type="PROFILE" />
+                        ) : (
+                            <img src={profileUser?.pfp ? profileUser.pfp : defaultProfilePicture} alt="profile picture"/>
+                        )}
                     </div>
                     <div className={styles.userInfo}>
                         <h1 className={styles.displayName}>{profileUser ? profileUser.displayName : ''}</h1>
