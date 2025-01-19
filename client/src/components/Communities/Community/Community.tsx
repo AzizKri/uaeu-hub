@@ -23,7 +23,7 @@ export default function Community() {
     // TODO: replace by getCommunityPosts() once it is implemented
     const { communityName } = useParams<{ communityName: string }>(); // Get the postId from the URL
     const [info, setInfo] = useState<CommunityInfo>();
-    const [role, setRole] = useState<string>();
+    const [role, setRole] = useState<"Administrator" | "Member">();
     const [activeTab, setActiveTab] = useState<
         "POST" | "ABOUT" | "MEMBER" | "SETTINGS"
     >("POST");
@@ -175,6 +175,11 @@ export default function Community() {
     ) => {
         setSearchMembersVal(e.target.value);
     };
+    const removeUser = (id: number) => {
+        setMembers(prev => (
+            prev.filter(mem => mem.id !== id)
+        ))
+    }
 
     return loadingInfo || !info ? (
         <LineSpinner width={"200px"} />
@@ -284,7 +289,10 @@ export default function Community() {
                     </div>
                 ) : activeTab === "MEMBER" ? (
                     <div className={styles.members}>
-                        <label htmlFor="searchMembersInput" className={styles.searchMembersLabel}>
+                        <label
+                            htmlFor="searchMembersInput"
+                            className={styles.searchMembersLabel}
+                        >
                             <input
                                 id="searchMembersInput"
                                 type="text"
@@ -293,7 +301,12 @@ export default function Community() {
                                 placeholder="Search Members"
                                 className={styles.searchMembers}
                             />
-                            <span className={styles.clear} onClick={() => setSearchMembersVal("")}>×</span>
+                            <span
+                                className={styles.clear}
+                                onClick={() => setSearchMembersVal("")}
+                            >
+                                ×
+                            </span>
                         </label>
                         <div className={styles.category}>
                             <h5 className={styles.membersInfo}>Admins</h5>
@@ -301,7 +314,13 @@ export default function Community() {
                                 <ul className={styles.users}>
                                     {admins.map((ad) => (
                                         <li key={ad.username}>
-                                            <UserPreview user={ad} />
+                                            <UserPreview
+                                                communityId={info.id}
+                                                user={ad}
+                                                type="ADMIN"
+                                                removeMe={() => ad.id && removeUser(ad.id)}
+                                                role={role}
+                                            />
                                         </li>
                                     ))}
                                 </ul>
@@ -315,7 +334,13 @@ export default function Community() {
                                 <ul className={styles.users}>
                                     {members.map((mem) => (
                                         <li key={mem.username}>
-                                            <UserPreview user={mem} />
+                                            <UserPreview
+                                                communityId={info.id}
+                                                user={mem}
+                                                type="MEMBER"
+                                                removeMe={() => mem.id && removeUser(mem.id)}
+                                                role={role}
+                                            />
                                         </li>
                                     ))}
                                 </ul>
