@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import {useState} from 'react';
 import styles from './EditUserPopUp.module.scss';
 import Modal from "../../Reusable/Modal/Modal.tsx";
+import ImageUploader from "../../Reusable/ImageUploader/ImageUploader.tsx";
 
 interface EditUserPopUpProps {
     onClose: () => void;
+    currentProfilePicture?: string;
     currentDisplayName: string;
     currentBio: string;
     onSave: (updatedDisplayName: string, updatedBio: string) => void;
@@ -11,12 +13,19 @@ interface EditUserPopUpProps {
 
 export default function EditUserPopUp({
                                           onClose,
+                                          currentProfilePicture,
                                           currentDisplayName,
                                           currentBio,
                                           onSave
                                       }: EditUserPopUpProps) {
     const [displayName, setDisplayName] = useState(currentDisplayName);
     const [bio, setBio] = useState(currentBio);
+    const [uploadState, setUploadState] = useState<UploadState>({
+            status: "IDLE",
+            file: null,
+            preview: currentProfilePicture,
+        }
+    );
 
     const handleSave = () => {
         onSave(displayName, bio);
@@ -27,6 +36,7 @@ export default function EditUserPopUp({
         <Modal onClose={onClose}>
             <div className={styles.container}>
                 <h2 className={styles.editHeader}>Edit Profile</h2>
+                <ImageUploader uploadState={uploadState} setUploadState={setUploadState} type="PROFILE"/>
                 <label htmlFor="displayName" className={styles.editLabel}>Display Name</label>
                 <input
                     type="text"
