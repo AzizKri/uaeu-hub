@@ -2,11 +2,13 @@ import { Hono } from 'hono';
 import {
     editCurrentUser,
     getCurrentUser,
-    getUserByUsername,
     getCurrentUserCommunities,
     getCurrentUserLikesOnComments,
     getCurrentUserLikesOnPosts,
-    getCurrentUserLikesOnSubcomments, searchUser, getUserCommunities
+    getCurrentUserLikesOnSubcomments,
+    getUserByUsername,
+    getUserCommunities,
+    searchUser
 } from '../controllers/user.controller';
 import { authMiddlewareCheckOnly } from '../util/middleware';
 import { validator } from 'hono/validator';
@@ -33,12 +35,14 @@ app.get('/search', (c) => searchUser(c));
 app.get('/:userId/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
 app.get('/:username', (c) => getUserByUsername(c));
 
-app.post('/', validator('form', (value, c) => {
-    const parsed = userEditingSchema.safeParse(value);
-    if (!parsed.success) {
-        return c.text('Invalid user data', 400);
-    }
-    return parsed.data;
-}), (c) => editCurrentUser(c));
+app.post('/',
+    validator('form', (value, c) => {
+        const parsed = userEditingSchema.safeParse(value);
+        if (!parsed.success) {
+            return c.text('Invalid user data', 400);
+        }
+        return parsed.data;
+    }), authMiddlewareCheckOnly,
+    (c) => editCurrentUser(c));
 
 export default app;
