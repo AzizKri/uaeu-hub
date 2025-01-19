@@ -1,5 +1,6 @@
 import styles from "./YesNoPopUp.module.scss";
 import Modal from "../Modal/Modal.tsx";
+import React from "react";
 
 export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp, yesText = "Yes", noText = "No"}: {
     title: string,
@@ -10,17 +11,16 @@ export default function YesNoPopUp({title, text, onYes, onNo, hidePopUp, yesText
     yesText?: string,
     noText?: string
 }) {
-    const handleHidePopUp = () => {
-        hidePopUp();
-    }
 
-    const handleYes = () => {
-        handleHidePopUp();
+    const handleYes: React.MouseEventHandler = (e) => {
+        e.stopPropagation();
+        hidePopUp();
         onYes()
     }
 
-    const handleNo = () => {
-        handleHidePopUp();
+    const handleNo: React.MouseEventHandler = (e) => {
+        e.stopPropagation();
+        hidePopUp();
         onNo()
     }
 
