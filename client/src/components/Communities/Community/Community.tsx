@@ -9,7 +9,7 @@ import {
     joinCommunity,
     leaveCommunity,
 } from "../../../api/communities.ts";
-import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
+import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import { useUser } from "../../../lib/utils/hooks.ts";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
@@ -152,7 +152,7 @@ export default function Community() {
     };
 
     return loadingInfo || !info ? (
-        <LoadingImage width={"200px"} />
+        <LineSpinner width={"200px"} />
     ) : (
         <div className={styles.container}>
             {showEditor && (

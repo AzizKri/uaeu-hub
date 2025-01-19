@@ -7,7 +7,7 @@ import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import Modal from "../../Reusable/Modal/Modal.tsx"
 import Editor from "../Editor/Editor.tsx";
 import {getSubCommentsOnComment} from "../../../api/subComments.ts";
-import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import {Link} from "react-router-dom";
 import down_vote_outline from "../../../assets/down-vote-outline.svg"
 import upvote_outline from "../../../assets/up-vote-outline.svg"
@@ -17,7 +17,7 @@ import reply from "../../../assets/reply.svg"
 import {likeComment} from "../../../api/comments.ts";
 import {useUser} from "../../../lib/utils/hooks.ts";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
-import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
+import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import SubComment from "../SubComment/SubComment.tsx";
 
 interface SubCommentBack {
@@ -271,7 +271,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                 )}
                 {repliesShown &&
                     (repliesLoading ? (
-                        <LoadingImage width={"20px"} />
+                        <LineSpinner width={"20px"} />
                     ) : (
                         <>
                             {subComments.map((cur) => (
@@ -288,7 +288,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                                     onClick={handleShowMore}
                                 >
                                     {isLoadingMoreSubComments ? (
-                                        <LoaderDots />
+                                        <ThreeDotsLine />
                                     ) : (
                                         "Show More"
                                     )}

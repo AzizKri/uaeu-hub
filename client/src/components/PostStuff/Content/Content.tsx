@@ -1,5 +1,5 @@
 import styles from "./Content.module.scss"
-import LoadingImage from "../../Reusable/LoadingImage/LoadingImage.tsx";
+import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import React, {useEffect, useState} from "react";
 import {getAttachmentDetails} from "../../../api/attachmets.ts";
 
@@ -57,7 +57,7 @@ export default function Content({content, filename, type}: {
                 {!showContent && !(type === "post-page") && <span className={styles.show_more} onClick={handleShowMore}>show more</span>}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
-            {isLoading && !error && <LoadingImage width="100%"/>}
+            {isLoading && !error && <LineSpinner width="100%"/>}
             {filename != null && !error && <div className={styles.image}
                                                 style={{
                                                     display: isLoading ? 'none' : 'block',

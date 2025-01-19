@@ -1,7 +1,7 @@
 import styles from "./CommunityPreview.module.scss";
 import React, {useState} from "react";
 import memberIcon from "../../../assets/account-outline-thin-dot.svg";
-import LoaderDots from "../../Reusable/LoaderDots/LoaderDots.tsx";
+import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import { useUser } from "../../../lib/utils/hooks.ts";
 import {joinCommunity} from "../../../api/communities.ts";
 import {useNavigate} from "react-router-dom";
@@ -67,7 +67,7 @@ export default function CommunityPreview({
                     className={styles.join}
                     onClick={(e) => handleJoinCommunity(e, id)}
                 >
-                    {isJoining ? <LoaderDots /> : "Join"}
+                    {isJoining ? <ThreeDotsLine /> : "Join"}
                 </button>
             )}
         </div>
