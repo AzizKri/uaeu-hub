@@ -75,3 +75,27 @@ export async function deleteAttachment(filename: string) {
     return request.status;
 }
 
+// Upload pfp/icon
+export async function uploadIcon(attachments: File[], type: 'icon' | 'pfp') {
+    if (!attachments[0] || !allowedMimeTypes.includes(attachments[0].type)) {
+        return { status: 400 };
+    }
+    const formData = new FormData();
+    formData.append('files[]', attachments[0]);
+    formData.append('source', type);
+
+    const request = await fetch(base + `/attachment`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+    });
+
+    if (request.status === 201) {
+        return {
+            status: 201,
+            filename: await request.text()
+        };
+    } else {
+        return { status: request.status };
+    }
+}

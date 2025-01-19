@@ -1,8 +1,6 @@
 import { Context } from 'hono';
 import { createNotification } from '../util/notificationService';
 
-// TODO - Remove all top_comment queries
-
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
     const env: Env = c.env;
@@ -77,46 +75,18 @@ export async function createPost(c: Context) {
 export async function getLatestPosts(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        if (!userId) {
+        if (!userId || isAnonymous) {
             // New user, show posts without likes
             const posts = await env.DB.prepare(
-                `SELECT pv.*,
-                        CASE
-                            WHEN tc.id IS NULL THEN NULL
-                            ELSE
-                                JSON_OBJECT(
-                                    'id', tc.id,
-                                    'author_id', tc.author_id,
-                                    'author', tc.author,
-                                    'pfp', tc.pfp,
-                                    'displayname', tc.displayname,
-                                    'content', tc.content,
-                                    'post_time', tc.post_time,
-                                    'attachment', tc.attachment,
-                                    'like_count', tc.like_count,
-                                    'comment_count', tc.comment_count
-                                ) END AS top_comment
+                `SELECT pv.*
                  FROM post_view AS pv
-                          LEFT JOIN (SELECT c.id,
-                                            c.parent_post_id,
-                                            c.author_id,
-                                            c.author,
-                                            c.pfp,
-                                            c.displayname,
-                                            c.content,
-                                            c.post_time,
-                                            c.attachment,
-                                            c.like_count,
-                                            c.comment_count
-                                     FROM comment_view AS c
-                                     ORDER BY c.like_count DESC, c.post_time
-                                     LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
             ).bind(page * 10).all<PostView>();
@@ -129,37 +99,8 @@ export async function getLatestPosts(c: Context) {
                         EXISTS (SELECT 1
                                 FROM post_like
                                 WHERE post_like.post_id = pv.id
-                                  AND post_like.user_id = ?) AS liked,
-                        CASE
-                            WHEN tc.id IS NULL THEN NULL
-                            ELSE
-                                JSON_OBJECT(
-                                    'id', tc.id,
-                                    'author_id', tc.author_id,
-                                    'author', tc.author,
-                                    'pfp', tc.pfp,
-                                    'displayname', tc.displayname,
-                                    'content', tc.content,
-                                    'post_time', tc.post_time,
-                                    'attachment', tc.attachment,
-                                    'like_count', tc.like_count,
-                                    'comment_count', tc.comment_count
-                                ) END                        AS top_comment
+                                  AND post_like.user_id = ?) AS liked
                  FROM post_view AS pv
-                          LEFT JOIN (SELECT c.id,
-                                            c.parent_post_id,
-                                            c.author_id,
-                                            c.author,
-                                            c.pfp,
-                                            c.displayname,
-                                            c.content,
-                                            c.post_time,
-                                            c.attachment,
-                                            c.like_count,
-                                            c.comment_count
-                                     FROM comment_view AS c
-                                     ORDER BY c.like_count DESC, c.post_time
-                                     LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
             ).bind(userId, page * 10).all<PostView>();
@@ -176,50 +117,22 @@ export async function getLatestPosts(c: Context) {
 export async function getBestPosts(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        if (!userId) {
+        if (!userId || isAnonymous) {
             // New user, show posts without likes
             const posts = await env.DB.prepare(
                 `SELECT pv.*,
-                        CASE
-                            WHEN tc.id IS NULL THEN NULL
-                            ELSE
-                                JSON_OBJECT(
-                                    'id', tc.id,
-                                    'author_id', tc.author_id,
-                                    'author', tc.author,
-                                    'pfp', tc.pfp,
-                                    'displayname', tc.displayname,
-                                    'content', tc.content,
-                                    'post_time', tc.post_time,
-                                    'attachment', tc.attachment,
-                                    'like_count', tc.like_count,
-                                    'comment_count', tc.comment_count
-                                ) END            AS top_comment,
                         (
                             (pv.like_count * 10 + pv.comment_count * 5) /
                             (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
                                   (3600 * 24)))) AS score -- 1 day
                  FROM post_view AS pv
-                          LEFT JOIN (SELECT c.id,
-                                            c.parent_post_id,
-                                            c.author_id,
-                                            c.author,
-                                            c.pfp,
-                                            c.displayname,
-                                            c.content,
-                                            c.post_time,
-                                            c.attachment,
-                                            c.like_count,
-                                            c.comment_count
-                                     FROM comment_view AS c
-                                     ORDER BY c.like_count DESC, c.post_time
-                                     LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY score DESC
                  LIMIT 10 OFFSET ?`
             ).bind(page * 10).all<PostView>();
@@ -233,40 +146,11 @@ export async function getBestPosts(c: Context) {
                                 FROM post_like
                                 WHERE post_like.post_id = pv.id
                                   AND post_like.user_id = ?) AS liked,
-                        CASE
-                            WHEN tc.id IS NULL THEN NULL
-                            ELSE
-                                JSON_OBJECT(
-                                    'id', tc.id,
-                                    'author_id', tc.author_id,
-                                    'author', tc.author,
-                                    'pfp', tc.pfp,
-                                    'displayname', tc.displayname,
-                                    'content', tc.content,
-                                    'post_time', tc.post_time,
-                                    'attachment', tc.attachment,
-                                    'like_count', tc.like_count,
-                                    'comment_count', tc.comment_count
-                                ) END                        AS top_comment,
                         (
                             (pv.like_count * 10 + pv.comment_count * 5) /
                             (1 + ((strftime('%s', 'now') - strftime('%s', datetime(pv.post_time / 1000, 'unixepoch'))) /
                                   (3600 * 24))))             AS score -- 1 day
                  FROM post_view AS pv
-                          LEFT JOIN (SELECT c.id,
-                                            c.parent_post_id,
-                                            c.author_id,
-                                            c.author,
-                                            c.pfp,
-                                            c.displayname,
-                                            c.content,
-                                            c.post_time,
-                                            c.attachment,
-                                            c.like_count,
-                                            c.comment_count
-                                     FROM comment_view AS c
-                                     ORDER BY c.like_count DESC, c.post_time
-                                     LIMIT 1) AS tc ON tc.parent_post_id = pv.id
                  ORDER BY score DESC
                  LIMIT 10 OFFSET ?`
             ).bind(userId, page * 10).all<PostView>();
@@ -356,6 +240,7 @@ export async function getBestPostsFromMyCommunities(c: Context) {
 export async function getPostsByUser(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
@@ -366,7 +251,7 @@ export async function getPostsByUser(c: Context) {
     if (!user) return c.json([], { status: 400 });
 
     try {
-        if (!userId) {
+        if (!userId || isAnonymous) {
             // New user, show posts without likes
             const results = await env.DB.prepare(
                 `SELECT *
@@ -431,6 +316,7 @@ export async function searchPosts(c: Context) {
 export async function getPostByID(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
@@ -440,7 +326,7 @@ export async function getPostByID(c: Context) {
     if (!id || id == 0) return c.text('No post ID provided', { status: 400 });
 
     try {
-        if (!userId) {
+        if (!userId || isAnonymous) {
             // New user, show posts without likes
             const results = await env.DB.prepare(
                 `SELECT *
@@ -533,6 +419,10 @@ export async function deletePost(c: Context) {
 export async function likePost(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Make sure we have a valid user
+    if (!userId || isAnonymous) return c.text('Not logged in', { status: 400 });
 
     // Get the required fields
     const env: Env = c.env;
