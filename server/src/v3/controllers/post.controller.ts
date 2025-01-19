@@ -75,13 +75,14 @@ export async function createPost(c: Context) {
 export async function getLatestPosts(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        if (!userId) {
+        if (!userId || isAnonymous) {
             // New user, show posts without likes
             const posts = await env.DB.prepare(
                 `SELECT pv.*
@@ -98,7 +99,7 @@ export async function getLatestPosts(c: Context) {
                         EXISTS (SELECT 1
                                 FROM post_like
                                 WHERE post_like.post_id = pv.id
-                                  AND post_like.user_id = ?) AS liked,
+                                  AND post_like.user_id = ?) AS liked
                  FROM post_view AS pv
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
@@ -116,13 +117,14 @@ export async function getLatestPosts(c: Context) {
 export async function getBestPosts(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
     const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
 
     try {
-        if (!userId) {
+        if (!userId || isAnonymous) {
             // New user, show posts without likes
             const posts = await env.DB.prepare(
                 `SELECT pv.*,
@@ -238,6 +240,7 @@ export async function getBestPostsFromMyCommunities(c: Context) {
 export async function getPostsByUser(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
@@ -248,7 +251,7 @@ export async function getPostsByUser(c: Context) {
     if (!user) return c.json([], { status: 400 });
 
     try {
-        if (!userId) {
+        if (!userId || isAnonymous) {
             // New user, show posts without likes
             const results = await env.DB.prepare(
                 `SELECT *
@@ -313,6 +316,7 @@ export async function searchPosts(c: Context) {
 export async function getPostByID(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
@@ -322,7 +326,7 @@ export async function getPostByID(c: Context) {
     if (!id || id == 0) return c.text('No post ID provided', { status: 400 });
 
     try {
-        if (!userId) {
+        if (!userId || isAnonymous) {
             // New user, show posts without likes
             const results = await env.DB.prepare(
                 `SELECT *
@@ -415,6 +419,10 @@ export async function deletePost(c: Context) {
 export async function likePost(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Make sure we have a valid user
+    if (!userId || isAnonymous) return c.text('Not logged in', { status: 400 });
 
     // Get the required fields
     const env: Env = c.env;
