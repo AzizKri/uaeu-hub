@@ -27,10 +27,10 @@ export const communityEditingSchema = z.object({
         .string()
         .transform((value) => value.split(',').map((tag) => tag.trim()))
         .refine((array) => array.length <= 5, {
-            message: 'Community tags must be at most 5 tags long',
+            message: 'Community tags must be at most 5 tags long'
         })
         .optional()
-        .nullable(),
+        .nullable()
 
     // Currently unimplemented
 
@@ -41,7 +41,7 @@ export const communityEditingSchema = z.object({
 export const communityInviteSchema = z.object({
     userId: z.number(),
     communityId: z.number()
-})
+});
 
 const displaynameSchema = z
     .union([z.string().min(4, 'Display name must be at least 3 characters long'), z.string().length(0)])
@@ -79,7 +79,7 @@ export const userEditingSchema = z.object({
     displayname: displaynameSchema.optional(),
     bio: z.string().max(1024, 'Bio must be at most 1024 characters long').optional(),
     pfp: z.string().optional()
-})
+});
 
 export function isUsernameValid(username: string): boolean {
     return !usernames.includes(username);

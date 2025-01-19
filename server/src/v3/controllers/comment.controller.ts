@@ -102,7 +102,7 @@ export async function deleteComment(c: Context) {
     const commentId = Number(c.req.param('commentId'));
 
     // Get userId from Context
-    const userId = c.get('userId') as number
+    const userId = c.get('userId') as number;
     if (!userId) return c.text('Unauthorized', { status: 401 });
 
     // Check for required fields

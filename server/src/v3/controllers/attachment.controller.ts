@@ -24,7 +24,7 @@ const allowedMimeTypes = [
     'application/msword',   // .doc
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',   // .docx
     'application/vnd.ms-excel',    // .xls
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',    // .xlsx
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'    // .xlsx
 ];
 
 export async function uploadAttachment(c: Context) {
@@ -53,8 +53,8 @@ export async function uploadAttachment(c: Context) {
 
         // Image metadata
         if (file.type.split('/')[0] === 'image') {
-            metadata["width"] = String(formData.get('width'));
-            metadata["height"] = String(formData.get('height'));
+            metadata['width'] = String(formData.get('width'));
+            metadata['height'] = String(formData.get('height'));
         }
 
         // Upload to R2
@@ -96,7 +96,7 @@ export async function getAttachmentDetails(c: Context) {
 
         // File doesn't exist
         if (!R2Response) {
-            return new Response("Object not found", { status: 404 });
+            return new Response('Object not found', { status: 404 });
         }
 
         const type = R2Response.httpMetadata?.contentType || '';
@@ -161,7 +161,7 @@ const allowedPFPMimeTypes = [
     'image/gif',            // .gif
     'image/webp',           // .webp
     'image/bmp',            // .bmp
-    'image/tiff',           // .tiff
+    'image/tiff'           // .tiff
 ];
 
 export async function uploadIcon(c: Context) {
@@ -179,7 +179,7 @@ export async function uploadIcon(c: Context) {
     if (!file) return c.text('No file provided', { status: 400 });
 
     // Make sure the type is sent
-    if (!source) return c.text('No source provided', { status: 400 })
+    if (!source) return c.text('No source provided', { status: 400 });
 
     // Deny blacklisted files
     if (!allowedPFPMimeTypes.includes(file.type)) {

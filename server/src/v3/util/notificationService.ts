@@ -145,7 +145,7 @@ async function handleSubcomment(env: Env, { senderId, entityId }: NotificationPa
     return { receiverId: parentComment.author_id, message: `User ${senderId} replied to your comment` };
 }
 
-async function handleLike(env: Env, {senderId, entityId, entityType}: NotificationPayload.Like) {
+async function handleLike(env: Env, { senderId, entityId, entityType }: NotificationPayload.Like) {
     switch (entityType) {
         case 'post':
             const postEntity = await getEntity(env, entityId, entityType) as PostRow;
