@@ -157,6 +157,7 @@ type CommunityRow = {
     created_at: number;
     tags: string;
     member_count: number;
+    owner_id: number;
 }
 
 type CommunityRoleRow = {

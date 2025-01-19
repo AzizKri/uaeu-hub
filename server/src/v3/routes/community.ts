@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { authMiddlewareCheckOnly } from '../util/middleware';
 import {
+    addAdminToCommunity,
     communityExists,
     createCommunity,
     deleteCommunity,
@@ -100,6 +101,16 @@ app.post('/:id',
     }),
     authMiddlewareCheckOnly,
     (c) => editCommunity(c));
+app.post('/addAdmin',
+    validator('form', (value, c) => {
+        const parsed = communityInviteSchema.safeParse(value);
+        if (!parsed.success) {
+            return c.text('Invalid invite data', 400);
+        }
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c) => addAdminToCommunity(c));
 
 // Delete Community
 app.delete('/:id', authMiddlewareCheckOnly, (c) => deleteCommunity(c));

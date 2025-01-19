@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS community
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     tags         TEXT,
     member_count INTEGER NOT NULL DEFAULT 0,
-    owner_id     INTEGER NOT NULL,
-    FOREIGN KEY (owner_id) REFERENCES user (id) ON DELETE CASCADE /* TODO implement */
+    owner_id     INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (owner_id) REFERENCES user (id) ON DELETE SET DEFAULT
 );
 
 /* Community role Table */

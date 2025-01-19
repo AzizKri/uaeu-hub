@@ -37,10 +37,10 @@ export async function createCommunity(c: Context) {
 
         // Create the community
         const community = await env.DB.prepare(
-            `INSERT INTO community (name, description, icon, tags)
-             VALUES (?, ?, ?, ?)
+            `INSERT INTO community (name, description, icon, tags, owner_id)
+             VALUES (?, ?, ?, ?, ?)
              RETURNING id`
-        ).bind(name, desc, icon || null, tags.join(',')).first<CommunityRow>();
+        ).bind(name, desc, icon || null, tags.join(','), userId).first<CommunityRow>();
 
         // Add tags to community
         await Promise.all(tagIds.map(async (tagId) => {
@@ -371,7 +371,7 @@ export async function getCommunitiesByTag(c: Context) {
 
 export async function getCommunitiesByTags(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number    ;
+    const userId = c.get('userId') as number;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get tags string from query
@@ -761,6 +761,17 @@ export async function removeMemberFromCommunity(c: Context) {
 
         if (!member) return c.text('User is not a member of the community', { status: 400 });
 
+        // Check if the user being removed is an admin of the community
+        const isAdmin = await env.DB.prepare(
+            `SELECT 1
+             FROM user_community
+             WHERE user_id = ?
+               AND community_id = ?
+               AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
+        ).bind(userId, communityId, communityId).first<CommunityMemberRow>();
+
+        if (isAdmin) return c.text('Cannot remove an administrator from the community', { status: 400 });
+
         // Remove the user from the community
         await env.DB.prepare(`
             DELETE
@@ -776,9 +787,54 @@ export async function removeMemberFromCommunity(c: Context) {
     }
 }
 
-// TODO - Implement addAdminToCommunity - Waiting for isOwner Implementation
 export async function addAdminToCommunity(c: Context) {
-    return c.text('Not implemented', { status: 501 });
+    const env: Env = c.env;
+    const ownerId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    if (!ownerId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
+    // @ts-ignore
+    const { userId, communityId } = c.req.valid('form');
+
+    try {
+        // Check if community exists & if the user is the owner
+        const community = await env.DB.prepare(`
+            SELECT id, owner_id
+            FROM community
+            WHERE id = ?
+        `).bind(communityId).first<CommunityRow>();
+
+        if (!community) return c.text('Community does not exist', { status: 404 });
+        if (community.owner_id !== ownerId) return c.text('Unauthorized', { status: 401 });
+
+        // Check if user is a member and if already an admin
+        const member = await env.DB.prepare(`
+            SELECT user_id, community_id, role_id
+            FROM user_community
+            WHERE user_id = ?
+              AND community_id = ?
+        `).bind(userId, communityId).first<CommunityMemberRow>();
+
+        if (!member) return c.text('User is not a member of the community', { status: 400 });
+        if (member.role_id === 1) return c.text('User is already an admin', { status: 400 });
+
+        // Add user as admin
+        await env.DB.prepare(`
+            UPDATE user_community
+            SET role_id = 1
+            WHERE user_id = ?
+              AND community_id = ?
+        `).bind(userId, communityId).run();
+
+        // TODO - Send notification
+
+        return c.text('User added as admin', { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
 }
 
 export async function joinCommunity(c: Context) {
@@ -846,6 +902,15 @@ export async function leaveCommunity(c: Context) {
     if (!communityId) return c.text('No community ID provided', { status: 400 });
 
     try {
+        // Check if user is the owner of the community
+        const community = await env.DB.prepare(`
+            SELECT owner_id
+            FROM community
+            WHERE id = ?
+        `).bind(communityId, userId).first<CommunityRow>();
+        if (!community) return c.text('Community does not exist', { status: 404 });
+        if (community.owner_id === userId) return c.text('Cannot leave community as owner', { status: 400 });
+
         // Attempt to remove the user from the community
         const result = await env.DB.prepare(`
             DELETE
@@ -1005,16 +1070,15 @@ export async function deleteCommunity(c: Context) {
     if (!communityId) return c.text('No community ID provided', { status: 400 });
 
     try {
-        // Check if the user is an administrator of the community
-        const role = await env.DB.prepare(
-            `SELECT 1
-             FROM user_community
-             WHERE user_id = ?
-               AND community_id = ?
-               AND role_id = (SELECT id FROM community_role WHERE community_id = ? AND administrator = true)`
-        ).bind(userId, communityId, communityId).first<CommunityMemberRow>();
+        // Check if the user is the owner of the community
+        const community = await env.DB.prepare(`
+            SELECT owner_id
+            FROM community
+            WHERE id = ?
+        `).bind(communityId).first<CommunityRow>();
 
-        if (!role) return c.text('Unauthorized', { status: 401 });
+        if (!community) return c.text('Community does not exist', { status: 404 });
+        if (community.owner_id !== userId) return c.text('Unauthorized', { status: 401 });
 
         // Delete the community
         await env.DB.prepare(`
