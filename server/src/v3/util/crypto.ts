@@ -22,7 +22,7 @@ export async function hashPassword(password: string, salt: Uint8Array): Promise<
             name: 'PBKDF2',
             salt: salt,
             iterations: ITERATIONS,
-            hash: HASH_ALGORITHM,
+            hash: HASH_ALGORITHM
         },
         keyMaterial,
         KEY_LENGTH * 8
@@ -35,7 +35,7 @@ export async function hashPassword(password: string, salt: Uint8Array): Promise<
 // Generate a salt (16 bytes)
 export function generateSalt() {
     const salt = crypto.getRandomValues(new Uint8Array(16));
-    return { "salt": salt, "encoded": btoa(String.fromCharCode(...salt)) }
+    return { 'salt': salt, 'encoded': btoa(String.fromCharCode(...salt)) };
 }
 
 export async function verifyPassword(password: string, storedSalt: string, storedHash: string): Promise<boolean> {
@@ -73,19 +73,19 @@ async function signWebSocketId(uuid: string, timestamp: string, nonce: string, s
 
     // Import the secret key for HMAC
     const cryptoKey = await crypto.subtle.importKey(
-        "raw",
+        'raw',
         keyData,
-        { name: "HMAC", hash: { name: "SHA-256" } },
+        { name: 'HMAC', hash: { name: 'SHA-256' } },
         false,
-        ["sign"]
+        ['sign']
     );
 
     // Sign the UUID
-    const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, uuidData);
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, uuidData);
 
     // Convert the signature to a URL-safe Base64 string
     return btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)))
-        .replace(/\+/g, "-") // Replace "+" with "-"
-        .replace(/\//g, "_") // Replace "/" with "_"
-        .replace(/=+$/, ""); // Remove "=" padding
+        .replace(/\+/g, '-') // Replace "+" with "-"
+        .replace(/\//g, '_') // Replace "/" with "_"
+        .replace(/=+$/, ''); // Remove "=" padding
 }

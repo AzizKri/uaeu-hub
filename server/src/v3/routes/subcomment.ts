@@ -8,7 +8,7 @@ import {
 } from '../controllers/subcomment.controller';
 
 
-const app = new Hono<{ Bindings: Env}>();
+const app = new Hono<{ Bindings: Env }>();
 
 app.post('/', postRateLimitMiddleware, authMiddleware, (c) => subcomment(c));
 app.post('/like/:scid', authMiddleware, (c) => likeSubcomment(c));

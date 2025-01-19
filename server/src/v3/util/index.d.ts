@@ -250,18 +250,18 @@ type UserAnonymousStatus = {
 }
 
 type GoogleTokenResponse = {
-    "iss": string,
-    "azp": string,
-    "aud": string,
-    "sub": string,
-    "email": string,
-    "email_verified": string,
-    "name": string | null,
-    "picture": string | null,
-    "given_name": string | null,
-    "family_name": string | null,
-    "iat": string,
-    "exp": string,
+    'iss': string,
+    'azp': string,
+    'aud': string,
+    'sub': string,
+    'email': string,
+    'email_verified': string,
+    'name': string | null,
+    'picture': string | null,
+    'given_name': string | null,
+    'family_name': string | null,
+    'iat': string,
+    'exp': string,
 }
 
 type cookieOptions = {

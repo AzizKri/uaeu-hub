@@ -3,7 +3,7 @@ import { authMiddleware, authMiddlewareCheckOnly } from '../util/middleware';
 import { comment, deleteComment, getCommentsOnPost, likeComment } from '../controllers/comment.controller';
 
 
-const app = new Hono<{ Bindings: Env}>();
+const app = new Hono<{ Bindings: Env }>();
 
 app.post('/', authMiddleware, (c) => comment(c));
 app.post('/like/:commentId', authMiddleware, (c) => likeComment(c));
