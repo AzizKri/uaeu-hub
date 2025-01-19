@@ -27,6 +27,7 @@ export default function Community() {
     const [activeTab, setActiveTab] = useState<
         "POST" | "ABOUT" | "MEMBER" | "SETTINGS"
     >("POST");
+    const [allMembers, setAllMembers] = useState<UserInfo[]>([]);
     const [members, setMembers] = useState<UserInfo[]>([]);
     const [admins, setAdmins] = useState<UserInfo[]>([]);
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
@@ -35,6 +36,7 @@ export default function Community() {
     const [showCommunityEditor, setShowCommunityEditor] =
         useState<boolean>(false);
     const { isUser } = useUser();
+    const [searchMembersVal, setSearchMembersVal] = useState<string>("");
 
     useEffect(() => {
         if (communityName) {
@@ -97,6 +99,33 @@ export default function Community() {
         }
     }, [info]);
 
+    useEffect(() => {
+        setMembers(
+            allMembers.filter(
+                (mem: UserInfo) =>
+                    mem.role === "Member" &&
+                    (mem.username
+                        .toLowerCase()
+                        .includes(searchMembersVal.toLowerCase()) ||
+                        mem.displayName
+                            .toLowerCase()
+                            .includes(searchMembersVal.toLowerCase())),
+            ),
+        );
+        setAdmins(
+            allMembers.filter(
+                (mem: UserInfo) =>
+                    mem.role === "Administrator" &&
+                    (mem.username
+                        .toLowerCase()
+                        .includes(searchMembersVal.toLowerCase()) ||
+                        mem.displayName
+                            .toLowerCase()
+                            .includes(searchMembersVal.toLowerCase())),
+            ),
+        );
+    }, [allMembers, searchMembersVal]);
+
     const handleJoinLeave = () => {
         if (info) {
             if (role) {
@@ -120,24 +149,15 @@ export default function Community() {
     const handleMembers = () => {
         if (info) {
             getMembersOfCommunity(info.id).then((res) => {
-                setMembers(
-                    res.data.filter(
-                        (mem: { role: string }) => mem.role === "Member",
-                    ),
-                );
-                setAdmins(
-                    res.data.filter(
-                        (mem: { role: string }) => mem.role === "Administrator",
-                    ),
-                );
+                setAllMembers(res.data);
             });
         }
         setActiveTab("MEMBER");
     };
-
     const handleSettings = () => {
         setActiveTab("SETTINGS");
     };
+
     const handleCreatePost = () => {
         setShowEditor(true);
     };
@@ -149,6 +169,11 @@ export default function Community() {
     };
     const handleCloseEditCommunity = () => {
         setShowCommunityEditor(false);
+    };
+    const handleSearchMembers: React.ChangeEventHandler<HTMLInputElement> = (
+        e,
+    ) => {
+        setSearchMembersVal(e.target.value);
     };
 
     return loadingInfo || !info ? (
@@ -259,6 +284,17 @@ export default function Community() {
                     </div>
                 ) : activeTab === "MEMBER" ? (
                     <div className={styles.members}>
+                        <label htmlFor="searchMembersInput" className={styles.searchMembersLabel}>
+                            <input
+                                id="searchMembersInput"
+                                type="text"
+                                value={searchMembersVal}
+                                onChange={handleSearchMembers}
+                                placeholder="Search Members"
+                                className={styles.searchMembers}
+                            />
+                            <span className={styles.clear} onClick={() => setSearchMembersVal("")}>×</span>
+                        </label>
                         <div className={styles.category}>
                             <h5 className={styles.membersInfo}>Admins</h5>
                             {admins && admins.length > 0 ? (
