@@ -12,7 +12,7 @@ export default function Home() {
     useEffect(() => {
         if (!userReady) return;
         updatePosts();
-    }, [userReady]);
+    }, [updatePosts, userReady]);
 
     useEffect(() => {
         const handleScroll = debounce(() => {

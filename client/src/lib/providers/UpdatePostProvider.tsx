@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {getLatestPosts} from "../../api/posts.ts";
 import Post from "../../components/PostStuff/Post/Post.tsx";
 import {UpdatePostsContext} from "../utils/context.ts";
@@ -37,22 +37,22 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     liked: post.liked,
                 };
 
-                const tc = JSON.parse(post.top_comment);
-                const topCommentInfo: CommentInfo | undefined = tc ? {
-                        attachment: tc.attachment,
-                        author: tc.author,
-                        authorId: tc.author_id,
-                        content: tc.content,
-                        displayName: tc.displayname,
-                        id: tc.id,
-                        likeCount: tc.like_count,
-                        liked: tc.liked,
-                        parentId: tc.parent_post_id,
-                        pfp: tc.pfp,
-                        postTime: new Date(tc.post_time),
-                        commentCount: tc.comment_count,
-                    } : undefined;
-
+                // const tc = JSON.parse(post.top_comment);
+                // const topCommentInfo: CommentInfo | undefined = tc ? {
+                //         attachment: tc.attachment,
+                //         author: tc.author,
+                //         authorId: tc.author_id,
+                //         content: tc.content,
+                //         displayName: tc.displayname,
+                //         id: tc.id,
+                //         likeCount: tc.like_count,
+                //         liked: tc.liked,
+                //         parentId: tc.parent_post_id,
+                //         pfp: tc.pfp,
+                //         postTime: new Date(tc.post_time),
+                //         commentCount: tc.comment_count,
+                //     } : undefined;
+                //
                 const communityInfo: CommunityInfoSimple = {
                     name: post.community,
                     icon: post.community_icon
@@ -61,7 +61,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
                     <Post
                         key={post.id}
                         postInfo={postInfo}
-                        topCommentInfo={topCommentInfo}
+                        // topCommentInfo={topCommentInfo}
                         communityInfo={communityInfo}
                         from=""
                     />
@@ -69,7 +69,7 @@ export const UpdatePostProvider = ({children}: {children: React.ReactNode}) => {
             }
             setPosts((prevPosts) => [...prevPosts, ...fetchedPosts]);
         } catch (error) {
-            console.error(error);
+            console.error("an error occur while getting posts", error);
         } finally {
             setLoading(false);
         }

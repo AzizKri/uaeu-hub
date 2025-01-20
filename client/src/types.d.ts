@@ -66,7 +66,7 @@ declare global {
 
     interface PostAll {
         postInfo: PostInfo;
-        topCommentInfo?: CommentInfo;
+        // topCommentInfo?: CommentInfo;
         communityInfo?: CommunityInfoSimple;
     }
 
