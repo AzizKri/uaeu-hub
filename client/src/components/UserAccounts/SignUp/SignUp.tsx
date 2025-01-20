@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
 import {Link, useNavigate} from 'react-router-dom';
-import { signInWithGoogle, signUp } from '../../../api/authentication.ts';
+import { signUp } from '../../../api/authentication.ts';
 import {isAnon} from '../../../api/currentUser.ts';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../../userSchema.ts";
 import { z } from 'zod';
 import {useUser} from "../../../lib/utils/hooks.ts";
 import Requirement from "../Requirement/Requirement.tsx";
-import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
+import GoogleAuth from "../GoogleAuth/GoogleAuth.tsx";
 
 export default function SignUp() {
     const navigate = useNavigate();
@@ -142,38 +142,6 @@ export default function SignUp() {
         setIsPasswordActive(true);
     }
 
-    const handleGoogleLogin = (response: CredentialResponse) => {
-        setErrors({});
-        setIsLoading(true);
-        if (!response.credential) return;
-
-        signInWithGoogle(response.credential).then(async (res) => {
-            if (res.status === 200 || res.status === 201) {
-                const data = await res.json();
-                console.log('Log in success:', res);
-                updateUser({
-                    new: false,
-                    username: data.username,
-                    displayName: data.displayName,
-                    bio: data.bio,
-                    pfp: data.pfp
-                });
-                navigate(-1);
-            } else {
-                const newErrors: LoginErrors = {};
-                if (res.status === 401) {
-                    newErrors.global = 'Already logged in';
-                } else if (res.status === 409) {
-                    newErrors.global = 'There\'s already an account associated with this email';
-                } else {
-                    newErrors.global = 'Something went wrong please try again';
-                }
-                setErrors(newErrors);
-            }
-            setIsLoading(false);
-        });
-    };
-
     const handleGoToLogin = () => {
         // navigate(-1);
         navigate('/login');
@@ -195,18 +163,7 @@ export default function SignUp() {
                         </Link>
                         .
                     </p>
-                    <div className={styles.socialForm}>
-                        <GoogleLogin
-                            onSuccess={handleGoogleLogin}
-                            type={'standard'}
-                            theme={'outline'}
-                            ux_mode={'popup'}
-                            shape={'pill'}
-                            text={'continue_with'}
-                            useOneTap={false}
-                            width={395}
-                        />
-                    </div>
+                    <GoogleAuth setErrors={setErrors} setIsLoading={setIsLoading} />
                     {errors.global && (
                         <strong className={styles.error}>
                             {errors.global}
