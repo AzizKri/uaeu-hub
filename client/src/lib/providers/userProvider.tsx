@@ -6,20 +6,28 @@ export default function UserProvider({children}: {children: ReactNode}) {
     const [user, setUser] = useState<UserInfo | null>(null);
     const [userReady, setUserReady] = useState(false);
 
-    useEffect(() => {
-        const cacheUserData = (userData: UserInfo) => {
-            const data = {
-                userData,
-                timestamp: Date.now(),
-            }
-            localStorage.setItem("userData", JSON.stringify(data));
+    const cacheUserData = (userData: UserInfo) => {
+        const data = {
+            userData,
+            timestamp: Date.now(),
         }
+        localStorage.setItem("userData", JSON.stringify(data));
+    }
+
+    useEffect(() => {
 
         const getCachedUserData = () => {
             const cached = localStorage.getItem("userData");
             if (!cached) return null;
 
-            const {userData, timestamp} = JSON.parse(cached);
+            let cachedData;
+            try {
+                cachedData = JSON.parse(cached);
+            } catch (e) {
+                console.error("error parsing userData", e);
+                return null;
+            }
+            const {userData, timestamp} = cachedData;
 
             const now = Date.now();
             const maxAge = 24 * 60 * 60 * 1000; // 1 day
@@ -36,13 +44,11 @@ export default function UserProvider({children}: {children: ReactNode}) {
             try {
                 const cachedUser = getCachedUserData();
                 if (cachedUser) {
-                    console.log("user from cache")
                     setUser(cachedUser);
                     return;
                 }
 
                 const data = await me();
-                console.log("User data fetched from API", data);
                 if (data) {
                     const usefulData = {
                         new: (!data.username),
@@ -72,6 +78,7 @@ export default function UserProvider({children}: {children: ReactNode}) {
     const updateUser = (newUser: UserInfo) => {
         localStorage.setItem("userData", JSON.stringify(newUser));
         setUser(newUser);
+        cacheUserData(newUser);
     }
 
     const removeUser = () => {

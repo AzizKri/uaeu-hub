@@ -156,7 +156,7 @@ export async function editCurrentUser(c: Context) {
             UPDATE user
             SET displayname = CASE WHEN ? IS NOT NULL THEN ? ELSE displayname END,
                 bio         = CASE WHEN ? IS NOT NULL THEN ? ELSE bio END,
-                pfp         = CASE WHEN ? IS NOT NULL THEN ? ELSE pfps END
+                pfp         = CASE WHEN ? IS NOT NULL THEN ? ELSE pfp END
             WHERE id = ?
         `).bind(displayname, displayname, bio, bio, pfp, pfp, userId).run();
 
