@@ -97,7 +97,7 @@ export default function SignUp() {
         }
         const response = await signUp(payload);
         const data = await response.json();
-        if (response.status === 200) {
+        if (response.status === 200 || response.status === 201) {
             console.log('Sign up success:', response);
             updateUser({
                 new: false,
