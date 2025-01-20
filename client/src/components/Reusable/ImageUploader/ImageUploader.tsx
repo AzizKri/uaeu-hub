@@ -2,7 +2,7 @@ import styles from "./ImageUploader.module.scss";
 import communityIcon from "../../../assets/community-icon.jpg";
 import editImage from "../../../assets/image-edit-outline.svg";
 import React, {useRef, forwardRef, useImperativeHandle} from "react";
-import {deleteAttachment, uploadAttachment} from "../../../api/attachmets.ts";
+import {deleteAttachment, uploadIcon} from "../../../api/attachmets.ts";
 import DotsSpinner from "../Animations/DotsSpinner/DotsSpinner.tsx";
 
 interface ImageUploaderProps {
@@ -66,7 +66,7 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(function Ima
             } else if (type === 'COMMUNITY') {
                 // Upload as a community icon
             }
-            const response = await uploadAttachment([selectedFile]);
+            const response = await uploadIcon([selectedFile], type === "PROFILE" ? "pfp" : "icon");
 
             if (response.status === 201) {
                 setUploadState((prev) => ({
