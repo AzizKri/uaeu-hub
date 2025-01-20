@@ -276,6 +276,15 @@ export default function Editor({
                         />,
                     );
                 }
+
+                // setUploadState({
+                //     status: "IDLE",
+                //     file: null,
+                //     preview: null,
+                // });
+                // if (imageInputRef.current) {
+                //     imageInputRef.current.value = "";
+                // }
             } else if (type === "COMMENT"  && parentId) {
                 const res = await comment(
                     parentId,
@@ -323,7 +332,6 @@ export default function Editor({
             if (editorHelperRef.current) {
                 editorHelperRef.current.clearEditorContent();
             }
-            removeImage();
         } catch (error) {
             console.error("Error submitting post:", error);
         } finally {
