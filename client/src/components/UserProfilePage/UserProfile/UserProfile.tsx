@@ -8,6 +8,7 @@ import EditUserPopUp from "../EditUserPopUp/EditUserPopUp.tsx";
 import UserPosts from "../UserPosts/UserPosts.tsx";
 import UserCommunities from "../UserCommunities/UserCommunities.tsx";
 import UserLikes from "../UserLikes/UserLikes.tsx";
+import {assetsBase} from "../../../api/api.ts";
 
 const authTabs = [
     { label: 'Posts' },
@@ -25,7 +26,7 @@ export default function UserProfile () {
     const [activeTab, setActiveTab] = useState('');
     const [profileUser, setProfileUser] = useState<UserInfo>();
     const { username } =  useParams<{ username: string }>();
-    const { user } = useUser();
+    const { user, updateUser } = useUser();
     const navigate = useNavigate();
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
 
@@ -66,6 +67,11 @@ export default function UserProfile () {
     }
 
     const onSave = (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => {
+        console.log("saving this information")
+        console.log("updatedDisplayName", updatedDisplayName);
+        console.log("updatedBio", updatedBio);
+        console.log("updatedPfp", updatedPfp);
+
         setShowPopup(false);
         editCurrentUser(updatedDisplayName, updatedBio, updatedPfp).then((status) => {
             console.log("edit result", status)
@@ -76,6 +82,15 @@ export default function UserProfile () {
                     bio: updatedBio,
                     pfp: updatedPfp,
                 }))
+
+                if (user?.username === username) {
+                    updateUser({
+                        ...user,
+                        displayName: updatedDisplayName,
+                        bio: updatedBio,
+                        pfp: updatedPfp,
+                    })
+                }
             }
         })
     }
@@ -84,7 +99,9 @@ export default function UserProfile () {
             <div className={styles.userProfileHeader}>
                 <div className={styles.userHeader}>
                     <div className={styles.userAvatar}>
-                        <img src={profileUser?.pfp ? profileUser.pfp : defaultProfilePicture} alt="profile picture"/>
+                        <img
+                            className={styles.pfp}
+                            src={profileUser?.pfp ? `${assetsBase}/pfp/${profileUser.pfp}` : defaultProfilePicture} alt="profile picture"/>
                     </div>
                     <div className={styles.userInfo}>
                         <h1 className={styles.displayName}>{profileUser ? profileUser.displayName : ''}</h1>

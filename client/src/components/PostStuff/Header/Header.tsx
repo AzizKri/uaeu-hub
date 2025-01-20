@@ -4,6 +4,7 @@ import defaultCommunityIcon from "../../../assets/community-icon.jpg";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import React from "react";
 import {useNavigate} from "react-router-dom";
+import {assetsBase} from "../../../api/api.ts";
 
 interface HeaderProps {
     type: "COMMUNITY+DISPLAYNAME" | "DISPLAYNAME+USERNAME";
@@ -47,7 +48,7 @@ export default function Header({
                             src={
                                 userIcon == undefined
                                     ? profilePicture
-                                    : userIcon
+                                    : `${assetsBase}/pfp/${userIcon}`
                             }
                             alt="profile picture"
                             className={styles.user_icon_no_community}
@@ -75,7 +76,7 @@ export default function Header({
                             src={
                                 communityIcon == undefined
                                     ? defaultCommunityIcon
-                                    : communityIcon
+                                    : `${assetsBase}/icon/${communityIcon}`
                             }
                             alt="community icon"
                             className={styles.community_icon}
@@ -85,7 +86,7 @@ export default function Header({
                             src={
                                 userIcon == undefined
                                     ? profilePicture
-                                    : userIcon
+                                    : `${assetsBase}/pfp/${userIcon}`
                             }
                             alt="profile picture"
                             className={styles.user_icon}
