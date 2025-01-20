@@ -1,8 +1,7 @@
 import "./post.module.scss";
 import PostFooter from "../PostFooter/PostFooter.tsx";
-import Comment from "../Comment/Comment.tsx";
 import styles from "./post.module.scss";
-import React, { useState } from "react";
+import React from "react";
 import { getFormattedDate } from "../../../lib/utils/tools.ts";
 import Content from "../Content/Content.tsx";
 import { useNavigate } from "react-router-dom";
@@ -10,18 +9,18 @@ import Header from "../Header/Header.tsx";
 
 export default function Post({
     postInfo,
-    topCommentInfo,
+    // topCommentInfo,
     communityInfo,
     from,
 }: PostAll & { from?: string }) {
-    const [topComment, setTopComment] = useState<CommentInfo | undefined>(
-        topCommentInfo,
-    );
+    // const [topComment, setTopComment] = useState<CommentInfo | undefined>(
+    //     topCommentInfo,
+    // );
     const navigate = useNavigate();
 
-    const deleteTopComment = () => {
-        setTopComment(undefined);
-    };
+    // const deleteTopComment = () => {
+    //     setTopComment(undefined);
+    // };
 
     const handleClickOnPost: React.MouseEventHandler<HTMLDivElement> = () => {
         if (postInfo.type === "POST-PAGE") return;
@@ -59,9 +58,9 @@ export default function Post({
                 type={postInfo.type}
             />
 
-            {postInfo.type === "POST" && topComment != null ? (
-                <Comment info={topComment} deleteComment={deleteTopComment} />
-            ) : null}
+            {/*{postInfo.type === "POST" && topComment != null ? (*/}
+            {/*    <Comment info={topComment} deleteComment={deleteTopComment} />*/}
+            {/*) : null}*/}
         </div>
     );
 }
