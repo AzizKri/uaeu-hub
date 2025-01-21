@@ -4,6 +4,7 @@ import { useUser } from "../../../lib/utils/hooks.ts";
 import {useEffect, useRef} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import logo from "../../../assets/logo-text-2.svg";
+import {assetsBase} from "../../../api/api.ts";
 
 
 export default function NavBar() {
@@ -85,7 +86,7 @@ export default function NavBar() {
                         {isUser() ? (
                             <div className={styles.userIcon} onClick={handleIconClick}>
                                 {user?.pfp ? (
-                                    <img src={user.pfp} alt="profile picture"/>
+                                    <img src={`${assetsBase}/pfp/${user.pfp}`} alt="profile picture"/>
                                 ) : (
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
