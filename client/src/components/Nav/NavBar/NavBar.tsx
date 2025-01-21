@@ -85,7 +85,7 @@ export default function NavBar() {
                         {isUser() ? (
                             <div className={styles.userIcon} onClick={handleIconClick}>
                                 {user?.pfp ? (
-                                    <img src={user.pfp} alt="profile picture"/>
+                                    <img src={user.pfp} className={styles.userPfp} alt="profile picture"/>
                                 ) : (
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
