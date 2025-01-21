@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
 import { login} from '../../../api/authentication.ts';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUser } from '../../../lib/utils/hooks.ts';
 import GoogleAuth from "../GoogleAuth/GoogleAuth.tsx";
 
@@ -13,10 +13,14 @@ export default function Login() {
         password: ''
     });
 
+    // console.log("previous location", window.history.)
+
     const [errors, setErrors] = useState<LoginErrors>({});
 
     const [isLoading, setIsLoading] = useState(false);
     const [passwordShown, setPasswordShown] = useState<boolean>(false);
+    const location = useLocation();
+    const previousPage = location.state?.from;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -63,7 +67,7 @@ export default function Login() {
                 bio: data.bio,
                 pfp: data.pfp
             });
-            navigate(-1);
+            navigate(previousPage);
         } else {
             const newErrors: LoginErrors = {};
             if (response.status === 404) {
@@ -80,8 +84,7 @@ export default function Login() {
 
 
     const handleGoToSignup = () => {
-        // navigate(-1);
-        navigate('/signup');
+        navigate('/signup', {state: {from: previousPage}});
     }
 
     return (

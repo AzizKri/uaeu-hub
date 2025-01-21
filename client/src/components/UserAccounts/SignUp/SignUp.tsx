@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
 import { signUp } from '../../../api/authentication.ts';
 import {isAnon} from '../../../api/currentUser.ts';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
@@ -33,6 +33,8 @@ export default function SignUp() {
     const [isLoading, setIsLoading] = useState(false);
     const [passwordShown, setPasswordShown] = useState<boolean>(false);
     const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
+    const location = useLocation();
+    const previousPage = location.state?.from;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -106,7 +108,7 @@ export default function SignUp() {
                 bio: data.bio,
                 pfp: data.pfp
             })
-            navigate(-1);
+            navigate(previousPage);
         } else {
             const newErrors: SignUpErrors = {};
             if (response.status === 409) {
@@ -143,8 +145,7 @@ export default function SignUp() {
     }
 
     const handleGoToLogin = () => {
-        // navigate(-1);
-        navigate('/login');
+        navigate('/login', {state: {from: previousPage}});
     }
 
     return (
