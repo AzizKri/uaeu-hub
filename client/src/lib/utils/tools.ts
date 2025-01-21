@@ -1,3 +1,5 @@
+import { NavigateFunction } from "react-router-dom";
+
 export function getFormattedDate(postDate: Date) {
     const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -29,4 +31,13 @@ export function debounce<T extends (...args: never[]) => void>(func: T, delay: n
         clearTimeout(timeout);
         timeout = setTimeout(() => func(...args), delay);
     };
+}
+
+export function goToAuth(navigate: NavigateFunction, type: "SIGNUP" | "LOGIN") {
+    const currentLocation = window.location.pathname;
+    if (type === "SIGNUP") {
+        navigate("/signup", { state: { from: currentLocation } });
+    } else if (type === "LOGIN") {
+        navigate("/login", { state: { from: currentLocation } });
+    }
 }
