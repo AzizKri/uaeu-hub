@@ -24,6 +24,7 @@ export default function EditUserPopUp({
             status: "IDLE",
             file: null,
             preview: currentProfilePicture,
+            fileName: currentProfilePicture
         }
     );
 

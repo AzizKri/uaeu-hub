@@ -5,6 +5,7 @@ import {useEffect, useRef} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import logo from "../../../assets/logo-text-2.svg";
 import {assetsBase} from "../../../api/api.ts";
+import {goToAuth} from "../../../lib/utils/tools.ts";
 
 
 export default function NavBar() {
@@ -37,29 +38,10 @@ export default function NavBar() {
     }
 
     const handleIconClick = () => {
-        navigate(`/user/${user?.username}`);
+        window.location.assign(`/user/${user?.username}`)
+        // navigate(`/user/${user?.username}`);
     };
 
-    // const handleUsernameClick = () => {
-    //     startTransition(() => {
-    //         navigate(`/user/${user?.username}`);
-    //     })
-    // };
-    //
-    // const handleNotificationClick = () => {
-    //     console.log("Notifcation");
-    // };
-    //
-    // const handleLogoutClick = async () => {
-    //     console.log("logout");
-    //     const response = await logout();
-    //     if (response == 200) {
-    //         removeUser();
-    //         window.location.reload();
-    //     } else {
-    //         console.log("Error logging out", response);
-    //     }
-    // };
 
     return (
         <>
@@ -103,12 +85,18 @@ export default function NavBar() {
                             </div>
                         ) : (
                             <>
-                                <Link to="/signup" className={styles.signup}>
+                                <div
+                                    onClick={() => goToAuth(navigate, 'SIGNUP')}
+                                    className={`${styles.signup} ${styles.btn}`}
+                                >
                                     Sign Up
-                                </Link>
-                                <Link to="/login" className={styles.login}>
+                                </div>
+                                <div
+                                    onClick={() => goToAuth(navigate, 'LOGIN')}
+                                    className={`${styles.login} ${styles.btn}`}
+                                >
                                     Log In
-                                </Link>
+                                </div>
                             </>
                         )}
                     </div>

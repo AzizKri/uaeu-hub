@@ -25,10 +25,12 @@ export default function UserCommunities({id} : {id : number}) {
                         icon: idx.icon,
                         name: idx.name,
                         id: idx.id,
-                        members: idx.member_count
+                        members: idx.member_count,
+                        isMember: idx.is_member,
                     };
                     fetchedCommunities.push(
                         <CommunityPreview
+                            key={idx.id}
                             {...communityInfo}
                         />
                     );
