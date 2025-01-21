@@ -23,7 +23,7 @@
         justify-content: flex-end;
         text-wrap: nowrap;
 
-        a {
+        .btn {
             padding: 14px 26px;
             border-radius: 16px;
             background-color: #d7420c;
@@ -31,6 +31,7 @@
             font-weight: 400;
             font-size: 14px;
             transition: background-color 0.2s ease;
+            cursor: pointer;
 
             &:hover {
                 background-color: #9d3008;
