@@ -51,7 +51,7 @@ export default function UserProfile () {
                }
             });
         }
-    }, []);
+    }, [username]);
 
 
     const handleTabClick = (tabLabel: string) => {
@@ -98,41 +98,75 @@ export default function UserProfile () {
         <div className={styles.userProfileContainer}>
             <div className={styles.userProfileHeader}>
                 <div className={styles.userHeader}>
-                    <div className={styles.userAvatar}>
-                        <img
-                            className={styles.pfp}
-                            src={profileUser?.pfp ? `${assetsBase}/pfp/${profileUser.pfp}` : defaultProfilePicture} alt="profile picture"/>
-                    </div>
                     <div className={styles.userInfo}>
-                        <h1 className={styles.displayName}>{profileUser ? profileUser.displayName : ''}</h1>
-                        <h2 className={styles.username}>@{profileUser ? profileUser.username : ''}</h2>
+                        <div className={styles.top}>
+                            <div className={styles.userAvatar}>
+                                <img
+                                    className={styles.pfp}
+                                    src={
+                                        profileUser?.pfp
+                                            ? `${assetsBase}/pfp/${profileUser.pfp}`
+                                            : defaultProfilePicture
+                                    }
+                                    alt="profile picture"
+                                />
+                            </div>
+                            <div className={styles.names}>
+                                <h3 className={styles.displayName}>
+                                    {profileUser ? profileUser.displayName : ""}
+                                </h3>
+                                <h4 className={styles.username}>
+                                    @{profileUser ? profileUser.username : ""}
+                                </h4>
+                            </div>
+                        </div>
                         <p className={styles.userBio}>
-                            {profileUser ? (profileUser.bio ? profileUser.bio : '') : ''}
+                            {profileUser
+                                ? profileUser.bio
+                                    ? profileUser.bio
+                                    : ""
+                                : ""}
                         </p>
                     </div>
-                    {isAuthorized ? (<button className={styles.editProfileButton} onClick={handleClick}>Edit Profile</button>) : (<></>)}
+                    {isAuthorized ? (
+                        <button
+                            className={styles.editProfileButton}
+                            onClick={handleClick}
+                        >
+                            Edit Profile
+                        </button>
+                    ) : (
+                        <></>
+                    )}
                 </div>
                 <ul className={styles.tabs}>
-                    {isAuthorized ? authTabs.map((tab) => (
-                        <li
-                            key={tab.label}
-                            className={`${styles.tabElement} ${
-                                activeTab === tab.label ? styles.active : ''
-                            }`}
-                            onClick={() => handleTabClick(tab.label)}
-                        >
-                            {tab.label}
-                        </li>
-                    )) : tabs.map((tab) => (
-                    <li
-                        key={tab.label}
-                        className={`${styles.tabElement} ${
-                            activeTab === tab.label ? styles.active : ''
-                        }`}
-                        onClick={() => handleTabClick(tab.label)}
-                    >
-                        {tab.label}
-                    </li>))}
+                    {isAuthorized
+                        ? authTabs.map((tab) => (
+                              <li
+                                  key={tab.label}
+                                  className={`${styles.tabElement} ${
+                                      activeTab === tab.label
+                                          ? styles.active
+                                          : ""
+                                  }`}
+                                  onClick={() => handleTabClick(tab.label)}
+                              >
+                                  {tab.label}
+                              </li>
+                          ))
+                        : tabs.map((tab) => (
+                              <li
+                                  key={tab.label}
+                                  className={`${styles.tabElement} ${
+                                      activeTab === tab.label
+                                          ? styles.active
+                                          : ""
+                                  }`}
+                                  onClick={() => handleTabClick(tab.label)}
+                              >
+                                  {tab.label}
+                              </li>
+                          ))}
                 </ul>
             </div>
 
@@ -140,17 +174,23 @@ export default function UserProfile () {
                 {activeTab === "Posts" ? (
                     <UserPosts />
                 ) : activeTab === "Communities" ? (
-                    <UserCommunities id={profileUser?.id ? profileUser.id : -1} />
+                    <UserCommunities
+                        id={profileUser?.id ? profileUser.id : -1}
+                    />
                 ) : activeTab === "Likes" ? (
                     <UserLikes />
-                ) : <></>}
+                ) : (
+                    <></>
+                )}
             </div>
             {showPopup && (
                 <EditUserPopUp
                     onClose={onClose}
                     currentProfilePicture={profileUser?.pfp}
-                    currentDisplayName={profileUser?.displayName ? profileUser.displayName : ''}
-                    currentBio={profileUser?.bio ? profileUser.bio : ''}
+                    currentDisplayName={
+                        profileUser?.displayName ? profileUser.displayName : ""
+                    }
+                    currentBio={profileUser?.bio ? profileUser.bio : ""}
                     onSave={onSave}
                 />
             )}
