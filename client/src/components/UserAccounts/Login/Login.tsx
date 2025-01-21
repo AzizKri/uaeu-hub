@@ -67,9 +67,9 @@ export default function Login() {
         } else {
             const newErrors: LoginErrors = {};
             if (response.status === 404) {
-                newErrors.global = 'User not found check the entered email.';
+                newErrors.global = data.message;
             } else if (response.status === 401) {
-                newErrors.global = 'Invalid password';
+                newErrors.global = data.message;
             } else {
                 newErrors.global = 'Something went wrong please try again';
             }

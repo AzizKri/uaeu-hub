@@ -7,7 +7,7 @@ import { getOrCreateTags } from './v3/controllers/tags.controller';
 const app = new Hono<{ Bindings: Env }>();
 
 app.use(cors({
-    origin: ['https://uaeu.chat', 'https://dev.uaeu.chat', 'https://osama.uaeu.chat', 'https://post-page.uaeu-hub.pages.dev', 'http://localhost:5173'],
+    origin: ['https://uaeu.chat', 'https://dev.uaeu.chat', 'https://osama.uaeu.chat', 'https://post-page.uaeu-hub.pages.dev', 'http://localhost:5173','http://localhost:5174'],
     credentials: true
 }));
 
