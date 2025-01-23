@@ -164,7 +164,7 @@ export default function SignUp() {
                         </Link>
                         .
                     </p>
-                    <GoogleAuth setErrors={setErrors} setIsLoading={setIsLoading} />
+                    <GoogleAuth setErrors={setErrors} setIsLoading={setIsLoading} onSubmit={() => navigate(previousPage)}/>
                     {errors.global && (
                         <strong className={styles.error}>
                             {errors.global}
