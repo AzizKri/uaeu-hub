@@ -25,39 +25,6 @@ export default function Content({
     const [error, setError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(filename != null);
 
-    // useEffect(() => {
-    //     if (filename) {
-    //         getAttachmentDetails(filename)
-    //             .then((res) => {
-    //                 if (res.status === 200) {
-    //                     const fileType = res.data?.type;
-    //                     if (fileType?.startsWith("image")) {
-    //                         setImageDims({
-    //                             width: res.data?.metadata.width,
-    //                             height: res.data?.metadata.height,
-    //                         });
-    //                         setImageSrc(
-    //                             `https://cdn.uaeu.chat/attachments/${filename}`,
-    //                         );
-    //                         setError(false);
-    //                     } else {
-    //                         setImageSrc(
-    //                             `https://cdn.uaeu.chat/attachments/${filename}`,
-    //                         );
-    //                         setError(false);
-    //                     }
-    //                 } else {
-    //                     setError(true);
-    //                     setIsLoading(false);
-    //                 }
-    //             })
-    //             .catch(() => {
-    //                 setError(true);
-    //                 setIsLoading(false);
-    //             });
-    //     }
-    // }, [filename]);
-
     const handleShowMore: React.MouseEventHandler<HTMLSpanElement> = (e) => {
         e.stopPropagation();
         setShowContent(true);
@@ -85,11 +52,6 @@ export default function Content({
             {filename && !error && (
                 <div
                     className={styles.image}
-                    style={{
-                        display: isLoading ? "none" : "block",
-                        // height: imageDims.height,
-                        // width: imageDims.width,
-                    }}
                 >
                     <img
                         src={`${assetsBase}/attachments/${filename}`}
