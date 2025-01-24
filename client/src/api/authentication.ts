@@ -30,11 +30,11 @@ export async function logout() {
     return data.status;
 }
 
-export async function signInWithGoogle(access_token: string) {
+export async function signInWithGoogle(code: string) {
     const res = await fetch(base + `/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token }),
+        body: JSON.stringify({ code }),
         credentials: 'include'
     });
 

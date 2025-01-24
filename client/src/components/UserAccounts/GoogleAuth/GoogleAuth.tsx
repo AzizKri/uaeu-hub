@@ -1,69 +1,63 @@
-import styles from "./GoogleAuth.module.scss";
-import googleGLogo from "../../../assets/logos/google-G-small.png";
-import {
-    TokenResponse,
-    useGoogleLogin,
-} from "@react-oauth/google";
-import { signInWithGoogle } from "../../../api/authentication.ts";
-import { useUser } from "../../../lib/utils/hooks.ts";
+import styles from './GoogleAuth.module.scss';
+import googleGLogo from '../../../assets/logos/google-G-small.png';
+import { useGoogleLogin } from '@react-oauth/google';
+import { signInWithGoogle } from '../../../api/authentication.ts';
+import { useUser } from '../../../lib/utils/hooks.ts';
 
 export default function GoogleAuth({
-    setErrors,
-    setIsLoading,
-    onSubmit,
-}: {
+                                       setErrors,
+                                       setIsLoading,
+                                       onSubmit
+                                   }: {
     setErrors: (errors: LoginErrors) => void;
     setIsLoading: (isLoading: boolean) => void;
     onSubmit: () => void;
 }) {
     const googleLogin = useGoogleLogin({
         onSuccess: (res) => handleGoogleLogin(res),
-        onError: () => console.error("Login Failed"),
+        onError: () => console.error('Login Failed'),
+        flow: 'auth-code'
     });
     const { updateUser } = useUser();
 
-    const handleGoogleLogin = async (
-        response: Omit<
-            TokenResponse,
-            "error" | "error_description" | "error_uri"
-        >,
-    ) => {
-        console.log("google response", response);
+    const handleGoogleLogin = async ({ code }: { code: string }) => {
+        console.log('google response', code);
         setErrors({});
         setIsLoading(true);
-        if (!("access_token" in response)) return;
+        if (!code) {
+            console.log('Error logging in with Google');
+            return;
+        }
         try {
             const { status, data } = await signInWithGoogle(
-                response.access_token,
+                code
             );
             // {username: string, displayname: string, bio: string, pfp: string}
-            console.log("login res", data);
-
             if (status === 200 || status === 201) {
-                console.log("Log in success, status: ", status);
+                console.log('Log in success, status: ', status);
                 updateUser({
                     new: false,
                     username: data.username,
                     displayName: data.displayname,
                     bio: data.bio,
-                    pfp: data.pfp,
+                    pfp: data.pfp
                 });
                 onSubmit();
             } else {
                 const newErrors: LoginErrors = {};
                 if (status === 401) {
-                    newErrors.global = "Already logged in!";
+                    newErrors.global = 'Already logged in!';
                 } else if (status === 409) {
                     newErrors.global =
-                        "There's already an account associated with this email!";
+                        'There\'s already an account associated with this email!';
                 } else {
                     newErrors.global =
-                        "Something went wrong. please try again!";
+                        'Something went wrong. please try again!';
                 }
                 setErrors(newErrors);
             }
         } catch (error) {
-            console.error("Error fetching user data:", error);
+            console.error('Error fetching user data:', error);
             throw error;
         } finally {
             setIsLoading(false);
