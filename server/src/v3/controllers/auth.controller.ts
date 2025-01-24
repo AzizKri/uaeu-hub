@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { isUsernameValid, userSchema } from '../util/validationSchemas';
 import { sendAuthCookie, sendUserIdCookie } from '../util/util';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
-import axios from "axios";
+import { OAuth2Client } from 'google-auth-library';
 
 /* User Authentication */
 
@@ -154,43 +154,31 @@ export async function authenticateWithGoogle(c: Context) {
     // Some idiot tries to log in when they're already logged in?
     // if (userId) return c.json({ message: 'Already Logged In', status: 401 }, 401);
 
-    const { access_token } = await c.req.json();
-    if (!access_token) return c.json({ message: 'Missing required fields', status: 400 }, 400);
+    const { code } = await c.req.json();
+    if (!code) return c.json({ message: 'Missing required fields', status: 400 }, 400);
 
-    // get user data
-    const data = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-    });
+    const oAuth2Client = new OAuth2Client(
+        env.CLIENT_ID,
+        env.CLIENT_SECRET,
+        'postmessage',
+    );
 
-    console.log("data", data.data);
+    // Exchange code for tokens
+    const { tokens } = await oAuth2Client.getToken(code);
 
-    // return c.json(data.data, { status: 200 });
+    // Fetch data from Google
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${tokens.id_token}`);
 
-    const { email, email_verified, name, given_name, picture, sub } = data.data as GoogleTokenResponse;
-    if (!email || !email_verified || !name || !given_name || !sub ) return c.json({
+    // Validate
+    const { email, email_verified, name, given_name, picture, sub, exp } = await response.json() as GoogleTokenResponse;
+    if (!email || !email_verified || !name || !given_name || !sub || !exp) return c.json({
         message: 'Invalid token',
         status: 401
     }, 401);
-
-    // // Get the token
-    // const { credential } = await c.req.json();
-    // if (!credential) return c.json({ message: 'Missing required fields', status: 400 }, 400);
-    //
-    // // Verify
-    // const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
-    //
-    // // Get data & validate
-    // const { email, email_verified, name, given_name, picture, sub, exp } = await response.json() as GoogleTokenResponse;
-    // if (!email || !email_verified || !name || !given_name || !sub || !exp) return c.json({
-    //     message: 'Invalid token',
-    //     status: 401
-    // }, 401);
-    // if (!isNaN(Number(exp)) && Number(exp) < Date.now() / 1000) return c.json({
-    //     message: 'Token expired',
-    //     status: 401
-    // }, 401);
+    if (!isNaN(Number(exp)) && Number(exp) < Date.now() / 1000) return c.json({
+        message: 'Token expired',
+        status: 401
+    }, 401);
 
     try {
         // Check if user exists
@@ -239,8 +227,8 @@ export async function authenticateWithGoogle(c: Context) {
 
             // Sign up
             const newUser = await env.DB.prepare(`
-                INSERT INTO user (username, displayname, email, email_verified, google_id, pfp)
-                VALUES (?, ?, ?, true, ?, ?)
+                INSERT INTO user (username, displayname, email, email_verified, google_id, pfp, auth_provider)
+                VALUES (?, ?, ?, true, ?, ?, 'google')
                 RETURNING id, username, displayname, bio, email, pfp, is_anonymous
             `).bind(username, name, email, sub, picture).first<UserView>();
 
