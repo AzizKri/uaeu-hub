@@ -11,4 +11,6 @@ interface Env {
     WS_SECRET: string;
     WEBSOCKET_URL: string;
     SYSTEM: string;
+    CLIENT_ID: string;
+    CLIENT_SECRET: string;
 }
