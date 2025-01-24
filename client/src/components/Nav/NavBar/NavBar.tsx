@@ -18,6 +18,7 @@ export default function NavBar() {
         leftRef.current = document.getElementById("left");
         overlayRef.current = document.getElementById("overlay");
         console.log(user)
+        console.log(import.meta.env.VITE_ASSETS_URL)
     }, []);
 
     const handleShowAside = () => {

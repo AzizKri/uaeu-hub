@@ -341,6 +341,7 @@ SELECT notification.id,
        notification.action,
        notification.entity_id,
        notification.entity_type,
+       notification.message,
        notification.read,
        notification.created_at
 FROM notification

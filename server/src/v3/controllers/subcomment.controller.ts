@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import { createNotification } from '../util/notificationService';
+import { createNotification } from '../notifications';
 
 export async function subcomment(c: Context) {
     const env: Env = c.env;
@@ -41,8 +41,14 @@ export async function subcomment(c: Context) {
         c.executionCtx.waitUntil(createNotification(c, {
             senderId: userId,
             action: 'subcomment',
-            entityType: 'comment',
-            entityId: subcommentD1!.id
+            entityData: {
+                entityType: 'subcomment',
+                entityId: subcommentD1!.id
+            },
+            parentEntityData: {
+                entityType: 'comment',
+                entityId: commentID
+            }
         }));
 
         return c.json(subcomment, { status: 201 });
@@ -185,9 +191,11 @@ export async function likeSubcomment(c: Context) {
             // Send a notification but do not wait
             c.executionCtx.waitUntil(createNotification(c, {
                 senderId: userId,
-                entityId: subcommentID,
-                entityType: 'subcomment',
-                action: 'like'
+                action: 'like',
+                entityData: {
+                    entityId: subcommentID,
+                    entityType: 'subcomment'
+                }
             }));
 
             return c.text('Subcomment liked', { status: 200 });

@@ -199,6 +199,8 @@ type NotificationView = {
     type: string;
     entity_id: number;
     entity_type: string;
+    message: string;
+    content?: string;
     read: boolean;
     created_at: number;
 }
@@ -206,11 +208,19 @@ type NotificationView = {
 namespace NotificationPayload {
     export default interface NotificationPayload {
         senderId: number;
-        receiverId?: number;
+        receiverId: number;
         action: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
         entityId: number;
-        entityType: 'post' | 'comment' | 'subcomment' | 'community';
-        message?: string;
+        entityType: 'post' | 'comment' | 'subcomment' | 'user' | 'invite';
+        message: string;
+        content?: string;
+    }
+    export type IncomingNotificationPayload = {
+        senderId: number;
+        receiverId?: number;
+        action: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
+        entityData: { [key: string]: any };
+        parentEntityData?: { [key: string]: any };
     }
     export type Like = {
         senderId: number;
@@ -219,28 +229,25 @@ namespace NotificationPayload {
     }
     export type Comment = {
         senderId: number;
-        receiverId: number;
-        action: 'comment';
         entityId: number;
-        entityType: 'post' | 'comment';
+        parentPostId: number;
     }
     export type Subcomment = {
         senderId: number;
         entityId: number;
+        parentCommentId: number;
     }
     export type Mention = {
         senderId: number;
         receiverId: number;
-        action: 'mention';
         entityId: number;
         entityType: 'post' | 'comment' | 'subcomment';
     }
     export type Invite = {
         senderId: number;
         receiverId: number;
-        action: 'invite';
-        entityId: number;
-        entityType: 'community';
+        inviteId: number;
+        communityId: number;
     }
 }
 

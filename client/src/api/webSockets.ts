@@ -1,4 +1,4 @@
-import {base} from "./api.ts";
+const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/ws';
 
 export async function createWebsocketConnection() {
     console.log("createWebsocketConnection");
@@ -34,7 +34,7 @@ async function createWebSocketEntryInDatabase(uuid: string, timestamp: number, n
     formData.append('nonce', nonce);
     formData.append('signature', signature);
 
-    return await fetch(base + `/ws`, {
+    return await fetch(base, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -43,7 +43,7 @@ async function createWebSocketEntryInDatabase(uuid: string, timestamp: number, n
 
 // Delete the WebSocket entry from the database (in case of failed connections)
 export async function deleteWebSocketEntryFromDatabase(uuid: string) {
-    return await fetch(base + `/ws/${uuid}`, {
+    return await fetch(base + `/${uuid}`, {
         method: 'DELETE',
         credentials: 'include'
     });
