@@ -1,4 +1,4 @@
-import {base} from "./api.ts";
+const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/attachment';
 
 const allowedMimeTypes = [
     // Images
@@ -43,7 +43,7 @@ export async function uploadAttachment(attachments: File[]) {
         formData.append('height', height.toString());
     }
 
-    const request = await fetch(base + `/attachment`, {
+    const request = await fetch(base, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -61,14 +61,14 @@ export async function uploadAttachment(attachments: File[]) {
 
 // Get attachment details by filename (length and height for images, video length, etc...)
 export async function getAttachmentDetails(filename: string) {
-    const request = await fetch(base + `/attachment/${filename}`, { method: 'GET' });
+    const request = await fetch(base + `/${filename}`, { method: 'GET' });
 
     return { status: request.status, data: await request.json() };
 }
 
 // Delete attachment by filename
 export async function deleteAttachment(filename: string) {
-    const request = await fetch(base + `/attachment/${filename}`, {
+    const request = await fetch(base + `/${filename}`, {
         method: 'DELETE',
         credentials: 'include'
     });
@@ -84,7 +84,7 @@ export async function uploadIcon(attachments: File[], type: 'icon' | 'pfp') {
     formData.append('files[]', attachments[0]);
     formData.append('source', type);
 
-    const request = await fetch(base + `/attachment`, {
+    const request = await fetch(base, {
         method: 'POST',
         body: formData,
         credentials: 'include'

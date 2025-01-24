@@ -1,4 +1,4 @@
-import {base} from "./api.ts";
+const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/comment';
 
 // Comment on post
 export async function comment(post: number, content: string, attachment?: string) {
@@ -10,7 +10,7 @@ export async function comment(post: number, content: string, attachment?: string
         formData.append('filename', attachment);
     }
 
-    const request = await fetch(base + `/comment`, {
+    const request = await fetch(base, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -20,7 +20,7 @@ export async function comment(post: number, content: string, attachment?: string
 
 // Get comments on a post by its ID
 export async function getCommentsOnPost(post: number, page: number = 0) {
-    const request = await fetch(base + `/comment/${post}?page=${page}`, {
+    const request = await fetch(base + `/${post}?page=${page}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -29,7 +29,7 @@ export async function getCommentsOnPost(post: number, page: number = 0) {
 
 // Like/unlike a comment by its ID
 export async function likeComment(comment: number) {
-    const request = await fetch(base + `/comment/like/${comment}`, {
+    const request = await fetch(base + `/like/${comment}`, {
         method: 'POST',
         credentials: 'include'
     });
@@ -38,7 +38,7 @@ export async function likeComment(comment: number) {
 
 // Delete comment by its ID
 export async function deleteComment(comment: number) {
-    const request = await fetch(base + `/comment/${comment}`, {
+    const request = await fetch(base + `/${comment}`, {
         method: 'DELETE',
         credentials: 'include'
     });

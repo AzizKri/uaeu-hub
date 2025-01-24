@@ -1,4 +1,4 @@
-import {base} from "./api.ts";
+const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/subcomment';
 
 // SubComment on comment
 export async function subComment(comment: number, content: string, attachment?: string) {
@@ -10,7 +10,7 @@ export async function subComment(comment: number, content: string, attachment?: 
         formData.append('filename', attachment);
     }
 
-    const request = await fetch(base + `/subcomment`, {
+    const request = await fetch(base, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -20,7 +20,7 @@ export async function subComment(comment: number, content: string, attachment?: 
 
 // Get subComments on a comment by its ID
 export async function getSubCommentsOnComment(comment: number, page: number = 0) {
-    const request = await fetch(base + `/subcomment/${comment}?page=${page}`, {
+    const request = await fetch(base + `/${comment}?page=${page}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -29,7 +29,7 @@ export async function getSubCommentsOnComment(comment: number, page: number = 0)
 
 // Like/unlike a subComment by its ID
 export async function likeSubComment(subComment: number) {
-    const request = await fetch(base + `/subcomment/like/${subComment}`, {
+    const request = await fetch(base + `/like/${subComment}`, {
         method: 'POST',
         credentials: 'include'
     });
@@ -38,7 +38,7 @@ export async function likeSubComment(subComment: number) {
 
 // Delete subComment by its ID
 export async function deleteSubComment(subComment: number) {
-    const request = await fetch(base + `/subcomment/${subComment}`, {
+    const request = await fetch(base + `/${subComment}`, {
         method: 'DELETE',
         credentials: 'include'
     });
