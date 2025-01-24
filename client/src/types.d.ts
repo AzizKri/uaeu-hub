@@ -64,6 +64,21 @@ declare global {
         icon?: string;
     }
 
+    interface Notification {
+        id: number;
+        recipient_id: number;
+        sender_id: number;
+        sender: string;
+        sender_displayname: string;
+        type: string;
+        entity_id: number;
+        entity_type: string;
+        message: string;
+        content?: string;
+        read: boolean;
+        created_at: number;
+    }
+
     interface PostAll {
         postInfo: PostInfo;
         // topCommentInfo?: CommentInfo;
