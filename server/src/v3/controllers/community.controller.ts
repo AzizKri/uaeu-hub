@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { getOrCreateTags } from './tags.controller';
 import { parseId } from '../util/util';
-import { createNotification } from '../util/notificationService';
+import { createNotification } from '../notifications';
 
 export async function createCommunity(c: Context) {
     // Get userId & isAnonymous from Context
@@ -711,9 +711,11 @@ export async function inviteUserToCommunity(c: Context) {
         c.executionCtx.waitUntil(createNotification(c, {
             senderId: adminUserId,
             receiverId: userId,
-            entityType: 'community',
-            entityId: invite!.id,
-            action: 'invite'
+            action: 'invite',
+            entityData: {
+                inviteId: invite!.id,
+                communityId: communityId,
+            }
         }));
 
         return c.text('User invited to community', { status: 200 });

@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import { createNotification } from '../util/notificationService';
+import { createNotification } from '../notifications';
 
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
@@ -95,15 +95,21 @@ export async function getLatestPosts(c: Context) {
         } else {
             // Returning user, show posts with likes
             const posts = await env.DB.prepare(
-                `SELECT pv.*,
-                        EXISTS (SELECT 1
-                                FROM post_like
-                                WHERE post_like.post_id = pv.id
-                                  AND post_like.user_id = ?) AS liked
+                `SELECT pv.*
                  FROM post_view AS pv
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(userId, page * 10).all<PostView>();
+            ).bind(page * 10).all<PostView>();
+            // const posts = await env.DB.prepare(
+            //     `SELECT pv.*,
+            //             EXISTS (SELECT 1
+            //                     FROM post_like
+            //                     WHERE post_like.post_id = pv.id
+            //                       AND post_like.user_id = ?) AS liked
+            //      FROM post_view AS pv
+            //      ORDER BY pv.post_time DESC
+            //      LIMIT 10 OFFSET ?`
+            // ).bind(userId, page * 10).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         }
@@ -459,9 +465,11 @@ export async function likePost(c: Context) {
             // This will still return the response without waiting though
             c.executionCtx.waitUntil(createNotification(c, {
                 senderId: userId,
-                entityId: postid,
-                entityType: 'post',
-                action: 'like'
+                action: 'like',
+                entityData: {
+                    entityId: postid,
+                    entityType: 'post'
+                }
             }));
         }
 
