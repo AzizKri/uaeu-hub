@@ -51,10 +51,11 @@ export default function Content({
             {isLoading && !error && <LineSpinner width="100%" />}
             {filename && !error && (
                 <div
-                    className={styles.image}
+                    className="post-image-wrapper"
                 >
                     <img
                         src={`${assetsBase}/attachments/${filename}`}
+                        className="post-image"
                         alt="post attachment"
                         onLoad={() => setIsLoading(false)}
                         onError={() => {
