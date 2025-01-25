@@ -3,6 +3,7 @@ import pfp from "../../../assets/community-icon.jpg";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
+    deleteCommunity,
     getCommunityByName,
     getLatestCommunityPosts,
     getMembersOfCommunity,
@@ -17,6 +18,7 @@ import arrowRight from "../../../assets/chevron-right.svg";
 import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
 import UserPreview from "../../UserPreview/UserPreview.tsx";
 import Post from "../../PostStuff/Post/Post.tsx";
+import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 
 // export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
@@ -37,6 +39,8 @@ export default function Community() {
         useState<boolean>(false);
     const { isUser } = useUser();
     const [searchMembersVal, setSearchMembersVal] = useState<string>("");
+    const [showSearchMembersModal, setShowSearchMembersModal] = useState<boolean>(false);
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
     useEffect(() => {
         if (communityName) {
@@ -179,6 +183,22 @@ export default function Community() {
         setMembers(prev => (
             prev.filter(mem => mem.id !== id)
         ))
+    }
+
+    const handleCloseInviteModal = () => {
+        // TODO: complete this (what ever it is)
+        return null;
+    }
+
+    const handleInviteMembers = () => {
+        setShowSearchMembersModal(true);
+    }
+
+    const handleDeleteCommunity = () => {
+        if (info) deleteCommunity(info.id).then(() => {
+            // console.log('community deleted:', res);
+            window.location.replace('/');
+        })
     }
 
     return loadingInfo || !info ? (
@@ -356,15 +376,35 @@ export default function Community() {
                             onClick={handleEditCommunity}
                         >
                             Edit Community Information
-                            <img src={arrowRight} alt="arrowRight" />
+                            <img src={arrowRight} alt="arrowRight"/>
                         </li>
-                        <li className={styles.setting}>
+                        <li className={styles.setting} onClick={handleInviteMembers}>
                             Invite Members
-                            <img src={arrowRight} alt="arrowRight" />
+                            <img src={arrowRight} alt="arrowRight"/>
+                            {showSearchMembersModal && (
+                                <Modal onClose={handleCloseInviteModal}>
+                                    <input
+                                        className={styles.searchMembers}
+                                    />
+                                </Modal>
+                            )}
                         </li>
-                        <li className={styles.setting}>
-                            Add Admins
-                            <img src={arrowRight} alt="arrowRight" />
+                        <li
+                            className={styles.setting}
+                            onClick={() => setShowDeleteModal(true)}
+                            style={{color: "#f33"}}
+                        >
+                            Delete Community
+                            <img src={arrowRight} alt="arrowRight"/>
+                            {showDeleteModal && (
+                                <YesNoPopUp
+                                    title={"Delete Community"}
+                                    text={`Are you sure you want to delete this community? all posts will be lost`}
+                                    onYes={handleDeleteCommunity}
+                                    onNo={() => null}
+                                    hidePopUp={() => setShowDeleteModal(false)}
+                                />
+                            )}
                         </li>
                     </ul>
                 ) : null}
