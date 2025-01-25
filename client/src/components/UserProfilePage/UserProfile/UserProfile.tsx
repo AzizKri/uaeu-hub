@@ -1,59 +1,54 @@
-import {useEffect, useState} from 'react';
-import styles from './UserProfile.module.scss';
-import {useNavigate, useParams} from "react-router-dom";
-import {getUserByUsername} from '../../../api/users.ts';
-import {useUser} from "../../../lib/utils/hooks.ts";
+import { useEffect, useState } from "react";
+import styles from "./UserProfile.module.scss";
+import { useNavigate, useParams } from "react-router-dom";
+import { getUserByUsername } from "../../../api/users.ts";
+import { useUser } from "../../../lib/utils/hooks.ts";
 import defaultProfilePicture from "../../../assets/profile-picture.png";
 import EditUserPopUp from "../EditUserPopUp/EditUserPopUp.tsx";
 import UserPosts from "../UserPosts/UserPosts.tsx";
 import UserCommunities from "../UserCommunities/UserCommunities.tsx";
 import UserLikes from "../UserLikes/UserLikes.tsx";
-import {assetsBase} from "../../../api/api.ts";
-import { editCurrentUser } from '../../../api/currentUser.ts';
+import { assetsBase } from "../../../api/api.ts";
+import { editCurrentUser } from "../../../api/currentUser.ts";
 
 const authTabs = [
-    { label: 'Posts' },
-    { label: 'Communities' },
-    { label: 'Likes' },
+    { label: "Posts" },
+    { label: "Communities" },
+    { label: "Likes" },
 ];
 
-const tabs = [
-    { label: 'Posts' },
-    { label: 'Communities' },
-];
+const tabs = [{ label: "Posts" }, { label: "Communities" }];
 
-export default function UserProfile () {
+export default function UserProfile() {
     const [showPopup, setShowPopup] = useState(false);
-    const [activeTab, setActiveTab] = useState('');
+    const [activeTab, setActiveTab] = useState("");
     const [profileUser, setProfileUser] = useState<UserInfo>();
-    const { username } =  useParams<{ username: string }>();
+    const { username } = useParams<{ username: string }>();
     const { user, updateUser } = useUser();
     const navigate = useNavigate();
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
 
-
     useEffect(() => {
-        setActiveTab('Posts');
+        setActiveTab("Posts");
         if (username) {
             setIsAuthorized(user?.username === username);
             getUserByUsername(username).then((res) => {
-               const data = res.data;
-               if (res.status !== 200){
-                   navigate('/error');
-               } else{
-                   setProfileUser({
-                       id: data.id,
-                       username: data.username,
-                       displayName: data.displayname,
-                       bio: data.bio,
-                       pfp: data.pfp,
-                       isAnonymous: false,
-                   });
-               }
+                const data = res.data;
+                if (res.status !== 200) {
+                    navigate("/error");
+                } else {
+                    setProfileUser({
+                        id: data.id,
+                        username: data.username,
+                        displayName: data.displayname,
+                        bio: data.bio,
+                        pfp: data.pfp,
+                        isAnonymous: false,
+                    });
+                }
             });
         }
     }, [username]);
-
 
     const handleTabClick = (tabLabel: string) => {
         setActiveTab(tabLabel);
@@ -61,14 +56,18 @@ export default function UserProfile () {
 
     const handleClick = () => {
         setShowPopup(true);
-    }
+    };
 
     const onClose = () => {
         setShowPopup(false);
-    }
+    };
 
-    const onSave = (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => {
-        console.log("saving this information")
+    const onSave = (
+        updatedDisplayName: string,
+        updatedBio: string,
+        updatedPfp: string,
+    ) => {
+        console.log("saving this information");
         console.log("updatedDisplayName", updatedDisplayName);
         console.log("updatedBio", updatedBio);
         console.log("updatedPfp", updatedPfp);
@@ -84,17 +83,22 @@ export default function UserProfile () {
                     pfp: updatedPfp,
                 }))
 
-                if (user?.username === username) {
-                    updateUser({
-                        ...user,
-                        displayName: updatedDisplayName,
-                        bio: updatedBio,
-                        pfp: updatedPfp,
-                    })
+                    if (user?.username === username) {
+                        updateUser({
+                            ...user,
+                            displayName: updatedDisplayName,
+                            bio: updatedBio,
+                            pfp: updatedPfp,
+                        });
+                    }
                 }
-            }
-        })
-    }
+            },
+        );
+    };
+
+    console.log("user pfp", profileUser?.pfp);
+    console.log("user", profileUser);
+
     return (
         <div className={styles.userProfileContainer}>
             <div className={styles.userProfileHeader}>
@@ -106,7 +110,9 @@ export default function UserProfile () {
                                     className={styles.pfp}
                                     src={
                                         profileUser?.pfp
-                                            ? `${assetsBase}/pfp/${profileUser.pfp}`
+                                            ? profileUser.pfp.startsWith("http")
+                                                ? profileUser.pfp
+                                                : `${assetsBase}/pfp/${profileUser.pfp}`
                                             : defaultProfilePicture
                                     }
                                     alt="profile picture"
@@ -197,4 +203,4 @@ export default function UserProfile () {
             )}
         </div>
     );
-};
+}

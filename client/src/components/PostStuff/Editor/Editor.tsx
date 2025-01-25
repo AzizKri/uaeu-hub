@@ -235,7 +235,7 @@ export default function Editor({
                     console.log("there is a community id");
                     post = await createPost(plainText, uploadState.fileName, communityId);
                 } else if (!user || user.isAnonymous) {
-                    post = await createPost(plainText, uploadState.fileName, 0);
+                    post = await createPost(plainText, uploadState.fileName);
                 } else if (!selectedCommunity) {
                     selectCommunityButtonRef.current?.classList.add(
                         styles.warning,
@@ -350,6 +350,7 @@ export default function Editor({
     const handleSelect = (e: React.MouseEvent, community: CommunityINI) => {
         e.stopPropagation();
         setSelectedCommunity(community);
+        console.log("selected community is: ", community);
         setShowCommunities(false);
     };
 
@@ -364,6 +365,7 @@ export default function Editor({
             setLoadingUserCommunities(true);
             getCommunitiesCurrentUser().then(
                 (res: { status: number; data: CommunityINI[] }) => {
+                    console.log("communities", res.data);
                     setAllCommunities(res.data);
                     setDisplayedCommunities(res.data);
                     setLoadingUserCommunities(false);
@@ -411,14 +413,17 @@ export default function Editor({
 
                 {uploadState.preview && (
                     <div className={styles.imagePreview}>
-                        <img
-                            src={
-                                typeof uploadState.preview === "string"
-                                    ? uploadState.preview
-                                    : undefined
-                            }
-                            alt="uploaded image preview"
-                        />
+                        <div className="post-image-wrapper">
+                            <img
+                                className="post-image"
+                                src={
+                                    typeof uploadState.preview === "string"
+                                        ? uploadState.preview
+                                        : undefined
+                                }
+                                alt="uploaded image preview"
+                            />
+                        </div>
                         <div
                             className={styles.changeImage}
                             onClick={handleChangeImage}

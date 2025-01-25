@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 
 import accountIcon from "../../assets/account-outline-thin.svg";
 import communityIcon from "../../assets/account-group-outline-thin.svg";
-import bookmarkIcon from "../../assets/bookmark-outline-thin.svg";
-import settingIcon from "../../assets/cog-outline-thin.svg";
+// import bookmarkIcon from "../../assets/bookmark-outline-thin.svg";
+// import settingIcon from "../../assets/cog-outline-thin.svg";
 import homeIcon from "../../assets/home-outline-thin.svg";
 import logoutIcon from "../../assets/logout-thin.svg";
 import courseMaterial from "../../assets/course-material.svg";
@@ -195,16 +195,16 @@ export default function Aside() {
                     )}
                 </ul>
             </li>
-            {isUser() && (
-                <li>
-                    <div
-                        className={`${styles.top_element} ${styles.element} ${active === "setting" && styles.active}`}
-                    >
-                        <img src={bookmarkIcon} alt="bookmark" />
-                        <span>SAVED</span>
-                    </div>
-                </li>
-            )}
+            {/*{isUser() && (*/}
+            {/*    <li>*/}
+            {/*        <div*/}
+            {/*            className={`${styles.top_element} ${styles.element} ${active === "setting" && styles.active}`}*/}
+            {/*        >*/}
+            {/*            <img src={bookmarkIcon} alt="bookmark" />*/}
+            {/*            <span>SAVED</span>*/}
+            {/*        </div>*/}
+            {/*    </li>*/}
+            {/*)}*/}
             <li>
                 <div
                     className={`${styles.top_element} ${styles.element} ${active === "setting" && styles.active}`}
@@ -223,14 +223,14 @@ export default function Aside() {
                     <span>PROFESSORS</span>
                 </div>
             </li>
-            <li>
-                <div
-                    className={`${styles.top_element} ${styles.element} ${active === "setting" && styles.active}`}
-                >
-                    <img src={settingIcon} alt="settings" />
-                    <span>SETTINGS</span>
-                </div>
-            </li>
+            {/*<li>*/}
+            {/*    <div*/}
+            {/*        className={`${styles.top_element} ${styles.element} ${active === "setting" && styles.active}`}*/}
+            {/*    >*/}
+            {/*        <img src={settingIcon} alt="settings" />*/}
+            {/*        <span>SETTINGS</span>*/}
+            {/*    </div>*/}
+            {/*</li>*/}
             {isUser() && (
                 <li>
                     <div

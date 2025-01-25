@@ -92,6 +92,18 @@ ul {
     }
 }
 
+.post-image-wrapper {
+    overflow: hidden;
+    height: 350px;
+    display: flex;
+    border-radius: 10px;
+    background-color: #5b5b5b;
+
+    .post-image {
+        margin-inline: auto;
+    }
+}
+
 #overlay {
     opacity: 0;
     display: none;

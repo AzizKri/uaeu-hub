@@ -1,15 +1,14 @@
 import Search from "../Search/Search.tsx";
 import styles from "./NavBar.module.scss";
 import { useUser } from "../../../lib/utils/hooks.ts";
-import {useEffect, useRef} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-text-2.svg";
-import {assetsBase} from "../../../api/api.ts";
-import {goToAuth} from "../../../lib/utils/tools.ts";
-
+import { assetsBase } from "../../../api/api.ts";
+import { goToAuth } from "../../../lib/utils/tools.ts";
 
 export default function NavBar() {
-    const { isUser, user} = useUser();
+    const { isUser, user } = useUser();
     const leftRef = useRef<HTMLElement | null>(null);
     const overlayRef = useRef<HTMLElement | null>(null);
     const navigate = useNavigate();
@@ -17,7 +16,7 @@ export default function NavBar() {
     useEffect(() => {
         leftRef.current = document.getElementById("left");
         overlayRef.current = document.getElementById("overlay");
-        console.log(user)
+        console.log(user);
         console.log(import.meta.env.VITE_ASSETS_URL)
     }, []);
 
@@ -29,20 +28,25 @@ export default function NavBar() {
             const handleOverlayClick = () => {
                 leftRef.current?.classList.remove("active");
                 overlayRef.current?.classList.remove("active");
-                overlayRef.current?.removeEventListener("click", handleOverlayClick);
-            }
+                overlayRef.current?.removeEventListener(
+                    "click",
+                    handleOverlayClick,
+                );
+            };
 
             if (leftRef.current.classList.contains("active")) {
-                overlayRef.current.addEventListener("click", handleOverlayClick);
+                overlayRef.current.addEventListener(
+                    "click",
+                    handleOverlayClick,
+                );
             }
         }
-    }
-
-    const handleIconClick = () => {
-        window.location.assign(`/user/${user?.username}`)
-        // navigate(`/user/${user?.username}`);
     };
 
+    const handleIconClick = () => {
+        window.location.assign(`/user/${user?.username}`);
+        // navigate(`/user/${user?.username}`);
+    };
 
     return (
         <>
@@ -67,9 +71,19 @@ export default function NavBar() {
                 <div className={styles.right}>
                     <div className={styles.auth_buttons}>
                         {isUser() ? (
-                            <div className={styles.userIcon} onClick={handleIconClick}>
+                            <div
+                                className={styles.userIcon}
+                                onClick={handleIconClick}
+                            >
                                 {user?.pfp ? (
-                                    <img src={`${assetsBase}/pfp/${user.pfp}`} alt="profile picture"/>
+                                    <img
+                                        src={
+                                            user.pfp.startsWith("http")
+                                                ? user.pfp
+                                                : `${assetsBase}/pfp/${user.pfp}`
+                                        }
+                                        alt="profile picture"
+                                    />
                                 ) : (
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -87,13 +101,13 @@ export default function NavBar() {
                         ) : (
                             <>
                                 <div
-                                    onClick={() => goToAuth(navigate, 'SIGNUP')}
+                                    onClick={() => goToAuth(navigate, "SIGNUP")}
                                     className={`${styles.signup} ${styles.btn}`}
                                 >
                                     Sign Up
                                 </div>
                                 <div
-                                    onClick={() => goToAuth(navigate, 'LOGIN')}
+                                    onClick={() => goToAuth(navigate, "LOGIN")}
                                     className={`${styles.login} ${styles.btn}`}
                                 >
                                     Log In
