@@ -1,10 +1,9 @@
 import styles from "./Header.module.scss";
-import profilePicture from "../../../assets/profile-picture.png";
-import defaultCommunityIcon from "../../../assets/community-icon.jpg";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import React from "react";
 import {useNavigate} from "react-router-dom";
-import {assetsBase} from "../../../api/api.ts";
+import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
+import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 
 interface HeaderProps {
     type: "COMMUNITY+DISPLAYNAME" | "DISPLAYNAME+USERNAME";
@@ -44,18 +43,9 @@ export default function Header({
             {type === "DISPLAYNAME+USERNAME" ? (
                 <>
                     <div className={styles.pics}>
-                        <img
-                            src={
-                                userIcon
-                                    ? userIcon.startsWith("http")
-                                        ? userIcon
-                                        : `${assetsBase}/pfp/${userIcon}`
-                                    : profilePicture
-                            }
-                            alt="profile picture"
-                            className={styles.user_icon_no_community}
-                            onClick={goToAuthor}
-                        />
+                        <div className={styles.user_icon_no_community}>
+                            <ProfilePictureComponent source={userIcon} />
+                        </div>
                     </div>
                     <div className={styles.names}>
                         <div className={styles.mainName}>
@@ -74,26 +64,12 @@ export default function Header({
             ) : (
                 <>
                     <div className={styles.pics}>
-                        <img
-                            src={
-                                communityIcon == undefined
-                                    ? defaultCommunityIcon
-                                    : `${assetsBase}/icon/${communityIcon}`
-                            }
-                            alt="community icon"
-                            className={styles.community_icon}
-                            onClick={goToCommunity}
-                        />
-                        <img
-                            src={
-                                userIcon == undefined
-                                    ? profilePicture
-                                    : `${assetsBase}/pfp/${userIcon}`
-                            }
-                            alt="profile picture"
-                            className={styles.user_icon}
-                            onClick={goToAuthor}
-                        />
+                        <div onClick={goToCommunity} className={styles.community_icon}>
+                            <CommunityIconComponent source={communityIcon} />
+                        </div>
+                        <div className={styles.user_icon}>
+                            <ProfilePictureComponent source={userIcon} />
+                        </div>
                     </div>
                     <div className={styles.names}>
                         <div

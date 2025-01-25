@@ -99,7 +99,7 @@ export default function Editor({
     const initialConfig = {
         namespace: "MyEditor",
         theme: {},
-        editorState: initialText ? prepareInitialState(initialText) : undefined,
+        editorState: initialText ? prepareInitialState(initialText + " ") : undefined,
         onError: (error: Error) => {
             console.error(error);
         },

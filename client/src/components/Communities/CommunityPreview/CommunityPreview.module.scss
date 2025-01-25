@@ -1,10 +1,11 @@
 .communityPreview {
-    display: flex;
+    display: grid;
     align-items: center;
     gap: 10px;
     padding: 5px;
     cursor: pointer;
     background-color: white;
+    grid-template-columns: 40px 1fr;
 
     &:hover {
         background-color: #fafafa;
@@ -12,9 +13,6 @@
     .communityIcon {
         width: 40px;
         height: 40px;
-        border-radius: 50%;
-        //temp
-        background-color: #eee;
     }
 
     .info {
@@ -25,9 +23,6 @@
         .members {
             display: flex;
             align-items: center;
-            .memberIcon {
-
-            }
         }
     }
 

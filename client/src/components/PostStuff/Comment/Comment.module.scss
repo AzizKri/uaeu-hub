@@ -8,11 +8,8 @@
     border-top: 1px solid rgba(0, 0, 0, 0.2);
 
     &__profile_pict {
-        max-width: 40px;
-
-        img {
-            width: 100%;
-        }
+        width: 40px;
+        height: 40px;
     }
 
     &__content {
