@@ -5,16 +5,7 @@ import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine
 import { useUser } from "../../../lib/utils/hooks.ts";
 import {joinCommunity} from "../../../api/communities.ts";
 import {useNavigate} from "react-router-dom";
-import communityIcon from "../../../assets/community-icon.jpg"
-
-// interface CommunityPreviewProps {
-//     icon?: string;
-//     name: string;
-//     id: number;
-//     members: number;
-//     isMember?: boolean;
-//     onJoin?: (id: number) => void;
-// }
+import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 
 export default function CommunityPreview({
     icon,
@@ -50,11 +41,9 @@ export default function CommunityPreview({
             className={styles.communityPreview}
             onClick={() => handleClickCommunity(name)}
         >
-            <img
-                src={icon ? icon : communityIcon}
-                alt={`${name} Community`}
-                className={styles.communityIcon}
-            />
+            <div className={styles.communityIcon}>
+                <CommunityIconComponent source={icon} />
+            </div>
             <div className={styles.info}>
                 <h4 className={styles.communityName}>{name}</h4>
                 <div className={styles.members}>

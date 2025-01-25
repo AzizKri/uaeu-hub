@@ -1,5 +1,4 @@
 import styles from "./Community.module.scss";
-import pfp from "../../../assets/community-icon.jpg";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -19,6 +18,7 @@ import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
 import UserPreview from "../../UserPreview/UserPreview.tsx";
 import Post from "../../PostStuff/Post/Post.tsx";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
+import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 
 // export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
@@ -217,11 +217,9 @@ export default function Community() {
             <div className={styles.header}>
                 <div className={styles.header_top}>
                     <div className={styles.info}>
-                        <img
-                            className={styles.icon}
-                            src={pfp}
-                            alt="Community Icon"
-                        />
+                        <div className={styles.icon}>
+                            <CommunityIconComponent source={info.icon}/>
+                        </div>
                         <div className={styles.community_name}>{info.name}</div>
                     </div>
                     <div className={styles.actions}>

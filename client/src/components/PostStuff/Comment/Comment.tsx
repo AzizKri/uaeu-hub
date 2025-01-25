@@ -1,4 +1,3 @@
-import profilePict from '../../../assets/profile-picture.png';
 import styles from './Comment.module.scss';
 import Content from "../Content/Content.tsx";
 import {useEffect, useState} from "react";
@@ -15,9 +14,9 @@ import {useUser} from "../../../lib/utils/hooks.ts";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import SubComment from "../SubComment/SubComment.tsx";
-import {assetsBase} from "../../../api/api.ts";
 import likeIconUnliked from "../../../assets/unliked.svg";
 import likeIconLiked from "../../../assets/liked.svg";
+import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 
 interface SubCommentBack {
     attachment: string,
@@ -165,16 +164,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                 </Modal>
             )}
             <div className={styles.comment__profile_pict}>
-                <img
-                    src={
-                        info?.pfp
-                            ? info.pfp.startsWith("http")
-                                ? info.pfp
-                                : `${assetsBase}/pfp/${info.pfp}`
-                            : profilePict
-                    }
-                    alt="profile picture"
-                />
+                <ProfilePictureComponent source={info.pfp} />
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>
