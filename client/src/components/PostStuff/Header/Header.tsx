@@ -46,9 +46,11 @@ export default function Header({
                     <div className={styles.pics}>
                         <img
                             src={
-                                userIcon == undefined
-                                    ? profilePicture
-                                    : `${assetsBase}/pfp/${userIcon}`
+                                userIcon
+                                    ? userIcon.startsWith("http")
+                                        ? userIcon
+                                        : `${assetsBase}/pfp/${userIcon}`
+                                    : profilePicture
                             }
                             alt="profile picture"
                             className={styles.user_icon_no_community}
