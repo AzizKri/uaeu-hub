@@ -2,6 +2,7 @@ import styles from "./Content.module.scss";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import React, { useState } from "react";
 import {assetsBase} from "../../../api/api.ts";
+import PostImage from "../../Reusable/PostImage/PostImage.tsx";
 // import { getAttachmentDetails } from "../../../api/attachmets.ts";
 
 export default function Content({
@@ -50,20 +51,15 @@ export default function Content({
             {/*<ReadOnlyEditor content={editorContent} />*/}
             {isLoading && !error && <LineSpinner width="100%" />}
             {filename && !error && (
-                <div
-                    className="post-image-wrapper"
-                >
-                    <img
-                        src={`${assetsBase}/attachments/${filename}`}
-                        className="post-image"
-                        alt="post attachment"
-                        onLoad={() => setIsLoading(false)}
-                        onError={() => {
-                            setError(true);
-                            setIsLoading(false);
-                        }}
+                <PostImage
+                    source={`${assetsBase}/attachments/${filename}`}
+                    alt="post attachment"
+                    onLoad={() => setIsLoading(false)}
+                    onError={() => {
+                        setError(true);
+                        setIsLoading(false);
+                    }}
                     />
-                </div>
             )}
             {error && <p>Error Loading the image</p>}
         </>
