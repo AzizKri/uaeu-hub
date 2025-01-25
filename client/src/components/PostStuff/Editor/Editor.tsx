@@ -24,6 +24,7 @@ import arrowDownIcon from "../../../assets/chevron-down.svg";
 import { useUser } from "../../../lib/utils/hooks.ts";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import {subComment} from "../../../api/subComments.ts";
+import PostImage from "../../Reusable/PostImage/PostImage.tsx";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
@@ -277,14 +278,11 @@ export default function Editor({
                     );
                 }
 
-                // setUploadState({
-                //     status: "IDLE",
-                //     file: null,
-                //     preview: null,
-                // });
-                // if (imageInputRef.current) {
-                //     imageInputRef.current.value = "";
-                // }
+                setUploadState({
+                    status: "IDLE",
+                    file: null,
+                    preview: null,
+                });
             } else if (type === "COMMENT"  && parentId) {
                 const res = await comment(
                     parentId,
@@ -413,17 +411,9 @@ export default function Editor({
 
                 {uploadState.preview && (
                     <div className={styles.imagePreview}>
-                        <div className="post-image-wrapper">
-                            <img
-                                className="post-image"
-                                src={
-                                    typeof uploadState.preview === "string"
-                                        ? uploadState.preview
-                                        : undefined
-                                }
-                                alt="uploaded image preview"
-                            />
-                        </div>
+                        {typeof uploadState.preview === "string" && (
+                            <PostImage source={uploadState.preview} alt={"uploaded image preview"} onError={() => null} onLoad={() => null} />
+                        )}
                         <div
                             className={styles.changeImage}
                             onClick={handleChangeImage}

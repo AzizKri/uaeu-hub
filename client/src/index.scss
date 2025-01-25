@@ -92,17 +92,6 @@ ul {
     }
 }
 
-.post-image-wrapper {
-    overflow: hidden;
-    height: 350px;
-    display: flex;
-    border-radius: 10px;
-    background-color: #5b5b5b;
-
-    .post-image {
-        margin-inline: auto;
-    }
-}
 
 #overlay {
     opacity: 0;
@@ -130,10 +119,12 @@ ul {
     z-index: 10;
     border-bottom: 1px solid #e5e5e5;
     top: 0;
-    background-color: #f6f6f6;
+    //background-color: #f6f6f6;
     display: flex;
     align-items: center;
-    justify-content: center;}
+    justify-content: center;
+    background-color: white;
+}
 
 .main {
     display: grid;

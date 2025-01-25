@@ -334,7 +334,7 @@ export default function Community() {
                                         <li key={ad.username}>
                                             <UserPreview
                                                 communityId={info.id}
-                                                user={ad}
+                                                profileUser={ad}
                                                 type="ADMIN"
                                                 removeMe={() => ad.id && removeUser(ad.id)}
                                                 role={role}
@@ -354,7 +354,7 @@ export default function Community() {
                                         <li key={mem.username}>
                                             <UserPreview
                                                 communityId={info.id}
-                                                user={mem}
+                                                profileUser={mem}
                                                 type="MEMBER"
                                                 removeMe={() => mem.id && removeUser(mem.id)}
                                                 role={role}
