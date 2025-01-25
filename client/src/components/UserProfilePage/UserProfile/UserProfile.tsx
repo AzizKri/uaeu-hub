@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./UserProfile.module.scss";
 import { useNavigate, useParams } from "react-router-dom";
-import { editCurrentUser, getUserByUsername } from "../../../api/users.ts";
+import { getUserByUsername } from "../../../api/users.ts";
 import { useUser } from "../../../lib/utils/hooks.ts";
 import defaultProfilePicture from "../../../assets/profile-picture.png";
 import EditUserPopUp from "../EditUserPopUp/EditUserPopUp.tsx";
@@ -9,6 +9,7 @@ import UserPosts from "../UserPosts/UserPosts.tsx";
 import UserCommunities from "../UserCommunities/UserCommunities.tsx";
 import UserLikes from "../UserLikes/UserLikes.tsx";
 import { assetsBase } from "../../../api/api.ts";
+import { editCurrentUser } from "../../../api/currentUser.ts";
 
 const authTabs = [
     { label: "Posts" },
@@ -72,19 +73,15 @@ export default function UserProfile() {
         console.log("updatedPfp", updatedPfp);
 
         setShowPopup(false);
-        editCurrentUser(updatedDisplayName, updatedBio, updatedPfp).then(
-            (status) => {
-                console.log("edit result", status);
-                if (status === 200) {
-                    setProfileUser(
-                        (prev) =>
-                            prev && {
-                                ...prev,
-                                displayName: updatedDisplayName,
-                                bio: updatedBio,
-                                pfp: updatedPfp,
-                            },
-                    );
+        editCurrentUser({ displayname: updatedDisplayName, bio: updatedBio, pfp: updatedPfp }).then((res) => {
+            console.log("edit result", res.status)
+            if (res.status === 200) {
+                setProfileUser(prev => prev && ({
+                    ...prev,
+                    displayName: updatedDisplayName,
+                    bio: updatedBio,
+                    pfp: updatedPfp,
+                }))
 
                     if (user?.username === username) {
                         updateUser({

@@ -1,4 +1,4 @@
-import {base} from "./api.ts";
+const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/community';
 
 // Create a community
 export async function createCommunity(name: string, description: string, tags: string[], icon?: string) {
@@ -11,7 +11,7 @@ export async function createCommunity(name: string, description: string, tags: s
         formData.append('icon', icon);
     }
 
-    const request = await fetch(base + `/community`, {
+    const request = await fetch(base, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -21,7 +21,7 @@ export async function createCommunity(name: string, description: string, tags: s
 
 // Check if a community exists with the given name
 export async function communityExists(name: string) {
-    const request = await fetch(base + `/community/exists/${name}`, {
+    const request = await fetch(base + `/exists/${name}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -31,7 +31,7 @@ export async function communityExists(name: string) {
 
 // Get community by ID
 export async function getCommunityById(id: number) {
-    const request = await fetch(base + `/community/${id}`, {
+    const request = await fetch(base + `/${id}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -40,7 +40,7 @@ export async function getCommunityById(id: number) {
 
 // Get community by name
 export async function getCommunityByName(name: string) {
-    const request = await fetch(base + `/community/getCommunityByName/${name}`, {
+    const request = await fetch(base + `/getCommunityByName/${name}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -49,7 +49,7 @@ export async function getCommunityByName(name: string) {
 
 // Get communities by tag
 export async function getCommunitiesByTag(tag: string, page: number = 0) {
-    const request = await fetch(base + `/community/getCommunitiesByTag?tag=${tag}&page=${page}`, {
+    const request = await fetch(base + `/getCommunitiesByTag?tag=${tag}&page=${page}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -58,7 +58,7 @@ export async function getCommunitiesByTag(tag: string, page: number = 0) {
 
 // Get communities by multiple tags
 export async function getCommunitiesByTags(tags: string[]) {
-    const request = await fetch(base + `/community/getCommunitiesByTags?tags=${tags.join(',')}`, {
+    const request = await fetch(base + `/getCommunitiesByTags?tags=${tags.join(',')}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -67,7 +67,7 @@ export async function getCommunitiesByTags(tags: string[]) {
 
 // Get communities sorted by latest, activity, or members
 export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', page: number = 0) {
-    const request = await fetch(base + `/community/getCommunities?sortBy=${sortBy}&page=${page}`, {
+    const request = await fetch(base + `/getCommunities?sortBy=${sortBy}&page=${page}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -76,7 +76,7 @@ export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' =
 
 // Search communities by query
 export async function searchCommunities(query: string, page: number = 0) {
-    const request = await fetch(base + `/community/searchCommunities?query=${query}&page=${page}`, {
+    const request = await fetch(base + `/searchCommunities?query=${query}&page=${page}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -91,7 +91,7 @@ export async function editCommunity(id: number, name?: string, description?: str
     if (icon) formData.append('icon', icon);
     if (tags) formData.append('tags', tags.join(','));
 
-    const request = await fetch(base + `/community/${id}`, {
+    const request = await fetch(base + `/${id}`, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -101,7 +101,7 @@ export async function editCommunity(id: number, name?: string, description?: str
 
 // Delete community by ID
 export async function deleteCommunity(id: number) {
-    const request = await fetch(base + `/community/${id}`, {
+    const request = await fetch(base + `/${id}`, {
         method: 'DELETE',
         credentials: 'include'
     });
@@ -110,7 +110,7 @@ export async function deleteCommunity(id: number) {
 
 // Join community by ID
 export async function joinCommunity(id: number) {
-    const request = await fetch(base + `/community/join/${id}`, {
+    const request = await fetch(base + `/join/${id}`, {
         method: 'POST',
         credentials: 'include'
     });
@@ -119,7 +119,7 @@ export async function joinCommunity(id: number) {
 
 // Leave community by ID
 export async function leaveCommunity(id: number) {
-    const request = await fetch(base + `/community/leave/${id}`, {
+    const request = await fetch(base + `/leave/${id}`, {
         method: 'POST',
         credentials: 'include'
     });
@@ -128,7 +128,7 @@ export async function leaveCommunity(id: number) {
 
 // Get members of community by ID
 export async function getMembersOfCommunity(id: number) {
-    const request = await fetch(base + `/community/getMembers/${id}`, {
+    const request = await fetch(base + `/getMembers/${id}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -141,7 +141,7 @@ export async function inviteUserToCommunity(id: number, userId: number) {
     formData.append('communityId', id.toString());
     formData.append('userId', userId.toString());
 
-    const request = await fetch(base + `/community/invite`, {
+    const request = await fetch(base + `/invite`, {
         method: 'POST',
         credentials: 'include',
         body: formData
@@ -151,7 +151,7 @@ export async function inviteUserToCommunity(id: number, userId: number) {
 
 // Remove member from community
 export async function removeMemberFromCommunity(id: number, userId: number) {
-    const request = await fetch(base + `/community/removeMember/${id}/${userId}`, {
+    const request = await fetch(base + `/removeMember/${id}/${userId}`, {
         method: 'DELETE',
         credentials: 'include'
     });
@@ -164,7 +164,7 @@ export async function addAdminToCommunity(userId: number, communityId: number) {
     formData.append('userId', userId.toString());
     formData.append('communityId', communityId.toString());
 
-    const request = await fetch(base + `/community/addAdmin`, {
+    const request = await fetch(base + `/addAdmin`, {
         method: 'POST',
         credentials: 'include',
         body: formData
@@ -174,7 +174,7 @@ export async function addAdminToCommunity(userId: number, communityId: number) {
 
 // Get latest community posts
 export async function getLatestCommunityPosts(id: number, page: number = 0) {
-    const request = await fetch(base + `/community/posts/${id}?page=${page}`, {
+    const request = await fetch(base + `/posts/${id}?page=${page}`, {
         method: 'GET',
         credentials: 'include'
     })

@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import { createNotification } from '../util/notificationService';
+import { createNotification } from '../notifications';
 
 export async function comment(c: Context) {
     const env: Env = c.env;
@@ -42,8 +42,14 @@ export async function comment(c: Context) {
         c.executionCtx.waitUntil(createNotification(c, {
             senderId: userId,
             action: 'comment',
-            entityType: 'post',
-            entityId: commentId!.id
+            entityData: {
+                entityType: 'comment',
+                entityId: commentId?.id
+            },
+            parentEntityData: {
+                entityType: 'post',
+                entityId: postID
+            }
         }));
 
         return c.json(comment, { status: 201 });
@@ -114,7 +120,7 @@ export async function deleteComment(c: Context) {
             DELETE
             FROM comment
             WHERE id = ?
-                AND author_id = ?
+              AND author_id = ?
         `).bind(commentId, userId).first<CommentView>();
 
         if (!result) return c.text('Failed to delete comment', { status: 400 });
@@ -182,9 +188,11 @@ export async function likeComment(c: Context) {
             // Send a notification but do not wait
             c.executionCtx.waitUntil(createNotification(c, {
                 senderId: userId,
-                entityId: commentId,
-                entityType: 'comment',
-                action: 'like'
+                action: 'like',
+                entityData: {
+                    entityId: commentId,
+                    entityType: 'comment'
+                }
             }));
 
             return c.text('Comment liked', { status: 200 });
