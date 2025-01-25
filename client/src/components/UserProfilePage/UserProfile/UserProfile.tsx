@@ -95,8 +95,8 @@ export default function UserProfile() {
         );
     };
 
-    console.log("user pfp", profileUser?.pfp);
-    console.log("user", profileUser);
+    // console.log("user pfp", profileUser?.pfp);
+    // console.log("user", profileUser);
 
     return (
         <div className={styles.userProfileContainer}>
