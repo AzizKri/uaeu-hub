@@ -7,14 +7,12 @@ import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../Editor/Editor.tsx";
 import {likeSubComment} from "../../../api/subComments.ts";
 import {Link} from "react-router-dom";
-import down_vote_outline from "../../../assets/down-vote-outline.svg"
-import upvote_outline from "../../../assets/up-vote-outline.svg"
-import down_vote from "../../../assets/down-vote.svg"
-import upvote from "../../../assets/up-vote.svg"
 import reply from "../../../assets/reply.svg"
 import {useUser} from "../../../lib/utils/hooks.ts";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
+import likeIconLiked from "../../../assets/liked.svg";
+import likeIconUnliked from "../../../assets/unliked.svg";
 
 export default function SubComment({info, deleteComment, parentPrependSubComment}: {info: CommentInfo, deleteComment: (commentId: number) => void, parentPrependSubComment?: (commentInfo: CommentInfo) => void}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
@@ -61,27 +59,6 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
         likeSubComment(info.id);
     }
 
-    const handleDownVote = () => {
-        if (!isUser()) {
-            setShowActionPopUp(true);
-            return;
-        }
-        setLikeState("DISLIKE");
-        if (likeState === "LIKE") {
-            setLikeState("DISLIKE");
-            setLikesCount(prev => prev - 2);
-        } else if (likeState === "DISLIKE") {
-            setLikeState("NONE");
-            setLikesCount(prev => prev + 1);
-        } else {
-            setLikeState("DISLIKE");
-            setLikesCount(prev => prev - 1);
-        }
-
-        // TODO: implement this after it is implemented in the api
-        // dislikeSubComment(info.id);
-    }
-
     const hideActionPopUp = () => {
         setShowActionPopUp(false)
     }
@@ -114,7 +91,7 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
                 <div className={styles.comment__content__header}>
                     <div className={styles.comment__content__header__top_left}>
                         <div className={styles.comment__content__header__top} >
-                            <Link to={`/user/${info.authorId}`}>
+                            <Link to={`/user/${info.author}`}>
                                 <div
                                     className={
                                         styles.comment__content__header__display_name
@@ -140,23 +117,34 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
                     <Content content={info.content} filename={info.attachment} type={"comment"}/>
                 </div>
                 <div className={styles.comment__content__footer}>
-                    <button className={`${styles.vote_icon} ${styles.btn_hover}`} onClick={handleUpVote}>
+                    <button
+                        className={`${styles.vote_icon} ${styles.btn_hover}`}
+                        onClick={handleUpVote}
+                    >
                         {likeState === "LIKE" ? (
-                            <img src={upvote} alt="upvoted"/>
+                            <img src={likeIconLiked} alt="liked"/>
                         ) : (
-                            <img src={upvote_outline} alt="upvote" />
+                            <img src={likeIconUnliked} alt="like"/>
                         )}
                     </button>
+                    {/*<button className={`${styles.vote_icon} ${styles.btn_hover}`} onClick={handleUpVote}>*/}
+                    {/*    {likeState === "LIKE" ? (*/}
+                    {/*        <img src={upvote} alt="upvoted"/>*/}
+                    {/*    ) : (*/}
+                    {/*        <img src={upvote_outline} alt="upvote"/>*/}
+                    {/*    )}*/}
+                    {/*</button>*/}
                     <span className={styles.comment__content__footer__votes}>{likesCount}</span>
-                    <button className={`${styles.vote_icon} ${styles.btn_hover}`} onClick={handleDownVote}>
-                        {likeState === "DISLIKE" ? (
-                            <img src={down_vote} alt="down voted"/>
-                        ) : (
-                            <img src={down_vote_outline} alt="down vote" />
-                        )}
-                    </button>
-                    <button className={`${styles.comment__content__footer__reply} ${styles.btn_hover}`} onClick={handleReply}>
-                        <img src={reply} alt="reply" />
+                    {/*<button className={`${styles.vote_icon} ${styles.btn_hover}`} onClick={handleDownVote}>*/}
+                    {/*    {likeState === "DISLIKE" ? (*/}
+                    {/*        <img src={down_vote} alt="down voted"/>*/}
+                    {/*    ) : (*/}
+                    {/*        <img src={down_vote_outline} alt="down vote"/>*/}
+                    {/*    )}*/}
+                    {/*</button>*/}
+                    <button className={`${styles.comment__content__footer__reply} ${styles.btn_hover}`}
+                            onClick={handleReply}>
+                        <img src={reply} alt="reply"/>
                         <span>reply</span>
                     </button>
                 </div>

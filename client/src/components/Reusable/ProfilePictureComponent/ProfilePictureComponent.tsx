@@ -8,7 +8,7 @@ export default function ProfilePictureComponent({source}: {source: string | null
         <img
             src={
                 source
-                    ? source.startsWith("http")
+                    ? source.startsWith("http") || source.startsWith("data")
                         ? source
                         : `${assetsBase}/pfp/${source}`
                     : defaultProfilePicture

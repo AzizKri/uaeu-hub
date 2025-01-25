@@ -1,9 +1,10 @@
 import styles from "./ImageUploader.module.scss";
-import communityIcon from "../../../assets/community-icon.jpg";
 import editImage from "../../../assets/image-edit-outline.svg";
 import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import { deleteAttachment, uploadIcon } from "../../../api/attachmets.ts";
 import DotsSpinner from "../Animations/DotsSpinner/DotsSpinner.tsx";
+import ProfilePictureComponent from "../ProfilePictureComponent/ProfilePictureComponent.tsx";
+import CommunityIconComponent from "../CommunityIconComponent/CommunityIconComponent.tsx";
 
 interface ImageUploaderProps {
     type: "COMMUNITY" | "PROFILE";
@@ -109,18 +110,30 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
             >
                 {uploadState.status === "UPLOADING" ? (
                     <DotsSpinner />
-                ) : (
-                    <img
-                        src={
+                ) : type === "COMMUNITY" ? (
+                    // I don't know what is happening here
+                    <CommunityIconComponent
+                        source={
                             uploadState.status === "COMPLETED" &&
                             typeof uploadState.preview === "string"
                                 ? uploadState.preview
                                 : uploadState.status === "IDLE" &&
                                     typeof uploadState.preview === "string"
                                   ? uploadState.preview
-                                  : communityIcon
+                                  : null
                         }
-                        alt="uploaded image preview"
+                    />
+                ) : (
+                    <ProfilePictureComponent
+                        source={
+                            uploadState.status === "COMPLETED" &&
+                            typeof uploadState.preview === "string"
+                                ? uploadState.preview
+                                : uploadState.status === "IDLE" &&
+                                    typeof uploadState.preview === "string"
+                                  ? uploadState.preview
+                                  : null
+                        }
                     />
                 )}
                 <div className={styles.changeImage} onClick={handleChangeImage}>

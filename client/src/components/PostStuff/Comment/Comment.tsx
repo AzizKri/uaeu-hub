@@ -170,7 +170,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                 <div className={styles.comment__content__header}>
                     <div className={styles.comment__content__header__top_left}>
                         <div className={styles.comment__content__header__top} >
-                            <Link to={`/user/${info.authorId}`}>
+                            <Link to={`/user/${info.author}`}>
                                 <div
                                     className={
                                         styles.comment__content__header__display_name
@@ -210,9 +210,9 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                         onClick={handleUpVote}
                     >
                         {likeState === "LIKE" ? (
-                            <img src={likeIconLiked} alt="upvoted" />
+                            <img src={likeIconLiked} alt="liked" />
                         ) : (
-                            <img src={likeIconUnliked} alt="upvote" />
+                            <img src={likeIconUnliked} alt="like" />
                         )}
                     </button>
                     <span className={styles.comment__content__footer__votes}>

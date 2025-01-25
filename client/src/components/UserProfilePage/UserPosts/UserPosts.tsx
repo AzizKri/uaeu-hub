@@ -57,12 +57,11 @@ export default function UserPosts () {
         }
     }, [page, username]);
 
-    return (
-        <>
-            <div className={styles.userContentContainer}>
-                {userPosts}
-            </div>
-            {isLoading && <span>Loading...</span>}
-        </>
+    return isLoading ? (
+        <span>Loading...</span>
+    ) : (
+        <div className={styles.userContentContainer}>
+            {userPosts}
+        </div>
     )
 }
