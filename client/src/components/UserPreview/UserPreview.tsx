@@ -4,22 +4,24 @@ import React, { useState } from "react";
 import { removeMemberFromCommunity } from "../../api/communities.ts";
 import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import ProfilePictureComponent from "../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
+import {useUser} from "../../lib/utils/hooks.ts";
 
 export default function UserPreview({
     communityId,
-    user,
+    profileUser,
     type,
     removeMe,
     role,
 }: {
     communityId: number;
-    user: UserInfo;
+    profileUser: UserInfo;
     type?: "ADMIN" | "MEMBER";
     removeMe: () => void;
     role?: "Administrator" | "Member"
 }) {
     const [showRemoveModal, setShowRemoveModal] = useState<boolean>(false);
     const navigate = useNavigate();
+    const {user} = useUser();
 
     const handleAdmin: React.MouseEventHandler<HTMLDivElement> = (e) => {
         e.stopPropagation();
@@ -31,8 +33,8 @@ export default function UserPreview({
     };
 
     const removeMember = () => {
-        if (user.id)
-            removeMemberFromCommunity(communityId, user.id).then((status) => {
+        if (profileUser.id)
+            removeMemberFromCommunity(communityId, profileUser.id).then((status) => {
                 if (status === 200) {
                     removeMe();
                 } else {
@@ -44,25 +46,25 @@ export default function UserPreview({
     return (
         <div
             className={styles.user}
-            onClick={() => navigate(`/user/${user.username}`)}
+            onClick={() => navigate(`/user/${profileUser.username}`)}
         >
             {showRemoveModal && (
                 <YesNoPopUp
                     title={"Remove User"}
-                    text={`Are you sure you want to remove @${user.username}`}
+                    text={`Are you sure you want to remove @${profileUser.username}`}
                     onYes={removeMember}
                     onNo={() => null}
                     hidePopUp={() => setShowRemoveModal(false)}
                 />
             )}
             <div className={styles.pfp}>
-                <ProfilePictureComponent source={user.pfp} />
+                <ProfilePictureComponent source={profileUser.pfp} />
             </div>
             <div className={styles.names}>
-                <div className={styles.displayName}>{user.displayName}</div>
-                <div className={styles.username}>@{user.username}</div>
+                <div className={styles.displayName}>{profileUser.displayName}</div>
+                <div className={styles.username}>@{profileUser.username}</div>
             </div>
-            {type && role && role === "Administrator" && (
+            {type && role && role === "Administrator" && profileUser.username !== user?.username && (
                 <div className={styles.btns}>
                     <div
                         className={`${styles.btn} ${styles.admin}`}
