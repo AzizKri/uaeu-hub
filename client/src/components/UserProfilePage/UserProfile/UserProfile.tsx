@@ -3,13 +3,12 @@ import styles from "./UserProfile.module.scss";
 import { useNavigate, useParams } from "react-router-dom";
 import { getUserByUsername } from "../../../api/users.ts";
 import { useUser } from "../../../lib/utils/hooks.ts";
-import defaultProfilePicture from "../../../assets/profile-picture.png";
 import EditUserPopUp from "../EditUserPopUp/EditUserPopUp.tsx";
 import UserPosts from "../UserPosts/UserPosts.tsx";
 import UserCommunities from "../UserCommunities/UserCommunities.tsx";
 import UserLikes from "../UserLikes/UserLikes.tsx";
-import { assetsBase } from "../../../api/api.ts";
 import { editCurrentUser } from "../../../api/currentUser.ts";
+import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 
 const authTabs = [
     { label: "Posts" },
@@ -106,17 +105,7 @@ export default function UserProfile() {
                     <div className={styles.userInfo}>
                         <div className={styles.top}>
                             <div className={styles.userAvatar}>
-                                <img
-                                    className={styles.pfp}
-                                    src={
-                                        profileUser?.pfp
-                                            ? profileUser.pfp.startsWith("http")
-                                                ? profileUser.pfp
-                                                : `${assetsBase}/pfp/${profileUser.pfp}`
-                                            : defaultProfilePicture
-                                    }
-                                    alt="profile picture"
-                                />
+                                <ProfilePictureComponent source={profileUser?.pfp}/>
                             </div>
                             <div className={styles.names}>
                                 <h3 className={styles.displayName}>

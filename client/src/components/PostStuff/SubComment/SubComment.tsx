@@ -1,4 +1,3 @@
-import profilePict from '../../../assets/profile-picture.png';
 import styles from '../Comment/Comment.module.scss';
 import Content from "../Content/Content.tsx";
 import {useEffect, useState} from "react";
@@ -15,6 +14,7 @@ import upvote from "../../../assets/up-vote.svg"
 import reply from "../../../assets/reply.svg"
 import {useUser} from "../../../lib/utils/hooks.ts";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
+import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 
 export default function SubComment({info, deleteComment, parentPrependSubComment}: {info: CommentInfo, deleteComment: (commentId: number) => void, parentPrependSubComment?: (commentInfo: CommentInfo) => void}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
@@ -108,7 +108,7 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
                 </Modal>
             )}
             <div className={styles.comment__profile_pict}>
-                <img src={profilePict} alt="profile picture" />
+                <ProfilePictureComponent source={info.pfp} />
             </div>
             <div className={styles.comment__content}>
                 <div className={styles.comment__content__header}>

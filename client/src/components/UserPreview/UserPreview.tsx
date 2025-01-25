@@ -1,9 +1,9 @@
 import styles from "./UserPreview.module.scss";
 import { useNavigate } from "react-router-dom";
-import profilePicture from "../../assets/profile-picture.png";
 import React, { useState } from "react";
 import { removeMemberFromCommunity } from "../../api/communities.ts";
 import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
+import ProfilePictureComponent from "../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 
 export default function UserPreview({
     communityId,
@@ -55,11 +55,9 @@ export default function UserPreview({
                     hidePopUp={() => setShowRemoveModal(false)}
                 />
             )}
-            <img
-                className={styles.pfp}
-                src={user.pfp ? user.pfp : profilePicture}
-                alt="user profile picture"
-            />
+            <div className={styles.pfp}>
+                <ProfilePictureComponent source={user.pfp} />
+            </div>
             <div className={styles.names}>
                 <div className={styles.displayName}>{user.displayName}</div>
                 <div className={styles.username}>@{user.username}</div>
