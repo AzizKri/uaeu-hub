@@ -62,25 +62,26 @@ export default function OptionsMenu({
                     )}
                     {user && user.username === author ? (
                         <>
-                            {type === "POST" && (
-                                <li className={styles.options_menu__option}>
-                                    <div className={styles.icon}>
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24"
-                                            width="24px"
-                                            height="24px"
-                                            fill="currentColor"
-                                        >
-                                            <path d="M17,18L12,15.82L7,18V5H17M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" />
-                                        </svg>
-                                    </div>
-                                    <span>Save</span>
-                                </li>
-                            )}
+                            {/*{type === "POST" && (*/}
+                            {/*    <li className={styles.options_menu__option}>*/}
+                            {/*        <div className={styles.icon}>*/}
+                            {/*            <svg*/}
+                            {/*                xmlns="http://www.w3.org/2000/svg"*/}
+                            {/*                viewBox="0 0 24 24"*/}
+                            {/*                width="24px"*/}
+                            {/*                height="24px"*/}
+                            {/*                fill="currentColor"*/}
+                            {/*            >*/}
+                            {/*                <path d="M17,18L12,15.82L7,18V5H17M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" />*/}
+                            {/*            </svg>*/}
+                            {/*        </div>*/}
+                            {/*        <span>Save</span>*/}
+                            {/*    </li>*/}
+                            {/*)}*/}
                             <li
                                 className={styles.options_menu__option}
                                 onClick={() => setShowPopUp(true)}
+                                style={{color: "#f33"}}
                             >
                                 <div className={styles.icon}>
                                     {/*report flag icon*/}
@@ -89,7 +90,7 @@ export default function OptionsMenu({
                                         viewBox="0 0 24 24"
                                         height="24px"
                                         width="24px"
-                                        color="currentColor"
+                                        fill="currentColor"
                                     >
                                         <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" />
                                     </svg>
