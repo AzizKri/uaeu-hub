@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import './styles/index.scss';
+import './index.scss';
 import UserProvider from './lib/providers/userProvider.tsx';
 import { UpdatePostProvider } from './lib/providers/UpdatePostProvider.tsx';
 import WebSocketProvider from './lib/providers/WebSocketProvider.tsx';
