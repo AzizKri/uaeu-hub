@@ -9,12 +9,13 @@
             display: flex;
             justify-content: space-between;
             align-items: start;
-            //margin-block: 20px;
 
             .info {
-                display: flex;
+                //display: flex;
                 align-items: center;
                 gap: 16px;
+                display: grid;
+                grid-template-columns: 120px 1fr;
 
                 .icon {
                     width: 120px;
@@ -80,7 +81,7 @@
         position: sticky;
         top: 70px;
         background-color: white;
-        z-index: 1;
+        z-index: 2;
 
         .tab {
             padding: 5px 10px ;
@@ -184,5 +185,19 @@
 .message {
     font-size: 14px;
     color: #888;
+}
 
+@media screen and (max-width: 768px) {
+    .container {
+        .header {
+            .header_top {
+                flex-direction: column;
+                gap: 10px;
+
+                .actions {
+                    align-self: end;
+                }
+            }
+        }
+    }
 }
