@@ -1,8 +1,9 @@
 import styles from "./CommunityIconComponent.module.scss";
 import { assetsBase } from "../../../api/api.ts";
 import defaultCommunityIcon from "../../../assets/community-icon.jpg";
+import {memo} from "react";
 
-export default function CommunityIconComponent({
+function CommunityIconComponent({
     source,
 }: {
     source: string | undefined | null;
@@ -21,3 +22,5 @@ export default function CommunityIconComponent({
         />
     );
 }
+
+export default memo(CommunityIconComponent);

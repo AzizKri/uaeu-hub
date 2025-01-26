@@ -1,12 +1,12 @@
 import styles from "../UserContent.module.scss";
-import React, { useEffect, useState } from "react";
+import React, {memo, useEffect, useState} from "react";
 import { useParams } from "react-router-dom";
 import { getPostsByUser } from "../../../api/posts.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
 import UserPostsSkeleton from "../UserSkeletons/UserPostsSkeleton.tsx";
 
-export default function UserPosts() {
+function UserPosts() {
     const [userPosts, setUserPosts] = useState<React.ReactElement[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isLoadingMorePosts, setIsLoadingMorePosts] =
@@ -22,6 +22,9 @@ export default function UserPosts() {
             if (res.data.length == 0) {
                 setIsLoading(false);
                 return;
+            }
+            if (res.data.length < 10) {
+                setNoMoreComments(true);
             }
             const fetchedPosts: React.ReactElement[] = [];
             for (const post of res.data) {
@@ -124,3 +127,4 @@ export default function UserPosts() {
         </>
     );
 }
+export default memo(UserPosts);

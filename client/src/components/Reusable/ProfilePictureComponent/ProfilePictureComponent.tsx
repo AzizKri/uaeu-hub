@@ -1,8 +1,9 @@
 import styles from "./ProfilePictureComponent.module.scss";
 import defaultProfilePicture from "../../../assets/profile-picture.png";
 import {assetsBase} from "../../../api/api.ts";
+import {memo} from "react";
 
-export default function ProfilePictureComponent({source}: {source: string | null | undefined}) {
+function ProfilePictureComponent({source}: {source: string | null | undefined}) {
 
     return (
         <img
@@ -18,3 +19,5 @@ export default function ProfilePictureComponent({source}: {source: string | null
         />
     )
 }
+
+export default memo(ProfilePictureComponent);
