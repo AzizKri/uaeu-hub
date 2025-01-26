@@ -48,8 +48,8 @@ export async function getCommunityByName(name: string) {
 }
 
 // Get communities by tag
-export async function getCommunitiesByTag(tag: string, page: number = 0) {
-    const request = await fetch(base + `/getCommunitiesByTag?tag=${tag}&page=${page}`, {
+export async function getCommunitiesByTag(tag: string, offset: number = 0) {
+    const request = await fetch(base + `/getCommunitiesByTag?tag=${tag}&offset=${offset}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -66,8 +66,8 @@ export async function getCommunitiesByTags(tags: string[]) {
 }
 
 // Get communities sorted by latest, activity, or members
-export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', page: number = 0) {
-    const request = await fetch(base + `/getCommunities?sortBy=${sortBy}&page=${page}`, {
+export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', offset: number = 0) {
+    const request = await fetch(base + `/getCommunities?sortBy=${sortBy}&offset=${offset}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -75,8 +75,8 @@ export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' =
 }
 
 // Search communities by query
-export async function searchCommunities(query: string, page: number = 0) {
-    const request = await fetch(base + `/searchCommunities?query=${query}&page=${page}`, {
+export async function searchCommunities(query: string, offset: number = 0) {
+    const request = await fetch(base + `/searchCommunities?query=${query}&offset=${offset}`, {
         method: 'GET',
         credentials: 'include'
     });
@@ -173,8 +173,8 @@ export async function addAdminToCommunity(userId: number, communityId: number) {
 }
 
 // Get latest community posts
-export async function getLatestCommunityPosts(id: number, page: number = 0) {
-    const request = await fetch(base + `/posts/${id}?page=${page}`, {
+export async function getLatestCommunityPosts(id: number, offset: number = 0) {
+    const request = await fetch(base + `/posts/${id}?offset=${offset}`, {
         method: 'GET',
         credentials: 'include'
     })
