@@ -2,10 +2,10 @@ import styles from "./CommunityPreview.module.scss";
 import React, {useState} from "react";
 import memberIcon from "../../../assets/account-outline-thin-dot.svg";
 import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
-import { useUser } from "../../../lib/utils/hooks.ts";
 import {joinCommunity} from "../../../api/communities.ts";
 import {useNavigate} from "react-router-dom";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 export default function CommunityPreview({
     icon,

@@ -1,9 +1,10 @@
 import styles from "./OptionsMenu.module.scss";
 import React, { useState } from "react";
-import { useUpdatePosts, useUser } from "../../../lib/utils/hooks.ts";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import { deleteComment as apiDeleteComment } from "../../../api/comments.ts";
 import { deletePost as apiDeletePost } from "../../../api/posts.ts";
+import {useUser} from "../../../contexts/user/UserContext.ts";
+import {useUpdatePosts} from "../../../contexts/updatePosts/UpdatePostsContext.ts";
 
 interface OptionsMenuProps {
     type: "POST" | "COMMENT";

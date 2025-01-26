@@ -1,7 +1,7 @@
 import styles from "./Search.module.scss";
 import searchIcon from "../../../assets/search.svg";
 import React, { useCallback, useState } from "react";
-import { debounce } from "../../../lib/utils/tools.ts";
+import { debounce } from "../../../utils/tools.ts";
 import { searchCommunities } from "../../../api/communities.ts";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import { CommunityPreview } from "../../PostStuff/Editor/Editor.tsx";
