@@ -1,9 +1,9 @@
+import styles from "../UserContent.module.scss";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getPostsByUser } from "../../../api/posts.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
-import styles from "../UserContent.module.scss";
-import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
+import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
 
 export default function UserPosts() {
     const [userPosts, setUserPosts] = useState<React.ReactElement[]>([]);
@@ -122,9 +122,7 @@ export default function UserPosts() {
         <>
             <div className={styles.userContentContainer}>{userPosts}</div>
             {userPosts.length && !noMoreComments && (
-                <button className={styles.show_more} onClick={handleShowMore}>
-                    {isLoadingMorePosts ? <ThreeDotsLine /> : "Show More"}
-                </button>
+                <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMorePosts}/>
             )}
         </>
     );

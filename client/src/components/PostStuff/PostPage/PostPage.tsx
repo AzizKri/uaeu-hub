@@ -6,7 +6,7 @@ import styles from './PostPage.module.scss';
 import Comment from "../Comment/Comment.tsx";
 import Editor from "../Editor/Editor.tsx";
 import {useLocation, useNavigate, useParams} from 'react-router-dom';
-import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx"; // To access the postId from the URL
+import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx"; // To access the postId from the URL
 
 interface CommentBack {
     attachment: string,
@@ -164,9 +164,7 @@ export default function PostPage() {
                                 />
                             ))}
                             {(comments.length && comments.length < totalComments) && (
-                                <button className={styles.show_more} onClick={handleShowMore}>
-                                    {isLoadingMoreComments ? <ThreeDotsLine /> : "Show More"}
-                                </button>
+                                <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMoreComments} />
                             )}
                         </div>
                     </div>
