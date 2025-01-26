@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import LoadingFallback from "./components/Reusable/LoadingFallback/LoadingFallback.tsx";
 
 const App = lazy(() => import("./App.tsx"));
 const Login = lazy(() => import("./components/UserAccounts/Login/Login.tsx"));
@@ -30,7 +31,7 @@ const routes = [
     {
         path: "/",
         element: (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<LoadingFallback />}>
                 <App />
             </Suspense>
         ),
@@ -48,7 +49,7 @@ const routes = [
     {
         path: "/login",
         element: (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<LoadingFallback />}>
                 <Login />
             </Suspense>
         ),
@@ -56,7 +57,7 @@ const routes = [
     {
         path: "/signup",
         element: (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<LoadingFallback />}>
                 <SignUp />
             </Suspense>
         ),
