@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { getPostsByUser } from "../../../api/posts.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
+import UserPostsSkeleton from "../UserSkeletons/UserPostsSkeleton.tsx";
 
 export default function UserPosts() {
     const [userPosts, setUserPosts] = useState<React.ReactElement[]>([]);
@@ -16,48 +17,44 @@ export default function UserPosts() {
     useEffect(() => {
         if (!username) return;
         setIsLoading(true);
-        try {
-            getPostsByUser(username, userPosts.length).then((res) => {
-                console.log("getting user posts");
-                if (res.data.length == 0) {
-                    setIsLoading(false);
-                    return;
-                }
-                const fetchedPosts: React.ReactElement[] = [];
-                for (const post of res.data) {
-                    const postInfo: PostInfo = {
-                        id: post.id,
-                        content: post.content,
-                        authorUsername: post.author,
-                        authorDisplayName: post.displayname,
-                        pfp: post.pfp,
-                        postDate: new Date(post.post_time),
-                        filename: post.attachment,
-                        likeCount: post.like_count,
-                        commentCount: post.comment_count,
-                        type: "POST",
-                        liked: post.like,
-                    };
-                    const communityInfo: CommunityInfoSimple = {
-                        name: post.community,
-                        icon: post.community_icon,
-                    };
-                    fetchedPosts.push(
-                        <Post
-                            key={post.id}
-                            postInfo={postInfo}
-                            communityInfo={communityInfo}
-                            from={`user/${username}`}
-                        />,
-                    );
-                }
-                setUserPosts((prevPosts) => [...fetchedPosts, ...prevPosts]);
-            });
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
+        getPostsByUser(username, userPosts.length).then((res) => {
+            console.log("getting user posts");
+            if (res.data.length == 0) {
+                setIsLoading(false);
+                return;
+            }
+            const fetchedPosts: React.ReactElement[] = [];
+            for (const post of res.data) {
+                const postInfo: PostInfo = {
+                    id: post.id,
+                    content: post.content,
+                    authorUsername: post.author,
+                    authorDisplayName: post.displayname,
+                    pfp: post.pfp,
+                    postDate: new Date(post.post_time),
+                    filename: post.attachment,
+                    likeCount: post.like_count,
+                    commentCount: post.comment_count,
+                    type: "POST",
+                    liked: post.like,
+                };
+                const communityInfo: CommunityInfoSimple = {
+                    name: post.community,
+                    icon: post.community_icon,
+                };
+                fetchedPosts.push(
+                    <Post
+                        key={post.id}
+                        postInfo={postInfo}
+                        communityInfo={communityInfo}
+                        from={`user/${username}`}
+                    />,
+                );
+            }
+            setUserPosts((prevPosts) => [...fetchedPosts, ...prevPosts]);
+        })
+            .catch((err) => {console.error(err)})
+        .finally(() => setIsLoading(false));
     }, [username]);
 
     const handleShowMore = async () => {
@@ -117,7 +114,7 @@ export default function UserPosts() {
     };
 
     return isLoading ? (
-        <span>Loading...</span>
+        <UserPostsSkeleton />
     ) : (
         <>
             <div className={styles.userContentContainer}>{userPosts}</div>

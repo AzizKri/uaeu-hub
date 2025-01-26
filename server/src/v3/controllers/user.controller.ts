@@ -135,15 +135,21 @@ export async function editCurrentUser(c: Context) {
     if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
 
     // Parse body
-    let { displayname, pfp, bio }: {
-        displayname: string | null;
-        bio: string | null;
-        pfp: string | null;
-        // @ts-ignore
-    } = c.req.valid('form');
+    let body;
+    try {
+        body = await c.req.json(); // Replace with c.req.formData() if using form-urlencoded
+    } catch (e) {
+        console.error('Error parsing body:', e);
+        return c.json({ message: 'Invalid body', status: 400 }, 400);
+    }
+
+    let { displayname, pfp, bio } = body || {};
+    console.log('Parsed Body:', { displayname, bio, pfp });
 
     // No changes
-    if (!displayname && !bio && !pfp) return c.json({ message: 'No changes', status: 400 }, 400);
+    if (!displayname && !bio && !pfp) {
+        return c.json({ message: 'No changes', status: 400 }, 400);
+    }
 
     // Update null values
     if (!displayname) displayname = null;

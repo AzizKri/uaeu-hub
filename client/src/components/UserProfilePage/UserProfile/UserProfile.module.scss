@@ -124,3 +124,19 @@
     bottom: 0;
     right: 0;
 }
+
+.editProfileButtonLarge {
+    display: inline-block;
+    @media (max-width: 600px) {
+        display: none;
+    }
+}
+
+.editProfileButtonIcon {
+    display: none;
+    cursor: pointer;
+    align-self: flex-start;
+    @media (max-width: 600px) {
+        display: inline-block;
+    }
+}
