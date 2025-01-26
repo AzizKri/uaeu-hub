@@ -62,7 +62,7 @@ export async function comment(c: Context) {
 export async function getCommentsOnPost(c: Context) {
     const env: Env = c.env;
     const postID: number = Number(c.req.param('postId'));
-    const page: number = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     // Get userId from Context
     const userId = c.get('userId') as number;
@@ -76,7 +76,7 @@ export async function getCommentsOnPost(c: Context) {
                  WHERE parent_post_id = ?
                  ORDER BY like_count DESC, post_time
                  LIMIT 10 OFFSET ?`
-            ).bind(postID, page * 10).all<CommentView>();
+            ).bind(postID, offset).all<CommentView>();
 
             return c.json(comments.results, { status: 200 });
         } else {
@@ -93,7 +93,7 @@ export async function getCommentsOnPost(c: Context) {
                  WHERE parent_post_id = ?
                  ORDER BY like_count DESC, post_time
                  LIMIT 10 OFFSET ?`
-            ).bind(userId, postID, page * 10).all<CommentView>();
+            ).bind(userId, postID, offset).all<CommentView>();
 
             return c.json(comments.results, { status: 200 });
         }
