@@ -105,7 +105,7 @@ export async function getCommunityPostsLatest(c: Context) {
 
     const env: Env = c.env;
     const communityId = parseId(c.req.param('id'));
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     if (communityId === -1) return c.text('No community ID provided', { status: 400 });
 
@@ -119,7 +119,7 @@ export async function getCommunityPostsLatest(c: Context) {
                 WHERE community_id = ?
                 ORDER BY post_time DESC
                 LIMIT 10 OFFSET ?
-            `).bind(communityId, page * 10).all<PostView>();
+            `).bind(communityId, offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         } else {
@@ -131,7 +131,7 @@ export async function getCommunityPostsLatest(c: Context) {
                 WHERE pv.community_id = ?
                 ORDER BY pv.post_time DESC
                 LIMIT 10 OFFSET ?
-            `).bind(userId, communityId, page * 10).all<PostView>();
+            `).bind(userId, communityId, offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         }
@@ -147,7 +147,7 @@ export async function getCommunityPostsBest(c: Context) {
 
     const env: Env = c.env;
     const communityId = parseId(c.req.param('id'));
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     if (!communityId) return c.text('No community ID provided', { status: 400 });
 
@@ -165,7 +165,7 @@ export async function getCommunityPostsBest(c: Context) {
                 WHERE community_id = ?
                 ORDER BY score DESC
                 LIMIT 10 OFFSET ?
-            `).bind(communityId, page * 10).all<PostView>();
+            `).bind(communityId, offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         } else {
@@ -181,7 +181,7 @@ export async function getCommunityPostsBest(c: Context) {
                 WHERE pv.community_id = ?
                 ORDER BY pv.post_time DESC
                 LIMIT 10 OFFSET ?
-            `).bind(userId, communityId, page * 10).all<PostView>();
+            `).bind(userId, communityId, offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         }
@@ -316,7 +316,7 @@ export async function getCommunitiesByTag(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const tag = c.req.query('tag');
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     // Check for required fields
     if (!tag) return c.text('No tag provided', { status: 400 });
@@ -331,7 +331,7 @@ export async function getCommunitiesByTag(c: Context) {
                              FROM community_tag
                              WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
                 LIMIT 10 OFFSET ?
-            `).bind(tag, page * 10).all<CommunityRow>();
+            `).bind(tag, offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -345,7 +345,7 @@ export async function getCommunitiesByTag(c: Context) {
                                  FROM community_tag
                                  WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
                     LIMIT 10 OFFSET ?
-                `).bind(tag, page * 10).all<CommunityRow>();
+                `).bind(tag, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -358,7 +358,7 @@ export async function getCommunitiesByTag(c: Context) {
                                  FROM community_tag
                                  WHERE tag_id = (SELECT id FROM tag WHERE name = ?))
                     LIMIT 10 OFFSET ?
-                `).bind(userId, tag, page * 10).all<CommunityRow>();
+                `).bind(userId, tag, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -450,7 +450,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const page: number = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     try {
         if (!userId) {
@@ -460,7 +460,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
                 FROM community
                 ORDER BY ?
                 LIMIT 5 OFFSET ?
-            `).bind(`member_count ${order.toUpperCase()}`, page * 5).all<CommunityRow>();
+            `).bind(`member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -472,7 +472,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
                     FROM community
                     ORDER BY ?
                     LIMIT 5 OFFSET ?
-                `).bind(`member_count ${order.toUpperCase()}`, page * 5).all<CommunityRow>();
+                `).bind(`member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -483,7 +483,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
                     FROM community c
                     ORDER BY ?
                     LIMIT 5 OFFSET ?
-                `).bind(userId, `member_count ${order.toUpperCase()}`, page * 5).all<CommunityRow>();
+                `).bind(userId, `member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -502,7 +502,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const page: number = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     try {
         if (!userId) {
@@ -512,7 +512,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
                 FROM community
                 ORDER BY ?
                 LIMIT 10 OFFSET ?
-            `).bind(`created_at ${order.toUpperCase()}`, page).all<CommunityRow>();
+            `).bind(`created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -524,7 +524,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
                     FROM community
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(`created_at ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(`created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -535,7 +535,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
                     FROM community c
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(userId, `created_at ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(userId, `created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -555,7 +555,7 @@ export async function getCommunitiesSortByActivity(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const page: number = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     try {
         if (!userId) {
@@ -569,7 +569,7 @@ export async function getCommunitiesSortByActivity(c: Context) {
                 FROM community
                 ORDER BY ?
                 LIMIT 10 OFFSET ?
-            `).bind(`activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
+            `).bind(`activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -585,7 +585,7 @@ export async function getCommunitiesSortByActivity(c: Context) {
                     FROM community
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(`activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(`activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -600,7 +600,7 @@ export async function getCommunitiesSortByActivity(c: Context) {
                     FROM community c
                     ORDER BY ?
                     LIMIT 10 OFFSET ?
-                `).bind(userId, `activity_score ${order.toUpperCase()}`, page).all<CommunityRow>();
+                `).bind(userId, `activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -619,7 +619,7 @@ export async function searchCommunities(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const query = c.req.query('query');
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     // Check for required fields
     if (!query) return c.text('No query provided', { status: 400 });
@@ -632,7 +632,7 @@ export async function searchCommunities(c: Context) {
                 FROM community
                 WHERE name LIKE ?
                 LIMIT 10 OFFSET ?
-            `).bind(`%${query}%`, page * 10).all<CommunityRow>();
+            `).bind(`%${query}%`, offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -644,7 +644,7 @@ export async function searchCommunities(c: Context) {
                     FROM community
                     WHERE name LIKE ?
                     LIMIT 10 OFFSET ?
-                `).bind(`%${query}%`, page * 10).all<CommunityRow>();
+                `).bind(`%${query}%`, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -655,7 +655,7 @@ export async function searchCommunities(c: Context) {
                     FROM community c
                     WHERE name LIKE ?
                     LIMIT 10 OFFSET ?
-                `).bind(userId, `%${query}%`, page * 10).all<CommunityRow>();
+                `).bind(userId, `%${query}%`, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -1047,7 +1047,7 @@ export async function editCommunity(c: Context) {
                 icon        = CASE WHEN ? IS NOT NULL THEN ? ELSE icon END,
                 tags        = CASE WHEN ? IS NOT NULL THEN ? ELSE tags END
             WHERE id = ?
-        `).bind(name, name, desc, desc, icon, icon, tags?.join(','), tags?.join(','), communityId).run();
+        `).bind(name, name, desc, desc, icon, icon, tags?.join(',') || null, tags?.join(',') || null, communityId).run();
 
         return c.text('Community updated', { status: 200 });
     } catch (e) {

@@ -19,7 +19,8 @@ import Post from "../../PostStuff/Post/Post.tsx";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 import SearchUsers from "../SearchUsers/SearchUsers.tsx";
-import {useUser} from "../../../contexts/user/UserContext.ts";
+import { useUser } from "../../../contexts/user/UserContext.ts";
+import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
 
 // export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
@@ -40,8 +41,12 @@ export default function Community() {
         useState<boolean>(false);
     const { isUser } = useUser();
     const [searchMembersVal, setSearchMembersVal] = useState<string>("");
-    const [showInviteMembersModal, setShowInviteMembersModal] = useState<boolean>(false);
+    const [showInviteMembersModal, setShowInviteMembersModal] =
+        useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [isLoadingMorePosts, setIsLoadingMorePosts] =
+        useState<boolean>(false);
+    const [noMorePosts, setNoMorePosts] = useState<boolean>(false);
 
     useEffect(() => {
         if (communityName) {
@@ -103,6 +108,54 @@ export default function Community() {
             });
         }
     }, [info]);
+
+    const handleShowMore = async () => {
+        setIsLoadingMorePosts(true);
+
+        getLatestCommunityPosts(info!.id, posts.length)
+            .then((res) => {
+                if (res.data.length < 10) {
+                    setNoMorePosts(true);
+                }
+                setPosts((prev) => [
+                    ...prev,
+                    ...res.data.map(
+                        (post: {
+                            id: number;
+                            author: string;
+                            displayname: string;
+                            post_time: string | number | Date;
+                            content: string;
+                            pfp: string;
+                            attachment: string;
+                            like_count: number;
+                            comment_count: number;
+                            liked: boolean;
+                        }) => (
+                            <Post
+                                key={post.id}
+                                postInfo={{
+                                    id: post.id,
+                                    authorUsername: post.author,
+                                    authorDisplayName: post.displayname,
+                                    postDate: new Date(post.post_time),
+                                    content: post.content,
+                                    pfp: post.pfp,
+                                    filename: post.attachment,
+                                    likeCount: post.like_count,
+                                    commentCount: post.comment_count,
+                                    type: "NO_COMMUNITY",
+                                    liked: post.liked,
+                                }}
+                            />
+                        ),
+                    ),
+                ]);
+            })
+            .finally(() => {
+                setIsLoadingMorePosts(false);
+            });
+    };
 
     useEffect(() => {
         setMembers(
@@ -181,25 +234,24 @@ export default function Community() {
         setSearchMembersVal(e.target.value);
     };
     const removeUser = (id: number) => {
-        setMembers(prev => (
-            prev.filter(mem => mem.id !== id)
-        ))
-    }
+        setMembers((prev) => prev.filter((mem) => mem.id !== id));
+    };
 
     const handleCloseInviteModal = () => {
         setShowInviteMembersModal(false);
-    }
+    };
 
     const handleInviteMembers = () => {
         setShowInviteMembersModal(true);
-    }
+    };
 
     const handleDeleteCommunity = () => {
-        if (info) deleteCommunity(info.id).then(() => {
-            // console.log('community deleted:', res);
-            window.location.replace('/');
-        })
-    }
+        if (info)
+            deleteCommunity(info.id).then(() => {
+                // console.log('community deleted:', res);
+                window.location.replace("/");
+            });
+    };
 
     return loadingInfo || !info ? (
         <LineSpinner width={"200px"} />
@@ -218,7 +270,7 @@ export default function Community() {
                 <div className={styles.header_top}>
                     <div className={styles.info}>
                         <div className={styles.icon}>
-                            <CommunityIconComponent source={info.icon}/>
+                            <CommunityIconComponent source={info.icon} />
                         </div>
                         <div className={styles.community_name}>{info.name}</div>
                     </div>
@@ -284,7 +336,12 @@ export default function Community() {
             <div className={styles.main}>
                 {activeTab === "POST" ? (
                     posts && posts.length > 0 ? (
-                        <div className={styles.posts}>{posts}</div>
+                        <div className={styles.posts}>
+                            {posts}
+                            {!noMorePosts && (
+                                <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMorePosts} />
+                            )}
+                        </div>
                     ) : (
                         <p className={styles.message}>
                             There are no posts yet in this community
@@ -336,7 +393,9 @@ export default function Community() {
                                                 communityId={info.id}
                                                 profileUser={ad}
                                                 type="ADMIN"
-                                                removeMe={() => ad.id && removeUser(ad.id)}
+                                                removeMe={() =>
+                                                    ad.id && removeUser(ad.id)
+                                                }
                                                 role={role}
                                             />
                                         </li>
@@ -356,7 +415,9 @@ export default function Community() {
                                                 communityId={info.id}
                                                 profileUser={mem}
                                                 type="MEMBER"
-                                                removeMe={() => mem.id && removeUser(mem.id)}
+                                                removeMe={() =>
+                                                    mem.id && removeUser(mem.id)
+                                                }
                                                 role={role}
                                             />
                                         </li>
@@ -374,11 +435,14 @@ export default function Community() {
                             onClick={handleEditCommunity}
                         >
                             Edit Community Information
-                            <img src={arrowRight} alt="arrowRight"/>
+                            <img src={arrowRight} alt="arrowRight" />
                         </li>
-                        <li className={styles.setting} onClick={handleInviteMembers}>
+                        <li
+                            className={styles.setting}
+                            onClick={handleInviteMembers}
+                        >
                             Invite Members
-                            <img src={arrowRight} alt="arrowRight"/>
+                            <img src={arrowRight} alt="arrowRight" />
                             {showInviteMembersModal && (
                                 <Modal onClose={handleCloseInviteModal}>
                                     <SearchUsers communityId={info.id} />
@@ -388,10 +452,10 @@ export default function Community() {
                         <li
                             className={styles.setting}
                             onClick={() => setShowDeleteModal(true)}
-                            style={{color: "#f33"}}
+                            style={{ color: "#f33" }}
                         >
                             Delete Community
-                            <img src={arrowRight} alt="arrowRight"/>
+                            <img src={arrowRight} alt="arrowRight" />
                             {showDeleteModal && (
                                 <YesNoPopUp
                                     title={"Delete Community"}

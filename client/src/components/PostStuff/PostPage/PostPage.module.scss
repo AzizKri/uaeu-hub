@@ -43,21 +43,6 @@
                 border-top: 1px solid rgba(0, 0, 0, 0.2);
                 //border-bottom: 1px solid rgba(0, 0, 0, 0.2);
             }
-
-            .show_more {
-                text-align: center;
-                width: 150px;
-                height: 36px;
-                background-color: #2b4162;
-                border-radius: 50px;
-                margin-bottom: 50px;
-                color: white;
-                transition: background-color 0.2s ease;
-
-                &:hover {
-                    background-color: #3b5985;
-                }
-            }
         }
     }
 }
