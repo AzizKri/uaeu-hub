@@ -49,7 +49,7 @@ export default function Content({
                 )}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
-            {isLoading && !error && <LineSpinner width="100%" />}
+            {isLoading && !error && <LineSpinner width="100px" />}
             {filename && !error && (
                 <PostImage
                     source={`${assetsBase}/attachments/${filename}`}

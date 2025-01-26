@@ -136,9 +136,9 @@ export async function getMembersOfCommunity(id: number) {
 }
 
 // Invite user to community
-export async function inviteUserToCommunity(id: number, userId: number) {
+export async function inviteUserToCommunity(communityId: number, userId: number) {
     const formData = new FormData();
-    formData.append('communityId', id.toString());
+    formData.append('communityId', communityId.toString());
     formData.append('userId', userId.toString());
 
     const request = await fetch(base + `/invite`, {

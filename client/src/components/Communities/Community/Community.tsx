@@ -10,7 +10,6 @@ import {
     leaveCommunity,
 } from "../../../api/communities.ts";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
-import { useUser } from "../../../lib/utils/hooks.ts";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
 import arrowRight from "../../../assets/chevron-right.svg";
@@ -19,6 +18,8 @@ import UserPreview from "../../UserPreview/UserPreview.tsx";
 import Post from "../../PostStuff/Post/Post.tsx";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
+import SearchUsers from "../SearchUsers/SearchUsers.tsx";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 // export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
@@ -39,7 +40,7 @@ export default function Community() {
         useState<boolean>(false);
     const { isUser } = useUser();
     const [searchMembersVal, setSearchMembersVal] = useState<string>("");
-    const [showSearchMembersModal, setShowSearchMembersModal] = useState<boolean>(false);
+    const [showInviteMembersModal, setShowInviteMembersModal] = useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
     useEffect(() => {
@@ -186,12 +187,11 @@ export default function Community() {
     }
 
     const handleCloseInviteModal = () => {
-        // TODO: complete this (what ever it is)
-        return null;
+        setShowInviteMembersModal(false);
     }
 
     const handleInviteMembers = () => {
-        setShowSearchMembersModal(true);
+        setShowInviteMembersModal(true);
     }
 
     const handleDeleteCommunity = () => {
@@ -379,11 +379,9 @@ export default function Community() {
                         <li className={styles.setting} onClick={handleInviteMembers}>
                             Invite Members
                             <img src={arrowRight} alt="arrowRight"/>
-                            {showSearchMembersModal && (
+                            {showInviteMembersModal && (
                                 <Modal onClose={handleCloseInviteModal}>
-                                    <input
-                                        className={styles.searchMembers}
-                                    />
+                                    <SearchUsers communityId={info.id} />
                                 </Modal>
                             )}
                         </li>

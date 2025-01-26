@@ -1,11 +1,11 @@
 import Search from "../Search/Search.tsx";
 import styles from "./NavBar.module.scss";
-import { useUser } from "../../../lib/utils/hooks.ts";
 import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-text-2.svg";
-import { goToAuth } from "../../../lib/utils/tools.ts";
+import { goToAuth } from "../../../utils/tools.ts";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 export default function NavBar() {
     const { isUser, user } = useUser();

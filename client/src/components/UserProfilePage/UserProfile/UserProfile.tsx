@@ -2,25 +2,27 @@ import { useEffect, useState } from "react";
 import styles from "./UserProfile.module.scss";
 import { useNavigate, useParams } from "react-router-dom";
 import { getUserByUsername } from "../../../api/users.ts";
-import { useUser } from "../../../lib/utils/hooks.ts";
 import EditUserPopUp from "../EditUserPopUp/EditUserPopUp.tsx";
 import UserPosts from "../UserPosts/UserPosts.tsx";
 import UserCommunities from "../UserCommunities/UserCommunities.tsx";
 import UserLikes from "../UserLikes/UserLikes.tsx";
 import { editCurrentUser } from "../../../api/currentUser.ts";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
-const authTabs = [
+type tab = "Posts" | "Communities" | "Likes"
+
+const authTabs: {label: tab }[] = [
     { label: "Posts" },
     { label: "Communities" },
     { label: "Likes" },
 ];
 
-const tabs = [{ label: "Posts" }, { label: "Communities" }];
+const tabs: {label: tab}[] = [{ label: "Posts" }, { label: "Communities" }];
 
 export default function UserProfile() {
     const [showPopup, setShowPopup] = useState(false);
-    const [activeTab, setActiveTab] = useState("");
+    const [activeTab, setActiveTab] = useState<tab>("Posts");
     const [profileUser, setProfileUser] = useState<UserInfo>();
     const { username } = useParams<{ username: string }>();
     const { user, updateUser } = useUser();
@@ -28,7 +30,7 @@ export default function UserProfile() {
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
 
     useEffect(() => {
-        setActiveTab("Posts");
+        console.log("requesting user");
         if (username) {
             setIsAuthorized(user?.username === username);
             getUserByUsername(username).then((res) => {
@@ -49,7 +51,7 @@ export default function UserProfile() {
         }
     }, [username]);
 
-    const handleTabClick = (tabLabel: string) => {
+    const handleTabClick = (tabLabel: tab) => {
         setActiveTab(tabLabel);
     };
 
@@ -66,10 +68,6 @@ export default function UserProfile() {
         updatedBio: string,
         updatedPfp: string,
     ) => {
-        console.log("saving this information");
-        console.log("updatedDisplayName", updatedDisplayName);
-        console.log("updatedBio", updatedBio);
-        console.log("updatedPfp", updatedPfp);
 
         setShowPopup(false);
         editCurrentUser({ displayname: updatedDisplayName, bio: updatedBio, pfp: updatedPfp }).then((res) => {

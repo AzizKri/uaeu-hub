@@ -1,8 +1,10 @@
 import styles from './Home.module.scss';
 import { useEffect, useRef } from 'react';
 import WritePost from '../PostStuff/WritePost/WritePost.tsx';
-import { useUpdatePosts, useUser } from '../../lib/utils/hooks.ts';
-import {debounce} from "../../lib/utils/tools.ts";
+import {debounce} from "../../utils/tools.ts";
+import LineSpinner from "../Reusable/Animations/LineSpinner/LineSpinner.tsx";
+import {useUpdatePosts} from "../../contexts/updatePosts/UpdatePostsContext.ts";
+import {useUser} from "../../contexts/user/UserContext.ts";
 
 export default function Home() {
     const { posts, updatePosts, loading } = useUpdatePosts();
@@ -22,7 +24,7 @@ export default function Home() {
             if (!loading && nearBottom) {
                 updatePosts();
             }
-        }, 200)
+        }, 200);
 
         window.addEventListener("scroll", handleScroll);
 
@@ -40,6 +42,7 @@ export default function Home() {
                 {(posts.length > 0) ? posts : (loading ? <div className={styles.posts_container_text}>Loading...</div> :
                     <div className={styles.posts_container_text}>No posts yet... Be the first to write one!</div>)}
             </section>
+            {loading && <LineSpinner width="40px"/>}
         </div>
     );
 }

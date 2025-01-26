@@ -7,19 +7,18 @@ import styles from "../UserContent.module.scss"
 export default function UserPosts () {
     const [userPosts, setUserPosts] = useState<React.ReactElement[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [page, setPage] = useState<number>(0);
     const { username } =  useParams<{ username: string }>();
 
     useEffect(() => {
         if (!username) return;
         setIsLoading(true);
         try {
-            getPostsByUser(username, page).then((res) => {
+            getPostsByUser(username, userPosts.length).then((res) => {
+                console.log("getting user posts");
                 if (res.data.length == 0) {
                     setIsLoading(false);
                     return;
                 }
-                setPage((prevPage) => prevPage + 1);
                 const fetchedPosts: React.ReactElement[] = []
                 for (const post of res.data) {
                     const postInfo: PostInfo = {
@@ -55,7 +54,7 @@ export default function UserPosts () {
         } finally {
             setIsLoading(false);
         }
-    }, [page, username]);
+    }, [username]);
 
     return isLoading ? (
         <span>Loading...</span>

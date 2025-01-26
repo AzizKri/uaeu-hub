@@ -6,9 +6,9 @@ import {isAnon} from '../../../api/currentUser.ts';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../../userSchema.ts";
 import { z } from 'zod';
-import {useUser} from "../../../lib/utils/hooks.ts";
 import Requirement from "../Requirement/Requirement.tsx";
 import GoogleAuth from "../GoogleAuth/GoogleAuth.tsx";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 export default function SignUp() {
     const navigate = useNavigate();

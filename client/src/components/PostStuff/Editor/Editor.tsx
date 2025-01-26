@@ -21,10 +21,10 @@ import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine
 import Post from "../Post/Post.tsx";
 import communityIcon from "../../../assets/community-icon.jpg";
 import arrowDownIcon from "../../../assets/chevron-down.svg";
-import { useUser } from "../../../lib/utils/hooks.ts";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import {subComment} from "../../../api/subComments.ts";
 import PostImage from "../../Reusable/PostImage/PostImage.tsx";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";

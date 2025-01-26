@@ -1,6 +1,7 @@
-import {ReactNode, useEffect, useState} from "react";
-import {UserContext} from "../utils/context.ts";
+import {createContext, ReactNode, useEffect, useState} from "react";
 import { me } from '../../api/authentication.ts';
+
+export const UserContext = createContext<UserContextInterface | null>(null);
 
 export default function UserProvider({children}: {children: ReactNode}) {
     const [user, setUser] = useState<UserInfo | null>(null);

@@ -71,7 +71,7 @@ export async function createPost(c: Context) {
     }
 }
 
-// api.uaeu.chat/post/latest/:page?
+// api.uaeu.chat/post/latest/:offset?
 export async function getLatestPosts(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
@@ -79,7 +79,7 @@ export async function getLatestPosts(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     try {
         if (!userId || isAnonymous) {
@@ -89,7 +89,7 @@ export async function getLatestPosts(c: Context) {
                  FROM post_view AS pv
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(page * 10).all<PostView>();
+            ).bind(offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         } else {
@@ -99,7 +99,7 @@ export async function getLatestPosts(c: Context) {
                  FROM post_view AS pv
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(page * 10).all<PostView>();
+            ).bind(offset).all<PostView>();
             // const posts = await env.DB.prepare(
             //     `SELECT pv.*,
             //             EXISTS (SELECT 1
@@ -109,7 +109,7 @@ export async function getLatestPosts(c: Context) {
             //      FROM post_view AS pv
             //      ORDER BY pv.post_time DESC
             //      LIMIT 10 OFFSET ?`
-            // ).bind(userId, page * 10).all<PostView>();
+            // ).bind(userId, offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         }
@@ -119,7 +119,7 @@ export async function getLatestPosts(c: Context) {
     }
 }
 
-// api.uaeu.chat/post/best/:page?
+// api.uaeu.chat/post/best/:offset?
 export async function getBestPosts(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
@@ -127,7 +127,7 @@ export async function getBestPosts(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     try {
         if (!userId || isAnonymous) {
@@ -141,7 +141,7 @@ export async function getBestPosts(c: Context) {
                  FROM post_view AS pv
                  ORDER BY score DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(page * 10).all<PostView>();
+            ).bind(offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         } else {
@@ -159,7 +159,7 @@ export async function getBestPosts(c: Context) {
                  FROM post_view AS pv
                  ORDER BY score DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(userId, page * 10).all<PostView>();
+            ).bind(userId, offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         }
@@ -179,7 +179,7 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     try {
         // Get posts
@@ -194,7 +194,7 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
              WHERE uc.user_id = ?
              ORDER BY pv.post_time DESC
              LIMIT 10 OFFSET (? * 10)`
-        ).bind(userId, userId, page || 0).all<PostView>();
+        ).bind(userId, userId, offset || 0).all<PostView>();
 
         return c.json(posts.results, { status: 200 });
     } catch (e) {
@@ -213,7 +213,7 @@ export async function getBestPostsFromMyCommunities(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     try {
         // Get posts
@@ -232,7 +232,7 @@ export async function getBestPostsFromMyCommunities(c: Context) {
              WHERE uc.user_id = ?
              ORDER BY score DESC
              LIMIT 10 OFFSET (? * 10)`
-        ).bind(userId, userId, page || 0).all<PostView>();
+        ).bind(userId, userId, offset || 0).all<PostView>();
 
         return c.json(posts.results, { status: 200 });
     } catch (e) {
@@ -241,8 +241,8 @@ export async function getBestPostsFromMyCommunities(c: Context) {
     }
 }
 
-// api.uaeu.chat/post/user/:username?page=0
-// api.uaeu.chat/post/user/:id?page=0
+// api.uaeu.chat/post/user/:username?offset=0
+// api.uaeu.chat/post/user/:id?offset=0
 export async function getPostsByUser(c: Context) {
     // Get userId & isAnonymous from Context
     const userId = c.get('userId') as number;
@@ -251,7 +251,7 @@ export async function getPostsByUser(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const { user } = c.req.param();
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     // Check for user param
     if (!user) return c.json([], { status: 400 });
@@ -266,7 +266,7 @@ export async function getPostsByUser(c: Context) {
                     OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET (? * 10)`
-            ).bind(user, Number(user), page || 0).all<PostView>();
+            ).bind(user, Number(user), offset || 0).all<PostView>();
 
             return c.json(results.results, { status: 200 });
         } else {
@@ -282,7 +282,7 @@ export async function getPostsByUser(c: Context) {
                     OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET (? * 10)`
-            ).bind(userId, user, Number(user), page || 0).all<PostView>();
+            ).bind(userId, user, Number(user), offset || 0).all<PostView>();
 
             return c.json(results.results, { status: 200 });
         }

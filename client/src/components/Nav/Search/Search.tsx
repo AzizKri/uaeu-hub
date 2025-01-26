@@ -2,7 +2,7 @@ import styles from "./Search.module.scss";
 import React, { useCallback, useState } from "react";
 import SearchResultsList from "../SearchResultsList/SearchResultsList.tsx";
 import { searchPosts } from "../../../api/posts.ts";
-import { debounce } from "../../../lib/utils/tools.ts";
+import { debounce } from "../../../utils/tools.ts";
 
 export default function Search() {
     const [input, setInput] = useState<string>("");

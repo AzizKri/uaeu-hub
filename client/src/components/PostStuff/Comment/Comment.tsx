@@ -1,7 +1,7 @@
 import styles from './Comment.module.scss';
 import Content from "../Content/Content.tsx";
 import {useEffect, useState} from "react";
-import {getFormattedDate} from "../../../lib/utils/tools.ts";
+import {getFormattedDate} from "../../../utils/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import Modal from "../../Reusable/Modal/Modal.tsx"
 import Editor from "../Editor/Editor.tsx";
@@ -10,13 +10,13 @@ import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine
 import {Link} from "react-router-dom";
 import reply from "../../../assets/reply.svg"
 import {likeComment} from "../../../api/comments.ts";
-import {useUser} from "../../../lib/utils/hooks.ts";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import SubComment from "../SubComment/SubComment.tsx";
 import likeIconUnliked from "../../../assets/unliked.svg";
 import likeIconLiked from "../../../assets/liked.svg";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 interface SubCommentBack {
     attachment: string,

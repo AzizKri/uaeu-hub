@@ -1,21 +1,21 @@
 import styles from "./Aside.module.scss";
 import { useEffect, useState } from "react";
-
 import accountIcon from "../../assets/account-outline-thin.svg";
 import communityIcon from "../../assets/account-group-outline-thin.svg";
-// import bookmarkIcon from "../../assets/bookmark-outline-thin.svg";
-// import settingIcon from "../../assets/cog-outline-thin.svg";
 import homeIcon from "../../assets/home-outline-thin.svg";
 import logoutIcon from "../../assets/logout-thin.svg";
 import courseMaterial from "../../assets/course-material.svg";
 import professorIcon from "../../assets/professor.svg";
-import { useUser } from "../../lib/utils/hooks.ts";
 import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import ThreeDotsLine from "../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import { logout } from "../../api/authentication.ts";
 import { getCommunitiesCurrentUser } from "../../api/currentUser.ts";
 import CreateCommunity from "../Communities/CreateCommunity/CreateCommunity.tsx";
+import {useUser} from "../../contexts/user/UserContext.ts";
+import {inActivateLeft} from "../../utils/tools.ts";
+// import bookmarkIcon from "../../assets/bookmark-outline-thin.svg";
+// import settingIcon from "../../assets/cog-outline-thin.svg";
 
 export default function Aside() {
     const [showCommunity, setShowCommunity] = useState<boolean>(false);
@@ -53,6 +53,7 @@ export default function Aside() {
     const handleCommunities = () => {
         if (!isUser()) {
             navigate("/community/explore");
+            inActivateLeft();
         } else {
             setShowCommunity((prev) => !prev);
             if (myCommunities === undefined) {
@@ -71,12 +72,24 @@ export default function Aside() {
     };
     const handleRedirect = () => {
         window.open(`https://spaceread.net/${selected}`, "_blank");
+        inActivateLeft();
     };
 
-    // TEST FUNCTION
     const handleCreate = async () => {
         setShowCreateCommunityModal(true);
     };
+
+    const handleHome = () => {
+        navigate('/');
+        setActive("home");
+        inActivateLeft();
+    }
+
+    const handleProfile = () => {
+        navigate(`/user/${user?.username}`);
+        setActive("profile");
+        inActivateLeft();
+    }
 
     return (
         <ul
@@ -86,20 +99,19 @@ export default function Aside() {
             }}
         >
             <li>
-                <Link to="/" onClick={() => setActive("home")}>
+                <div onClick={handleHome}>
                     <div
                         className={`${styles.top_element} ${styles.element} ${active === "home" && styles.active}`}
                     >
                         <img src={homeIcon} alt="home" />
                         <span>HOME</span>
                     </div>
-                </Link>
+                </div>
             </li>
             {isUser() && (
                 <li>
-                    <Link
-                        to={`/user/${user?.username}`}
-                        onClick={() => setActive("profile")}
+                    <div
+                        onClick={handleProfile}
                     >
                         <div
                             className={`${styles.top_element} ${styles.element} ${active === "user" && styles.active}`}
@@ -107,7 +119,7 @@ export default function Aside() {
                             <img src={accountIcon} alt="profile icon" />
                             <span>PROFILE</span>
                         </div>
-                    </Link>
+                    </div>
                 </li>
             )}
             <li>
@@ -138,7 +150,10 @@ export default function Aside() {
                     style={{ maxHeight: showCommunity ? "100vh" : "0" }}
                 >
                     <li>
-                        <Link to="/community/explore">
+                        <div onClick={() => {
+                            navigate("/community/explore");
+                            inActivateLeft();
+                        }}>
                             <div
                                 className={`${styles.inner_element} ${styles.element}`}
                             >
@@ -152,7 +167,7 @@ export default function Aside() {
                                 </svg>
                                 <span>Explore</span>
                             </div>
-                        </Link>
+                        </div>
                     </li>
                     <li>
                         <div
@@ -178,7 +193,10 @@ export default function Aside() {
                         myCommunities && myCommunities.length &&
                         myCommunities.map((community) => (
                             <li key={community.name}>
-                                <Link to={`/community/${community.name}`}>
+                                <div onClick={() => {
+                                    navigate(`/community/${community.name}`);
+                                    inActivateLeft();
+                                }}>
                                     <div
                                         className={`${styles.user_community} ${styles.element}`}
                                     >
@@ -189,7 +207,7 @@ export default function Aside() {
                                         />
                                         <span>{community.name}</span>
                                     </div>
-                                </Link>
+                                </div>
                             </li>
                         ))
                     )}

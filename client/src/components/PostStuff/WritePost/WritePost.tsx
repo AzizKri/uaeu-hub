@@ -1,6 +1,6 @@
 import styles from './WritePost.module.scss';
 import Editor from '../Editor/Editor.tsx';
-import {useUpdatePosts} from "../../../lib/utils/hooks.ts";
+import {useUpdatePosts} from "../../../contexts/updatePosts/UpdatePostsContext.ts";
 
 export default function WritePost() {
     const {prependPost} = useUpdatePosts();

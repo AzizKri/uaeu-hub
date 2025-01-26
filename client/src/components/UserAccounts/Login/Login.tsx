@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
 import { login} from '../../../api/authentication.ts';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useUser } from '../../../lib/utils/hooks.ts';
 import GoogleAuth from "../GoogleAuth/GoogleAuth.tsx";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 export default function Login() {
     const navigate = useNavigate();

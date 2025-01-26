@@ -5,7 +5,7 @@ import {useEffect, useState} from "react";
 import {getTags} from "../../../api/tags.ts";
 import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
-import {useUser} from "../../../lib/utils/hooks.ts";
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 export default function ExploreCommunities() {
     const [tags, setTags] = useState([]);

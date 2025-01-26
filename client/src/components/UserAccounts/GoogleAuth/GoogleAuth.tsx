@@ -2,7 +2,7 @@ import styles from './GoogleAuth.module.scss';
 import googleGLogo from '../../../assets/logos/google-G-small.png';
 import { useGoogleLogin } from '@react-oauth/google';
 import { signInWithGoogle } from '../../../api/authentication.ts';
-import { useUser } from '../../../lib/utils/hooks.ts';
+import {useUser} from "../../../contexts/user/UserContext.ts";
 
 export default function GoogleAuth({
                                        setErrors,

@@ -19,26 +19,26 @@ export async function createPost(content: string, attachment?: string, community
 }
 
 // Get latest posts
-export async function getLatestPosts(page: number = 0) {
-    const request = await fetch(base + `/latest?page=${page}`, { credentials: 'include' });
+export async function getLatestPosts(offset: number = 0) {
+    const request = await fetch(base + `/latest?offset=${offset}`, { credentials: 'include' });
     return { status: request.status, data: await request.json() };
 }
 
 // Get best posts
-export async function getBestPosts(page: number = 0) {
-    const request = await fetch(base + `/best?page=${page}`, { credentials: 'include' });
+export async function getBestPosts(offset: number = 0) {
+    const request = await fetch(base + `/best?offset=${offset}`, { credentials: 'include' });
     return { status: request.status, data: await request.json() };
 }
 
 // Get latest posts from subscribed communities
-export async function getLatestPostsFromMyCommunities(page: number = 0) {
-    const request = await fetch(base + `/myLatest?page=${page}`, { credentials: 'include' });
+export async function getLatestPostsFromMyCommunities(offset: number = 0) {
+    const request = await fetch(base + `/myLatest?offset=${offset}`, { credentials: 'include' });
     return { status: request.status, data: await request.json() };
 }
 
 // Get best posts from subscribed communities
-export async function getBestPostsFromMyCommunities(page: number = 0) {
-    const request = await fetch(base + `/myBest?page=${page}`, { credentials: 'include' });
+export async function getBestPostsFromMyCommunities(offset: number = 0) {
+    const request = await fetch(base + `/myBest?offset=${offset}`, { credentials: 'include' });
     return { status: request.status, data: await request.json() };
 }
 
@@ -58,8 +58,8 @@ export async function getPostByID(id: number) {
 }
 
 // Get posts sent by user (username)
-export async function getPostsByUser(username: string, page: number = 0) {
-    const request = await fetch(base + `/user/${username}?page=${page}`, { credentials: 'include' });
+export async function getPostsByUser(username: string, offset: number = 0) {
+    const request = await fetch(base + `/user/${username}?offset=${offset}`, { credentials: 'include' });
     return { status: request.status, data: await request.json() };
 }
 

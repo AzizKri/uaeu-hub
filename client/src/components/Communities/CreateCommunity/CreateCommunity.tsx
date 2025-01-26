@@ -17,7 +17,7 @@ import xIcon from "../../../assets/x-14-white.svg";
 import plusIcon from "../../../assets/plus.svg";
 import { useNavigate } from "react-router-dom";
 import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
-import { debounce } from "../../../lib/utils/tools.ts";
+import { debounce } from "../../../utils/tools.ts";
 import ImageUploader, {ImageUploaderMethods} from "../../Reusable/ImageUploader/ImageUploader.tsx";
 
 interface props {

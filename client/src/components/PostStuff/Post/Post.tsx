@@ -2,7 +2,7 @@ import "./post.module.scss";
 import PostFooter from "../PostFooter/PostFooter.tsx";
 import styles from "./post.module.scss";
 import React from "react";
-import { getFormattedDate } from "../../../lib/utils/tools.ts";
+import { getFormattedDate } from "../../../utils/tools.ts";
 import Content from "../Content/Content.tsx";
 import { useNavigate } from "react-router-dom";
 import Header from "../Header/Header.tsx";
