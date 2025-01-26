@@ -19,8 +19,9 @@ export async function comment(post: number, content: string, attachment?: string
 }
 
 // Get comments on a post by its ID
-export async function getCommentsOnPost(post: number, page: number = 0) {
-    const request = await fetch(base + `/${post}?page=${page}`, {
+export async function getCommentsOnPost(post: number, offset: number = 0) {
+    console.log("getting more comments on posts, offset:", offset);
+    const request = await fetch(base + `/${post}?offset=${offset}`, {
         method: 'GET',
         credentials: 'include'
     });

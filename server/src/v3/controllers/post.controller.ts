@@ -265,7 +265,7 @@ export async function getPostsByUser(c: Context) {
                  WHERE pv.author = ?
                     OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
-                 LIMIT 10 OFFSET (? * 10)`
+                 LIMIT 10 OFFSET ?`
             ).bind(user, Number(user), offset || 0).all<PostView>();
 
             return c.json(results.results, { status: 200 });
@@ -281,7 +281,7 @@ export async function getPostsByUser(c: Context) {
                  WHERE pv.author = ?
                     OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
-                 LIMIT 10 OFFSET (? * 10)`
+                 LIMIT 10 OFFSET ?`
             ).bind(userId, user, Number(user), offset || 0).all<PostView>();
 
             return c.json(results.results, { status: 200 });

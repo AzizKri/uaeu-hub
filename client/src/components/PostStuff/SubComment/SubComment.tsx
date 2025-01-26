@@ -110,7 +110,7 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
                         </div>
                     </div>
                     <div className={styles.comment__content__header__menu}>
-                        <OptionsMenu type={"COMMENT"} id={info.id} author={info.author} deleteComment={deleteComment}/>
+                        <OptionsMenu type={"SUB-COMMENT"} id={info.id} author={info.author} deleteComment={deleteComment}/>
                     </div>
                 </div>
                 <div className={styles.comment__content__text}>

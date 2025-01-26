@@ -3,11 +3,12 @@ import React, { useState } from "react";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import { deleteComment as apiDeleteComment } from "../../../api/comments.ts";
 import { deletePost as apiDeletePost } from "../../../api/posts.ts";
+import { deleteSubComment as apiDeleteSubComment } from "../../../api/subComments.ts";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 import {useUpdatePosts} from "../../../contexts/updatePosts/UpdatePostsContext.ts";
 
 interface OptionsMenuProps {
-    type: "POST" | "COMMENT";
+    type: "POST" | "COMMENT" | "SUB-COMMENT";
     id: number;
     author: string;
     deleteComment?: (commentId: number) => void;
@@ -39,9 +40,12 @@ export default function OptionsMenu({
         if (type === "POST") {
             deletePost(id);
             await apiDeletePost(id);
-        } else if (deleteComment) {
-            deleteComment(id);
+        } else if (type === "COMMENT") {
+            deleteComment!(id);
             await apiDeleteComment(id);
+        } else if (type === "SUB-COMMENT") {
+            deleteComment!(id);
+            await apiDeleteSubComment(id);
         }
     };
 
