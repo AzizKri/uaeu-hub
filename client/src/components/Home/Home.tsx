@@ -32,7 +32,7 @@ export default function Home() {
             window.removeEventListener("scroll", handleScroll);
         };
 
-    }, [updatePosts, loading]);
+    }, [updatePosts]);
 
 
     return (
