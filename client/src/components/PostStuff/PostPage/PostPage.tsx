@@ -113,7 +113,7 @@ export default function PostPage() {
 
     const handleShowMore = async () => {
         setLoadingMoreComments(true);
-        const nextPage = (await getCommentsOnPost(postId ? parseInt(postId) : 0, comments.length)).data;
+        const nextPage = (await getCommentsOnPost(parseInt(postId!), comments.length)).data;
         setComments(prev =>
             [...prev, ...nextPage.map((cd: CommentBack) => ({
                 attachment: cd.attachment,
@@ -163,11 +163,11 @@ export default function PostPage() {
                                     deleteComment={deleteComment}
                                 />
                             ))}
-                            {(comments.length && comments.length < totalComments) ? (
+                            {(comments.length && comments.length < totalComments) && (
                                 <button className={styles.show_more} onClick={handleShowMore}>
                                     {isLoadingMoreComments ? <ThreeDotsLine /> : "Show More"}
                                 </button>
-                            ) : ""}
+                            )}
                         </div>
                     </div>
                 ) : (
