@@ -6,7 +6,6 @@ export const UpdatePostsContext = createContext<UpdatePostsContextInterface | nu
 
 export const UpdatePostsProvider = ({children}: {children: React.ReactNode}) => {
     const [posts, setPosts] = useState<React.ReactElement[]>([]);
-    // const [page, setPage] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(false);
     const [noMorePosts, setNoMorePosts] = useState<boolean>(false);
 
