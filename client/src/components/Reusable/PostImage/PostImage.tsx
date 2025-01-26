@@ -14,6 +14,7 @@ export default function PostImage({source, alt, onError, onLoad}: {source: strin
                 className={styles.blurredBackground}
             >
                 <img
+                    loading="lazy"
                     src={source}
                     className={styles.postImage}
                     alt={alt}
