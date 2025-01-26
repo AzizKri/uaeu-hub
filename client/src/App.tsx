@@ -2,15 +2,10 @@ import NavBar from './components/Nav/NavBar/NavBar.tsx';
 import { Outlet } from 'react-router-dom';
 import Right from "./components/Right/Right.tsx";
 import Aside from "./components/Aside/Aside.tsx";
-import React from "react";
+import {inActivateLeft} from "./utils/tools.ts";
 
 function App() {
 
-    const inActivateLeft: React.MouseEventHandler<HTMLDivElement> = (e) => {
-        const left = document.getElementById('left');
-        left?.classList.remove('active');
-        e.currentTarget.classList.remove('active');
-    }
     return (
         <>
             <div id="overlay" onClick={inActivateLeft}></div>

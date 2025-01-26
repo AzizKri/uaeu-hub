@@ -41,3 +41,9 @@ export function goToAuth(navigate: NavigateFunction, type: "SIGNUP" | "LOGIN") {
         navigate("/login", { state: { from: currentLocation } });
     }
 }
+
+export function inActivateLeft() {
+    const left = document.getElementById('left');
+    left?.classList.remove('active');
+    document.getElementById("overlay")?.classList.remove('active');
+}
