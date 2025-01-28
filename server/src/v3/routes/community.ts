@@ -1,5 +1,5 @@
-import { Hono } from 'hono';
-import { authMiddlewareCheckOnly } from '../util/middleware';
+import { Context, Hono } from 'hono';
+import { authMiddlewareCheckOnly } from '../middleware';
 import {
     addAdminToCommunity,
     communityExists,
@@ -30,7 +30,7 @@ const app = new Hono<{ Bindings: Env }>();
 
 // Create Community
 app.post('/',
-    validator('form', (value, c) => {
+    validator('form', (value, c: Context) => {
         const parsed = communitySchema.safeParse(value);
         if (!parsed.success) {
             return c.text('Invalid community data', 400);
@@ -38,13 +38,13 @@ app.post('/',
         return parsed.data;
     }),
     authMiddlewareCheckOnly,
-    (c) => createCommunity(c));
+    (c: Context) => createCommunity(c));
 
 // Community Memberships
-app.post('/join/:id', authMiddlewareCheckOnly, (c) => joinCommunity(c));
-app.post('/leave/:id', authMiddlewareCheckOnly, (c) => leaveCommunity(c));
+app.post('/join/:id', authMiddlewareCheckOnly, (c: Context) => joinCommunity(c));
+app.post('/leave/:id', authMiddlewareCheckOnly, (c: Context) => leaveCommunity(c));
 app.post('/invite',
-    validator('form', (value, c) => {
+    validator('form', (value, c: Context) => {
         const parsed = communityInviteSchema.safeParse(value);
         if (!parsed.success) {
             return c.text('Invalid invite data', 400);
@@ -52,13 +52,13 @@ app.post('/invite',
         return parsed.data;
     }),
     authMiddlewareCheckOnly,
-    (c) => inviteUserToCommunity(c));
-app.get('/getMembers/:id', authMiddlewareCheckOnly, (c) => getCommunityMembers(c));
-// app.post('/addMember/:id/:userId', (c) => addMemberToCommunity(c));
-app.delete('/removeMember/:id/:userId', authMiddlewareCheckOnly, (c) => removeMemberFromCommunity(c));
+    (c: Context) => inviteUserToCommunity(c));
+app.get('/getMembers/:id', authMiddlewareCheckOnly, (c: Context) => getCommunityMembers(c));
+// app.post('/addMember/:id/:userId', (c: Context) => addMemberToCommunity(c));
+app.delete('/removeMember/:id/:userId', authMiddlewareCheckOnly, (c: Context) => removeMemberFromCommunity(c));
 
 // Get Community Posts
-app.get('/posts/:id', authMiddlewareCheckOnly, (c) => {
+app.get('/posts/:id', authMiddlewareCheckOnly, (c: Context) => {
     const { sortBy } = c.req.query();
     switch (sortBy) {
         case 'best':
@@ -70,7 +70,7 @@ app.get('/posts/:id', authMiddlewareCheckOnly, (c) => {
 });
 
 // Get Communities
-app.get('/getCommunities', authMiddlewareCheckOnly, (c) => {
+app.get('/getCommunities', authMiddlewareCheckOnly, (c: Context) => {
     const { sortBy } = c.req.query();
     switch (sortBy) {
         case 'latest':
@@ -82,16 +82,16 @@ app.get('/getCommunities', authMiddlewareCheckOnly, (c) => {
             return getCommunitiesSortByMembers(c);
     }
 });
-app.get('/getCommunitiesByTag', authMiddlewareCheckOnly, (c) => getCommunitiesByTag(c));
-app.get('/getCommunitiesByTags', authMiddlewareCheckOnly, (c) => getCommunitiesByTags(c));
-app.get('/searchCommunities', authMiddlewareCheckOnly, (c) => searchCommunities(c));
-app.get('/getCommunityByName/:name', authMiddlewareCheckOnly, (c) => getCommunityByName(c));
-app.get('/:id', authMiddlewareCheckOnly, (c) => getCommunityById(c));
-app.get('/exists/:name', (c) => communityExists(c));
+app.get('/getCommunitiesByTag', authMiddlewareCheckOnly, (c: Context) => getCommunitiesByTag(c));
+app.get('/getCommunitiesByTags', authMiddlewareCheckOnly, (c: Context) => getCommunitiesByTags(c));
+app.get('/searchCommunities', authMiddlewareCheckOnly, (c: Context) => searchCommunities(c));
+app.get('/getCommunityByName/:name', authMiddlewareCheckOnly, (c: Context) => getCommunityByName(c));
+app.get('/:id', authMiddlewareCheckOnly, (c: Context) => getCommunityById(c));
+app.get('/exists/:name', (c: Context) => communityExists(c));
 
 // Edit Community
 app.post('/:id',
-    validator('form', (value, c) => {
+    validator('form', (value, c: Context) => {
         const parsed = communityEditingSchema.safeParse(value);
         if (!parsed.success) {
             // if false positive, check the tags rule
@@ -100,9 +100,9 @@ app.post('/:id',
         return parsed.data;
     }),
     authMiddlewareCheckOnly,
-    (c) => editCommunity(c));
+    (c: Context) => editCommunity(c));
 app.post('/addAdmin',
-    validator('form', (value, c) => {
+    validator('form', (value, c: Context) => {
         const parsed = communityInviteSchema.safeParse(value);
         if (!parsed.success) {
             return c.text('Invalid invite data', 400);
@@ -110,9 +110,9 @@ app.post('/addAdmin',
         return parsed.data;
     }),
     authMiddlewareCheckOnly,
-    (c) => addAdminToCommunity(c));
+    (c: Context) => addAdminToCommunity(c));
 
 // Delete Community
-app.delete('/:id', authMiddlewareCheckOnly, (c) => deleteCommunity(c));
+app.delete('/:id', authMiddlewareCheckOnly, (c: Context) => deleteCommunity(c));
 
 export default app;
