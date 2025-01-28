@@ -3,7 +3,7 @@ import {getLikesCurrentUser} from "../../../api/currentUser.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
 import styles from "../UserContent.module.scss"
 import { useParams } from "react-router-dom";
-import UserPostsSkeleton from "../UserSkeletons/UserPostsSkeleton.tsx";
+import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 
 export default function UserLikes () {
     const [likedPosts, setLikedPosts] = useState<React.ReactElement[]>([]);
@@ -56,7 +56,7 @@ export default function UserLikes () {
     }, [username]);
 
     return isLoading ? (
-        <UserPostsSkeleton />
+        <Skeleton type={"post"} />
     ) : (
         <>
             <div className={styles.userContentContainer}>

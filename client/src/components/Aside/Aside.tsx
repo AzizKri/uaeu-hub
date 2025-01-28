@@ -6,6 +6,7 @@ import homeIcon from "../../assets/home-outline-thin.svg";
 import logoutIcon from "../../assets/logout-thin.svg";
 import courseMaterial from "../../assets/course-material.svg";
 import professorIcon from "../../assets/professor.svg";
+import redirectImg from "../../assets/redirect-svgrepo.svg"
 import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import { useLocation, useNavigate } from "react-router-dom";
 import ThreeDotsLine from "../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
@@ -230,6 +231,7 @@ export default function Aside() {
                 >
                     <img src={courseMaterial} alt="settings" />
                     <span>COURSES MATERIAL</span>
+                    <img src={redirectImg} className={styles.redirectLogo} alt="redirect" />
                 </div>
             </li>
             <li>
@@ -239,6 +241,7 @@ export default function Aside() {
                 >
                     <img src={professorIcon} alt="settings" />
                     <span>PROFESSORS</span>
+                    <img src={redirectImg} className={styles.redirectLogo} alt="redirect" />
                 </div>
             </li>
             {/*<li>*/}

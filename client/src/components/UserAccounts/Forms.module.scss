@@ -4,13 +4,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh; // Ensures it takes at least the full height
+    padding: 50px 0; // Adds space at the top and bottom
 
     .formContainer {
         display: flex;
         justify-content: center;
         align-items: center;
         width: 100%;
+        //gap: 40px;
     }
 
     .formBox {
@@ -21,6 +23,7 @@
         max-width: 475px;
         width: 100%;
         text-align: center;
+        position: relative;
     }
 
     .subTitle {
@@ -143,6 +146,43 @@
         right: 12px;
         top: 28px;
         cursor: pointer;
+    }
+}
+
+.arrow_container {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    top: 15px;
+    left: 15px;
+
+    &:hover {
+        background-color: #eee;
+    }
+}
+
+@media (max-width: 768px) {
+    .formBody {
+        padding: 40px 10px;
+    }
+
+    .formBox {
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .formBody {
+        padding: 30px 15px;
+        min-height: 50vh;
+    }
+
+    .formBox {
+        max-width: 95%;
     }
 }
 

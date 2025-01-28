@@ -3,6 +3,7 @@ import {getCommunitiesByTag} from "../../../api/communities.ts";
 import {useEffect, useState} from "react";
 import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import CommunityPreview from "../CommunityPreview/CommunityPreview.tsx";
+import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 
 interface CommunityPreviewInfo {
     icon: string;
@@ -17,8 +18,10 @@ export default function Category({tag, joinedCommunity, setJoinedCommunity}: { t
     const [thereIsMore, setThereIsMore] = useState<boolean>(false);
     const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
     const [page, setPage] = useState<number>(1);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
+        setIsLoading(true);
         getCommunitiesByTag(tag).then((res) => {
             setThereIsMore(res.data.length === 10);
             setCommunities(
@@ -44,7 +47,11 @@ export default function Category({tag, joinedCommunity, setJoinedCommunity}: { t
                     }),
                 ),
             );
-        });
+        })
+            .catch((err) => {
+                console.error(err);
+            })
+            .finally(() => setIsLoading(false));
     }, [tag]);
 
     const handleShowMore = () => {
@@ -96,7 +103,7 @@ export default function Category({tag, joinedCommunity, setJoinedCommunity}: { t
     //     setJoinedCommunity(id);
     // }
 
-    return (
+    return isLoading ? (<Skeleton type={"community"} />) : (
         <div className={styles.container}>
             <h4 className={styles.title}>{tag}</h4>
             <div className={styles.communities}>
