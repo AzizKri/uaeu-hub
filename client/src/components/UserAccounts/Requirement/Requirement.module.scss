@@ -7,15 +7,35 @@
 
 .reqIcon{
     position: relative;
-    bottom: 2px;
+    bottom: 3px;
 }
 
 .invalid{
     color:red;
     margin: 0;
+    font-size: 15px;
 }
 
 .valid{
     color:green;
     margin: 0;
+    font-size: 15px;
+}
+
+@media (max-width: 768px) {
+    .invalid,
+    .valid{
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .formBody {
+        padding: 30px 15px;
+        min-height: 50vh;
+    }
+
+    .formBox {
+        max-width: 95%;
+    }
 }
