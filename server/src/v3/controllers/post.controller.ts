@@ -95,7 +95,6 @@ export async function getLatestPosts(c: Context) {
         } else {
             // Returning user, show posts with likes
             const posts = await env.DB.prepare(
-                `SELECT pv.*
                 `SELECT pv.*,
                         EXISTS (SELECT 1
                                 FROM post_like
@@ -104,17 +103,7 @@ export async function getLatestPosts(c: Context) {
                  FROM post_view AS pv
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(offset).all<PostView>();
-            // const posts = await env.DB.prepare(
-            //     `SELECT pv.*,
-            //             EXISTS (SELECT 1
-            //                     FROM post_like
-            //                     WHERE post_like.post_id = pv.id
-            //                       AND post_like.user_id = ?) AS liked
-            //      FROM post_view AS pv
-            //      ORDER BY pv.post_time DESC
-            //      LIMIT 10 OFFSET ?`
-            // ).bind(userId, offset).all<PostView>();
+            ).bind(userId, offset).all<PostView>();
 
             return c.json(posts.results, { status: 200 });
         }
@@ -198,8 +187,8 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
                       JOIN user_community AS uc ON pv.community_id = uc.community_id
              WHERE uc.user_id = ?
              ORDER BY pv.post_time DESC
-             LIMIT 10 OFFSET (? * 10)`
-        ).bind(userId, userId, offset || 0).all<PostView>();
+             LIMIT 10 OFFSET ?`
+        ).bind(userId, userId, offset).all<PostView>();
 
         return c.json(posts.results, { status: 200 });
     } catch (e) {
@@ -236,8 +225,8 @@ export async function getBestPostsFromMyCommunities(c: Context) {
                       JOIN user_community AS uc ON pv.community_id = uc.community_id
              WHERE uc.user_id = ?
              ORDER BY score DESC
-             LIMIT 10 OFFSET (? * 10)`
-        ).bind(userId, userId, offset || 0).all<PostView>();
+             LIMIT 10 OFFSET ?`
+        ).bind(userId, userId, offset).all<PostView>();
 
         return c.json(posts.results, { status: 200 });
     } catch (e) {
@@ -271,7 +260,7 @@ export async function getPostsByUser(c: Context) {
                     OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(user, Number(user), offset || 0).all<PostView>();
+            ).bind(user, Number(user), offset).all<PostView>();
 
             return c.json(results.results, { status: 200 });
         } else {
@@ -287,7 +276,7 @@ export async function getPostsByUser(c: Context) {
                     OR pv.author_id = ?
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(userId, user, Number(user), offset || 0).all<PostView>();
+            ).bind(userId, user, Number(user), offset).all<PostView>();
 
             return c.json(results.results, { status: 200 });
         }
