@@ -1,14 +1,14 @@
+import { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { getSignedCookie } from 'hono/cookie';
 import { anonSignup } from '../controllers/auth.controller';
-import { getUserFromSessionKey, sendAuthCookie, sendUserIdCookie } from './util';
-import { Context } from 'hono';
+import { getUserFromSessionKey, sendAuthCookie, sendUserIdCookie } from '../util/util';
 
 /**
  * @sets `{ userId, isAnonymous }` on the context ONLY IF there is a valid user
  */
 export const authMiddlewareCheckOnly = createMiddleware(
-    async (c, next) => {
+    async (c: Context, next) => {
         console.log('AUTH MIDDLEWARE CHECK ONLY');
 
         // Check if the user is authenticated without creating a new anon user
@@ -25,7 +25,7 @@ export const authMiddlewareCheckOnly = createMiddleware(
  * @creates a new anonymous user if the user is not authenticated
  */
 export const authMiddleware = createMiddleware(
-    async (c, next) => {
+    async (c: Context, next) => {
         console.log('AUTH MIDDLEWARE');
 
         // Check if the user is authenticated, create a new anon user if invalid
@@ -38,13 +38,9 @@ export const authMiddleware = createMiddleware(
 
 async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
     // Begin with checking the session key before token. No token without key
-    let sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
-    const sessionKeyJWT = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionKey') as string;
+    const sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
 
     console.log('authMiddleware -> sessionKey', sessionKey);
-    console.log('authMiddleware -> sessionKeyJWT', sessionKeyJWT);
-
-    if (!sessionKey && sessionKeyJWT) sessionKey = sessionKeyJWT;
 
     if (!sessionKey) {
         console.log('authMiddleware -> No session key');
@@ -61,13 +57,9 @@ async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
         console.log('authMiddleware -> sessionKey');
 
         // There is a session key, check if there's a valid token
-        let sessionToken = await getSignedCookie(c, c.env.EN_SECRET, 'sessionToken') as string;
-        const sessionTokenJWT = await getSignedCookie(c, c.env.JWT_SECRET, 'sessionToken') as string;
+        const sessionToken = await getSignedCookie(c, c.env.EN_SECRET, 'sessionToken') as string;
 
         console.log('authMiddleware -> sessionKey -> sessionToken', sessionToken);
-        console.log('authMiddleware -> sessionKey -> sessionTokenJWT', sessionTokenJWT);
-
-        if (!sessionToken && sessionTokenJWT) sessionToken = sessionTokenJWT;
 
         if (sessionToken) {
             console.log('authMiddleware -> sessionKey -> sessionToken');
@@ -114,53 +106,3 @@ async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
 
     }
 }
-
-export const postRateLimitMiddleware = createMiddleware(
-    async (c, next) => {
-        const env: Env = c.env;
-        const sessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
-        const { success } = await env.POSTS_RL.limit({ key: `postRequests_${sessionKey}` });
-        if (!success) {
-            return c.json({ success: false, message: 'Rate limit exceeded', status: 429, results: [] }, 429);
-        }
-
-        await next();
-    }
-);
-
-export const uploadAttachmentLimitMiddleware = createMiddleware(
-    async (c, next) => {
-        const env: Env = c.env;
-        const sessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
-        const { success } = await env.ATTACHMENT_RL.limit({ key: `postRequests_${sessionKey}` });
-        if (!success) {
-            return c.json({ success: false, message: 'Rate limit exceeded', status: 429, results: [] }, 429);
-        }
-
-        await next();
-    }
-);
-
-export const textContentModerationMiddleware = createMiddleware(
-    async (c, next) => {
-        let content;
-
-        // Parser FormBody
-        if (c.req.header('Content-Type')?.includes('multipart/form-data') || c.req.header('Content-Type')?.includes('application/x-www-form-urlencoded')) {
-            const formData = await c.req.parseBody();
-            content = formData['content'] as string;
-        } else {
-            return c.json({ message: 'Unsupported content type', status: 400 }, 400);
-        }
-
-        // No content?
-        if (!content) return c.json({ message: 'No content provided', status: 400 }, 400);
-
-        // 1984
-        // TODO Currently unimplemented, thinking whether we want to do this or not
-
-        c.set('moderatedContent', content);
-
-        await next();
-    }
-);

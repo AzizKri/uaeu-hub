@@ -47,6 +47,7 @@ export default function Right() {
 
     useEffect(() => {
         getNotifications().then((res) => {
+            if (Object.keys(res.data).length === 0) return;
             setNotifications(
                 res.data.map(
                     (notification: {

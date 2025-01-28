@@ -22,6 +22,7 @@
     },
     "dependencies": {
         "@cloudflare/types": "^6.29.1",
+        "@sendgrid/mail": "^8.1.4",
         "bcryptjs": "^2.4.3",
         "google-auth-library": "^9.15.0",
         "hono": "^4.6.3",

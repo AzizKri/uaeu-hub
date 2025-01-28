@@ -65,7 +65,7 @@ export async function getSubcommentsOnComment(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const commentID: number = Number(c.req.param('cid'));
-    const page: number = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     // Check for required fields
     if (!commentID) return c.text('No comment ID provided', { status: 400 });
@@ -79,7 +79,7 @@ export async function getSubcommentsOnComment(c: Context) {
                  WHERE parent_comment_id = ?
                  ORDER BY like_count DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(commentID, page).all<CommentView>();
+            ).bind(commentID, offset).all<CommentView>();
 
             return c.json(subcomments.results, { status: 200 });
         } else {
@@ -96,7 +96,7 @@ export async function getSubcommentsOnComment(c: Context) {
                  WHERE parent_comment_id = ?
                  ORDER BY like_count DESC
                  LIMIT 10 OFFSET ?`
-            ).bind(userId, commentID, page).all<CommentView>();
+            ).bind(userId, commentID, offset).all<CommentView>();
 
             return c.json(subcomments.results, { status: 200 });
         }
