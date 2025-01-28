@@ -96,6 +96,11 @@ export async function getLatestPosts(c: Context) {
             // Returning user, show posts with likes
             const posts = await env.DB.prepare(
                 `SELECT pv.*
+                `SELECT pv.*,
+                        EXISTS (SELECT 1
+                                FROM post_like
+                                WHERE post_like.post_id = pv.id
+                                  AND post_like.user_id = ?) AS liked
                  FROM post_view AS pv
                  ORDER BY pv.post_time DESC
                  LIMIT 10 OFFSET ?`
