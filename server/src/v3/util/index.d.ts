@@ -3,6 +3,7 @@ type UserRow = {
     username: string;
     displayName: string;
     email: string;
+    email_verified: boolean;
     auth_provider: string;
     password: string;
     salt: string;
@@ -17,6 +18,7 @@ type UserView = {
     id: number;
     username: string;
     displayName: string;
+    email_verified: boolean;
     auth_provider: string;
     created_at: string;
     bio?: string;
