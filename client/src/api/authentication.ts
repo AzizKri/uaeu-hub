@@ -42,3 +42,11 @@ export async function signInWithGoogle(code: string) {
 
     return { status: res.status, data: await res.json() };
 }
+
+export async function sendEmailVerification() {
+    return await fetch(base + `/sendEmailVerification`, { credentials: 'include' });
+}
+
+export async function verifyEmail(token: string) {
+    return await fetch(base + `/verifyEmail?token=${token}`);
+}
