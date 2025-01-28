@@ -135,16 +135,12 @@ export async function editCurrentUser(c: Context) {
     if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
 
     // Parse body
-    let body;
-    try {
-        body = await c.req.json(); // Replace with c.req.formData() if using form-urlencoded
-    } catch (e) {
-        console.error('Error parsing body:', e);
-        return c.json({ message: 'Invalid body', status: 400 }, 400);
-    }
-
-    let { displayname, pfp, bio } = body || {};
-    console.log('Parsed Body:', { displayname, bio, pfp });
+    let { displayname, pfp, bio }: {
+        displayname: string | null;
+        bio: string | null;
+        pfp: string | null;
+        // @ts-ignore
+    } = c.req.valid('json');
 
     // No changes
     if (!displayname && !bio && !pfp) {
@@ -179,7 +175,7 @@ export async function searchUser(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const query = c.req.query('query');
-    const page = c.req.query('page') ? Number(c.req.query('page')) : 0;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
 
     // Check for required fields
     if (!query) return c.text('No query provided', { status: 400 });
@@ -192,7 +188,39 @@ export async function searchUser(c: Context) {
             WHERE displayname LIKE ?
                OR username LIKE ?
             LIMIT 10 OFFSET ?
-        `).bind(`%${query}%`, `%${query}%`, page * 10).all<UserView>();
+        `).bind(`%${query}%`, `%${query}%`, offset).all<UserView>();
+
+        return c.json(users.results, { status: 200 });
+    } catch (e) {
+        console.log(e);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
+export async function searchUserForCommunity(c: Context) {
+    // Get the required fields
+    const env: Env = c.env;
+    const query = c.req.query('query');
+    const communityId = c.req.query('communityId');
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+
+    // Check for required fields
+    if (!query) return c.text('No query provided', { status: 400 });
+
+    try {
+        // Search for users
+        const users = await env.DB.prepare(`
+            SELECT *
+            FROM user_view
+            WHERE (displayname LIKE ?
+                OR username LIKE ?)
+              AND is_anonymous = 0
+              AND NOT EXISTS(SELECT 1
+                             FROM user_community
+                             WHERE user_id = user_view.id
+                               AND community_id = ?)
+            LIMIT 10 OFFSET ?
+        `).bind(`%${query}%`, `%${query}%`, offset, communityId).all<UserView>();
 
         return c.json(users.results, { status: 200 });
     } catch (e) {
