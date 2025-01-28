@@ -8,10 +8,10 @@ export async function getNotifications(c: Context) {
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
-    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+    if (!userId || isAnonymous) return c.json({}, { status: 200 });
 
-    // Get page from query
-    const page = parseInt(c.req.query('page') as string) || 0;
+    // Get offset from query
+    const offset = parseInt(c.req.query('offset') as string) || 0;
 
     try {
         // Get notifications
@@ -20,7 +20,7 @@ export async function getNotifications(c: Context) {
             FROM notification_view
             WHERE recipient_id = ?
             LIMIT 10 OFFSET ?
-        `).bind(userId, page * 10).all<NotificationView>();
+        `).bind(userId, offset).all<NotificationView>();
 
         // Define function for handling hidden entities
         // This is used for including a post's content after a like for example
