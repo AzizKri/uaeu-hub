@@ -5,6 +5,8 @@ import { isUsernameValid, userSchema } from '../util/validationSchemas';
 import { sendAuthCookie, sendUserIdCookie } from '../util/util';
 import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
 import { OAuth2Client } from 'google-auth-library';
+import * as sgMail from '@sendgrid/mail';
+import { randomBytes } from 'crypto';
 
 /* User Authentication */
 
@@ -115,10 +117,13 @@ export async function signup(c: Context) {
             const PlainSessionKey = randomBytes(32).toString('hex');
             const sessionKey = await hashSessionKey(PlainSessionKey);
 
-            // const { encoded: sessionKeyEncoded } = generateSalt();
-            // const sessionKey = await hashSessionKey(PlainSessionKey, sessionKeyEncoded);
+            // Insert session key into session table, add as member of the general community & send email verification
+            // Set the user data in the context
+            c.set('userId', user.id);
+            c.set('username', username);
+            c.set('email', email);
 
-            // Insert session key into session table & add as member of the general community
+            // Finalize the process in the background
             c.executionCtx.waitUntil(Promise.all([
                     // Insert into session table
                     await env.DB.prepare(`
@@ -130,7 +135,10 @@ export async function signup(c: Context) {
                     await env.DB.prepare(`
                         INSERT INTO user_community (user_id, community_id, role_id)
                         VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
-                    `).bind(user.id).run()
+                    `).bind(user.id).run(),
+
+                    // Send email verification
+                    sendEmailVerification(c, true)
                 ]).then(() => console.log('User created successfully'))
                     .catch((e) => console.log('User creation failed', e))
             );
@@ -160,7 +168,7 @@ export async function authenticateWithGoogle(c: Context) {
     const oAuth2Client = new OAuth2Client(
         env.CLIENT_ID,
         env.CLIENT_SECRET,
-        'postmessage',
+        'postmessage'
     );
 
     // Exchange code for tokens
@@ -402,6 +410,14 @@ export async function logout(c: Context) {
     return c.text('Logged out', 200);
 }
 
+export async function forceLogout(c: Context) {
+    // Do not check for user data, just erase cookies to force it
+    // Set session key & token to empty and expire immediately
+    await sendAuthCookie(c, '', 0);
+    await sendUserIdCookie(c, '', false, 0);
+    return c.text('Logged out', 200);
+}
+
 export async function authenticateUser(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
@@ -428,4 +444,129 @@ export async function authenticateUser(c: Context) {
         console.log(e);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
     }
+}
+
+export async function sendEmailVerification(c: Context, internal: boolean = false) {
+    const env: Env = c.env;
+
+    if (internal) {
+        // Internal call, get the user data from the context
+        const userId = c.get('userId') as number;
+        const username = c.get('username') as string;
+        const email = c.get('email') as string;
+
+        // Generate the verification token
+        const token = randomBytes(32).toString('hex');
+
+        // Insert into the database
+        await env.DB.prepare(`
+            INSERT INTO email_verification (token, user_id, email)
+            VALUES (?, ?, ?)
+        `).bind(token, userId, email).run();
+
+        // Send the email
+        await sendEmailVerificationEmail(c, email, username, token);
+    } else {
+        // External call, get userId from the middleware
+        const userId = c.get('userId') as number;
+        const isAnonymous = c.get('isAnonymous') as boolean;
+
+        // Check if user is logged in
+        if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+        // Get user data
+        const user = await env.DB.prepare(`
+            SELECT username, email, email_verified
+            FROM user
+            WHERE id = ?
+        `).bind(userId).first<UserRow>();
+
+        // No user? impossible unless mohammad or hussain decided to delete the users table or destroy the backend in some other way
+        if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+
+        // Check if email is already verified
+        if (user.email_verified) return c.json({ message: 'Email already verified', status: 400 }, 400);
+
+        // Generate the verification token
+        const token = randomBytes(32).toString('hex');
+
+        // Insert into the database
+        await env.DB.prepare(`
+            INSERT INTO email_verification (token, user_id, email)
+            VALUES (?, ?, ?)
+        `).bind(token, userId, user.email).run();
+
+        // Send the email
+        await sendEmailVerificationEmail(c, user.email, user.username, token);
+    }
+}
+
+export async function verifyEmail(c: Context) {
+    const env: Env = c.env;
+    const token = c.req.query('token');
+
+    // Check if token is provided
+    if (!token) return c.json({ message: 'Missing token', status: 400 }, 400);
+
+    // Get the user data
+    const emailVerification = await env.DB.prepare(`
+        SELECT *
+        FROM email_verification
+        WHERE token = ?
+    `).bind(token).first<EmailVerificationRow>();
+
+    // Check if token is valid
+    const expiresIn = 60 * 15; // 15 minutes
+    if (!emailVerification) return c.json({ message: 'Invalid token', status: 400 }, 400);
+    if (emailVerification.used) return c.json({ message: 'Token already used', status: 400 }, 400);
+    if (emailVerification.created_at + (expiresIn) < Date.now() / 1000) return c.json({ message: 'Token expired', status: 400 }, 400);
+
+    // Update the user
+    await env.DB.prepare(`
+        UPDATE user
+        SET email_verified = true
+        WHERE id = ?
+    `).bind(emailVerification.user_id).run();
+
+    // Set the email verification as used
+    await env.DB.prepare(`
+        UPDATE email_verification
+        SET used = true
+        WHERE token = ?
+    `).bind(token).run();
+
+    return c.json({ message: 'Email verified', status: 200 }, 200);
+}
+
+// MISC
+
+async function sendEmailVerificationEmail(c: Context, to: string, username: string, token: string) {
+    // Set the API Key
+    const env: Env = c.env;
+    sgMail.setApiKey(env.EMAIL_API);
+
+    // Generate the verification link
+    const verificationLink = `https://uaeu.chat/verify-email?token=${token}`;
+
+    // Create the email message
+    const msg = {
+        to,
+        from: 'no-reply@uaeu.chat',
+        templateId: 'd-ea015cfe295f4d98bee1c188b2c57e93',
+        dynamicTemplateData: {
+            username,
+            verification_link: verificationLink
+        },
+        isTransactional: true,
+    };
+
+    try {
+        await sgMail.send(msg);
+        return c.json({ message: 'Email sent', status: 200 }, 200);
+    } catch (e: any) {
+        console.error('Error sending email:', e);
+        if (e.response) console.error(e.response.body.errors);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+
 }
