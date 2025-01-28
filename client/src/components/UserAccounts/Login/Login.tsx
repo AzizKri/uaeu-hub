@@ -87,10 +87,20 @@ export default function Login() {
         navigate('/signup', {state: {from: previousPage}});
     }
 
+    const goBack = () => {
+        navigate('/');
+    }
+
     return (
         <div className={styles.formBody}>
             <div className={styles.formContainer}>
                 <div className={styles.formBox}>
+                    <div className={styles.arrow_container} onClick={() => goBack()}>
+                        {/*back button*/}
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+                        </svg>
+                    </div>
                     <h2 className={styles.subTitle}>Log In</h2>
                     <p className={styles.textParagraph}>
                         By continuing, you agree to our{" "}
