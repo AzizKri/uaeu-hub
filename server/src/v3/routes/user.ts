@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Context, Hono } from 'hono';
 import {
     editCurrentUser,
     getCurrentUser,
@@ -8,16 +8,16 @@ import {
     getCurrentUserLikesOnSubcomments,
     getUserByUsername,
     getUserCommunities,
-    searchUser
+    searchUser, searchUserForCommunity
 } from '../controllers/user.controller';
-import { authMiddlewareCheckOnly } from '../util/middleware';
+import { authMiddlewareCheckOnly } from '../middleware';
 import { validator } from 'hono/validator';
 import { userEditingSchema } from '../util/validationSchemas';
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get('/', authMiddlewareCheckOnly, (c) => getCurrentUser(c));
-app.get('/likes', authMiddlewareCheckOnly, (c) => {
+app.get('/', authMiddlewareCheckOnly, (c: Context) => getCurrentUser(c));
+app.get('/likes', authMiddlewareCheckOnly, (c: Context) => {
     const type = c.req.query('type');
     switch (type) {
         case 'comments':
@@ -29,20 +29,27 @@ app.get('/likes', authMiddlewareCheckOnly, (c) => {
             return getCurrentUserLikesOnPosts(c);
     }
 });
-app.get('/communities', authMiddlewareCheckOnly, (c) => getCurrentUserCommunities(c));
+app.get('/communities', authMiddlewareCheckOnly, (c: Context) => getCurrentUserCommunities(c));
 
-app.get('/search', (c) => searchUser(c));
-app.get('/:userId/communities', authMiddlewareCheckOnly, (c) => getUserCommunities(c));
-app.get('/:username', (c) => getUserByUsername(c));
+app.get('/search', (c: Context) => {
+    const communityId = c.req.query('communityId');
+    if (communityId) {
+        return searchUserForCommunity(c);
+    } else {
+        return searchUser(c)
+    }
+});
+app.get('/:userId/communities', authMiddlewareCheckOnly, (c: Context) => getUserCommunities(c));
+app.get('/:username', (c: Context) => getUserByUsername(c));
 
 app.post('/',
-    validator('form', (value, c) => {
+    validator('json', (value, c: Context) => {
         const parsed = userEditingSchema.safeParse(value);
         if (!parsed.success) {
             return c.text('Invalid user data', 400);
         }
         return parsed.data;
     }), authMiddlewareCheckOnly,
-    (c) => editCurrentUser(c));
+    (c: Context) => editCurrentUser(c));
 
 export default app;

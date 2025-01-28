@@ -13,4 +13,5 @@ interface Env {
     SYSTEM: string;
     CLIENT_ID: string;
     CLIENT_SECRET: string;
+    EMAIL_API: string;
 }

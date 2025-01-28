@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import CommunityPreview from "../../Communities/CommunityPreview/CommunityPreview.tsx";
 import styles from "../UserContent.module.scss";
 import {getUserCommunities} from "../../../api/users.ts";
-import UserCommunitiesSkeleton from "../UserSkeletons/UserCommunitiesSkeleton.tsx";
+import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 
 export default function UserCommunities({id} : {id : number}) {
     const [userCommunities, setUserCommunities] = useState<React.ReactElement[]>([]);
@@ -43,7 +43,9 @@ export default function UserCommunities({id} : {id : number}) {
     }, []);
 
     return isLoading ? (
-        <UserCommunitiesSkeleton />
+        <>
+            <Skeleton type={"community"} />
+        </>
     ) : (
         <>
             <div className={styles.userCommunitiesContainer}>

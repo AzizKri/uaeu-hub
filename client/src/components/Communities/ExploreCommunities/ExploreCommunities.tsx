@@ -6,6 +6,7 @@ import {getTags} from "../../../api/tags.ts";
 import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
+import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 
 export default function ExploreCommunities() {
     const [tags, setTags] = useState([]);
@@ -13,14 +14,20 @@ export default function ExploreCommunities() {
     const [showUnAuthModal, setShowUnAuthModal] = useState(false);
     const [joinedCommunity, setJoinedCommunity] = useState<number>(-1);
     const {isUser} = useUser();
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
+        setIsLoading(true)
         getTags().then((res) => {
             setTags(res.data);
         })
+            .catch((err) => {
+                console.error(err);
+            })
+            .finally(() => setIsLoading(false));
     }, []);
 
-    return (
+    return isLoading ? (<LineSpinner width={"200px"} />) : (
         <div className={styles.container}>
             <div className={styles.header}>
                 <Search/>
