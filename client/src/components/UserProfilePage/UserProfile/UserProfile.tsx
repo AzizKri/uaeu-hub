@@ -9,7 +9,7 @@ import UserLikes from "../UserLikes/UserLikes.tsx";
 import { editCurrentUser } from "../../../api/currentUser.ts";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
-import UserProfileSkeleton from "../UserSkeletons/UserProfileSkeleton.tsx";
+import UserProfileSkeleton from "./UserProfileSkeleton.tsx";
 
 type tab = "Posts" | "Communities" | "Likes"
 

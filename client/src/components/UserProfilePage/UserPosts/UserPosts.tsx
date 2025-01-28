@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { getPostsByUser } from "../../../api/posts.ts";
 import Post from "../../PostStuff/Post/Post.tsx";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
-import UserPostsSkeleton from "../UserSkeletons/UserPostsSkeleton.tsx";
+import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 
 function UserPosts() {
     const [userPosts, setUserPosts] = useState<React.ReactElement[]>([]);
@@ -117,7 +117,7 @@ function UserPosts() {
     };
 
     return isLoading ? (
-        <UserPostsSkeleton />
+        <Skeleton type={"post"}/>
     ) : (
         <>
             <div className={styles.userContentContainer}>{userPosts}</div>
