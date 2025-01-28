@@ -163,7 +163,7 @@ export default function PostPage() {
                                     deleteComment={deleteComment}
                                 />
                             ))}
-                            {(comments.length && comments.length < totalComments) && (
+                            {(comments.length !== 0 && comments.length < totalComments) && (
                                 <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMoreComments} />
                             )}
                         </div>
