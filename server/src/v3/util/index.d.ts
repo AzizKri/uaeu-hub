@@ -139,6 +139,14 @@ type SessionRow = {
     ip: string;
 }
 
+type EmailVerificationRow = {
+    token: string;
+    user_id: number;
+    email: string;
+    used: boolean;
+    created_at: number;
+}
+
 type WebSocketRow = {
     user_id: number;
     socket_id: string;
