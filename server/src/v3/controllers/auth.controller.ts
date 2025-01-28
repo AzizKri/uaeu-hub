@@ -112,7 +112,7 @@ export async function signup(c: Context) {
             if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
             // Generate Session Key & Salt
-            const PlainSessionKey = crypto.randomUUID();
+            const PlainSessionKey = randomBytes(32).toString('hex');
             const sessionKey = await hashSessionKey(PlainSessionKey);
 
             // const { encoded: sessionKeyEncoded } = generateSalt();
@@ -197,7 +197,7 @@ export async function authenticateWithGoogle(c: Context) {
 
         // If user exists, generate session key & token
         if (user) {
-            const PlainSessionKey = crypto.randomUUID();
+            const PlainSessionKey = randomBytes(32).toString('hex');
             const sessionKey = await hashSessionKey(PlainSessionKey);
 
             c.executionCtx.waitUntil(
@@ -236,7 +236,7 @@ export async function authenticateWithGoogle(c: Context) {
             if (!newUser) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
             // Generate session key & token
-            const PlainSessionKey = crypto.randomUUID();
+            const PlainSessionKey = randomBytes(32).toString('hex');
             const sessionKey = await hashSessionKey(PlainSessionKey);
 
             // Send cookies
@@ -300,7 +300,7 @@ export async function anonSignup(c: Context, returnInternal: boolean = false) {
         if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
 
         // All good, generate session key & hash it
-        const PlainSessionKey = crypto.randomUUID();
+        const PlainSessionKey = randomBytes(32).toString('hex');
         const sessionKey = await hashSessionKey(PlainSessionKey);
 
         // const { encoded } = generateSalt();
@@ -366,7 +366,7 @@ export async function login(c: Context) {
         `).bind(user.id).first<UserView>();
 
         // Generate Session Key & Salt
-        const PlainSessionKey = crypto.randomUUID();
+        const PlainSessionKey = randomBytes(32).toString('hex');
         const sessionKey = await hashSessionKey(PlainSessionKey);
 
         // const { encoded: sessionKeyEncoded } = generateSalt();
