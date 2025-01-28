@@ -235,7 +235,7 @@ export default function Editor({
                 if (communityId !== undefined) {
                     console.log("there is a community id");
                     post = await createPost(plainText, uploadState.fileName, communityId);
-                } else if (!user || user.isAnonymous) {
+                } else if (!user || user.isAnonymous || user.new) {
                     post = await createPost(plainText, uploadState.fileName);
                 } else if (!selectedCommunity) {
                     selectCommunityButtonRef.current?.classList.add(
