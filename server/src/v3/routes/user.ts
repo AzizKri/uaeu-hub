@@ -36,7 +36,7 @@ app.get('/:userId/communities', authMiddlewareCheckOnly, (c) => getUserCommuniti
 app.get('/:username', (c) => getUserByUsername(c));
 
 app.post('/',
-    validator('form', (value, c) => {
+    validator('json', (value, c: Context) => {
         const parsed = userEditingSchema.safeParse(value);
         if (!parsed.success) {
             return c.text('Invalid user data', 400);
