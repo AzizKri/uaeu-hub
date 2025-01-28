@@ -72,6 +72,9 @@ export default function Community() {
     useEffect(() => {
         if (info) {
             getLatestCommunityPosts(info.id).then((res) => {
+                if (res.data.length < 10) {
+                    setNoMorePosts(true);
+                }
                 setPosts(
                     res.data.map(
                         (post: {

@@ -130,6 +130,7 @@
         color: white;
         display: flex;
         cursor: pointer;
+        z-index: 1;
 
         &:hover {
             background-color: rgb(23 24 43 / 50%);

@@ -72,7 +72,7 @@ export default function Editor({
     prependPost,
     prependComment,
     communityId,
-    autoFocus,
+    autoFocus = false,
 }: EditorProps ): JSX.Element {
     const [plainText, setPlainText] = useState<string>("");
     const [uploadState, setUploadState] = useState<UploadState>({
@@ -144,7 +144,11 @@ export default function Editor({
         useImperativeHandle(ref, () => ({
             clearEditorContent: () => {
                 editor.update(() => {
-                    $getRoot().clear();
+                    const root = $getRoot();
+                    const paragraph = $createParagraphNode();
+                    root.clear();
+                    root.append(paragraph);
+                    paragraph.select();
                 });
             },
         }));
@@ -329,6 +333,7 @@ export default function Editor({
             // Reset the editor
             if (editorHelperRef.current) {
                 editorHelperRef.current.clearEditorContent();
+                // editorHelperRef.current.s
             }
         } catch (error) {
             console.error("Error submitting post:", error);
