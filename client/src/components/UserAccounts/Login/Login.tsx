@@ -67,7 +67,12 @@ export default function Login() {
                 bio: data.bio,
                 pfp: data.pfp
             });
-            navigate(previousPage);
+            if (previousPage === "/login"){
+                navigate("/")
+            }
+            else{
+                navigate(previousPage);
+            }
         } else {
             const newErrors: LoginErrors = {};
             if (response.status === 404) {
