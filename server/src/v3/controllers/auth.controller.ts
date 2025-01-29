@@ -450,6 +450,55 @@ export async function sendForgotPasswordEmail(c: Context) {
     }
 }
 
+export async function changePassword(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Some idiot tries to change password when they're not logged in
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    // Get the password data
+    // @ts-ignore
+    const { currentPassword, newPassword } = c.req.valid('json');
+
+    // Get the user data
+    const user = await env.DB.prepare(`
+        SELECT password, salt
+        FROM user
+        WHERE id = ?
+    `).bind(userId).first<UserRow>();
+
+    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+
+    // Compare old password
+    const match = await verifyPassword(currentPassword, user.salt, user.password);
+    if (!match) return c.json({ message: 'Invalid credentials', status: 401 }, 401);
+
+    // Generate salt, encoded salt (for storing in db) & hash password with plain salt
+    const { salt, encoded } = generateSalt();
+    const hash = await hashPassword(newPassword, salt);
+
+    // Update the user
+    await env.DB.prepare(`
+        UPDATE user
+        SET password = ?,
+            salt     = ?
+        WHERE id = ?
+    `).bind(hash, encoded, userId).run();
+
+    // Revoke all sessions
+    c.executionCtx.waitUntil(
+        env.DB.prepare(`
+            DELETE
+            FROM session
+            WHERE user_id = ?
+        `).bind(userId).run()
+    );
+
+    return c.json({ message: 'Password changed successfully', status: 200 }, 200);
+}
+
 export async function logout(c: Context) {
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
