@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" height="32px" xmlns:bx="https://boxy-svg.com" width="32px">
-  <defs>
-    <bx:export>
-      <bx:file format="png" background="#fff0" width="32" height="32" path="logo-small-C-complete.png"/>
-      <bx:file format="svg" path="logo-small-C-complete.svg"/>
-      <bx:file format="svg" path="logo-C.svg" width="500" height="500"/>
-      <bx:file format="svg"/>
-      <bx:file format="jpeg"/>
-      <bx:file format="png" href="#object-0" background="#fff0"/>
-      <bx:file format="svg" href="#object-0" path="Untitled 2.svg"/>
-      <bx:file format="svg" href="#object-1" path="Untitled 3.svg" width="500" height="438.467988464039"/>
-    </bx:export>
-  </defs>
-  <rect x="-0.498" y="0.185" width="500.996" height="499.631" style="fill: rgb(255, 255, 255);" rx="95.81" ry="95.81" id="object-0"/>
   <g transform="matrix(3.624477, 0, 0, 3.624477, -214.125066, -602.395276)" style="" id="object-1">
     <path style="fill: none; stroke-width: 11px; stroke: rgb(43, 65, 98);" d="M 132.703 281.573 C 171.379 281.573 195.551 239.705 176.214 206.21 C 166.594 189.548 148.303 179.842 129.112 181.218"/>
     <path style="fill: none; stroke-linecap: round; stroke: rgb(255, 113, 21); stroke-linejoin: round; stroke-width: 11.6343px; transform-origin: 126.732px 234.847px;" d="M 158.234 274.547 C 136.435 287.278 110.969 281.461 95.894 265.117 C 72.748 277.197 90.775 267.617 68.369 279.311 C 79.543 242.856 70.318 272.375 82.73 233.94 C 82.688 233.126 82.776 232.304 82.772 231.476 C 82.606 198.254 114.198 174.05 146.232 182.855"/>
