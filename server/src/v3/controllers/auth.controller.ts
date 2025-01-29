@@ -450,6 +450,73 @@ export async function sendForgotPasswordEmail(c: Context) {
     }
 }
 
+export async function resetPassword(c: Context) {
+    const env: Env = c.env;
+    const token = c.req.query('token');
+    // @ts-ignore
+    const { newPassword } = c.req.valid('json');
+
+    // Check if data is provided and validate
+    if (!token) return c.json({ message: 'Missing token', status: 400 }, 400);
+
+    // Get the password reset data
+    const passwordReset = await env.DB.prepare(`
+        SELECT *
+        FROM password_reset
+        WHERE token = ?
+    `).bind(token).first<PasswordResetRow>();
+
+    // Validate
+    if (!passwordReset) return c.json({
+        message: 'Invalid token',
+        status: 400
+    }, 400);
+    if (passwordReset.used) return c.json({ message: 'Token already used', status: 400 }, 400);
+    if (passwordReset.created_at + (60 * 15) < Date.now() / 1000) return c.json({
+        message: 'Token expired',
+        status: 400
+    }, 400);
+
+    // Generate salt, encoded salt (for storing in db) & hash password with plain salt
+    const { salt, encoded } = generateSalt();
+    const hash = await hashPassword(newPassword, salt);
+
+    // Update the user
+    const user = await env.DB.prepare(`
+        UPDATE user
+        SET password = ?,
+            salt     = ?
+        WHERE id = ?
+        RETURNING username, email
+    `).bind(hash, encoded, passwordReset.user_id).first<UserRow>();
+
+    // Make sure the user is valid
+    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+
+    c.executionCtx.waitUntil(Promise.all([
+
+            // Set the password reset as used
+            env.DB.prepare(`
+                UPDATE password_reset
+                SET used = true
+                WHERE token = ?
+            `).bind(token).run(),
+
+            // Revoke all sessions
+            env.DB.prepare(`
+                DELETE
+                FROM session
+                WHERE user_id = ?
+            `).bind(passwordReset.user_id).run(),
+
+            // Send email
+            sendPasswordChangedConfirmationEmail(c, user.username, user.email)
+        ])
+    );
+
+    return c.json({ message: 'Password reset successfully', status: 200 }, 200);
+}
+
 export async function changePassword(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId') as number;
@@ -464,7 +531,7 @@ export async function changePassword(c: Context) {
 
     // Get the user data
     const user = await env.DB.prepare(`
-        SELECT password, salt
+        SELECT username, email, password, salt
         FROM user
         WHERE id = ?
     `).bind(userId).first<UserRow>();
@@ -487,13 +554,17 @@ export async function changePassword(c: Context) {
         WHERE id = ?
     `).bind(hash, encoded, userId).run();
 
-    // Revoke all sessions
-    c.executionCtx.waitUntil(
-        env.DB.prepare(`
-            DELETE
-            FROM session
-            WHERE user_id = ?
-        `).bind(userId).run()
+    c.executionCtx.waitUntil(Promise.all([
+            // Revoke all sessions
+            env.DB.prepare(`
+                DELETE
+                FROM session
+                WHERE user_id = ?
+            `).bind(userId).run(),
+
+            // Send email
+            sendPasswordChangedConfirmationEmail(c, user.username, user.email)
+        ])
     );
 
     return c.json({ message: 'Password changed successfully', status: 200 }, 200);
@@ -603,68 +674,6 @@ export async function sendEmailVerification(c: Context, internal: boolean = fals
     }
 }
 
-export async function resetPassword(c: Context) {
-    const env: Env = c.env;
-    const token = c.req.query('token');
-    // @ts-ignore
-    const { newPassword } = c.req.valid('json');
-
-    // Check if data is provided and validate
-    if (!token) return c.json({ message: 'Missing token', status: 400 }, 400);
-
-    // Get the password reset data
-    const passwordReset = await env.DB.prepare(`
-        SELECT *
-        FROM password_reset
-        WHERE token = ?
-    `).bind(token).first<PasswordResetRow>();
-
-    // Validate
-    if (!passwordReset) return c.json({
-        message: 'Invalid token',
-        status: 400
-    }, 400);
-    if (passwordReset.used) return c.json({ message: 'Token already used', status: 400 }, 400);
-    if (passwordReset.created_at + (60 * 15) < Date.now() / 1000) return c.json({
-        message: 'Token expired',
-        status: 400
-    }, 400);
-
-    // Generate salt, encoded salt (for storing in db) & hash password with plain salt
-    const { salt, encoded } = generateSalt();
-    const hash = await hashPassword(newPassword, salt);
-
-    // Update the user
-    const user = await env.DB.prepare(`
-        UPDATE user
-        SET password = ?,
-            salt     = ?
-        WHERE id = ?
-        RETURNING id
-    `).bind(hash, encoded, passwordReset.user_id).first<UserRow>();
-
-    // Make sure the user is valid
-    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
-
-    // Set the password reset as used
-    await env.DB.prepare(`
-        UPDATE password_reset
-        SET used = true
-        WHERE token = ?
-    `).bind(token).run();
-
-    // Revoke all sessions
-    c.executionCtx.waitUntil(
-        env.DB.prepare(`
-            DELETE
-            FROM session
-            WHERE user_id = ?
-        `).bind(passwordReset.user_id).run()
-    );
-
-    return c.json({ message: 'Password reset successfully', status: 200 }, 200);
-}
-
 export async function verifyEmail(c: Context) {
     const env: Env = c.env;
     const token = c.req.query('token');
@@ -736,4 +745,29 @@ async function sendEmailVerificationEmail(c: Context, to: string, username: stri
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
     }
 
+}
+
+async function sendPasswordChangedConfirmationEmail(c: Context, username: string, email: string) {
+    // Set the API Key
+    const env: Env = c.env;
+    sgMail.setApiKey(env.EMAIL_API);
+
+    // Create the email message
+    const msg = {
+        to: email,
+        from: 'no-reply@uaeu.chat',
+        templateId: 'd-8704060f13b54d1e91aaec50bfd71f0e',
+        dynamicTemplateData: {
+            username
+        },
+        isTransactional: true
+    };
+
+    // Send the email
+    try {
+        await sgMail.send(msg);
+    } catch (e: any) {
+        console.error('Error sending email:', e);
+        if (e.response) console.error(e.response.body.errors);
+    }
 }
