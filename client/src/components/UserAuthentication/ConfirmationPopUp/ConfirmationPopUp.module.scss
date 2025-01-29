@@ -1,0 +1,23 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    //gap: 1rem;
+    width: 100%;
+    padding: 0.5rem;
+}
+
+.confirmationHeader {
+    margin: 10px 0;
+    font-size: 1.5rem;
+}
+
+.confirmationText {
+    font-size: 15px;
+}
+
+.verificationIcon {
+    height: 30px;
+    width: 50px;
+}
