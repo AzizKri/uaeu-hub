@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LoadingFallback from "./components/Reusable/LoadingFallback/LoadingFallback.tsx";
+import ResetPasswordPage from "./components/UserAuthentication/Password/ResetPasswordPage.tsx";
 
 const App = lazy(() => import("./App.tsx"));
 const Login = lazy(() => import("./components/UserAccounts/Login/Login.tsx"));
@@ -25,6 +26,19 @@ const ExploreCommunities = lazy(
         import(
             "./components/Communities/ExploreCommunities/ExploreCommunities.tsx"
         ),
+);
+const EmailVerification = lazy(
+    () =>
+        import(
+            "./components/UserAuthentication/EmailVerification/EmailVerification.tsx"
+            ),
+);
+
+const PasswordLandingPage = lazy(
+    () =>
+        import(
+            "./components/UserAuthentication/Password/PasswordLandingPage.tsx"
+            ),
 );
 
 const routes = [
@@ -61,6 +75,30 @@ const routes = [
                 <SignUp />
             </Suspense>
         ),
+    },
+    {
+        path: "/verify-email",
+        element: (
+            <Suspense fallback={<LoadingFallback />}>
+                <EmailVerification />
+            </Suspense>
+        ),
+    },
+    {
+        path: "/reset-password-form",
+        element: (
+            <Suspense fallback={<LoadingFallback />}>
+                <PasswordLandingPage />
+            </Suspense>
+        )
+    },
+    {
+        path: "/reset-password",
+        element: (
+            <Suspense fallback={<LoadingFallback />}>
+                <ResetPasswordPage />
+            </Suspense>
+        )
     },
     { path: "*", element: <NotFound /> },
 ];
