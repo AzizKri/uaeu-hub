@@ -397,6 +397,59 @@ export async function login(c: Context) {
     }
 }
 
+export async function sendForgotPasswordEmail(c: Context) {
+    const env: Env = c.env;
+    // @ts-ignore
+    const { email } = c.req.valid('json');
+
+    // Get the user data
+    const user = await env.DB.prepare(`
+        SELECT id, username
+        FROM user
+        WHERE email = ?
+    `).bind(email).first<UserRow>();
+
+    // Check if user exists
+    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+
+    // Generate the reset token
+    const token = randomBytes(32).toString('hex');
+
+    // Insert into the database
+    await env.DB.prepare(`
+        INSERT INTO password_reset (token, user_id)
+        VALUES (?, ?)
+    `).bind(token, user.id).run();
+
+    // Set the Email API token
+    sgMail.setApiKey(env.EMAIL_API);
+
+    // Generate the reset link
+    const resetLink = `https://uaeu.chat/reset-password?token=${token}`;
+
+    // Create the email message
+    const msg = {
+        to: email,
+        from: 'no-reply@uaeu.chat',
+        templateId: 'd-bca8e749fea948b5b3e45de04e728c7b',
+        dynamicTemplateData: {
+            username: user.username,
+            reset_link: resetLink
+        },
+        isTransactional: true
+    };
+
+    // Send the email
+    try {
+        await sgMail.send(msg);
+        return c.json({ message: 'Email sent', status: 200 }, 200);
+    } catch (e: any) {
+        console.error('Error sending email:', e);
+        if (e.response) console.error(e.response.body.errors);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
+}
+
 export async function logout(c: Context) {
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
