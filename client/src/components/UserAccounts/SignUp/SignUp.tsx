@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
 import {Link, useLocation, useNavigate} from 'react-router-dom';
-import { signUp } from '../../../api/authentication.ts';
+import {sendEmailVerification, signUp} from '../../../api/authentication.ts';
 import {isAnon} from '../../../api/currentUser.ts';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../../userSchema.ts";
@@ -108,6 +108,7 @@ export default function SignUp() {
                 bio: data.bio,
                 pfp: data.pfp
             })
+            await sendEmailVerification();
             navigate(previousPage);
         } else {
             const newErrors: SignUpErrors = {};
