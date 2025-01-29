@@ -26,7 +26,7 @@ app.get('/logout', authMiddlewareCheckOnly, (c: Context) => {
 
 // Email
 app.post('/sendEmailVerification', authMiddlewareCheckOnly, (c: Context) => sendEmailVerification(c));
-app.get('/verifyEmail', authMiddlewareCheckOnly, (c: Context) => verifyEmail(c));
+app.get('/verifyEmail', (c: Context) => verifyEmail(c));
 
 // User data
 
