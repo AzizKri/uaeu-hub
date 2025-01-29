@@ -198,7 +198,7 @@ export default function Login() {
                                 </small>
                             )}
                         </div>
-                        <Link to="#" className={styles.forgotPassword}>
+                        <Link to="/reset-password-form" className={styles.forgotPassword}>
                             Forgot password?
                         </Link>
                         <button
@@ -222,6 +222,5 @@ export default function Login() {
             </div>
         </div>
     );
-}
-;
+};
 
