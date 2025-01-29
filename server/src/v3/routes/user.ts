@@ -46,7 +46,8 @@ app.post('/',
     validator('json', (value, c: Context) => {
         const parsed = userEditingSchema.safeParse(value);
         if (!parsed.success) {
-            return c.text('Invalid user data', 400);
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
         }
         return parsed.data;
     }), authMiddlewareCheckOnly,

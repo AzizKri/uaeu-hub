@@ -33,7 +33,8 @@ app.post('/',
     validator('form', (value, c: Context) => {
         const parsed = communitySchema.safeParse(value);
         if (!parsed.success) {
-            return c.text('Invalid community data', 400);
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
         }
         return parsed.data;
     }),
@@ -47,7 +48,8 @@ app.post('/invite',
     validator('form', (value, c: Context) => {
         const parsed = communityInviteSchema.safeParse(value);
         if (!parsed.success) {
-            return c.text('Invalid invite data', 400);
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
         }
         return parsed.data;
     }),
@@ -95,7 +97,8 @@ app.post('/:id',
         const parsed = communityEditingSchema.safeParse(value);
         if (!parsed.success) {
             // if false positive, check the tags rule
-            return c.text('Invalid community data', 400);
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
         }
         return parsed.data;
     }),
@@ -105,7 +108,8 @@ app.post('/addAdmin',
     validator('form', (value, c: Context) => {
         const parsed = communityInviteSchema.safeParse(value);
         if (!parsed.success) {
-            return c.text('Invalid invite data', 400);
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
         }
         return parsed.data;
     }),
