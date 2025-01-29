@@ -50,3 +50,28 @@ export async function sendEmailVerification() {
 export async function verifyEmail(token: string) {
     return await fetch(base + `/verifyEmail?token=${token}`);
 }
+
+export async function sendForgotPasswordEmail(email: string) {
+    return await fetch(base + `/forgotPassword`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+    });
+}
+
+export async function resetPassword(token: string, password: string) {
+    return await fetch(base + `/resetPassword?token=${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: password })
+    });
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+    return await fetch(base + `/changePassword`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+        credentials: 'include'
+    });
+}

@@ -114,12 +114,12 @@ export default function Login() {
                         .
                     </p>
                     <GoogleAuth setErrors={setErrors} setIsLoading={setIsLoading} onSubmit={() => navigate(previousPage)}/>
-                    {errors.global && (
-                        <strong className={styles.error}>
-                            {errors.global}
-                        </strong>
-                    )}
                     <div className={styles.separator}>OR</div>
+                    {errors.global && (
+                        <p className={styles.error}>
+                            {errors.global}
+                        </p>
+                    )}
                     <form
                         className={styles.form}
                         onSubmit={handleSubmit}

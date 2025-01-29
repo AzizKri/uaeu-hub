@@ -63,6 +63,17 @@ CREATE TABLE IF NOT EXISTS email_verification
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
+/* Password Reset Table */
+
+CREATE TABLE IF NOT EXISTS password_reset
+(
+    token      TEXT PRIMARY KEY,
+    user_id    INTEGER NOT NULL,
+    used       BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
 /* Community Table */
 
 CREATE TABLE IF NOT EXISTS community
