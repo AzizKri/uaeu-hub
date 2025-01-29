@@ -683,7 +683,10 @@ export async function verifyEmail(c: Context) {
     const expiresIn = 60 * 15; // 15 minutes
     if (!emailVerification) return c.json({ message: 'Invalid token', status: 400 }, 400);
     if (emailVerification.used) return c.json({ message: 'Token already used', status: 400 }, 400);
-    if (emailVerification.created_at + (expiresIn) < Date.now() / 1000) return c.json({ message: 'Token expired', status: 400 }, 400);
+    if (emailVerification.created_at + (expiresIn) < Date.now() / 1000) return c.json({
+        message: 'Token expired',
+        status: 400
+    }, 400);
 
     // Update the user
     await env.DB.prepare(`
@@ -721,7 +724,7 @@ async function sendEmailVerificationEmail(c: Context, to: string, username: stri
             username,
             verification_link: verificationLink
         },
-        isTransactional: true,
+        isTransactional: true
     };
 
     try {
