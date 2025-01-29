@@ -177,9 +177,9 @@ export default function SignUp() {
                     <GoogleAuth setErrors={setErrors} setIsLoading={setIsLoading} onSubmit={() => navigate(previousPage)}/>
                     <div className={styles.separator}>OR</div>
                     {errors.global && (
-                        <strong className={styles.error}>
+                        <p className={styles.error}>
                             {errors.global}
-                        </strong>
+                        </p>
                     )}
                     <form
                         className={styles.form}
