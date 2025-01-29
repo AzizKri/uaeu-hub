@@ -81,6 +81,19 @@ export const userEditingSchema = z.object({
     pfp: z.string().optional()
 });
 
+export const forgotPasswordSchema = z.object({
+    email: emailSchema
+})
+
+export const passwordResetSchema = z.object({
+    newPassword: passwordSchema,
+});
+
+export const passwordChangeSchema = z.object({
+    currentPassword: passwordSchema,
+    newPassword: passwordSchema
+})
+
 export function isUsernameValid(username: string): boolean {
     return !usernames.includes(username);
 }

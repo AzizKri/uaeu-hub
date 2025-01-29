@@ -26,6 +26,13 @@ type UserView = {
     is_anonymous: boolean;
 }
 
+type PasswordResetRow = {
+    token: string;
+    user_id: number;
+    used: boolean;
+    created_at: number;
+}
+
 type PostRow = {
     id: number;
     author_id: number;

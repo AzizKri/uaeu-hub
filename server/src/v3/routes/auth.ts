@@ -3,13 +3,20 @@ import { authMiddlewareCheckOnly } from '../middleware';
 import {
     authenticateUser,
     authenticateWithGoogle,
+    changePassword,
     forceLogout,
     isAnon,
     isUser,
     login,
-    logout, sendEmailVerification,
-    signup, verifyEmail
+    logout,
+    resetPassword,
+    sendEmailVerification,
+    sendForgotPasswordEmail,
+    signup,
+    verifyEmail
 } from '../controllers/auth.controller';
+import { validator } from 'hono/validator';
+import { forgotPasswordSchema, passwordChangeSchema, passwordResetSchema } from '../util/validationSchemas';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -27,6 +34,39 @@ app.get('/logout', authMiddlewareCheckOnly, (c: Context) => {
 // Email
 app.post('/sendEmailVerification', authMiddlewareCheckOnly, (c: Context) => sendEmailVerification(c));
 app.get('/verifyEmail', (c: Context) => verifyEmail(c));
+
+// Password
+app.post('/forgotPassword',
+    validator('json', (value, c: Context) => {
+        const parsed = forgotPasswordSchema.safeParse(value);
+        if (!parsed.success) {
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
+        }
+        return parsed.data;
+    }),
+    (c: Context) => sendForgotPasswordEmail(c));
+app.post('/resetPassword',
+    validator('json', (value, c: Context) => {
+        const parsed = passwordResetSchema.safeParse(value);
+        if (!parsed.success) {
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
+        }
+        return parsed.data;
+    }),
+    (c: Context) => resetPassword(c));
+app.post('/changePassword',
+    validator('json', (value, c: Context) => {
+        const parsed = passwordChangeSchema.safeParse(value);
+        if (!parsed.success) {
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
+        }
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c: Context) => changePassword(c));
 
 // User data
 
