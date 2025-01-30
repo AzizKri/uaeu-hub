@@ -30,6 +30,7 @@ export default function ResetPasswordPage() {
     });
     const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
     const [passwordShown, setPasswordShown] = useState<boolean>(false);
+    const [confirmPasswordShown, setConfirmPasswordShown] = useState<boolean>(false);
 
     useEffect(() => {
         console.log(token)
@@ -171,7 +172,7 @@ export default function ResetPasswordPage() {
                                 Confirm Password <span>*</span>
                             </label>
                             <input
-                                type={passwordShown ? "text" : "password"}
+                                type={confirmPasswordShown ? "text" : "password"}
                                 className={`${styles.formInput} ${errors.confirm ? styles.invalidInput : ""}`}
                                 id="newPasswordConfirm"
                                 value={formData.newPasswordConfirm}
@@ -183,7 +184,7 @@ export default function ResetPasswordPage() {
                             <span
                                 className={styles.showPassword}
                                 onClick={() =>
-                                    setPasswordShown((prev) => !prev)
+                                    setConfirmPasswordShown((prev) => !prev)
                                 }
                             >
                                 {passwordShown ? (
