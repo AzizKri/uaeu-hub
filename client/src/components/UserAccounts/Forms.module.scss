@@ -1,18 +1,16 @@
 .formBody {
     font-family: Arial, sans-serif;
-    //background-color: #f9f9f9;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh; // Ensures it takes at least the full height
-    padding: 50px 0; // Adds space at the top and bottom
+    min-height: 100vh;
+    padding: 50px 0;
 
     .formContainer {
         display: flex;
         justify-content: center;
         align-items: center;
         width: 100%;
-        //gap: 40px;
     }
 
     .formBox {
@@ -73,47 +71,6 @@
         color: #a1a1a1;
     }
 
-    .form {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .formGroup {
-        margin-bottom: 15px;
-        position: relative;
-        text-align: left;
-    }
-
-    .formLabel {
-        font-size: 14px;
-        margin-bottom: 5px;
-        display: block;
-    }
-
-    .formInput {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 20px;
-        font-size: 16px;
-        margin-bottom: 5px;
-    }
-
-    .formInput:focus {
-        border-color: #0079d3;
-        outline: none;
-    }
-
-    .invalidInput {
-        border-color: red;
-    }
-
-    .error {
-        color: red;
-        font-size: 13px;
-        margin-bottom: 7px;
-        font-weight: bold;
-    }
 
     .forgotPassword {
         font-size: 14px;
@@ -132,6 +89,7 @@
         cursor: pointer;
         transition: background-color 0.3s;
         margin-bottom: 20px;
+        width: 100%;
     }
 
     .formBtn:hover {
@@ -142,12 +100,6 @@
         background-color: rgb(80, 77, 77);
     }
 
-    .showPassword {
-        position: absolute;
-        right: 12px;
-        top: 28px;
-        cursor: pointer;
-    }
 }
 
 .arrow_container {
