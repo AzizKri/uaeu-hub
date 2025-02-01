@@ -1,0 +1,48 @@
+.form {
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup {
+    margin-bottom: 15px;
+    position: relative;
+    text-align: left;
+}
+
+.formLabel {
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.formInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.formInput:focus {
+    border-color: #0079d3;
+    outline: none;
+}
+
+.invalidInput {
+    border-color: red;
+}
+
+.error {
+    color: red;
+    font-size: 13px;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+.showPassword {
+    position: absolute;
+    right: 12px;
+    top: 28px;
+    cursor: pointer;
+}
