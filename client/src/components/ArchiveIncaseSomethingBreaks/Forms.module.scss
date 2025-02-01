@@ -1,0 +1,190 @@
+.formBody {
+    font-family: Arial, sans-serif;
+    //background-color: #f9f9f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; // Ensures it takes at least the full height
+    padding: 50px 0; // Adds space at the top and bottom
+
+    .formContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        //gap: 40px;
+    }
+
+    .formBox {
+        background-color: white;
+        padding: 40px;
+        border-radius: 25px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-width: 475px;
+        width: 100%;
+        text-align: center;
+        position: relative;
+    }
+
+    .subTitle {
+        margin-bottom: 20px;
+    }
+
+    .textParagraph {
+        color: #606060;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .formLink {
+        color: #0079d3;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .socialForm {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .socialBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background-color: #f7f7f7;
+        border: 1px solid #e1e1e1;
+        padding: 10px;
+        border-radius: 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .socialBtn:hover {
+        background-color: #e9e9e9;
+    }
+
+    .separator {
+        margin: 15px 0;
+        font-size: 14px;
+        color: #a1a1a1;
+    }
+
+    .form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .formGroup {
+        margin-bottom: 15px;
+        position: relative;
+        text-align: left;
+    }
+
+    .formLabel {
+        font-size: 14px;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .formInput {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .formInput:focus {
+        border-color: #0079d3;
+        outline: none;
+    }
+
+    .invalidInput {
+        border-color: red;
+    }
+
+    .error {
+        color: red;
+        font-size: 13px;
+        margin-bottom: 7px;
+        font-weight: bold;
+    }
+
+    .forgotPassword {
+        font-size: 14px;
+        color: #0079d3;
+        text-align: left;
+        margin-bottom: 20px;
+    }
+
+    .formBtn {
+        background-color: rgb(215, 66, 12);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-bottom: 20px;
+        //width: 100%;
+    }
+
+    .formBtn:hover {
+        background-color: rgb(157, 48, 8);
+    }
+
+    .formBtn:disabled {
+        background-color: rgb(80, 77, 77);
+    }
+
+    .showPassword {
+        position: absolute;
+        right: 12px;
+        top: 28px;
+        cursor: pointer;
+    }
+}
+
+.arrow_container {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    top: 15px;
+    left: 15px;
+
+    &:hover {
+        background-color: #eee;
+    }
+}
+
+@media (max-width: 768px) {
+    .formBody {
+        padding: 40px 10px;
+    }
+
+    .formBox {
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .formBody {
+        padding: 30px 15px;
+        min-height: 50vh;
+    }
+
+    .formBox {
+        max-width: 95%;
+    }
+}
+
