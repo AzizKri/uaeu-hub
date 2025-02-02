@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
         }
     }, [token]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
         if (id === "newPasswordConfirm" && value !== formData.newPassword) {
