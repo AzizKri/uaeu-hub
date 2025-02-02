@@ -3,6 +3,8 @@ import styles from '../../UserAccounts/Forms.module.scss';
 import {sendForgotPasswordEmail} from '../../../api/authentication.ts';
 import {useNavigate} from 'react-router-dom';
 import ConfirmationPopUp from "../ConfirmationPopUp/ConfirmationPopUp.tsx";
+import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
+import FormItem from "../../Reusable/Forms/FormItem.tsx";
 
 export default function PasswordLandingPage() {
     interface passwordLandingPageErrors {
@@ -31,7 +33,7 @@ export default function PasswordLandingPage() {
         navigate('/login');
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
         const response = await sendForgotPasswordEmail(formData.email);
@@ -66,36 +68,23 @@ export default function PasswordLandingPage() {
                         </svg>
                     </div>
                     <h2 className={styles.subTitle}>Reset Password</h2>
-                    <form
-                        className={styles.form}
-                        onSubmit={handleSubmit}
-                        noValidate
-                    >
+                    <FormsContainer onSubmit={handleSubmit}>
                         {errors.global && (
                             <p className={styles.error}>
                                 {errors.global}
                             </p>
                         )}
-                        <div className={styles.formGroup}>
-                            <label htmlFor="email" className={styles.formLabel}>
-                                Email <span>*</span>
-                            </label>
-                            <input
-                                type="text"
-                                className={`${styles.formInput} ${errors.email ? styles.invalidInput : ""}`}
-                                id="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                onFocus={() => handleFocus()}
-                                placeholder="Email"
-                                required
-                            />
-                            {errors.email && (
-                                <small className={styles.error}>
-                                    {errors.email}
-                                </small>
-                            )}
-                        </div>
+                        <FormItem
+                            type="text"
+                            id="email"
+                            label="Email"
+                            placeholder="Email"
+                            required={true}
+                            value={formData.email} // Pass value from parent state
+                            onChange={handleChange}    // Use your existing handler
+                            onFocus={handleFocus}
+                            error={errors.email}
+                        />
                         <button
                             type="submit"
                             className={styles.formBtn}
@@ -103,14 +92,13 @@ export default function PasswordLandingPage() {
                         >
                             {isLoading ? "Sending..." : "Send Email"}
                         </button>
-                    </form>
+                    </FormsContainer>
                 </div>
             </div>
 
             {showPopup && (
                 <ConfirmationPopUp confirmation={"Email Sent!"} text={"Follow the directions in the email to reset your password"} success={true} onClose={onClose} />
             )}
-
         </div>
     );
 };

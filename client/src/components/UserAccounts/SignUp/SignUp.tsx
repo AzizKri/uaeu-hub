@@ -27,13 +27,14 @@ export default function SignUp() {
     const [isLoading, setIsLoading] = useState(false);
     const location = useLocation();
     const previousPage = location.state?.from;
+    const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setErrors({});
         const parseResult = userSchema.safeParse(formData);
@@ -102,14 +103,11 @@ export default function SignUp() {
         setIsLoading(false);
     }
 
-    const handleFocus = () => {
+    const handleFocus = (isPassword: boolean | undefined, showRequirements : boolean | undefined) => {
         setErrors({});
+        setIsPasswordActive((isPassword ? isPassword : false) && (showRequirements ? showRequirements : false));
         setIsLoading(false);
     };
-
-    const handleFocusPassword = () => {
-        handleFocus();
-    }
 
     const handleGoToLogin = () => {
         navigate('/login', {state: {from: previousPage}});
@@ -148,7 +146,7 @@ export default function SignUp() {
                             {errors.global}
                         </p>
                     )}
-                    <FormsContainer>
+                    <FormsContainer onSubmit={handleSubmit}>
                         <FormItem
                             type="text"
                             id="username"
@@ -191,17 +189,19 @@ export default function SignUp() {
                             showPasswordRequirements={true}
                             value={formData.password}
                             onChange={handleChange}
-                            onFocus={handleFocusPassword} // Activate password requirements display
+                            onFocus={handleFocus} // Activate password requirements display
                             error={errors.password}
+                            isPasswordActive={isPasswordActive}
+                            isPassword={true}
                         />
+                        <button
+                            type="submit"
+                            className={styles.formBtn}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Signing up..." : "Sign up"}
+                        </button>
                     </FormsContainer>
-                    <button
-                        className={styles.formBtn}
-                        disabled={isLoading}
-                        onClick={handleSubmit}
-                    >
-                        {isLoading ? "Signing up..." : "Sign up"}
-                    </button>
                     <p className={styles.textParagraph}>
                         Already a member?{" "}
                         <span className={styles.formLink} onClick={handleGoToLogin}>

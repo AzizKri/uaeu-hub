@@ -1,10 +1,15 @@
-import {ReactNode} from "react";
+import {FormEvent, ReactNode} from "react";
 import styles from "./ReusableForms.module.scss";
 
-export default function FormsContainer({children}: {children: ReactNode}) {
+interface FormsContainerProps {
+    children: ReactNode;
+    onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+}
+
+export default function FormsContainer({ children, onSubmit }: FormsContainerProps) {
     return (
-        <div className={styles.form}>
+        <form className={styles.form} onSubmit={onSubmit}>
             {children}
-        </div>
+        </form>
     )
 }

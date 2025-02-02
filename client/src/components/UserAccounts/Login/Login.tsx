@@ -27,7 +27,7 @@ export default function Login() {
         setErrors({});
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setErrors({});
         setIsLoading(true);
@@ -115,7 +115,7 @@ export default function Login() {
                             {errors.global}
                         </p>
                     )}
-                    <FormsContainer>
+                    <FormsContainer onSubmit={handleSubmit}>
                         <FormItem
                             type="text"
                             id="identifier"
@@ -136,12 +136,14 @@ export default function Login() {
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setFormData({ ...formData, [e.target.id]: e.target.value})}}
                             onFocus={handleFocus}
                             error={errors.password}
+                            isPassword={true}
+                            togglePassword={true}
                         />
                         <Link to="/reset-password-form" className={styles.forgotPassword}>
                             Forgot password?
                         </Link>
                         <button
-                            onClick={handleSubmit}
+                            type="submit"
                             className={styles.formBtn}
                             disabled={isLoading}
                         >
