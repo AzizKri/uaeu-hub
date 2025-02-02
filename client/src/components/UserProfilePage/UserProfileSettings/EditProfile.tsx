@@ -1,5 +1,5 @@
 import ImageUploader from "../../Reusable/ImageUploader/ImageUploader.tsx";
-import styles from "./EditUserPopUp.module.scss";
+import styles from "../EditUserPopUp/EditUserPopUp.module.scss";
 import {useState} from "react";
 
 interface EditProfileProps {

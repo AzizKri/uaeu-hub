@@ -1,4 +1,4 @@
-import styles from "./EditUserPopUp.module.scss";
+import styles from "../EditUserPopUp/EditUserPopUp.module.scss";
 import {useState} from "react";
 
 export default function ChangePassword({onClose} : {onClose: () => void}){
