@@ -1,6 +1,7 @@
 .form {
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .formGroup {
@@ -22,6 +23,10 @@
     border-radius: 20px;
     font-size: 16px;
     margin-bottom: 5px;
+}
+
+.formInput:disabled {
+    background-color: #eee;
 }
 
 .formInput:focus {
@@ -68,4 +73,14 @@
 .formBtn:disabled {
     background-color: rgb(80, 77, 77);
     cursor: default;
+}
+
+.editTextArea {
+    width: 100%;
+    height: 5rem;
+    padding: 0.35rem;
+    font-size: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    resize: none;
 }

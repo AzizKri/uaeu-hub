@@ -11,13 +11,14 @@ interface Props {
     placeholder?: string,
     required?: boolean,
     value?: string;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    onChange?: (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => void,
     onFocus?: (isPassword: boolean | undefined, showRequirements: boolean | undefined) => void,
     error?: string,
     width?: Width,
     togglePassword?: boolean,
     showPasswordRequirements?: boolean,
     isPassword?: boolean,
+    disabled?: boolean,
 }
 
 export default function FormItem(
@@ -33,6 +34,7 @@ export default function FormItem(
         error,
         width,
         togglePassword,
+        disabled = false,
         showPasswordRequirements,
         isPassword = false,
     } : Props
@@ -48,20 +50,31 @@ export default function FormItem(
             >
                 {label}{required && (<span>*</span>)}
             </label>
-            <input
-                type={isPassword ? (passwordShown ? "text" : "password") : type}
-                className={`${styles.formInput} ${error ? styles.invalidInput : ""}`}
-                id={id}
-                placeholder={placeholder}
-                value={value}
-                onChange={(e) => {
-                    if (onChange) onChange(e);
-                }}
-                onFocus={() => {
-                    if (onFocus) onFocus(isPassword, showPasswordRequirements);
-                }}
-                style={{width: width}}
-            />
+            {type === "area" ?
+                (
+                    <textarea
+                        id={id}
+                        value={value}
+                        className={styles.editTextArea}
+                        onChange={(e) => {
+                            if (onChange) onChange(e);
+                        }}
+                    />
+                ) : (<input
+                    type={isPassword ? (passwordShown ? "text" : "password") : type}
+                    className={`${styles.formInput} ${error ? styles.invalidInput : ""}`}
+                    id={id}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={(e) => {
+                        if (onChange) onChange(e);
+                    }}
+                    onFocus={() => {
+                        if (onFocus) onFocus(isPassword, showPasswordRequirements);
+                    }}
+                    style={{width: width}}
+                    disabled={disabled}
+                />)}
             {(isPassword && togglePassword) && (
                 <span className={styles.showPassword} onClick={() => setPasswordShown((prev) => !prev)}>
                                 {passwordShown ? (
