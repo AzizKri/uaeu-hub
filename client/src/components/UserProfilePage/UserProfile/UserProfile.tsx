@@ -34,6 +34,7 @@ export default function UserProfile() {
     const [isLoading, setIsLoading] = useState(true);
     const [showConfirmationPopup, setShowConfirmationPopup] = useState(false);
     const [success, setSuccess] = useState<boolean>(false);
+    const [changePasswordMessage, setChangePasswordMessage] = useState<string>("");
 
     useEffect(() => {
         console.log("requesting user");
@@ -113,20 +114,30 @@ export default function UserProfile() {
     const onSaveChangePassword = (
         currPass: string,
         newPass: string,
-    ) : string | undefined => {
+    ) => {
         setIsLoading(true);
-        let data;
         changePassword(currPass, newPass).then(async (res) => {
-                data = await res.json();
+                const data = await res.json();
+                console.log(res.status);
                 if (res.status === 200) {
                     setShowPopup(false);
                     setShowConfirmationPopup(true);
                     setSuccess(true);
                     setIsLoading(false);
+                } else {
+                    setIsLoading(false);
+                    setSuccess(false);
+                    setShowConfirmationPopup(true);
+                    setChangePasswordMessage(data.message || "An error has occurred please try again");
                 }
             },
-        )
-        return data;
+        ).catch(
+            () => {
+                setIsLoading(false);
+                setSuccess(false);
+                setChangePasswordMessage("An error has occurred please try again");
+            }
+        );
     };
 
 
@@ -255,7 +266,7 @@ export default function UserProfile() {
                                    success={true}
                                    onClose={onCloseConfirmation}/>
             ) : (<ConfirmationPopUp confirmation={"Something Went Wrong"}
-                                    text={"An error has occurred please try again"}
+                                    text={changePasswordMessage}
                                     success={false} onClose={onCloseConfirmation}/>)))}
         </div>
     );
