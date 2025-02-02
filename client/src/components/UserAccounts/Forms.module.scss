@@ -118,6 +118,13 @@
     }
 }
 
+.error {
+    color: red;
+    font-size: 13px;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
 @media (max-width: 768px) {
     .formBody {
         padding: 40px 10px;
