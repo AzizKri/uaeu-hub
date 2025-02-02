@@ -1,8 +1,8 @@
 import {useState} from 'react';
 import styles from './EditUserPopUp.module.scss';
 import Modal from "../../Reusable/Modal/Modal.tsx";
-import EditProfile from "./EditProfile.tsx";
-import ChangePassword from "./ChangePassword.tsx";
+import EditProfile from "../UserProfileSettings/EditProfile.tsx";
+import ChangePassword from "../UserProfileSettings/ChangePassword.tsx";
 
 type tab = "Edit Profile" | "Change Email" | "Change Password"
 
