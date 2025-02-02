@@ -1,6 +1,5 @@
 import styles from "./ReusableForms.module.scss";
 import React, {useState} from "react";
-import Requirement from "../../UserAccounts/Requirement/Requirement.tsx";
 
 type itemType = "text" | "password" | "area"
 type Width = string | number | undefined;
@@ -18,7 +17,6 @@ interface Props {
     width?: Width,
     togglePassword?: boolean,
     showPasswordRequirements?: boolean,
-    isPasswordActive?: boolean,
     isPassword?: boolean,
 }
 
@@ -37,34 +35,10 @@ export default function FormItem(
         togglePassword,
         showPasswordRequirements,
         isPassword = false,
-        isPasswordActive = false,
     } : Props
 ){
 
     const [passwordShown, setPasswordShown] = useState<boolean>(false);
-    const [reqErrors, setReqErrors] = useState<requirementErrors>({
-        passLengthError: true,
-        passLowerError: true,
-        passUpperError: true,
-        passNumberError: true,
-        passSpecialError: true,
-    });
-
-
-
-    const checkRequirements = (password : string)=> {
-        const upperCasePattern = /[A-Z]/;
-        const lowerCasePattern = /[a-z]/;
-        const numberPattern = /\d/;
-        const specialPattern = /[^a-zA-Z0-9]/;
-        setReqErrors({
-            passLengthError: password.length < 8,
-            passLowerError: !lowerCasePattern.test(password),
-            passUpperError: !upperCasePattern.test(password),
-            passNumberError: !numberPattern.test(password),
-            passSpecialError: !specialPattern.test(password),
-        });
-    };
 
     return (
         <div className={styles.formGroup}>
@@ -82,10 +56,6 @@ export default function FormItem(
                 value={value}
                 onChange={(e) => {
                     if (onChange) onChange(e);
-
-                    if (showPasswordRequirements) {
-                        checkRequirements(e.target.value);
-                    }
                 }}
                 onFocus={() => {
                     if (onFocus) onFocus(isPassword, showPasswordRequirements);
@@ -123,16 +93,6 @@ export default function FormItem(
                 <small className={styles.error}>
                     {error}
                 </small>
-            )}
-
-            {(isPasswordActive && showPasswordRequirements && isPassword) && (
-                <>
-                    <Requirement text={"Password must be at least 8 characters long"} error={reqErrors.passLengthError} />
-                    <Requirement text={"Password must contain at least one uppercase letter"} error={reqErrors.passUpperError} />
-                    <Requirement text={"Password must contain at least one lowercase letter"} error={reqErrors.passLowerError} />
-                    <Requirement text={"Password must contain at least one number"} error={reqErrors.passNumberError} />
-                    <Requirement text={"Password must contain at least one special character"} error={reqErrors.passSpecialError} />
-                </>
             )}
         </div>
     )
