@@ -2,7 +2,7 @@ import styles from "./ReusableForms.module.scss";
 import React, {useState} from "react";
 import Requirement from "../../UserAccounts/Requirement/Requirement.tsx";
 
-type itemType = "text" | "password"
+type itemType = "text" | "password" | "area"
 type Width = string | number | undefined;
 
 interface Props {
@@ -13,11 +13,13 @@ interface Props {
     required?: boolean,
     value?: string;
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
-    onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void,
+    onFocus?: (isPassword: boolean | undefined, showRequirements: boolean | undefined) => void,
     error?: string,
     width?: Width,
     togglePassword?: boolean,
     showPasswordRequirements?: boolean,
+    isPasswordActive?: boolean,
+    isPassword?: boolean,
 }
 
 export default function FormItem(
@@ -34,6 +36,8 @@ export default function FormItem(
         width,
         togglePassword,
         showPasswordRequirements,
+        isPassword = false,
+        isPasswordActive = false,
     } : Props
 ){
 
@@ -45,7 +49,6 @@ export default function FormItem(
         passNumberError: true,
         passSpecialError: true,
     });
-    const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
 
 
 
@@ -72,7 +75,7 @@ export default function FormItem(
                 {label}{required && (<span>*</span>)}
             </label>
             <input
-                type={type === "password" ? (passwordShown ? "text" : "password") : type}
+                type={isPassword ? (passwordShown ? "text" : "password") : type}
                 className={`${styles.formInput} ${error ? styles.invalidInput : ""}`}
                 id={id}
                 placeholder={placeholder}
@@ -80,17 +83,16 @@ export default function FormItem(
                 onChange={(e) => {
                     if (onChange) onChange(e);
 
-                    if (type === "password") {
+                    if (showPasswordRequirements) {
                         checkRequirements(e.target.value);
                     }
                 }}
-                onFocus={(e) => {
-                    setIsPasswordActive(e.target.type === 'password');
-                    if (onFocus) onFocus(e);
+                onFocus={() => {
+                    if (onFocus) onFocus(isPassword, showPasswordRequirements);
                 }}
                 style={{width: width}}
             />
-            {(type === "password" && togglePassword) && (
+            {(isPassword && togglePassword) && (
                 <span className={styles.showPassword} onClick={() => setPasswordShown((prev) => !prev)}>
                                 {passwordShown ? (
                                     <svg
@@ -123,7 +125,7 @@ export default function FormItem(
                 </small>
             )}
 
-            {(isPasswordActive && showPasswordRequirements && (type === "password")) && (
+            {(isPasswordActive && showPasswordRequirements && isPassword) && (
                 <>
                     <Requirement text={"Password must be at least 8 characters long"} error={reqErrors.passLengthError} />
                     <Requirement text={"Password must contain at least one uppercase letter"} error={reqErrors.passUpperError} />
