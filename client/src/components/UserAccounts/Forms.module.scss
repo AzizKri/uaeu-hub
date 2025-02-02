@@ -76,30 +76,30 @@
         font-size: 14px;
         color: #0079d3;
         text-align: left;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
     }
 
-    .formBtn {
-        background-color: rgb(215, 66, 12);
-        color: white;
-        border: none;
-        padding: 10px;
-        border-radius: 20px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        margin-bottom: 20px;
-        width: 100%;
-    }
-
-    .formBtn:hover {
-        background-color: rgb(157, 48, 8);
-    }
-
-    .formBtn:disabled {
-        background-color: rgb(80, 77, 77);
-        cursor: default;
-    }
+    //.formBtn {
+    //    background-color: rgb(215, 66, 12);
+    //    color: white;
+    //    border: none;
+    //    padding: 10px;
+    //    border-radius: 20px;
+    //    font-size: 16px;
+    //    cursor: pointer;
+    //    transition: background-color 0.3s;
+    //    margin-bottom: 20px;
+    //    width: 100%;
+    //}
+    //
+    //.formBtn:hover {
+    //    background-color: rgb(157, 48, 8);
+    //}
+    //
+    //.formBtn:disabled {
+    //    background-color: rgb(80, 77, 77);
+    //    cursor: default;
+    //}
 
 }
 

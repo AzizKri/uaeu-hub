@@ -29,6 +29,7 @@ export default function SignUp() {
     const previousPage = location.state?.from;
     const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
 
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
@@ -146,7 +147,7 @@ export default function SignUp() {
                             {errors.global}
                         </p>
                     )}
-                    <FormsContainer onSubmit={handleSubmit}>
+                    <FormsContainer onSubmit={handleSubmit} isLoading={isLoading} loadingButtonText={"Signing up..."} buttonText={"Sign Up"} password={formData.password} isPasswordActive={isPasswordActive}>
                         <FormItem
                             type="text"
                             id="username"
@@ -191,16 +192,8 @@ export default function SignUp() {
                             onChange={handleChange}
                             onFocus={handleFocus} // Activate password requirements display
                             error={errors.password}
-                            isPasswordActive={isPasswordActive}
                             isPassword={true}
                         />
-                        <button
-                            type="submit"
-                            className={styles.formBtn}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? "Signing up..." : "Sign up"}
-                        </button>
                     </FormsContainer>
                     <p className={styles.textParagraph}>
                         Already a member?{" "}

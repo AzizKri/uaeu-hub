@@ -35,6 +35,7 @@ export default function ResetPasswordPage() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
+        setFormData({ ...formData, [id]: value });
         if (id === "newPasswordConfirm" && value !== formData.newPassword) {
             setErrors({confirm : "Passwords do not match"});
         } else if (id === "newPasswordConfirm" && value === formData.newPassword) {
@@ -68,10 +69,8 @@ export default function ResetPasswordPage() {
             newErrors.global = data.message;
             setErrors(newErrors);
             setShowPopup(true);
-            setShowPopup(false);
         }
         setIsLoading(false);
-        navigate('/login');
     };
 
 
@@ -81,7 +80,7 @@ export default function ResetPasswordPage() {
             <div className={styles.formContainer}>
                 <div className={styles.formBox}>
                     <h2 className={styles.subTitle}>Reset Password</h2>
-                    <FormsContainer onSubmit={handleSubmit}>
+                    <FormsContainer onSubmit={handleSubmit} loadingButtonText={"Loading..."} buttonText={"Reset Password"} isPasswordActive={isPasswordActive} isLoading={isLoading} password={formData.newPassword}>
                         {errors.global && (
                             <p className={styles.error}>
                                 {errors.global}
@@ -96,12 +95,8 @@ export default function ResetPasswordPage() {
                             togglePassword={true}
                             showPasswordRequirements={true}
                             value={formData.newPassword}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>)=> {
-                                setFormData({ ...formData, [e.target.id]: e.target.value });
-                                handleChange(e);
-                            }}
+                            onChange={handleChange}
                             onFocus={handleFocus} // Activate password requirements display
-                            isPasswordActive={isPasswordActive}
                             isPassword={true}
                         />
                         <FormItem
@@ -112,21 +107,18 @@ export default function ResetPasswordPage() {
                             required={true}
                             togglePassword={true}
                             value={formData.newPasswordConfirm}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>)=> {
-                                setFormData({ ...formData, [e.target.id]: e.target.value });
-                                handleChange(e);
-                            }}
+                            onChange={handleChange}
                             onFocus={handleFocus} // Activate password requirements display
                             error={errors.confirm}
                             isPassword={true}
                         />
-                        <button
-                            type="submit"
-                            className={styles.formBtn}
-                            disabled={isLoading || (typeof errors.confirm === "string")}
-                        >
-                            {isLoading ? "Loading..." : "Reset Password"}
-                        </button>
+                        {/*<button*/}
+                        {/*    type="submit"*/}
+                        {/*    className={styles.formBtn}*/}
+                        {/*    disabled={isLoading || (typeof errors.confirm === "string")}*/}
+                        {/*>*/}
+                        {/*    {isLoading ? "Loading..." : "Reset Password"}*/}
+                        {/*</button>*/}
                     </FormsContainer>
                 </div>
             </div>

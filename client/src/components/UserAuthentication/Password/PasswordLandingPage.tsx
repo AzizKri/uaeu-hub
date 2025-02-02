@@ -68,7 +68,7 @@ export default function PasswordLandingPage() {
                         </svg>
                     </div>
                     <h2 className={styles.subTitle}>Reset Password</h2>
-                    <FormsContainer onSubmit={handleSubmit}>
+                    <FormsContainer onSubmit={handleSubmit} isLoading={isLoading} buttonText={"Send Email"} loadingButtonText={"Sending..."}>
                         {errors.global && (
                             <p className={styles.error}>
                                 {errors.global}
@@ -85,13 +85,6 @@ export default function PasswordLandingPage() {
                             onFocus={handleFocus}
                             error={errors.email}
                         />
-                        <button
-                            type="submit"
-                            className={styles.formBtn}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? "Sending..." : "Send Email"}
-                        </button>
                     </FormsContainer>
                 </div>
             </div>

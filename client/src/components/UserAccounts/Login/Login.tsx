@@ -115,7 +115,7 @@ export default function Login() {
                             {errors.global}
                         </p>
                     )}
-                    <FormsContainer onSubmit={handleSubmit}>
+                    <FormsContainer onSubmit={handleSubmit} isLoading={isLoading} buttonText={"Login"} loadingButtonText={"Logging in..."}>
                         <FormItem
                             type="text"
                             id="identifier"
@@ -142,13 +142,6 @@ export default function Login() {
                         <Link to="/reset-password-form" className={styles.forgotPassword}>
                             Forgot password?
                         </Link>
-                        <button
-                            type="submit"
-                            className={styles.formBtn}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? "Logging in..." : "Login"}
-                        </button>
                     </FormsContainer>
                     <p className={styles.textParagraph}>
                         New to UAEU Chat?{" "}
