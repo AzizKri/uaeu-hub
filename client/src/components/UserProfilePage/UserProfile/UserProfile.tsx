@@ -10,6 +10,8 @@ import { editCurrentUser } from "../../../api/currentUser.ts";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 import UserProfileSkeleton from "./UserProfileSkeleton.tsx";
+import {changePassword} from "../../../api/authentication.ts";
+import ConfirmationPopUp from "../../UserAuthentication/ConfirmationPopUp/ConfirmationPopUp.tsx";
 
 type tab = "Posts" | "Communities" | "Likes"
 
@@ -30,6 +32,8 @@ export default function UserProfile() {
     const navigate = useNavigate();
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [showConfirmationPopup, setShowConfirmationPopup] = useState(false);
+    const [success, setSuccess] = useState<boolean>(false);
 
     useEffect(() => {
         console.log("requesting user");
@@ -38,6 +42,7 @@ export default function UserProfile() {
             setIsLoading(true);
             getUserByUsername(username).then((res) => {
                 const data = res.data;
+                console.log(data);
                 if (res.status !== 200) {
                     navigate("/error");
                 } else {
@@ -48,6 +53,7 @@ export default function UserProfile() {
                         bio: data.bio,
                         pfp: data.pfp,
                         isAnonymous: false,
+                        email: data.email,
                     });
                 }
                 setIsLoading(false);
@@ -67,11 +73,15 @@ export default function UserProfile() {
         setShowPopup(false);
     };
 
-    const onSave = (
+    const onCloseConfirmation = () => {
+        setShowConfirmationPopup(false);
+    }
+
+    const onSaveEditProfile = (
         updatedDisplayName: string,
         updatedBio: string,
         updatedPfp: string,
-    ) => {
+    )=> {
 
         setShowPopup(false);
         setIsLoading(true);
@@ -99,6 +109,27 @@ export default function UserProfile() {
             },
         );
     };
+
+    const onSaveChangePassword = (
+        currPass: string,
+        newPass: string,
+    ) : string | undefined => {
+        setIsLoading(true);
+        let data;
+        changePassword(currPass, newPass).then(async (res) => {
+                data = await res.json();
+                if (res.status === 200) {
+                    setShowPopup(false);
+                    setShowConfirmationPopup(true);
+                    setSuccess(true);
+                    setIsLoading(false);
+                }
+            },
+        )
+        return data;
+    };
+
+
 
     // console.log("user pfp", profileUser?.pfp);
     // console.log("user", profileUser);
@@ -211,9 +242,21 @@ export default function UserProfile() {
                         profileUser?.displayName ? profileUser.displayName : ""
                     }
                     currentBio={profileUser?.bio ? profileUser.bio : ""}
-                    onSave={onSave}
+                    currentEmail={profileUser?.email ? profileUser.email : ""}
+                    onSaveEditProfile={onSaveEditProfile}
+                    onSaveChangePassword={onSaveChangePassword}
+                    isLoading={isLoading}
                 />
             )}
+
+            {(showConfirmationPopup && (success ? (
+                <ConfirmationPopUp confirmation={"Success!"}
+                                   text={"Your password has been changed successfully!"}
+                                   success={true}
+                                   onClose={onCloseConfirmation}/>
+            ) : (<ConfirmationPopUp confirmation={"Something Went Wrong"}
+                                    text={"An error has occurred please try again"}
+                                    success={false} onClose={onCloseConfirmation}/>)))}
         </div>
     );
 }
