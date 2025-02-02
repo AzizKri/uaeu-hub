@@ -123,7 +123,7 @@ export default function Login() {
                             placeholder="Email or Username"
                             required={true}
                             value={formData.identifier} // Pass value from parent state
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setFormData({ ...formData, [e.target.id]: e.target.value.toLowerCase() })}}    // Use your existing handler
+                            onChange={(e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {setFormData({ ...formData, [e.target.id]: e.target.value.toLowerCase() })}}    // Use your existing handler
                             onFocus={handleFocus}
                             error={errors.identifier}
                         />
@@ -133,7 +133,7 @@ export default function Login() {
                             label="Password"
                             placeholder="Password"
                             value={formData.password}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setFormData({ ...formData, [e.target.id]: e.target.value})}}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {setFormData({ ...formData, [e.target.id]: e.target.value})}}
                             onFocus={handleFocus}
                             error={errors.password}
                             isPassword={true}

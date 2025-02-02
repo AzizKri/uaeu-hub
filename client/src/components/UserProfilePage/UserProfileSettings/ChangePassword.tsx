@@ -1,54 +1,81 @@
-import styles from "../EditUserPopUp/EditUserPopUp.module.scss";
-import {useState} from "react";
+import React, {useState} from "react";
+import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
+import FormItem from "../../Reusable/Forms/FormItem.tsx";
 
-export default function ChangePassword({onClose} : {onClose: () => void}){
-    const [currPassword, setCurrPassword] = useState<string>("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-
-    const handleSave = () => {
-        onClose();
-        setIsLoading(false);
+export default function ChangePassword({onClose, onSave, isLoading} : {onClose: () => void, onSave: (currPass : string, newPass : string) => string | undefined, isLoading : boolean}) {
+    interface ChangePasswordErrors {
+        global?: string;
+        confirm?: string;
     }
+    const [formData, setFormData] = useState({
+        currPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+    });
+    const [errors, setErrors] = useState<ChangePasswordErrors>({});
+    const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
+        const { id, value } = e.target;
+        setFormData({ ...formData, [id]: value });
+        if (id === "confirmPassword" && value !== formData.newPassword) {
+            setErrors({confirm : "Passwords do not match"});
+        } else if (id === "newPasswordConfirm" && value === formData.newPassword) {
+            setErrors({});
+        }
+    };
+    const handleSave = () => {
+        const error = onSave(formData.currPassword, formData.newPassword);
+        setErrors({
+            global: error,
+            confirm: errors.confirm,
+        });
+        onClose();
+    }
+
+    const handleFocus = (isPassword: boolean | undefined, showRequirements : boolean | undefined) => {
+        setErrors({
+            global: undefined,
+            confirm: errors.confirm,
+        });
+        setIsPasswordActive((isPassword ? isPassword : false) && (showRequirements ? showRequirements : false));
+    };
 
     return (
         <>
-            <label htmlFor="currPassword" className={styles.editLabel}>Current Password</label>
-            <input
-                type="password"
-                id="currPassword"
-                value={currPassword}
-                className={styles.editInput}
-                onChange={(e) => setCurrPassword(e.target.value)}
-            />
-
-            <label htmlFor="newPassword" className={styles.editLabel}>New Password</label>
-            <input
-                type="password"
-                id="newPassword"
-                value={newPassword}
-                className={styles.editInput}
-                onChange={(e) => setNewPassword(e.target.value)}
-            />
-
-            <label htmlFor="confirmPassword" className={styles.editLabel}>Confirm Password</label>
-            <input
-                type="password"
-                id="newPassword"
-                value={confirmPassword}
-                className={styles.editInput}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-
-            <div className={styles.buttons}>
-                <button onClick={handleSave} className={styles.saveButton} disabled={isLoading}>
-                    Confirm
-                </button>
-                <button onClick={onClose} className={styles.cancelButton} disabled={isLoading}>
-                    Cancel
-                </button>
-            </div>
+            <FormsContainer onSubmit={handleSave} password={formData.newPassword} isPasswordActive={isPasswordActive} buttonText={"Save"} isLoading={isLoading} loadingButtonText={"Processing..."}>
+                <FormItem
+                    type={"password"}
+                    id={"currPassword"}
+                    label={"Current Password"}
+                    isPassword={true}
+                    togglePassword={true}
+                    value={formData.currPassword}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                />
+                <FormItem
+                    type={"password"}
+                    id={"newPassword"}
+                    label={"New Password"}
+                    isPassword={true}
+                    togglePassword={true}
+                    showPasswordRequirements={true}
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                />
+                <FormItem
+                    type={"password"}
+                    id={"confirmPassword"}
+                    label={"Confirm Password"}
+                    isPassword={true}
+                    togglePassword={true}
+                    value={formData.confirmPassword}
+                    error={errors.confirm}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                />
+            </FormsContainer>
         </>
     )
 }

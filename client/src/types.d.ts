@@ -102,6 +102,7 @@ declare global {
         pfp?: string;
         isAnonymous?: boolean;
         role?: string;
+        email?: string;
     }
 
     interface SignUpErrors {
