@@ -30,7 +30,7 @@ export default function SignUp() {
     const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
 
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
     };
