@@ -20,7 +20,7 @@ interface EditUserPopUpProps {
     currentBio: string;
     currentEmail: string;
     onSaveEditProfile: (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => void;
-    onSaveChangePassword: (currPass : string, newPass : string) => string | undefined;
+    onSaveChangePassword: (currPass : string, newPass : string) => void;
     isLoading: boolean;
 }
 
