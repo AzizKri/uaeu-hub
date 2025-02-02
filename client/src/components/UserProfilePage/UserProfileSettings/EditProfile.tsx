@@ -1,6 +1,7 @@
 import ImageUploader from "../../Reusable/ImageUploader/ImageUploader.tsx";
-import styles from "../EditUserPopUp/EditUserPopUp.module.scss";
 import {useState} from "react";
+import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
+import FormItem from "../../Reusable/Forms/FormItem.tsx";
 
 interface EditProfileProps {
     onClose: () => void;
@@ -8,6 +9,7 @@ interface EditProfileProps {
     currentDisplayName: string;
     currentBio: string;
     onSave: (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => void;
+    isLoading: boolean;
 }
 
 export default function EditProfile(
@@ -16,7 +18,8 @@ export default function EditProfile(
         currentProfilePicture,
         currentDisplayName,
         currentBio,
-        onSave
+        onSave,
+        isLoading,
     }: EditProfileProps
 ) {
 
@@ -35,32 +38,11 @@ export default function EditProfile(
     };
     return (
         <>
-            <ImageUploader uploadState={uploadState} setUploadState={setUploadState} type="PROFILE"/>
-            <label htmlFor="displayName" className={styles.editLabel}>Display Name</label>
-            <input
-                type="text"
-                id="displayName"
-                value={displayName}
-                className={styles.editInput}
-                onChange={(e) => setDisplayName(e.target.value)}
-            />
-
-            <label htmlFor="bio" className={styles.editLabel}>Bio</label>
-            <textarea
-                id="bio"
-                value={bio}
-                className={styles.editTextArea}
-                onChange={(e) => setBio(e.target.value)}
-            />
-
-            <div className={styles.buttons}>
-                <button onClick={handleSave} className={styles.saveButton} disabled={uploadState.status === "UPLOADING"}>
-                    Save
-                </button>
-                <button onClick={onClose} className={styles.cancelButton} disabled={uploadState.status === "UPLOADING"}>
-                    Cancel
-                </button>
-            </div>
+            <FormsContainer onSubmit={handleSave} buttonText={"Save"} isLoading={uploadState.status === "UPLOADING" || isLoading} loadingButtonText={"Processing..."}>
+                <ImageUploader uploadState={uploadState} setUploadState={setUploadState} type="PROFILE"/>
+                <FormItem type={"text"} id={"displayName"} label={"Display Name"} value={displayName} onChange={(e) => setDisplayName(e.target.value)}></FormItem>
+                <FormItem type={"area"} id={"bio"} label={"Bio"} value={bio} onChange={(e) => setBio(e.target.value)}/>
+            </FormsContainer>
         </>
     )
 }
