@@ -1,0 +1,86 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.formGroup {
+    margin-bottom: 15px;
+    position: relative;
+    text-align: left;
+}
+
+.formLabel {
+    font-size: 14px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.formInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.formInput:disabled {
+    background-color: #eee;
+}
+
+.formInput:focus {
+    border-color: #0079d3;
+    outline: none;
+}
+
+.invalidInput {
+    border-color: red;
+}
+
+.error {
+    color: red;
+    font-size: 13px;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+.showPassword {
+    position: absolute;
+    right: 12px;
+    top: 28px;
+    cursor: pointer;
+}
+
+.formBtn {
+    background-color: rgb(215, 66, 12);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.formBtn:hover {
+    background-color: rgb(157, 48, 8);
+}
+
+.formBtn:disabled {
+    background-color: rgb(80, 77, 77);
+    cursor: default;
+}
+
+.editTextArea {
+    width: 100%;
+    height: 5rem;
+    padding: 0.35rem;
+    font-size: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    resize: none;
+}
