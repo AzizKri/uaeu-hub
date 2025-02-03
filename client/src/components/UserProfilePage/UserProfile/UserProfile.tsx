@@ -32,12 +32,14 @@ export default function UserProfile() {
     const navigate = useNavigate();
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [showConfirmationPopup, setShowConfirmationPopup] = useState(false);
     const [success, setSuccess] = useState<boolean>(false);
-    const [changePasswordMessage, setChangePasswordMessage] = useState<string>("");
+    const [confirmationMessage, setConfirmationMessage] = useState<string>("");
 
     useEffect(() => {
         console.log("requesting user");
+        console.log(username)
         if (username) {
             setIsAuthorized(user?.username === username);
             setIsLoading(true);
@@ -60,7 +62,7 @@ export default function UserProfile() {
                 setIsLoading(false);
             });
         }
-    }, [username]);
+    }, [username, profileUser?.displayName, profileUser?.bio, profileUser?.pfp]);
 
     const handleTabClick = (tabLabel: tab) => {
         setActiveTab(tabLabel);
@@ -84,18 +86,21 @@ export default function UserProfile() {
         updatedPfp: string,
     )=> {
 
-        setShowPopup(false);
-        setIsLoading(true);
+        setIsProcessing(true);
         console.log(updatedDisplayName, updatedBio, updatedPfp);
         editCurrentUser({ displayname: updatedDisplayName, bio: updatedBio, pfp: updatedPfp }).then((res) => {
             console.log("edit result", res.status, res.data.message);
-            if (res.status === 200) {
-                setProfileUser(prev => prev && ({
-                    ...prev,
-                    displayName: updatedDisplayName,
-                    bio: updatedBio,
-                    pfp: updatedPfp,
-                }))
+            if (updatedDisplayName === profileUser?.displayName && updatedBio === profileUser?.bio && updatedPfp === profileUser?.pfp) {
+                setShowPopup(false);
+            } else {
+                if (res.status === 200) {
+                    setSuccess(true);
+                    setProfileUser(prev => prev && ({
+                        ...prev,
+                        displayName: updatedDisplayName,
+                        bio: updatedBio,
+                        pfp: updatedPfp,
+                    }))
 
                     if (user?.username === username) {
                         updateUser({
@@ -105,17 +110,28 @@ export default function UserProfile() {
                             pfp: updatedPfp,
                         });
                     }
+                    setIsProcessing(false);
+                    setShowPopup(false);
+                }else {
+                    setSuccess(false);
+                    setConfirmationMessage(res.data.message)
+                    setIsProcessing(false);
                 }
-            window.location.reload();
+            }
             },
-        );
+        ).catch((err) => {
+            console.error(err);
+            setIsProcessing(false);
+            setSuccess(false);
+            setConfirmationMessage("An error has occurred please try again");
+        })
     };
 
     const onSaveChangePassword = (
         currPass: string,
         newPass: string,
     ) => {
-        setIsLoading(true);
+        setIsProcessing(true);
         changePassword(currPass, newPass).then(async (res) => {
                 const data = await res.json();
                 console.log(res.status);
@@ -123,19 +139,20 @@ export default function UserProfile() {
                     setShowPopup(false);
                     setShowConfirmationPopup(true);
                     setSuccess(true);
-                    setIsLoading(false);
+                    setIsProcessing(false);
                 } else {
-                    setIsLoading(false);
+                    setIsProcessing(false);
                     setSuccess(false);
                     setShowConfirmationPopup(true);
-                    setChangePasswordMessage(data.message || "An error has occurred please try again");
+                    setConfirmationMessage(data.message || "An error has occurred please try again");
                 }
             },
         ).catch(
-            () => {
-                setIsLoading(false);
+            (err) => {
+                console.error(err);
+                setIsProcessing(false);
                 setSuccess(false);
-                setChangePasswordMessage("An error has occurred please try again");
+                setConfirmationMessage("An error has occurred please try again");
             }
         );
     };
@@ -252,7 +269,7 @@ export default function UserProfile() {
                     currentEmail={profileUser?.email ? profileUser.email : ""}
                     onSaveEditProfile={onSaveEditProfile}
                     onSaveChangePassword={onSaveChangePassword}
-                    isLoading={isLoading}
+                    isLoading={isProcessing}
                 />
             )}
 
@@ -262,7 +279,7 @@ export default function UserProfile() {
                                    success={true}
                                    onClose={onCloseConfirmation}/>
             ) : (<ConfirmationPopUp confirmation={"Something Went Wrong"}
-                                    text={changePasswordMessage}
+                                    text={confirmationMessage}
                                     success={false} onClose={onCloseConfirmation}/>)))}
         </div>
     );

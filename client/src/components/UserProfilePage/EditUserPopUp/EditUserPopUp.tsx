@@ -73,11 +73,11 @@ export default function EditUserPopUp({
                     ))}
                 </ul>
                 {activeTab === "Edit Profile" ? (
-                    <EditProfile onSave={onSaveEditProfile} currentDisplayName={currentDisplayName} currentBio={currentBio} currentProfilePicture={currentProfilePicture} onClose={onClose} isLoading={isLoading} />
+                    <EditProfile onSave={onSaveEditProfile} currentDisplayName={currentDisplayName} currentBio={currentBio} currentProfilePicture={currentProfilePicture} isLoading={isLoading} />
                 ) : activeTab === "Change Email" ? (
                     <ChangeEmail currentEmail={currentEmail} />
                 ) : activeTab === "Change Password" ? (
-                    <ChangePassword onClose={onClose} onSave={onSaveChangePassword} isLoading={isLoading}/>
+                    <ChangePassword  onSave={onSaveChangePassword} isLoading={isLoading}/>
                 ) : (
                     <></>
                 )}
