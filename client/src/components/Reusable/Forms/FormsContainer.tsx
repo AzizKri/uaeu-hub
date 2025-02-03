@@ -42,8 +42,13 @@ export default function FormsContainer({ children, onSubmit, isLoading, loadingB
         }
     }, [password, isPasswordActive, checkRequirements]);
 
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        onSubmit(e);
+    };
+
     return (
-        <form className={styles.form} onSubmit={onSubmit}>
+        <form className={styles.form} onSubmit={handleSubmit} >
             {children}
             {(reqErrors && isPasswordActive) && (
                 <>

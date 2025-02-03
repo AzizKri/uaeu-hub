@@ -4,7 +4,6 @@ import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 
 interface EditProfileProps {
-    onClose: () => void;
     currentProfilePicture?: string;
     currentDisplayName: string;
     currentBio: string;
@@ -14,7 +13,6 @@ interface EditProfileProps {
 
 export default function EditProfile(
     {
-        onClose,
         currentProfilePicture,
         currentDisplayName,
         currentBio,
@@ -32,9 +30,9 @@ export default function EditProfile(
             fileName: currentProfilePicture
         }
     );
-    const handleSave = () => {
+    const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         onSave(displayName, bio, (uploadState?.fileName ? uploadState.fileName : ''));
-        onClose();
     };
     return (
         <>
