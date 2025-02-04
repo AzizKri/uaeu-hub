@@ -32,7 +32,11 @@ export default function SignUp() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
         const { id, value } = e.target;
-        setFormData({ ...formData, [id]: value });
+        if (id === "username" || id === "email") {
+            setFormData({ ...formData, [id]: value.toLowerCase() });
+        } else {
+            setFormData({ ...formData, [id]: value });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -81,7 +85,7 @@ export default function SignUp() {
                 pfp: data.pfp
             })
             await sendEmailVerification();
-            navigate(previousPage);
+            goBack();
         } else {
             const newErrors: SignUpErrors = {};
             if (response.status === 409) {
@@ -115,7 +119,7 @@ export default function SignUp() {
     }
 
     const goBack = () => {
-        navigate('/');
+        navigate(previousPage ? previousPage : "/");
     }
 
     return (
@@ -161,7 +165,7 @@ export default function SignUp() {
                         />
                         <FormItem
                             type="text"
-                            id="displayname"
+                            id="displayName"
                             label="Display Name"
                             placeholder="Display Name"
                             value={formData.displayName}
