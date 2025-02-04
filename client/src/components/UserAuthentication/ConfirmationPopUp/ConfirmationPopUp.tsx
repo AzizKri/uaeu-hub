@@ -16,7 +16,7 @@ export default function ConfirmationPopUp({
                                               text,
                                               success,
                                               onClose,
-                                              duration = 1500,
+                                              duration = 3000,
                                           }: ConfirmationPopUpProps) {
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -27,7 +27,7 @@ export default function ConfirmationPopUp({
     }, [onClose, duration]);
 
     return (
-        <Modal onClose={onClose}>
+        <Modal onClose={onClose} z_index={3}>
             <div className={styles.container}>
                 <img
                     src={success ? successLogo : failLogo}
