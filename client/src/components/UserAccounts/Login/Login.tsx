@@ -57,12 +57,7 @@ export default function Login() {
                 bio: data.bio,
                 pfp: data.pfp
             });
-            if (previousPage === "/login"){
-                navigate("/")
-            }
-            else{
-                navigate(previousPage);
-            }
+            goBack();
         } else {
             const newErrors: LoginErrors = {};
             if (response.status === 404) {
@@ -83,7 +78,7 @@ export default function Login() {
     }
 
     const goBack = () => {
-        navigate('/');
+        navigate(previousPage);
     }
 
     return (

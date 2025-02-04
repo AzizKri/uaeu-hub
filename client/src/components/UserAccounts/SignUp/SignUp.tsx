@@ -115,7 +115,7 @@ export default function SignUp() {
     }
 
     const goBack = () => {
-        navigate('/');
+        navigate(previousPage)
     }
 
     return (
