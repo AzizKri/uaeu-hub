@@ -5,13 +5,18 @@ import React, { ReactNode, useEffect, useRef } from "react";
 interface ModalProps {
     onClose: () => void;
     children: ReactNode;
+    z_index?: number;
 }
 
-export default function Modal({ onClose, children }: ModalProps) {
+export default function Modal({ onClose, children, z_index = 1 }: ModalProps) {
     const modalRef = useRef<HTMLDialogElement>(null);
     useEffect(() => {
         modalRef.current?.showModal();
     }, []);
+
+    const customStyle = {
+        zIndex: z_index,
+    }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDialogElement>) => {
         if (e.key === "Escape") {
@@ -29,8 +34,9 @@ export default function Modal({ onClose, children }: ModalProps) {
             className={styles.modal}
             ref={modalRef}
             onKeyDown={handleKeyDown}
+            style={customStyle}
         >
-            <span className={styles.cancel} onClick={handleXClick}>
+            <span className={styles.cancel} onClick={handleXClick} style={customStyle}>
                 {/*cancel icon*/}
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
