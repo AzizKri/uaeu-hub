@@ -106,3 +106,17 @@ export const emailChangeSchema = z.object({
 export function isUsernameValid(username: string): boolean {
     return !usernames.includes(username);
 }
+
+// Report
+
+export const reportSchema = z.object({
+    entityId: z.number(),
+    entityType: z.string(),
+    reportType: z.string(),
+    reason: z.string().max(1024, 'Reason must be at most 1024 characters long').optional()
+});
+
+export const resolveReportSchema = z.object({
+    reportId: z.number(),
+    communityId: z.string()
+});
