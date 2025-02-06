@@ -12,6 +12,8 @@ type UserRow = {
     bio?: string;
     pfp?: string;
     is_anonymous: boolean;
+    is_admin: number;
+    is_deleted: boolean;
 }
 
 type UserView = {
