@@ -224,6 +224,16 @@ type NotificationView = {
     created_at: number;
 }
 
+type ReportRow = {
+    id: number;
+    reporter_id: number;
+    entity_id: number;
+    entity_type: string;
+    report_type: string;
+    reason: string;
+    created_at: number;
+}
+
 namespace NotificationPayload {
     export default interface NotificationPayload {
         senderId: number;

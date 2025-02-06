@@ -328,6 +328,21 @@ CREATE TABLE IF NOT EXISTS subcomment_like
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
+/* Reports table */
+
+CREATE TABLE IF NOT EXISTS report
+(
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    reporter_id INTEGER NOT NULL,
+    entity_id   INTEGER NOT NULL,
+    entity_type TEXT    NOT NULL,
+    report_type TEXT    NOT NULL,
+    reason      TEXT,
+    resolved    BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
 /* Websocket Table */
 
 CREATE TABLE IF NOT EXISTS websocket
