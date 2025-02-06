@@ -36,7 +36,7 @@ type PasswordResetRow = {
 type PostRow = {
     id: number;
     author_id: number;
-    // community_id: number;
+    community_id: number;
     content: string;
     post_time: number;
     attachment?: string;
@@ -50,9 +50,9 @@ type PostView = {
     author: string;
     displayname?: string;
     pfp?: string;
-    // community_id: number;
-    // community: string;
-    // community_icon: string;
+    community_id: number;
+    community: string;
+    community_icon: string;
     content: string;
     post_time: number;
     attachment?: string;
