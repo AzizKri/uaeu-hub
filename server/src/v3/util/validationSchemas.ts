@@ -99,7 +99,8 @@ export const passwordChangeSchema = z.object({
 })
 
 export const emailChangeSchema = z.object({
-    email: emailSchema
+    email: emailSchema,
+    password: z.string()
 })
 
 export function isUsernameValid(username: string): boolean {

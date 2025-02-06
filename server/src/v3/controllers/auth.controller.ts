@@ -724,7 +724,7 @@ export async function changeEmail(c: Context) {
 
     // Get the email data
     // @ts-ignore
-    const { email } = c.req.valid('json');
+    const { email, password } = c.req.valid('json');
 
     // Check if email is already used
     const existingUser = await env.DB.prepare(`
@@ -737,13 +737,24 @@ export async function changeEmail(c: Context) {
 
     // Get the user data
     const user = await env.DB.prepare(`
-        UPDATE user
-        SET email = ?, email_verified = false
+        SELECT username, password, salt
+        FROM user
         WHERE id = ?
-        RETURNING username
     `).bind(userId).first<UserRow>();
 
     if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+
+    // Verify password
+    const match = await verifyPassword(password, user.salt, user.password);
+    if (!match) return c.json({ message: 'Invalid credentials', status: 401 }, 401);
+
+    // Update the user
+    await env.DB.prepare(`
+        UPDATE user
+        SET email          = ?,
+            email_verified = false
+        WHERE id = ?
+    `).bind(userId).run();
 
     // Send email verification
     c.set('email', email);
