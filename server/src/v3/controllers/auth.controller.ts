@@ -758,7 +758,8 @@ export async function changeEmail(c: Context) {
 
     // Send email verification
     c.set('email', email);
-    await sendEmailVerification(c, true);
+    c.set('username', user.username);
+    c.executionCtx.waitUntil(sendEmailVerification(c, true));
 
     return c.json({ message: 'Email changed successfully', status: 200 }, 200);
 }
