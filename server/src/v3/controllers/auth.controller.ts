@@ -714,6 +714,44 @@ export async function verifyEmail(c: Context) {
     return c.json({ message: 'Email verified', status: 200 }, 200);
 }
 
+export async function changeEmail(c: Context) {
+    const env: Env = c.env;
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Some idiot tries to change email when they're not logged in
+    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+
+    // Get the email data
+    // @ts-ignore
+    const { email } = c.req.valid('json');
+
+    // Check if email is already used
+    const existingUser = await env.DB.prepare(`
+        SELECT username
+        FROM user
+        WHERE email = ?
+    `).bind(email).first<UserRow>();
+
+    if (existingUser) return c.json({ message: 'Email already in use', status: 409 }, 409);
+
+    // Get the user data
+    const user = await env.DB.prepare(`
+        UPDATE user
+        SET email = ?, email_verified = false
+        WHERE id = ?
+        RETURNING username
+    `).bind(userId).first<UserRow>();
+
+    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+
+    // Send email verification
+    c.set('email', email);
+    await sendEmailVerification(c, true);
+
+    return c.json({ message: 'Email changed successfully', status: 200 }, 200);
+}
+
 // MISC
 
 async function sendEmailVerificationEmail(c: Context, to: string, username: string, token: string) {
