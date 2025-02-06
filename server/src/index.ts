@@ -47,8 +47,8 @@ app.post('/init', async (c) => {
     const { salt, encoded } = generateSalt();
     const hash = await hashPassword(password, salt);
     await env.DB.prepare(`
-        INSERT INTO user (id, username, password, salt)
-        VALUES (0, 'System', ?, ?)
+        INSERT INTO user (id, username, password, salt, is_admin)
+        VALUES (0, 'System', ?, ?, 1)
     `).bind(hash, encoded).run();
 
     const tags = ['UAEU', 'Study', 'Gaming', 'Hobbies', 'Jobs'];
