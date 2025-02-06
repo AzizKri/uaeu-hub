@@ -343,6 +343,9 @@ CREATE TABLE IF NOT EXISTS report
     FOREIGN KEY (reporter_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_report_entity ON report (entity_type, entity_id);
+CREATE INDEX idx_report_resolved ON report (resolved, created_at DESC);
+
 /* Websocket Table */
 
 CREATE TABLE IF NOT EXISTS websocket
@@ -405,7 +408,7 @@ CREATE INDEX idx_user_username ON user (username);
 CREATE INDEX idx_user_email ON user (email);
 
 CREATE INDEX idx_post_author_id ON post (author_id);
-CREATE INDEX idx_post_community_id ON post (community_id);
+CREATE INDEX idx_post_community ON post (community_id, id);
 
 CREATE INDEX idx_community_name ON community (name);
 CREATE INDEX idx_community_role_community_id ON community_role (community_id);
@@ -413,10 +416,10 @@ CREATE INDEX idx_community_role_community_id ON community_role (community_id);
 CREATE INDEX idx_tag_name ON tag (name);
 
 CREATE INDEX idx_comment_author_id ON comment (author_id);
-CREATE INDEX idx_comment_parent_post_id ON comment (parent_post_id);
+CREATE INDEX idx_comment_parent ON comment (parent_post_id, id);
 
 CREATE INDEX idx_subcomment_author_id ON subcomment (author_id);
-CREATE INDEX idx_subcomment_parent_comment_id ON subcomment (parent_comment_id);
+CREATE INDEX idx_subcomment_parent ON subcomment (parent_comment_id, id);
 
 /* Triggers */
 
