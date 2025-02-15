@@ -78,7 +78,7 @@ export default function Login() {
     }
 
     const goBack = () => {
-        navigate(previousPage);
+        navigate(previousPage ? previousPage : "/");
     }
 
     return (

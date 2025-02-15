@@ -17,12 +17,18 @@
     background-color: white;
     z-index: 1;
     gap: 10px;
+    @media (max-width: 600px) {
+        font-size: 12px;
+        width: 80%;
+    }
 
     .tabElement {
         padding: 5px 10px ;
         cursor: pointer;
         transition: background-color 0.2s ease;
-
+        @media (max-width: 600px) {
+            padding: 5px;
+        }
         &:hover {
             background-color: #fafafa;
         }

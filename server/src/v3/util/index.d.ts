@@ -12,6 +12,8 @@ type UserRow = {
     bio?: string;
     pfp?: string;
     is_anonymous: boolean;
+    is_admin: number;
+    is_deleted: boolean;
 }
 
 type UserView = {
@@ -36,7 +38,7 @@ type PasswordResetRow = {
 type PostRow = {
     id: number;
     author_id: number;
-    // community_id: number;
+    community_id: number;
     content: string;
     post_time: number;
     attachment?: string;
@@ -50,9 +52,9 @@ type PostView = {
     author: string;
     displayname?: string;
     pfp?: string;
-    // community_id: number;
-    // community: string;
-    // community_icon: string;
+    community_id: number;
+    community: string;
+    community_icon: string;
     content: string;
     post_time: number;
     attachment?: string;
@@ -219,6 +221,16 @@ type NotificationView = {
     message: string;
     content?: string;
     read: boolean;
+    created_at: number;
+}
+
+type ReportRow = {
+    id: number;
+    reporter_id: number;
+    entity_id: number;
+    entity_type: string;
+    report_type: string;
+    reason: string;
     created_at: number;
 }
 

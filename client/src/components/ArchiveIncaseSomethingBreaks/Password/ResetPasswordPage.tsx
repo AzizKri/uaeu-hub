@@ -249,10 +249,15 @@ export default function ResetPasswordPage() {
                 <ConfirmationPopUp confirmation={"Success!"}
                                    text={"Your password has been reset successfully!"}
                                    success={true}
-                                   onClose={onClose}/>
+                                   onClose={onClose}
+                                   duration={3000}
+                />
             ) : (<ConfirmationPopUp confirmation={"Something Went Wrong"}
                                     text={errors.global ? errors.global.concat(" please try again") : ""}
-                                    success={false} onClose={onClose}/>)))}
+                                    success={false}
+                                    onClose={onClose}
+                                    duration={3000}
+            />)))}
 
         </div>
     );

@@ -75,3 +75,12 @@ export async function changePassword(currentPassword: string, newPassword: strin
         credentials: 'include'
     });
 }
+
+export async function changeEmail(email: string, password: string) {
+    return await fetch(base + `/changeEmail`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+    });
+}

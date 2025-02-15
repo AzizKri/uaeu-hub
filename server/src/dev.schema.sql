@@ -17,18 +17,19 @@ CREATE TABLE IF NOT EXISTS user
     bio            TEXT,
     pfp            TEXT,
     is_anonymous   BOOLEAN          DEFAULT FALSE,
-    deleted        BOOLEAN          DEFAULT FALSE
+    is_admin       INTEGER          DEFAULT 0,
+    is_deleted     BOOLEAN          DEFAULT FALSE
 );
 
 CREATE VIEW IF NOT EXISTS user_view AS
 SELECT id,
        CASE
-           WHEN deleted = true THEN 'DeletedUser'
+           WHEN is_deleted = true THEN 'DeletedUser'
            WHEN is_anonymous = true THEN 'Anonymous'
            ELSE username
            END AS username,
        CASE
-           WHEN deleted = true THEN 'Deleted User'
+           WHEN is_deleted = true THEN 'Deleted User'
            WHEN is_anonymous = true THEN 'Anonymous User'
            ELSE displayname
            END AS displayname,
@@ -36,7 +37,8 @@ SELECT id,
        created_at,
        bio,
        pfp,
-       is_anonymous
+       is_anonymous,
+       is_deleted
 FROM user;
 
 /* Session Table */
@@ -324,6 +326,21 @@ CREATE TABLE IF NOT EXISTS subcomment_like
     PRIMARY KEY (subcomment_id, user_id),
     FOREIGN KEY (subcomment_id) REFERENCES subcomment (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
+/* Reports table */
+
+CREATE TABLE IF NOT EXISTS report
+(
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    reporter_id INTEGER NOT NULL,
+    entity_id   INTEGER NOT NULL,
+    entity_type TEXT    NOT NULL,
+    report_type TEXT    NOT NULL,
+    reason      TEXT,
+    resolved    BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 /* Websocket Table */

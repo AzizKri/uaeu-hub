@@ -10,6 +10,7 @@ import GoogleAuth from "../GoogleAuth/GoogleAuth.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
+import ConfirmationPopUp from "../../UserAuthentication/ConfirmationPopUp/ConfirmationPopUp.tsx";
 
 export default function SignUp() {
     const navigate = useNavigate();
@@ -28,11 +29,15 @@ export default function SignUp() {
     const location = useLocation();
     const previousPage = location.state?.from;
     const [isPasswordActive, setIsPasswordActive] = useState<boolean>(false);
-
+    const [showConfirmationPopup, setShowConfirmationPopup] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
         const { id, value } = e.target;
-        setFormData({ ...formData, [id]: value });
+        if (id === "username" || id === "email") {
+            setFormData({ ...formData, [id]: value.toLowerCase() });
+        } else {
+            setFormData({ ...formData, [id]: value });
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -81,7 +86,7 @@ export default function SignUp() {
                 pfp: data.pfp
             })
             await sendEmailVerification();
-            navigate(previousPage);
+            setShowConfirmationPopup(true);
         } else {
             const newErrors: SignUpErrors = {};
             if (response.status === 409) {
@@ -104,6 +109,11 @@ export default function SignUp() {
         setIsLoading(false);
     }
 
+    const onCloseConfirmation = () => {
+        setShowConfirmationPopup(false);
+        goBack();
+    }
+
     const handleFocus = (isPassword: boolean | undefined, showRequirements : boolean | undefined) => {
         setErrors({});
         setIsPasswordActive((isPassword ? isPassword : false) && (showRequirements ? showRequirements : false));
@@ -115,7 +125,7 @@ export default function SignUp() {
     }
 
     const goBack = () => {
-        navigate(previousPage)
+        navigate(previousPage ? previousPage : "/");
     }
 
     return (
@@ -161,7 +171,7 @@ export default function SignUp() {
                         />
                         <FormItem
                             type="text"
-                            id="displayname"
+                            id="displayName"
                             label="Display Name"
                             placeholder="Display Name"
                             value={formData.displayName}
@@ -214,6 +224,14 @@ export default function SignUp() {
                     hidePopUp={handleHidePopUp}
                 />
             )}
+            {(showConfirmationPopup &&
+                <ConfirmationPopUp confirmation={"Success!"}
+                                   text={`We have sent an email to ${formData.email}. please follow the instructions to verify your email`}
+                                   success={true}
+                                   duration={10000}
+                                   onClose={onCloseConfirmation}/>
+            )}
+
         </div>
     );
 };

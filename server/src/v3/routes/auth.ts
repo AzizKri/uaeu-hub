@@ -3,6 +3,7 @@ import { authMiddlewareCheckOnly } from '../middleware';
 import {
     authenticateUser,
     authenticateWithGoogle,
+    changeEmail,
     changePassword,
     forceLogout,
     isAnon,
@@ -16,7 +17,12 @@ import {
     verifyEmail
 } from '../controllers/auth.controller';
 import { validator } from 'hono/validator';
-import { forgotPasswordSchema, passwordChangeSchema, passwordResetSchema } from '../util/validationSchemas';
+import {
+    emailChangeSchema,
+    forgotPasswordSchema,
+    passwordChangeSchema,
+    passwordResetSchema
+} from '../util/validationSchemas';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -67,6 +73,17 @@ app.post('/changePassword',
     }),
     authMiddlewareCheckOnly,
     (c: Context) => changePassword(c));
+app.post('/changeEmail',
+    validator('json', (value, c: Context) => {
+        const parsed = emailChangeSchema.safeParse(value);
+        if (!parsed.success) {
+            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            return c.json({ errors }, 400);
+        }
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c: Context) => changeEmail(c));
 
 // User data
 

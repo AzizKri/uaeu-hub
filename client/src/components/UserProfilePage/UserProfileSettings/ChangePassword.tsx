@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 
-export default function ChangePassword({onClose, onSave, isLoading} : {onClose: () => void, onSave: (currPass : string, newPass : string) => void, isLoading : boolean}) {
+export default function ChangePassword({onSave, isLoading} : {onSave: (currPass : string, newPass : string) => void, isLoading : boolean}) {
     interface ChangePasswordErrors {
         global?: string;
         confirm?: string;
@@ -23,9 +23,9 @@ export default function ChangePassword({onClose, onSave, isLoading} : {onClose: 
             setErrors({});
         }
     };
-    const handleSave = () => {
+    const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         onSave(formData.currPassword, formData.newPassword);
-        onClose();
     }
 
     const handleFocus = (isPassword: boolean | undefined, showRequirements : boolean | undefined) => {

@@ -9,6 +9,7 @@ import tags from './routes/tags';
 import websocket from './routes/websocket';
 import notification from './routes/notification';
 import auth from './routes/auth';
+import report from './routes/report';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -22,5 +23,6 @@ app.route('/community', community);
 app.route('/tags', tags);
 app.route('/notification', notification);
 app.route('/ws', websocket);
+app.route('/report', report);
 
 export default app;

@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import usernames from './usernames.json';
 
+// Community
+
 export const communitySchema = z.object({
     name: z.string()
         .min(3, 'Community name must be at least 3 characters long')
@@ -42,6 +44,8 @@ export const communityInviteSchema = z.object({
     userId: z.number(),
     communityId: z.number()
 });
+
+// User
 
 const displaynameSchema = z
     .union([z.string().min(4, 'Display name must be at least 3 characters long'), z.string().length(0)])
@@ -90,10 +94,29 @@ export const passwordResetSchema = z.object({
 });
 
 export const passwordChangeSchema = z.object({
-    currentPassword: passwordSchema,
+    currentPassword: z.string(),
     newPassword: passwordSchema
+})
+
+export const emailChangeSchema = z.object({
+    email: emailSchema,
+    password: z.string()
 })
 
 export function isUsernameValid(username: string): boolean {
     return !usernames.includes(username);
 }
+
+// Report
+
+export const reportSchema = z.object({
+    entityId: z.number(),
+    entityType: z.string(),
+    reportType: z.string(),
+    reason: z.string().max(1024, 'Reason must be at most 1024 characters long').optional()
+});
+
+export const resolveReportSchema = z.object({
+    reportId: z.number(),
+    communityId: z.string()
+});
