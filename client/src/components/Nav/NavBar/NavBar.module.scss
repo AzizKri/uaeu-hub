@@ -25,13 +25,13 @@
 
         .btn {
             padding: 14px 26px;
-            border-radius: 16px;
+            border-radius: 99999px;
             background-color: #d7420c;
             color: white;
-            font-weight: 400;
             font-size: 14px;
             transition: background-color 0.2s ease;
             cursor: pointer;
+            font-weight: 600;
 
             &:hover {
                 background-color: #9d3008;

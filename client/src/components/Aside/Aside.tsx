@@ -106,7 +106,7 @@ export default function Aside() {
                         className={`${styles.top_element} ${styles.element} ${active === "home" && styles.active}`}
                     >
                         <img src={homeIcon} alt="home" />
-                        <span>HOME</span>
+                        <span>Home</span>
                     </div>
                 </div>
             </li>
@@ -119,7 +119,7 @@ export default function Aside() {
                             className={`${styles.top_element} ${styles.element} ${active === "user" && styles.active}`}
                         >
                             <img src={accountIcon} alt="profile icon" />
-                            <span>PROFILE</span>
+                            <span>Profile</span>
                         </div>
                     </div>
                 </li>
@@ -134,7 +134,7 @@ export default function Aside() {
                     onClick={handleCommunities}
                 >
                     <img src={communityIcon} alt="community icon" />
-                    <span>COMMUNITIES</span>
+                    <span>Communities</span>
                     {isUser() && (
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -234,7 +234,7 @@ export default function Aside() {
                     onClick={() => handleSpaceRead("course")}
                 >
                     <img src={courseMaterial} alt="settings" />
-                    <span>COURSES MATERIAL</span>
+                    <span>Course Materials</span>
                     <img src={redirectImg} className={styles.redirectLogo} alt="redirect" />
                 </div>
             </li>
@@ -244,7 +244,7 @@ export default function Aside() {
                     onClick={() => handleSpaceRead("professor")}
                 >
                     <img src={professorIcon} alt="settings" />
-                    <span>PROFESSORS</span>
+                    <span>Professors</span>
                     <img src={redirectImg} className={styles.redirectLogo} alt="redirect" />
                 </div>
             </li>
