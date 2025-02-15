@@ -417,7 +417,13 @@ export default function Editor({
                 {uploadState.preview && (
                     <div className={styles.imagePreview}>
                         {typeof uploadState.preview === "string" && (
-                            <PostImage source={uploadState.preview} alt={"uploaded image preview"} onError={() => null} onLoad={() => null} />
+                            <PostImage
+                                source={uploadState.preview}
+                                alt={"uploaded image preview"}
+                                onError={() => null}
+                                onLoad={() => null}
+                                isLoading={uploadState.status === "UPLOADING"}
+                            />
                         )}
                         <div
                             className={styles.changeImage}
@@ -456,7 +462,7 @@ export default function Editor({
                                 />
                                 <ul className={styles.communities}>
                                     {loadingUserCommunities ? (
-                                        <LineSpinner width="24px"/>
+                                        <LineSpinner spinnerRadius="24px"/>
                                     ) : displayedCommunities.length > 0 ? (
                                         displayedCommunities.map(
                                             (community: CommunityINI) => (

@@ -15,7 +15,7 @@ export default function SearchResultsList({
     return (
         <div className={styles.resultsList} onClick={clearInput}>
             {loading ? (
-                <LineSpinner width="24px" />
+                <LineSpinner spinnerRadius="24px" />
             ) : results && results.length !== 0 ? (
                 results.map((result, id) => (
                     <SearchResult result={result} key={id} />

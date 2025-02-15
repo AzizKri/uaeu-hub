@@ -257,7 +257,7 @@ export default function Community() {
     };
 
     return loadingInfo || !info ? (
-        <LineSpinner width={"200px"} />
+        <LineSpinner spinnerRadius={"200px"} />
     ) : (
         <div className={styles.container}>
             {showEditor && (

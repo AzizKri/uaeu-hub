@@ -61,7 +61,7 @@ export default function Search() {
                 {showResults && (
                     <ul className={styles.communities}>
                         {loadingUserCommunities ? (
-                            <LineSpinner width="24px" />
+                            <LineSpinner spinnerRadius="24px" />
                         ) : results.length > 0 ? (
                             results.map((community: CommunityINI) => (
                                 <li
