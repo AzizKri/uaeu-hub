@@ -178,20 +178,20 @@ export default function Terms() {
                 <p>
                     You agree to indemnify and hold UAEU Chat and its affiliates, administrators, moderators, and agents
                     harmless from any claims, damages, losses, liabilities, and expenses (including legal fees) arising
-                    out of or related to your use of SpaceRead, violation of these Terms of Service, or infringement of
+                    out of or related to your use of UAEU Chat, violation of these Terms of Service, or infringement of
                     any third-party rights.
                 </p>
 
                 <p>
                     You are responsible for any claims or demands made by third parties resulting from your actions or
-                    omissions, including the content you upload, share, or distribute on SpaceRead and your conduct on
+                    omissions, including the content you upload, share, or distribute on UAEU Chat and your conduct on
                     the platform.
                 </p>
 
                 <h3>Governing Law and Jurisdiction</h3>
 
                 <p>
-                    These Terms of Service and any disputes arising out of or related to SpaceRead shall be governed by
+                    These Terms of Service and any disputes arising out of or related to UAEU Chat shall be governed by
                     and construed in accordance with the laws of the United Arab Emirates (UAE). Any legal action or
                     proceeding arising out of or relating to these Terms shall be exclusively subject to the
                     jurisdiction of the courts of the UAE.
