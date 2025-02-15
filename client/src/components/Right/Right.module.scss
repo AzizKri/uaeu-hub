@@ -1,11 +1,14 @@
+.right {
+    overflow-y: auto;
+    top: 80px;
+    position: sticky;
+}
+
 .container {
     padding: 15px;
     background-color: white;
     border-radius: 10px;
     max-height: calc(100vh - 80px);
-    overflow-y: auto;
-    position: sticky;
-    top: 80px;
 
     .title {
         font-weight: bold;
@@ -17,6 +20,27 @@
     .list {
         > div {
             margin-block: 5px;
+        }
+    }
+}
+
+.footer {
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+
+    .footerLinks {
+        display: flex;
+        gap: 10px;
+        margin-top: 5px;
+
+        a {
+            color: #666;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
         }
     }
 }

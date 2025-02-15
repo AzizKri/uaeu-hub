@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { getCommunities } from '../../api/communities.ts';
 import CommunityPreview from '../Communities/CommunityPreview/CommunityPreview.tsx';
 import { getNotifications } from '../../api/notifications.ts';
+import {Link} from "react-router-dom";
 
 export default function Right() {
     const [trendingCommunities, setTrendingCommunities] = useState<
@@ -10,6 +11,8 @@ export default function Right() {
     >([]);
 
     const [notifications, setNotifications] = useState<Notification[]>([]);
+
+    const year = new Date().getFullYear();
 
     useEffect(() => {
         getCommunities('members').then((res) => {
@@ -95,47 +98,58 @@ export default function Right() {
     };
 
     return (
-        <div className={styles.container}>
-            <div className={styles.title}>
-                Trending Communities
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    width="24px"
-                    height="24px"
-                >
-                    <path
-                        d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z" />
-                </svg>
-            </div>
-            <ul className={styles.list}>
-                {trendingCommunities.map((com) => (
-                    <CommunityPreview
-                        key={com.id}
-                        icon={com.icon}
-                        name={com.name}
-                        id={com.id}
-                        members={com.memberCount}
-                        isMember={com.isMember}
-                        onJoin={onJoin}
-                    />
-                    // <li className={styles.community}>
-                    //     <img
-                    //         src={com.icon ? com.icon : communityIcon}
-                    //         alt="Community Icon"
-                    //         className={styles.communityIcon}
-                    //     />
-                    //     <span className={styles.communityName}>{com.name}</span>
-                    // </li>
-                ))}
+        <div className={styles.right}>
+            <div className={styles.container}>
+                <div className={styles.title}>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        width="24px"
+                        height="24px"
+                    >
+                        <path
+                            d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z"/>
+                    </svg>
+                    <span>Trending Communities</span>
+                </div>
+                <ul className={styles.list}>
+                    {trendingCommunities.map((com) => (
+                        <CommunityPreview
+                            key={com.id}
+                            icon={com.icon}
+                            name={com.name}
+                            id={com.id}
+                            members={com.memberCount}
+                            isMember={com.isMember}
+                            onJoin={onJoin}
+                        />
+                        // <li className={styles.community}>
+                        //     <img
+                        //         src={com.icon ? com.icon : communityIcon}
+                        //         alt="Community Icon"
+                        //         className={styles.communityIcon}
+                        //     />
+                        //     <span className={styles.communityName}>{com.name}</span>
+                        // </li>
+                    ))}
 
-                {notifications.map((notification) => (
-                    <div key={notification.id}>
-                        {notification.message}
-                        {notification.content}
-                    </div>
-                ))}
-            </ul>
+                    {notifications.map((notification) => (
+                        <div key={notification.id}>
+                            {notification.message}
+                            {notification.content}
+                        </div>
+                    ))}
+                </ul>
+            </div>
+
+            <div className={styles.footer}>
+                <span>© {year} UAEU Chat. Not affiliated with United Arab Emirates University. All rights reserved.</span>
+                <div className={styles.footerLinks}>
+                    <Link to="/terms">Terms of Service</Link>
+                    <Link to="/privacy">Privacy Policy</Link>
+                </div>
+            </div>
+
         </div>
     );
 }
