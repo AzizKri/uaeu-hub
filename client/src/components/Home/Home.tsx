@@ -42,7 +42,7 @@ export default function Home() {
                 {(posts.length > 0) ? posts : (loading ? <div className={styles.posts_container_text}>Loading...</div> :
                     <div className={styles.posts_container_text}>No posts yet... Be the first to write one!</div>)}
             </section>
-            {loading && <LineSpinner width="40px"/>}
+            {loading && <LineSpinner spinnerRadius="40px"/>}
         </div>
     );
 }

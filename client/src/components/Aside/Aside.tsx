@@ -15,6 +15,7 @@ import { getCommunitiesCurrentUser } from "../../api/currentUser.ts";
 import CreateCommunity from "../Communities/CreateCommunity/CreateCommunity.tsx";
 import {useUser} from "../../contexts/user/UserContext.ts";
 import {inActivateLeft} from "../../utils/tools.ts";
+import CommunityIconComponent from "../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 // import bookmarkIcon from "../../assets/bookmark-outline-thin.svg";
 // import settingIcon from "../../assets/cog-outline-thin.svg";
 
@@ -105,7 +106,7 @@ export default function Aside() {
                         className={`${styles.top_element} ${styles.element} ${active === "home" && styles.active}`}
                     >
                         <img src={homeIcon} alt="home" />
-                        <span>HOME</span>
+                        <span>Home</span>
                     </div>
                 </div>
             </li>
@@ -118,7 +119,7 @@ export default function Aside() {
                             className={`${styles.top_element} ${styles.element} ${active === "user" && styles.active}`}
                         >
                             <img src={accountIcon} alt="profile icon" />
-                            <span>PROFILE</span>
+                            <span>Profile</span>
                         </div>
                     </div>
                 </li>
@@ -133,7 +134,7 @@ export default function Aside() {
                     onClick={handleCommunities}
                 >
                     <img src={communityIcon} alt="community icon" />
-                    <span>COMMUNITIES</span>
+                    <span>Communities</span>
                     {isUser() && (
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -201,11 +202,14 @@ export default function Aside() {
                                     <div
                                         className={`${styles.user_community} ${styles.element}`}
                                     >
-                                        <img
-                                            src={community.icon}
-                                            alt="community"
-                                            className={styles.community_icon}
-                                        />
+                                        <div className={styles.communityIconWrapper}>
+                                            <CommunityIconComponent source={community.icon} />
+                                        </div>
+                                        {/*<img*/}
+                                        {/*    src={community.icon}*/}
+                                        {/*    alt="community"*/}
+                                        {/*    className={styles.community_icon}*/}
+                                        {/*/>*/}
                                         <span>{community.name}</span>
                                     </div>
                                 </div>
@@ -230,7 +234,7 @@ export default function Aside() {
                     onClick={() => handleSpaceRead("course")}
                 >
                     <img src={courseMaterial} alt="settings" />
-                    <span>COURSES MATERIAL</span>
+                    <span>Course Materials</span>
                     <img src={redirectImg} className={styles.redirectLogo} alt="redirect" />
                 </div>
             </li>
@@ -240,7 +244,7 @@ export default function Aside() {
                     onClick={() => handleSpaceRead("professor")}
                 >
                     <img src={professorIcon} alt="settings" />
-                    <span>PROFESSORS</span>
+                    <span>Professors</span>
                     <img src={redirectImg} className={styles.redirectLogo} alt="redirect" />
                 </div>
             </li>

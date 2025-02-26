@@ -73,7 +73,7 @@ export default function SearchUsers({ communityId }: { communityId: number }) {
             </div>
             <ul className={styles.communities}>
                 {loading ? (
-                    <LineSpinner width="24px" />
+                    <LineSpinner spinnerRadius="24px" />
                 ) : results.length > 0 ? (
                     results.map((user: UserInfo) => (
                         <li

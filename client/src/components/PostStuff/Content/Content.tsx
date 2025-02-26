@@ -49,7 +49,7 @@ export default function Content({
                 )}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
-            {isLoading && !error && <LineSpinner width="100px" />}
+            {isLoading && !error && <LineSpinner spinnerRadius="100px" />}
             {filename && !error && (
                 <PostImage
                     source={`${assetsBase}/attachments/${filename}`}
@@ -59,6 +59,7 @@ export default function Content({
                         setError(true);
                         setIsLoading(false);
                     }}
+                    isLoading={isLoading}
                     />
             )}
             {error && <p>Error Loading the image</p>}

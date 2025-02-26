@@ -248,7 +248,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                 )}
                 {repliesShown &&
                     (repliesLoading ? (
-                        <LineSpinner width={"20px"} />
+                        <LineSpinner />
                     ) : (
                         <>
                             {subComments.map((cur) => (

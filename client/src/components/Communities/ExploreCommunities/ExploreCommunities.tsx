@@ -27,7 +27,7 @@ export default function ExploreCommunities() {
             .finally(() => setIsLoading(false));
     }, []);
 
-    return isLoading ? (<LineSpinner width={"200px"} />) : (
+    return isLoading ? (<LineSpinner spinnerRadius={"200px"} />) : (
         <div className={styles.container}>
             <div className={styles.header}>
                 <Search/>
