@@ -1,7 +1,7 @@
 import styles from "./Skeleton.module.scss";
 
 type SkeletonProps = {
-    type: "post" | "community";
+    type: "post" | "community" | "notification";
 };
 
 export default function Skeleton({ type }: SkeletonProps) {
@@ -19,6 +19,10 @@ export default function Skeleton({ type }: SkeletonProps) {
                 <div className={styles.avatarSkeleton} />
                 <div className={styles.lineSkeleton} style={{ width: "60%" }} />
             </div>
+        );
+    } else if (type === "notification") {
+        return (
+            <div className={styles.lineSkeleton} style={{width: "90%"}}/>
         );
     }
     return null;
