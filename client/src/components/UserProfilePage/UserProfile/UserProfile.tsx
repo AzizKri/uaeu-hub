@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "./UserProfile.module.scss";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { getUserByUsername } from "../../../api/users.ts";
 import EditUserPopUp from "../EditUserPopUp/EditUserPopUp.tsx";
 import UserPosts from "../UserPosts/UserPosts.tsx";
@@ -12,13 +12,15 @@ import {useUser} from "../../../contexts/user/UserContext.ts";
 import UserProfileSkeleton from "./UserProfileSkeleton.tsx";
 import {changePassword} from "../../../api/authentication.ts";
 import ConfirmationPopUp from "../../UserAuthentication/ConfirmationPopUp/ConfirmationPopUp.tsx";
+import UserNotifications from "../UserNotifications/UserNotifications.tsx";
 
-type tab = "Posts" | "Communities" | "Likes"
+type tab = "Posts" | "Communities" | "Likes" | "Notifications"
 
 const authTabs: {label: tab }[] = [
     { label: "Posts" },
     { label: "Communities" },
     { label: "Likes" },
+    { label: "Notifications" },
 ];
 
 const tabs: {label: tab}[] = [{ label: "Posts" }, { label: "Communities" }];
@@ -36,6 +38,7 @@ export default function UserProfile() {
     const [showConfirmationPopup, setShowConfirmationPopup] = useState(false);
     const [success, setSuccess] = useState<boolean>(false);
     const [confirmationMessage, setConfirmationMessage] = useState<string>("");
+    const location = useLocation();
 
     useEffect(() => {
         console.log("requesting user");
@@ -59,10 +62,13 @@ export default function UserProfile() {
                         email: data.email,
                     });
                 }
+                if (location.state && location.state.activeTab) {
+                    setActiveTab(location.state.activeTab);
+                }
                 setIsLoading(false);
             });
         }
-    }, [username, profileUser?.displayName, profileUser?.bio, profileUser?.pfp]);
+    }, [username, profileUser?.displayName, profileUser?.bio, profileUser?.pfp, location]);
 
     const handleTabClick = (tabLabel: tab) => {
         setActiveTab(tabLabel);
@@ -247,13 +253,15 @@ export default function UserProfile() {
 
             <div className={styles.tabContent}>
                 {activeTab === "Posts" ? (
-                    <UserPosts />
+                    <UserPosts/>
                 ) : activeTab === "Communities" ? (
                     <UserCommunities
                         id={profileUser?.id ? profileUser.id : -1}
                     />
                 ) : activeTab === "Likes" ? (
-                    <UserLikes />
+                    <UserLikes/>
+                ) : activeTab === "Notifications" ? (
+                    <UserNotifications/>
                 ) : (
                     <></>
                 )}
