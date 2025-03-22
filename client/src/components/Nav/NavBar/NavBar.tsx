@@ -6,6 +6,7 @@ import logo from "../../../assets/logo-text-2.svg";
 import { goToAuth } from "../../../utils/tools.ts";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
+import Notification from "../../Notifications/Notification.tsx";
 
 export default function NavBar() {
     const { isUser, user } = useUser();
@@ -71,12 +72,15 @@ export default function NavBar() {
                 <div className={styles.right}>
                     <div className={styles.auth_buttons}>
                         {isUser() ? (
+                            <>
+                            <Notification />
                             <div
                                 className={styles.userIcon}
                                 onClick={handleIconClick}
                             >
                                 <ProfilePictureComponent source={user?.pfp} />
                             </div>
+                            </>
                         ) : (
                             <>
                                 <div
