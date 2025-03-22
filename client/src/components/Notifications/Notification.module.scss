@@ -1,0 +1,40 @@
+.notificationContainer {
+    position: relative;
+    margin-right: 10px;
+
+    .icon {
+        position: relative;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+
+        &:hover {
+            background-color: rgba(215, 66, 12, 0.1);
+        }
+
+        svg {
+            color: #333;
+        }
+    }
+
+    .badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: #d7420c;
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
