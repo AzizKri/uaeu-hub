@@ -4,7 +4,7 @@ export async function handleComment(env: Env, { senderId, entityId, parentPostId
     // Get the receiver ID and generate a message to send through websocket
     const parentPost = await getEntity(env, parentPostId, 'post') as PostRow;
     const receiverId = parentPost.author_id
-    const message = `{user.${senderId}} commented your post!{comment.${entityId}!}`
+    const message = `{user.${senderId}} commented on your post!{comment.${entityId}!}`
 
     // Insert notification into DB
     await env.DB.prepare(`
