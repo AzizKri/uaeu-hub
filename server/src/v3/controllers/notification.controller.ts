@@ -131,7 +131,7 @@ export async function readNotifications(c: Context) {
         // Mark all notifications as read
         await env.DB.prepare(`
             UPDATE notification
-            SET is_read = 1
+            SET read = 1
             WHERE recipient_id = ?
         `).bind(userId).run();
 
