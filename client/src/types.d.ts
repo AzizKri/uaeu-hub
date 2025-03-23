@@ -175,7 +175,7 @@ declare global {
         status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
         fileName?: string;
         file: File | null;
-        preview?: string | ArrayBuffer | null;
+        preview?: string | ArrayBuffer | ImageData | null;
     }
 
 }
