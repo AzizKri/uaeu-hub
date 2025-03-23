@@ -1,5 +1,4 @@
 import styles from "./Content.module.scss";
-import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import React, { useState } from "react";
 import {assetsBase} from "../../../api/api.ts";
 import PostImage from "../../Reusable/PostImage/PostImage.tsx";
@@ -49,7 +48,7 @@ export default function Content({
                 )}
             </div>
             {/*<ReadOnlyEditor content={editorContent} />*/}
-            {isLoading && !error && <LineSpinner spinnerRadius="100px" />}
+            {/*{isLoading && !error && <LineSpinner spinnerRadius="100px" />}*/}
             {filename && !error && (
                 <PostImage
                     source={`${assetsBase}/attachments/${filename}`}

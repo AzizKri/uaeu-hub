@@ -263,7 +263,7 @@ export default function Aside() {
                         onClick={() => setLogoutPopUpShown(true)}
                     >
                         <img src={logoutIcon} alt="logut icon" />
-                        <span>LOGOUT</span>
+                        <span>Logout</span>
                     </div>
                 </li>
             )}
