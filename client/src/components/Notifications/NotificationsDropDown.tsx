@@ -50,8 +50,8 @@ export default function NotificationsDropDown({
                 }
 
                 setNotifications(
-                    res.data.map(
-                        (notification: {
+                    res.data
+                        .map((notification: {
                             id: number;
                             recipient_id: number;
                             sender_id: number;
@@ -76,9 +76,9 @@ export default function NotificationsDropDown({
                             message: notification.message,
                             content: notification.content,
                             read: notification.read,
-                            createdAt: new Date(notification.created_at)
-                        })
-                    )
+                            createdAt: new Date(notification.created_at),
+                        }))
+                        .sort((a : Notification, b : Notification) => b.createdAt.getTime() - a.createdAt.getTime())
                 );
                 setLoading(false);
             } catch (error) {
@@ -89,6 +89,7 @@ export default function NotificationsDropDown({
 
         if (isVisible) {
             fetchNotifications();
+            console.log(notifications);
         }
     }, [isVisible]);
 
