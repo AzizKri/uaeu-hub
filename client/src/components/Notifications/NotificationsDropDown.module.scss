@@ -11,6 +11,13 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    @media (max-width: 480px) {
+        right: -75px;
+    }
+
+    @media (max-width: 370px) {
+        right: -84px;
+    }
 
     .header {
         display: flex;
