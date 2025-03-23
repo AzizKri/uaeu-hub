@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import styles from "./UserNotifications.module.scss";
 import { getNotifications, readNotifications } from "../../../api/notifications";
 import { Link } from "react-router-dom";
+import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 
 interface Notification {
     id: number;
@@ -145,7 +146,10 @@ export default function UserNotifications() {
 
             <div className={styles.notificationsList}>
                 {loading ? (
-                    <div className={styles.loading}>Loading notifications...</div>
+                    <div className={styles.loading}>
+                        <Skeleton type={'notification'}/>
+                        <Skeleton type={'notification'}/>
+                    </div>
                 ) : filteredNotifications.length > 0 ? (
                     filteredNotifications.map((notification) => (
                         <Link
