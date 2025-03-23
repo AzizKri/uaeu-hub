@@ -114,13 +114,11 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
                     // I don't know what is happening here
                     <CommunityIconComponent
                         source={
-                            uploadState.status === "COMPLETED" &&
+                            (uploadState.status === "COMPLETED" ||
+                                uploadState.status === "IDLE") &&
                             typeof uploadState.preview === "string"
                                 ? uploadState.preview
-                                : uploadState.status === "IDLE" &&
-                                    typeof uploadState.preview === "string"
-                                  ? uploadState.preview
-                                  : null
+                                : null
                         }
                     />
                 ) : (
