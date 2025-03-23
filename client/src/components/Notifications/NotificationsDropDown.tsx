@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import styles from "./NotificationsDropDown.module.scss";
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import { getNotifications, readNotifications } from "../../api/notifications.ts";
 import Skeleton from "../Reusable/Skeleton/Skeleton.tsx";
 import {useUser} from "../../contexts/user/UserContext.ts";
@@ -110,7 +110,6 @@ export default function NotificationsDropDown({
             return `${days}d ago`;
         }
 
-        // Older
         return date.toLocaleDateString();
     };
 
@@ -144,8 +143,13 @@ export default function NotificationsDropDown({
     };
 
     const handleViewAll = () => {
-        onClose(); // Close the dropdown
+        onClose();
         navigate(`/user/${user?.username}`, { state: { activeTab: "Notifications" } });
+    };
+
+    const handleNotificationClick = (link: string) => {
+        onClose();
+        navigate(link);
     };
 
     if (!isVisible) return null;
@@ -169,10 +173,10 @@ export default function NotificationsDropDown({
                     </div>
                 ) : notifications.length > 0 ? (
                     notifications.map((notification) => (
-                        <Link
+                        <div
                             key={notification.id}
-                            to={getNotificationLink(notification)}
                             className={styles.notificationLink}
+                            onClick={() => handleNotificationClick(getNotificationLink(notification))}
                         >
                             <div
                                 className={`${styles.notification} ${
@@ -188,7 +192,7 @@ export default function NotificationsDropDown({
                                     <div className={styles.content}>{notification.content}</div>
                                 )}
                             </div>
-                        </Link>
+                        </div>
                     ))
                 ) : (
                     <div className={styles.empty} >No notifications</div>
