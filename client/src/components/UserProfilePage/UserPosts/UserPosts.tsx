@@ -121,7 +121,7 @@ function UserPosts() {
     ) : (
         <>
             <div className={styles.userContentContainer}>{userPosts}</div>
-            {userPosts.length && !noMoreComments && (
+            {userPosts.length > 0 && !noMoreComments && (
                 <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMorePosts}/>
             )}
         </>

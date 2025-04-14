@@ -1,0 +1,149 @@
+.dropdown {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    width: 350px;
+    max-height: 450px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    @media (max-width: 480px) {
+        right: -75px;
+    }
+
+    @media (max-width: 370px) {
+        right: -84px;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #eee;
+
+        h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .markAllRead {
+            background: none;
+            border: none;
+            color: #d7420c;
+            font-size: 14px;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .notificationList {
+        overflow-y: auto;
+        max-height: 350px;
+
+        .notificationLink {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .notification {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: #f9f9f9;
+            }
+
+            &.unread {
+                background-color: rgba(215, 66, 12, 0.05);
+
+                &::before {
+                    content: "";
+                    display: block;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background-color: #d7420c;
+                    position: absolute;
+                    left: 8px;
+                    margin-top: 5px;
+                }
+
+                .notificationHeader, .message, .content {
+                    padding-left: 16px;
+                }
+            }
+
+            .notificationHeader {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 4px;
+
+                .sender {
+                    font-weight: 600;
+                    font-size: 14px;
+                }
+
+                .timestamp {
+                    font-size: 12px;
+                    color: #888;
+                }
+            }
+
+            .message {
+                font-size: 14px;
+                margin-bottom: 4px;
+            }
+
+            .content {
+                font-size: 13px;
+                color: #555;
+                background-color: #f5f5f5;
+                padding: 8px;
+                border-radius: 4px;
+                margin-top: 6px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        .loading, .empty {
+            padding: 20px;
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+        }
+    }
+
+    .footer {
+        padding: 12px 16px;
+        border-top: 1px solid #eee;
+        text-align: center;
+
+        .viewAll {
+            background: none;
+            border: none;
+            color: #d7420c;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+
+            &:hover {
+                background-color: rgba(215, 66, 12, 0.05);
+            }
+        }
+    }
+}

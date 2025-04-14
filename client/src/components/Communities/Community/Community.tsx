@@ -65,6 +65,7 @@ export default function Community() {
                     public: res.data.public,
                 });
                 setLoadingInfo(false);
+                setActiveTab("POST");
             });
         }
     }, [communityName]);
