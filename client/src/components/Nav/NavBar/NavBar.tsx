@@ -2,7 +2,7 @@ import Search from "../Search/Search.tsx";
 import styles from "./NavBar.module.scss";
 import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../../../assets/logo-text-2.svg";
+import logo from "../../../assets/ComUni.svg";
 import { goToAuth } from "../../../utils/tools.ts";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
