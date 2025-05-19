@@ -12,7 +12,7 @@ export async function handleComment(env: Env, { senderId, commentId, parentPostI
     await env.DB.prepare(`
         INSERT INTO notification (sender_id, recipient_id, type, action_entity_id, metadata)
         VALUES (?, ?, 'comment', ?, ?)
-    `).bind(senderId, receiverId, commentId, metadata).run();
+    `).bind(senderId, receiverId, commentId, JSON.stringify(metadata)).run();
 
     // Prepare payload
     const commentPayload: NotificationPayload.default = {

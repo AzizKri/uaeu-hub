@@ -13,7 +13,7 @@ export async function handleLike(env: Env, { senderId, entityId, entityType }: N
     await env.DB.prepare(`
         INSERT INTO notification (sender_id, recipient_id, type, metadata)
         VALUES (?, ?, 'like', ?)
-    `).bind(senderId, receiverId, metadata).run();
+    `).bind(senderId, receiverId, JSON.stringify(metadata)).run();
 
     // Prepare payload
     const likePayload: NotificationPayload.default = {
