@@ -211,17 +211,12 @@ type TagRow = {
 
 type NotificationView = {
     id: number;
-    recipient_id: number;
     sender_id: number;
+    recipient_id: number;
     sender: string;
-    sender_displayname: string;
     type: string;
-    entity_id: number;
-    entity_type: string;
-    parent_id: number;
-    parent_type: string;
-    message: string;
-    content?: string;
+    action_entity_id: number;
+    metadata?: string;
     read: boolean;
     created_at: number;
 }
