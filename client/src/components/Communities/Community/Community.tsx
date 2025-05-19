@@ -200,7 +200,12 @@ export default function Community() {
     };
 
     const handleAcceptInvitation = () => {
-        // TODO: implement accept invitation
+        if (info) joinCommunity(info.id).then((res) => {
+            console.log("res", res);
+            if (res === 200) {
+                setRole("Member");
+            }
+        });
     }
 
     const handleRejectInvitation = () => {
