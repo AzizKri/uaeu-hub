@@ -17,8 +17,9 @@ import xIcon from "../../../assets/x-14-white.svg";
 import plusIcon from "../../../assets/plus.svg";
 import { useNavigate } from "react-router-dom";
 import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
-import { debounce } from "../../../utils/tools.ts";
+import {dataURLtoFile, debounce, getDefaultIconForCommunity} from "../../../utils/tools.ts";
 import ImageUploader, {ImageUploaderMethods} from "../../Reusable/ImageUploader/ImageUploader.tsx";
+import {uploadIcon} from "../../../api/attachmets.ts";
 
 interface props {
     type: "CREATE" | "EDIT";
@@ -93,6 +94,13 @@ export default function CreateCommunity({
                 setUnSelectedTags(res.data);
             }
         });
+        if (!icon) {
+            setUploadState((prev) => ({
+                    ...prev,
+                    preview: getDefaultIconForCommunity("", false)
+                })
+            )
+        }
     }, [tags]);
 
 
@@ -103,7 +111,7 @@ export default function CreateCommunity({
         console.log("desc", descriptionState);
     };
 
-    const handleCreate = () => {
+    const handleCreate = async () => {
         if (nameState === "") {
             setNameError(true);
         }
@@ -116,12 +124,41 @@ export default function CreateCommunity({
         }
         if (descriptionState === "" || nameState === "") return;
         setIsCreating(true);
+        const currentUploadState: UploadState = uploadState;
+        if (currentUploadState.file === null && currentUploadState.status === "IDLE") {
+            console.log("yes status is idle and file is null");
+            currentUploadState.file = dataURLtoFile(currentUploadState.preview, nameState + ".png");
+
+            if (currentUploadState.file === null) {
+                console.error("can not convert the dataURL to file");
+                return;
+            }
+
+            const response = await uploadIcon(
+                currentUploadState.file,
+                "icon",
+            );
+
+            if (response.status === 201) {
+                currentUploadState.fileName = response.filename;
+            } else {
+                console.error(
+                    `Upload failed with status: ${response.status}`,
+                );
+                setUploadState({
+                    status: "ERROR",
+                    file: null,
+                    preview: null,
+                });
+            }
+        }
+        console.log("Upload state on create: ", currentUploadState);
         if (type === "CREATE") {
             createCommunity(
                 nameState,
                 descriptionState,
                 selectedTags.map((tag) => tag.name),
-                uploadState.fileName,
+                currentUploadState.fileName,
             )
                 .then((status) => {
                     if (status === 201) {
@@ -139,7 +176,7 @@ export default function CreateCommunity({
                 id,
                 nameState,
                 descriptionState,
-                uploadState.fileName,
+                currentUploadState.fileName,
                 selectedTags.map((tag) => tag.name),
             )
                 .then((status) => {
@@ -198,6 +235,12 @@ export default function CreateCommunity({
     const handleNameInput: ChangeEventHandler<HTMLInputElement> = (e) => {
         setNameError(false);
         setNameState(e.target.value);
+        if (uploadState.status !== "COMPLETED")
+            setUploadState((prev) => ({
+                    ...prev,
+                    preview: getDefaultIconForCommunity(e.target.value, false)
+                })
+            )
         if (e.target.value !== "") {
             setCheckingName(true);
             checkName(e.target.value);
@@ -230,7 +273,7 @@ export default function CreateCommunity({
         <Modal onClose={onClose}>
             <div className={styles.container}>
                 <div className={styles.loaderWrapper}>
-                    <ImageUploader type="COMMUNITY" setUploadState={setUploadState} uploadState={uploadState} ref={childRef}/>
+                    <ImageUploader type="COMMUNITY" setUploadState={setUploadState} uploadState={uploadState} communityName={nameState} ref={childRef}/>
                 </div>
                 {errorMessage && (
                     <div className={styles.errorMessage}>{errorMessage}</div>

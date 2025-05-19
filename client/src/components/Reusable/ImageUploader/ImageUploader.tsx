@@ -5,11 +5,13 @@ import { deleteAttachment, uploadIcon } from "../../../api/attachmets.ts";
 import DotsSpinner from "../Animations/DotsSpinner/DotsSpinner.tsx";
 import ProfilePictureComponent from "../ProfilePictureComponent/ProfilePictureComponent.tsx";
 import CommunityIconComponent from "../CommunityIconComponent/CommunityIconComponent.tsx";
+import {getDefaultIconForCommunity} from "../../../utils/tools.ts";
 
 interface ImageUploaderProps {
     type: "COMMUNITY" | "PROFILE";
     uploadState: UploadState;
     setUploadState: React.Dispatch<React.SetStateAction<UploadState>>;
+    communityName?: string;
 }
 
 export interface ImageUploaderMethods {
@@ -17,7 +19,7 @@ export interface ImageUploaderMethods {
 }
 
 export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
-    function ImageUploader({ type, uploadState, setUploadState }, ref) {
+    function ImageUploader({ type, uploadState, setUploadState, communityName }, ref) {
         const imageInputRef = useRef<HTMLInputElement>(null);
 
         useImperativeHandle(ref, () => {
@@ -40,6 +42,8 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
             const selectedFile = event.target.files?.[0];
             if (!selectedFile) return;
 
+            console.log("selected file", selectedFile);
+
             try {
                 setUploadState({
                     status: "UPLOADING",
@@ -50,6 +54,7 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
                 // Create preview
                 const reader = new FileReader();
                 reader.onload = (e) => {
+                    console.log("e", e);
                     setUploadState((prev) => ({
                         ...prev,
                         preview: e.target?.result || null,
@@ -58,7 +63,7 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
                 reader.readAsDataURL(selectedFile);
 
                 const response = await uploadIcon(
-                    [selectedFile],
+                    selectedFile,
                     type === "PROFILE" ? "pfp" : "icon",
                 );
 
@@ -96,7 +101,7 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
             setUploadState({
                 status: "IDLE",
                 file: null,
-                preview: null,
+                preview: communityName ? getDefaultIconForCommunity(communityName, false) : null,
             });
             if (imageInputRef.current) {
                 imageInputRef.current.value = "";

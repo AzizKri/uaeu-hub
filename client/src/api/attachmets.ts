@@ -76,12 +76,12 @@ export async function deleteAttachment(filename: string) {
 }
 
 // Upload pfp/icon
-export async function uploadIcon(attachments: File[], type: 'icon' | 'pfp') {
-    if (!attachments[0] || !allowedMimeTypes.includes(attachments[0].type)) {
+export async function uploadIcon(attachments: File, type: 'icon' | 'pfp') {
+    if (!attachments || !allowedMimeTypes.includes(attachments.type)) {
         return { status: 400 };
     }
     const formData = new FormData();
-    formData.append('files[]', attachments[0]);
+    formData.append('files[]', attachments);
     formData.append('source', type);
 
     const request = await fetch(base, {
