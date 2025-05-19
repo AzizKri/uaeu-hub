@@ -245,6 +245,20 @@ export async function getCommunityByName(c: Context) {
                     WHERE c.name = ?
                 `).bind(userId, name).first<CommunityRow>();
 
+                if (community && !community.role) {
+                    const isInvited = await env.DB.prepare(`
+                        SELECT *
+                        FROM community_invite as ci
+                        WHERE ci.community_id = ? AND ci.recipient_id = ?
+                    `).bind(community?.id, userId).first<CommunityRow>();
+
+                    if (isInvited) {
+                        community.role = "Invited";
+                    } else {
+                        community.role = "no-role";
+                    }
+                }
+
                 return c.json(community, { status: 200 });
             }
         }
@@ -298,6 +312,20 @@ export async function getCommunityById(c: Context) {
                     FROM community c
                     WHERE id = ?
                 `).bind(userId, id).first<CommunityRow>();
+
+                if (community && !community.role) {
+                    const isInvited = await env.DB.prepare(`
+                        SELECT *
+                        FROM community_invite as ci
+                        WHERE ci.community_id = ? AND ci.recipient_id = ?
+                    `).bind(community?.id, userId).first<CommunityRow>();
+
+                    if (isInvited) {
+                        community.role = "Invited";
+                    } else {
+                        community.role = "no-role";
+                    }
+                }
 
                 return c.json(community, { status: 200 });
             }
@@ -706,6 +734,8 @@ export async function inviteUserToCommunity(c: Context) {
             VALUES (?, ?, ?)
             RETURNING id
         `).bind(communityId, adminUserId, userId).first<CommunityInviteRow>();
+
+        // change the role of the user to invited
 
         // Send notification to user in the background
         c.executionCtx.waitUntil(createNotification(c, {
