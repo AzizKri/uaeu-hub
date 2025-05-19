@@ -189,6 +189,7 @@ declare global {
 
     interface SubcommentMetadata {
         parentCommentId: number;
+        parentPostId: number;
     }
 
     type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata;
