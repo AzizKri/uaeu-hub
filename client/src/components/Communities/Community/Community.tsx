@@ -9,7 +9,6 @@ import {
     joinCommunity,
     leaveCommunity,
 } from "../../../api/communities.ts";
-import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
 import arrowRight from "../../../assets/chevron-right.svg";
@@ -19,10 +18,8 @@ import Post from "../../PostStuff/Post/Post.tsx";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 import SearchUsers from "../SearchUsers/SearchUsers.tsx";
-// import {useUser} from "../../../contexts/user/UserContext.ts";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
 
-// export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
     // TODO: replace by getCommunityPosts() once it is implemented
     const {communityName} = useParams<{ communityName: string }>(); // Get the postId from the URL
@@ -265,9 +262,7 @@ export default function Community() {
             });
     };
 
-    return loadingInfo || !info ? (
-        <LineSpinner spinnerRadius={"200px"}/>
-    ) : (
+    return !loadingInfo || info && (
         <div className={styles.container}>
             {showEditor && (
                 <Modal onClose={() => setShowEditor(false)}>
