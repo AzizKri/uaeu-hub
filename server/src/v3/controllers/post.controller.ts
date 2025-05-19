@@ -459,8 +459,8 @@ export async function likePost(c: Context) {
             // This will still return the response without waiting though
             c.executionCtx.waitUntil(createNotification(c, {
                 senderId: userId,
-                action: 'like',
-                entityData: {
+                type: 'like',
+                metadata: {
                     entityId: postid,
                     entityType: 'post'
                 }
