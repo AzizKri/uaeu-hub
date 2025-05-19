@@ -40,14 +40,10 @@ export async function subcomment(c: Context) {
         // Begin sending a notification but do not wait
         c.executionCtx.waitUntil(createNotification(c, {
             senderId: userId,
-            action: 'subcomment',
-            entityData: {
-                entityType: 'subcomment',
-                entityId: subcommentD1!.id
-            },
-            parentEntityData: {
-                entityType: 'comment',
-                entityId: commentID
+            type: 'subcomment',
+            metadata: {
+                subcommentId: subcommentD1!.id,
+                parentCommentId: commentID
             }
         }));
 
@@ -191,8 +187,8 @@ export async function likeSubcomment(c: Context) {
             // Send a notification but do not wait
             c.executionCtx.waitUntil(createNotification(c, {
                 senderId: userId,
-                action: 'like',
-                entityData: {
+                type: 'like',
+                metadata: {
                     entityId: subcommentID,
                     entityType: 'subcomment'
                 }
