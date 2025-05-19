@@ -110,8 +110,13 @@ export async function getNotifications(c: Context) {
         //     results.push(notif);
         // }));
 
+        const results = notifications.results.map((row) => ({
+            ...row,
+            metadata: row.metadata ? JSON.parse(row.metadata) : {},
+        }));
+
         // Return results
-        return c.json(notifications.results, { status: 200 });
+        return c.json(results, { status: 200 });
     } catch (e) {
         console.log(e);
         return c.text('Internal Server Error', { status: 500 });

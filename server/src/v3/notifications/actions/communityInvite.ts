@@ -11,7 +11,7 @@ export async function handleCommunityInvite(env: Env, {
     await env.DB.prepare(`
                 INSERT INTO notification (sender_id, recipient_id, type, action_entity_id, metadata)
                 VALUES (?, ?, 'invite', ?, ?)
-            `).bind(senderId, receiverId, inviteId, { communityId: communityId }).run();
+            `).bind(senderId, receiverId, inviteId, JSON.stringify({ communityId: communityId })).run();
 
     const invitePayload: NotificationPayload.default = {
         senderId,
