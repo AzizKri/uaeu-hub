@@ -211,15 +211,12 @@ type TagRow = {
 
 type NotificationView = {
     id: number;
-    recipient_id: number;
     sender_id: number;
+    recipient_id: number;
     sender: string;
-    sender_displayname: string;
     type: string;
-    entity_id: number;
-    entity_type: string;
-    message: string;
-    content?: string;
+    action_entity_id: number;
+    metadata?: string;
     read: boolean;
     created_at: number;
 }
@@ -238,18 +235,16 @@ namespace NotificationPayload {
     export default interface NotificationPayload {
         senderId: number;
         receiverId: number;
-        action: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
-        entityId: number;
-        entityType: 'post' | 'comment' | 'subcomment' | 'user' | 'invite';
-        message: string;
+        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
+        actionEntityId?: number;
         content?: string;
+        metadata: {[key: string]: any};
     }
     export type IncomingNotificationPayload = {
         senderId: number;
         receiverId?: number;
-        action: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
-        entityData: { [key: string]: any };
-        parentEntityData?: { [key: string]: any };
+        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
+        metadata: NotificationMetadata[NotificationMetadata.Like | NotificationMetadata.Comment | NotificationMetadata.Subcomment];
     }
     export type Like = {
         senderId: number;
@@ -258,12 +253,12 @@ namespace NotificationPayload {
     }
     export type Comment = {
         senderId: number;
-        entityId: number;
+        commentId: number;
         parentPostId: number;
     }
     export type Subcomment = {
         senderId: number;
-        entityId: number;
+        subcommentId: number;
         parentCommentId: number;
     }
     export type Mention = {
@@ -277,6 +272,22 @@ namespace NotificationPayload {
         receiverId: number;
         inviteId: number;
         communityId: number;
+    }
+}
+
+namespace NotificationMetadata {
+    export type Like = {
+        likeId: number,
+        entityId: number,
+        entityType: 'post' | 'comment' | 'subcomment',
+    }
+    export type Comment = {
+        commentId: number,
+        parentPostId: number,
+    }
+    export type Subcomment = {
+        subcommentId: number,
+        parentCommentId: number,
     }
 }
 

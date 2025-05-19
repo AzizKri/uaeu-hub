@@ -41,14 +41,10 @@ export async function comment(c: Context) {
         // Begin sending a notification but do not wait
         c.executionCtx.waitUntil(createNotification(c, {
             senderId: userId,
-            action: 'comment',
-            entityData: {
-                entityType: 'comment',
-                entityId: commentId?.id
-            },
-            parentEntityData: {
-                entityType: 'post',
-                entityId: postID
+            type: 'comment',
+            metadata: {
+                commentId: commentId?.id,
+                parentPostId: postID
             }
         }));
 
@@ -188,8 +184,8 @@ export async function likeComment(c: Context) {
             // Send a notification but do not wait
             c.executionCtx.waitUntil(createNotification(c, {
                 senderId: userId,
-                action: 'like',
-                entityData: {
+                type: 'like',
+                metadata: {
                     entityId: commentId,
                     entityType: 'comment'
                 }

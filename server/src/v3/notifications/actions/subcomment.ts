@@ -1,26 +1,31 @@
-import { getEntity, sendToWebSocket } from '../helpers';
+import { getEntityAuthorId, sendToWebSocket } from '../helpers';
 
-export async function handleSubcomment(env: Env, { senderId, entityId, parentCommentId }: NotificationPayload.Subcomment) {
+export async function handleSubcomment(env: Env, {
+    senderId,
+    subcommentId,
+    parentCommentId
+}: NotificationPayload.Subcomment) {
     // Get the receiver ID and generate a message to send through websocket
-    const parentComment = await getEntity(env, parentCommentId, 'comment') as CommentRow;
-    const receiverId = parentComment.author_id
-    const message = `{user.${senderId}} replied to your comment!{subcomment.${entityId}!}`;
+    const receiverId: number = await getEntityAuthorId(env, parentCommentId, 'comment');
+    const parentPostId = await env.DB.prepare(`
+        SELECT parent_post_id
+        FROM comment
+        WHERE id = ?
+    `).bind(parentCommentId).first<number>();
 
     // Insert notification into DB
     await env.DB.prepare(`
-        INSERT INTO notification (sender_id, recipient_id, action, entity_id, entity_type, message)
-        VALUES (?, ?, 'subcomment', ?, 'comment', ?)
-    `).bind(senderId, receiverId, entityId, message).run();
+        INSERT INTO notification (sender_id, recipient_id, type, action_entity_id, metadata)
+        VALUES (?, ?, 'subcomment', ?, ?)
+    `).bind(senderId, receiverId, subcommentId, JSON.stringify({ parentCommentId })).run();
 
     // Prepare payload
     const subcommentPayload: NotificationPayload.default = {
         senderId: senderId,
         receiverId: receiverId,
-        action: 'subcomment',
-        entityId: entityId,
-        entityType: 'comment',
-        message: message,
-        content: parentComment.content
+        type: 'subcomment',
+        actionEntityId: subcommentId,
+        metadata: { parentCommentId, parentPostId }
     };
 
     // Send to websocket

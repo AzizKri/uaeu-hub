@@ -6,21 +6,21 @@ export async function handleCommunityInvite(env: Env, {
     inviteId,
     communityId
 }: NotificationPayload.Invite) {
-    const message = `{user.${senderId}} has invited you to the community '{community.${communityId}'!`
 
     // Insert notification into DB
     await env.DB.prepare(`
-                INSERT INTO notification (sender_id, recipient_id, action, entity_id, entity_type, message)
-                VALUES (?, ?, 'invite', ?, 'invite', ?)
-            `).bind(senderId, receiverId, inviteId, message).run();
+                INSERT INTO notification (sender_id, recipient_id, type, action_entity_id, metadata)
+                VALUES (?, ?, 'invite', ?, ?)
+            `).bind(senderId, receiverId, inviteId, JSON.stringify({ communityId: communityId })).run();
 
     const invitePayload: NotificationPayload.default = {
         senderId,
         receiverId,
-        action: 'invite',
-        entityId: inviteId,
-        entityType: 'invite',
-        message
+        type: 'invite',
+        actionEntityId: inviteId,
+        metadata: {
+            communityId: communityId
+        }
     };
     await sendToWebSocket(env, invitePayload);
 }

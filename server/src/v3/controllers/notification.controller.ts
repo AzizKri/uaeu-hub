@@ -22,91 +22,97 @@ export async function getNotifications(c: Context) {
             LIMIT 10 OFFSET ?
         `).bind(userId, offset).all<NotificationView>();
 
-        // Define function for handling hidden entities
-        // This is used for including a post's content after a like for example
-        // as a 'content' attribute instead of directly in the message
-        const handleRequestEntry = async (entityType: string, entityId: number) => {
-            console.log('Handling Request:', entityType, entityId);
-            switch (entityType) {
-                case 'post':
-                    return await env.DB.prepare(`
-                        SELECT content
-                        FROM post
-                        WHERE id = ?
-                    `).bind(entityId).first<{ content: string }>();
-                case 'comment':
-                    return await env.DB.prepare(`
-                        SELECT content
-                        FROM comment
-                        WHERE id = ?
-                    `).bind(entityId).first<{ content: string }>();
-                case 'subcomment':
-                    return await env.DB.prepare(`
-                        SELECT content
-                        FROM subcomment
-                        WHERE id = ?
-                    `).bind(entityId).first<{ content: string }>();
-                default:
-                    return { content: '' };
-            }
-        };
+        // // Define function for handling hidden entities
+        // // This is used for including a post's content after a like for example
+        // // as a 'content' attribute instead of directly in the message
+        // const handleRequestEntry = async (entityType: string, entityId: number) => {
+        //     console.log('Handling Request:', entityType, entityId);
+        //     switch (entityType) {
+        //         case 'post':
+        //             return await env.DB.prepare(`
+        //                 SELECT content
+        //                 FROM post
+        //                 WHERE id = ?
+        //             `).bind(entityId).first<{ content: string }>();
+        //         case 'comment':
+        //             return await env.DB.prepare(`
+        //                 SELECT content
+        //                 FROM comment
+        //                 WHERE id = ?
+        //             `).bind(entityId).first<{ content: string }>();
+        //         case 'subcomment':
+        //             return await env.DB.prepare(`
+        //                 SELECT content
+        //                 FROM subcomment
+        //                 WHERE id = ?
+        //             `).bind(entityId).first<{ content: string }>();
+        //         default:
+        //             return { content: '' };
+        //     }
+        // };
+        //
+        // // Initialize new array for results
+        // let results: NotificationView[] = [];
+        //
+        // // Define regex for matching entities {entity.id} or {entity.id!} for hidden entities
+        // const entityRegex = /{(\w+)\.(\d+)(!)?}/gi;
+        //
+        // // Iterate over notifications and match entities
+        // await Promise.all(notifications.results.map(async (notif) => {
+        //     // Create array of matches
+        //     const matches = Array.from(notif.message.matchAll(entityRegex));
+        //
+        //     // Iterate
+        //     for (const match of matches) {
+        //         const [fullMatch, entity, id, hidden] = match;
+        //         console.log('Match:', fullMatch, entity, id, hidden);
+        //
+        //         // Handle hidden entities
+        //         if (hidden) {
+        //             // Get content of entity
+        //             const entityObj = await handleRequestEntry(entity, parseInt(id));
+        //             // TODO Handle {entity.id&} for hidden link
+        //             // Append content
+        //             notif = { ...notif, content: entityObj!.content };
+        //             // Replace hidden entity with empty string
+        //             notif.message = notif.message.replace(fullMatch, '');
+        //         } else {
+        //             // Handle visible entities
+        //             switch (entity.toLowerCase()) {
+        //                 case 'user':
+        //                     // Mention
+        //                     const username = await env.DB.prepare(`
+        //                         SELECT username
+        //                         FROM user
+        //                         WHERE id = ?
+        //                     `).bind(parseInt(id)).first<{ username: string }>();
+        //                     // Replace entity with username
+        //                     notif.message = notif.message.replace(fullMatch, `@${username!.username}`);
+        //                     break;
+        //                 case 'community':
+        //                     // Invite
+        //                     const community = await env.DB.prepare(`
+        //                         SELECT name
+        //                         FROM community
+        //                         WHERE id = ?
+        //                     `).bind(parseInt(id)).first<{ name: string }>();
+        //                     // Replace entity with community name
+        //                     notif.message = notif.message.replace(fullMatch, community!.name);
+        //                     break;
+        //                 default:
+        //                     // Nothing?
+        //                     break;
+        //             }
+        //         }
+        //     }
+        //
+        //     // Push notification to results
+        //     results.push(notif);
+        // }));
 
-        // Initialize new array for results
-        let results: NotificationView[] = [];
-
-        // Define regex for matching entities {entity.id} or {entity.id!} for hidden entities
-        const entityRegex = /{(\w+)\.(\d+)(!)?}/gi;
-
-        // Iterate over notifications and match entities
-        await Promise.all(notifications.results.map(async (notif) => {
-            // Create array of matches
-            const matches = Array.from(notif.message.matchAll(entityRegex));
-
-            // Iterate
-            for (const match of matches) {
-                const [fullMatch, entity, id, hidden] = match;
-                console.log('Match:', fullMatch, entity, id, hidden);
-
-                // Handle hidden entities
-                if (hidden) {
-                    // Get content of entity
-                    const entityObj = await handleRequestEntry(entity, parseInt(id));
-                    // Append content
-                    notif = { ...notif, content: entityObj!.content };
-                    // Replace hidden entity with empty string
-                    notif.message = notif.message.replace(fullMatch, '');
-                } else {
-                    // Handle visible entities
-                    switch (entity.toLowerCase()) {
-                        case 'user':
-                            // Mention
-                            const username = await env.DB.prepare(`
-                                SELECT username
-                                FROM user
-                                WHERE id = ?
-                            `).bind(parseInt(id)).first<{ username: string }>();
-                            // Replace entity with username
-                            notif.message = notif.message.replace(fullMatch, `@${username!.username}`);
-                            break;
-                        case 'community':
-                            // Invite
-                            const community = await env.DB.prepare(`
-                                SELECT name
-                                FROM community
-                                WHERE id = ?
-                            `).bind(parseInt(id)).first<{ name: string }>();
-                            // Replace entity with community name
-                            notif.message = notif.message.replace(fullMatch, community!.name);
-                            break;
-                        default:
-                            // Nothing?
-                            break;
-                    }
-                }
-            }
-
-            // Push notification to results
-            results.push(notif);
+        const results = notifications.results.map((row) => ({
+            ...row,
+            metadata: row.metadata ? JSON.parse(row.metadata) : {},
         }));
 
         // Return results
