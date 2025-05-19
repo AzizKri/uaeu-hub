@@ -1,28 +1,16 @@
 import { useState, useEffect } from "react";
 import styles from "./UserNotifications.module.scss";
 import { getNotifications, readNotifications } from "../../../api/notifications";
-import { Link } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
+import {getFormattedDate} from "../../../utils/tools.ts";
 
-interface Notification {
-    id: number;
-    recipientId: number;
-    senderId: number;
-    sender: string;
-    senderDisplayname: string;
-    type: string;
-    entityId: number;
-    entityType: string;
-    message: string;
-    content?: string;
-    read: boolean;
-    createdAt: Date;
-}
 
 export default function UserNotifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "unread">("all");
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchNotifications();
@@ -39,35 +27,29 @@ export default function UserNotifications() {
             }
 
             setNotifications(
-                res.data.map(
-                    (notification: {
+                res.data
+                    .map((notification: {
                         id: number;
+                        action_entity_id: number;
                         recipient_id: number;
                         sender_id: number;
                         sender: string;
-                        sender_displayname: string;
                         type: string;
-                        entity_id: number;
-                        entity_type: string;
-                        message: string;
-                        content?: string;
                         read: boolean;
+                        metadata: JSON;
                         created_at: number;
                     }) => ({
                         id: notification.id,
                         recipientId: notification.recipient_id,
                         senderId: notification.sender_id,
                         sender: notification.sender,
-                        senderDisplayname: notification.sender_displayname,
                         type: notification.type,
-                        entityId: notification.entity_id,
-                        entityType: notification.entity_type,
-                        message: notification.message,
-                        content: notification.content,
+                        actionEntityId: notification.action_entity_id,
                         read: notification.read,
-                        createdAt: new Date(notification.created_at)
-                    })
-                )
+                        metadata: notification.metadata,
+                        createdAt: new Date(notification.created_at),
+                    }))
+                    .sort((a : Notification, b : Notification) => b.createdAt.getTime() - a.createdAt.getTime())
             );
             setLoading(false);
         } catch (error) {
@@ -76,15 +58,6 @@ export default function UserNotifications() {
         }
     };
 
-    const formatTime = (date: Date) => {
-        return date.toLocaleString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
 
     const handleMarkAllAsRead = async () => {
         try {
@@ -101,16 +74,35 @@ export default function UserNotifications() {
     };
 
     const getNotificationLink = (notification: Notification) => {
-        switch (notification.entityType) {
-            case 'post':
-                return `/post/${notification.entityId}`;
+        switch (notification.type) {
+            case 'like':
+            { const metadata = notification.metadata as LikeMetadata;
+                return `/post/${metadata.entityId}`; }
             case 'comment':
-                return `/post/${notification.entityId}#comments`;
-            case 'user':
-                return `/user/${notification.sender}`;
+            { const metadata = notification.metadata as CommentMetadata;
+                return `/post/${metadata.parentPostId}`; }
+            case 'subcomment':
+            {  const metadata = notification.metadata as SubcommentMetadata;
+                return `/post/${metadata.parentCommentId}`; }
             default:
                 return '#';
         }
+    };
+
+    const getMessage= (notification: Notification) => {
+        switch (notification.type) {
+            case 'like':
+                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</>;
+            case 'comment':
+                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> commented on your post!</>;
+            case 'subcomment':
+                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</>;
+            default:
+                return '#';
+        }
+    }
+    const handleNotificationClick = (link: string) => {
+        navigate(link);
     };
 
     const filteredNotifications = filter === "all"
@@ -152,24 +144,21 @@ export default function UserNotifications() {
                     </div>
                 ) : filteredNotifications.length > 0 ? (
                     filteredNotifications.map((notification) => (
-                        <Link
+                        <div
                             key={notification.id}
-                            to={getNotificationLink(notification)}
+                            onClick={() => handleNotificationClick(getNotificationLink(notification))}
                             className={styles.notificationLink}
                         >
                             <div className={`${styles.notification} ${!notification.read ? styles.unread : ""}`}>
                                 <div className={styles.content}>
                                     <div className={styles.notificationHeader}>
-                                        <span className={styles.sender}>{notification.senderDisplayname}</span>
-                                        <span className={styles.timestamp}>{formatTime(notification.createdAt)}</span>
+                                        <span className={styles.sender}>{notification.sender}</span>
+                                        <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
                                     </div>
-                                    <div className={styles.message}>{notification.message}</div>
-                                    {notification.content && (
-                                        <div className={styles.preview}>{notification.content}</div>
-                                    )}
+                                    <div className={styles.message}>{getMessage(notification)}</div>
                                 </div>
                             </div>
-                        </Link>
+                        </div>
                     ))
                 ) : (
                     <div className={styles.empty}>

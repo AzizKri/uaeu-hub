@@ -178,6 +178,33 @@ declare global {
         preview?: string | ArrayBuffer | ImageData | null;
     }
 
+    interface LikeMetadata {
+        entityId: number;
+        entityType: string;
+    }
+
+    interface CommentMetadata {
+        parentPostId: number;
+    }
+
+    interface SubcommentMetadata {
+        parentCommentId: number;
+    }
+
+    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata;
+
+    interface Notification {
+        id: number;
+        actionEntityId: number;
+        recipientId: number;
+        senderId: number;
+        sender: string;
+        type: string;
+        read: boolean;
+        metadata: NotificationMetadata;
+        createdAt: Date;
+    }
+
 }
 
 export {};
