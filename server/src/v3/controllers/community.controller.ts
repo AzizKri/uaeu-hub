@@ -711,8 +711,8 @@ export async function inviteUserToCommunity(c: Context) {
         c.executionCtx.waitUntil(createNotification(c, {
             senderId: adminUserId,
             receiverId: userId,
-            action: 'invite',
-            entityData: {
+            type: 'invite',
+            metadata: {
                 inviteId: invite!.id,
                 communityId: communityId,
             }
