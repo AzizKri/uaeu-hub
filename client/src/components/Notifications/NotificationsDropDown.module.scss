@@ -82,6 +82,9 @@
                 .notificationHeader, .message, .content {
                     padding-left: 16px;
                 }
+                &.unread:hover {
+                    background-color: rgba(215, 66, 12, 0.15);
+                }
             }
 
             .notificationHeader {
@@ -145,5 +148,13 @@
                 background-color: rgba(215, 66, 12, 0.05);
             }
         }
+    }
+    .senderLink{
+        text-decoration: none;
+        color: black;
+        transition: 0.3s ease-in-out;
+    }
+    .senderLink:hover{
+        text-decoration: underline;
     }
 }
