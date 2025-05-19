@@ -83,7 +83,7 @@ export default function UserNotifications() {
                 return `/post/${metadata.parentPostId}`; }
             case 'subcomment':
             {  const metadata = notification.metadata as SubcommentMetadata;
-                return `/post/${metadata.parentCommentId}`; }
+                return `/post/${metadata.parentPostId}`; }
             default:
                 return '#';
         }
@@ -152,7 +152,7 @@ export default function UserNotifications() {
                             <div className={`${styles.notification} ${!notification.read ? styles.unread : ""}`}>
                                 <div className={styles.content}>
                                     <div className={styles.notificationHeader}>
-                                        <span className={styles.sender}>{notification.sender}</span>
+                                        <span className={styles.sender}>You Received a Notification!</span>
                                         <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
                                     </div>
                                     <div className={styles.message}>{getMessage(notification)}</div>
