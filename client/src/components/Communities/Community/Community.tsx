@@ -1,6 +1,6 @@
 import styles from "./Community.module.scss";
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useParams} from "react-router-dom";
 import {
     deleteCommunity,
     getCommunityByName,
@@ -19,15 +19,15 @@ import Post from "../../PostStuff/Post/Post.tsx";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 import SearchUsers from "../SearchUsers/SearchUsers.tsx";
-import { useUser } from "../../../contexts/user/UserContext.ts";
+// import {useUser} from "../../../contexts/user/UserContext.ts";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
 
 // export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
     // TODO: replace by getCommunityPosts() once it is implemented
-    const { communityName } = useParams<{ communityName: string }>(); // Get the postId from the URL
+    const {communityName} = useParams<{ communityName: string }>(); // Get the postId from the URL
     const [info, setInfo] = useState<CommunityInfo>();
-    const [role, setRole] = useState<"Administrator" | "Member">();
+    const [role, setRole] = useState<"Administrator" | "Member" | "Invited" | "no-role">();
     const [activeTab, setActiveTab] = useState<
         "POST" | "ABOUT" | "MEMBER" | "SETTINGS"
     >("POST");
@@ -39,7 +39,7 @@ export default function Community() {
     const [showEditor, setShowEditor] = useState<boolean>(false);
     const [showCommunityEditor, setShowCommunityEditor] =
         useState<boolean>(false);
-    const { isUser } = useUser();
+    // const {isUser} = useUser();
     const [searchMembersVal, setSearchMembersVal] = useState<string>("");
     const [showInviteMembersModal, setShowInviteMembersModal] =
         useState<boolean>(false);
@@ -167,8 +167,8 @@ export default function Community() {
                 (mem: UserInfo) =>
                     mem.role === "Member" &&
                     (mem.username
-                        .toLowerCase()
-                        .includes(searchMembersVal.toLowerCase()) ||
+                            .toLowerCase()
+                            .includes(searchMembersVal.toLowerCase()) ||
                         mem.displayName
                             .toLowerCase()
                             .includes(searchMembersVal.toLowerCase())),
@@ -179,8 +179,8 @@ export default function Community() {
                 (mem: UserInfo) =>
                     mem.role === "Administrator" &&
                     (mem.username
-                        .toLowerCase()
-                        .includes(searchMembersVal.toLowerCase()) ||
+                            .toLowerCase()
+                            .includes(searchMembersVal.toLowerCase()) ||
                         mem.displayName
                             .toLowerCase()
                             .includes(searchMembersVal.toLowerCase())),
@@ -201,6 +201,14 @@ export default function Community() {
             }
         }
     };
+
+    const handleAcceptInvitation = () => {
+        // TODO: implement accept invitation
+    }
+
+    const handleRejectInvitation = () => {
+        // TODO: implement reject invitation
+    }
 
     const handlePosts = () => {
         setActiveTab("POST");
@@ -258,7 +266,7 @@ export default function Community() {
     };
 
     return loadingInfo || !info ? (
-        <LineSpinner spinnerRadius={"200px"} />
+        <LineSpinner spinnerRadius={"200px"}/>
     ) : (
         <div className={styles.container}>
             {showEditor && (
@@ -274,37 +282,53 @@ export default function Community() {
                 <div className={styles.header_top}>
                     <div className={styles.info}>
                         <div className={styles.icon}>
-                            <CommunityIconComponent source={info.icon} />
+                            <CommunityIconComponent source={info.icon}/>
                         </div>
                         <div className={styles.community_name}>{info.name}</div>
                     </div>
                     <div className={styles.actions}>
-                        {role && (
-                            <button
-                                className={styles.create}
-                                onClick={handleCreatePost}
-                            >
-                                {/*plus icon*/}
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    width="24px"
-                                    height="24px"
-                                    fill="currentColor"
+                        {
+                            role === "Member" || role === "Administrator" ? (
+                                <button
+                                    className={styles.create}
+                                    onClick={handleCreatePost}
                                 >
-                                    <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                                </svg>
-                                Create Post
-                            </button>
-                        )}
-                        {isUser() && (
-                            <button
-                                className={styles.join}
-                                onClick={handleJoinLeave}
-                            >
-                                {role ? "Leave" : "Join"}
-                            </button>
-                        )}
+                                    {/*plus icon*/}
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        width="24px"
+                                        height="24px"
+                                        fill="currentColor"
+                                    >
+                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                                    </svg>
+                                    Create Post
+                                </button>
+                            ) : role === "Invited" ? (
+                                <>
+                                    <button
+                                        className={styles.join}
+                                        onClick={handleAcceptInvitation}
+                                    >
+                                        Accept Invitation
+                                    </button>
+                                    <button
+                                        className={styles.create}
+                                        onClick={handleRejectInvitation}
+                                    >
+                                        Reject Invitation
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    className={styles.join}
+                                    onClick={handleJoinLeave}
+                                >
+                                    Join
+                                </button>
+                            )
+                        }
                     </div>
                 </div>
                 {/*<p className={styles.description}>{info.description}</p>*/}
@@ -343,7 +367,7 @@ export default function Community() {
                         <div className={styles.posts}>
                             {posts}
                             {!noMorePosts && (
-                                <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMorePosts} />
+                                <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMorePosts}/>
                             )}
                         </div>
                     ) : (
@@ -439,27 +463,27 @@ export default function Community() {
                             onClick={handleEditCommunity}
                         >
                             Edit Community Information
-                            <img src={arrowRight} alt="arrowRight" />
+                            <img src={arrowRight} alt="arrowRight"/>
                         </li>
                         <li
                             className={styles.setting}
                             onClick={handleInviteMembers}
                         >
                             Invite Members
-                            <img src={arrowRight} alt="arrowRight" />
+                            <img src={arrowRight} alt="arrowRight"/>
                             {showInviteMembersModal && (
                                 <Modal onClose={handleCloseInviteModal}>
-                                    <SearchUsers communityId={info.id} />
+                                    <SearchUsers communityId={info.id}/>
                                 </Modal>
                             )}
                         </li>
                         <li
                             className={styles.setting}
                             onClick={() => setShowDeleteModal(true)}
-                            style={{ color: "#f33" }}
+                            style={{color: "#f33"}}
                         >
                             Delete Community
-                            <img src={arrowRight} alt="arrowRight" />
+                            <img src={arrowRight} alt="arrowRight"/>
                             {showDeleteModal && (
                                 <YesNoPopUp
                                     title={"Delete Community"}

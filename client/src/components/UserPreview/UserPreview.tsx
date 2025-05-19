@@ -17,7 +17,7 @@ export default function UserPreview({
     profileUser: UserInfo;
     type?: "ADMIN" | "MEMBER" | "USER";
     removeMe?: () => void;
-    role?: "Administrator" | "Member";
+    role?: "Administrator" | "Member" | "Invited" | "no-role";
 }) {
     const [showRemoveModal, setShowRemoveModal] = useState<boolean>(false);
     const navigate = useNavigate();
