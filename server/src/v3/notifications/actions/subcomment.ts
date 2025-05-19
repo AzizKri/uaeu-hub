@@ -17,7 +17,7 @@ export async function handleSubcomment(env: Env, {
     await env.DB.prepare(`
         INSERT INTO notification (sender_id, recipient_id, type, action_entity_id, metadata)
         VALUES (?, ?, 'subcomment', ?, ?)
-    `).bind(senderId, receiverId, subcommentId, JSON.stringify({ parentCommentId })).run();
+    `).bind(senderId, receiverId, subcommentId, JSON.stringify({ parentCommentId, parentPostId })).run();
 
     // Prepare payload
     const subcommentPayload: NotificationPayload.default = {
