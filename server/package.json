@@ -18,7 +18,7 @@
         "jest-extended": "^4.0.2",
         "typescript": "^5.5.2",
         "vitest": "2.1.8",
-        "wrangler": "^3.60.3"
+        "wrangler": "^4.15.2"
     },
     "dependencies": {
         "@cloudflare/types": "^6.29.1",
