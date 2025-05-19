@@ -246,13 +246,13 @@ export async function getCommunityByName(c: Context) {
                 `).bind(userId, name).first<CommunityRow>();
 
                 if (community && !community.role) {
-                    const isInvited = await env.DB.prepare(`
+                    const invitation = await env.DB.prepare(`
                         SELECT *
                         FROM community_invite as ci
                         WHERE ci.community_id = ? AND ci.recipient_id = ?
-                    `).bind(community?.id, userId).first<CommunityRow>();
+                    `).bind(community?.id, userId).first<CommunityInviteRow>();
 
-                    if (isInvited) {
+                    if (invitation) {
                         community.role = "Invited";
                     } else {
                         community.role = "no-role";
@@ -314,13 +314,13 @@ export async function getCommunityById(c: Context) {
                 `).bind(userId, id).first<CommunityRow>();
 
                 if (community && !community.role) {
-                    const isInvited = await env.DB.prepare(`
+                    const invitation = await env.DB.prepare(`
                         SELECT *
                         FROM community_invite as ci
                         WHERE ci.community_id = ? AND ci.recipient_id = ?
-                    `).bind(community?.id, userId).first<CommunityRow>();
+                    `).bind(community?.id, userId).first<CommunityInviteRow>();
 
-                    if (isInvited) {
+                    if (invitation) {
                         community.role = "Invited";
                     } else {
                         community.role = "no-role";
@@ -909,11 +909,14 @@ export async function joinCommunity(c: Context) {
                 SELECT *
                 FROM community_invite as ci
                 WHERE ci.community_id = ? AND ci.recipient_id = ?
-            `).bind(community?.id, userId).first<CommunityRow>();
-
-            console.log("invitation =>", invitation)
+            `).bind(community?.id, userId).first<CommunityInviteRow>();
 
             if (!invitation) return c.text('Community is invite-only and user has no invitation', { status: 403 });
+
+            await env.DB.prepare(`
+                DELETE FROM community_invite
+                WHERE id = ?
+            `).bind(invitation.id).run();
         }
 
         // Add the user to the community
@@ -1184,6 +1187,64 @@ export async function getCommunityMembers(c: Context) {
 
             return c.json(members.results, { status: 200 });
         }
+    } catch (e) {
+        console.log(e);
+        return c.text('Internal Server Error', { status: 500 });
+    }
+}
+
+
+export async function rejectInvitation(c: Context) {
+    // Get userId & isAnonymous from Context
+    const userId = c.get('userId') as number;
+    const isAnonymous = c.get('isAnonymous') as boolean;
+
+    // Check if user is valid and not anonymous
+    if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
+
+    // Get the required fields
+    const env: Env = c.env;
+    const communityId = Number(c.req.param('id'));
+
+    // Check for required fields
+    if (isNaN(communityId)) return c.text('No community ID provided', { status: 400 });
+
+    try {
+        // Check if community exists
+        const community = await env.DB.prepare(`
+            SELECT invite_only
+            FROM community
+            WHERE id = ?
+        `).bind(communityId).first<CommunityRow>();
+        if (!community) return c.text('Community does not exist', { status: 404 });
+
+        // Check if the user is already a member of the community
+        const member = await env.DB.prepare(`
+            SELECT 1
+            FROM user_community
+            WHERE user_id = ?
+              AND community_id = ?
+        `).bind(userId, communityId).first<CommunityMemberRow>();
+        if (member) return c.text('User is already a member of the community', { status: 400 });
+
+        // Check if there exist an invitation to the community
+        const invitation = await env.DB.prepare(`
+            SELECT *
+            FROM community_invite as ci
+            WHERE ci.community_id = ? AND ci.recipient_id = ?
+        `).bind(communityId, userId).first<CommunityInviteRow>();
+
+        if (!invitation) return c.text('There is no invitation for the user', { status: 403 });
+
+        console.log("invitation", invitation);
+
+        // Remove the invitation
+        await env.DB.prepare(`
+            DELETE FROM community_invite
+            WHERE id = ?
+        `).bind(invitation.id).run();
+
+        return c.text('Invitation is rejected successfully', { status: 200 });
     } catch (e) {
         console.log(e);
         return c.text('Internal Server Error', { status: 500 });

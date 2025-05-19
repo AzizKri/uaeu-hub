@@ -19,6 +19,7 @@ import {
     inviteUserToCommunity,
     joinCommunity,
     leaveCommunity,
+    rejectInvitation,
     removeMemberFromCommunity,
     searchCommunities
 } from '../controllers/community.controller';
@@ -43,6 +44,7 @@ app.post('/',
 
 // Community Memberships
 app.post('/join/:id', authMiddlewareCheckOnly, (c: Context) => joinCommunity(c));
+app.post('/rejectInvitation/:id', authMiddlewareCheckOnly, (c: Context) => rejectInvitation(c));
 app.post('/leave/:id', authMiddlewareCheckOnly, (c: Context) => leaveCommunity(c));
 app.post('/invite',
     validator('form', (value, c: Context) => {

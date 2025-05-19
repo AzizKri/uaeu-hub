@@ -7,7 +7,7 @@ import {
     getLatestCommunityPosts,
     getMembersOfCommunity,
     joinCommunity,
-    leaveCommunity,
+    leaveCommunity, rejectInvitation,
 } from "../../../api/communities.ts";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
@@ -209,7 +209,12 @@ export default function Community() {
     }
 
     const handleRejectInvitation = () => {
-        // TODO: implement reject invitation
+        if (info) rejectInvitation(info.id).then((res) => {
+            console.log("res", res);
+            if (res === 200) {
+                setRole("no-role");
+            }
+        });
     }
 
     const handlePosts = () => {
