@@ -903,7 +903,18 @@ export async function joinCommunity(c: Context) {
         if (member) return c.text('User is already a member of the community', { status: 400 });
 
         // Check if the community is invite-only
-        if (community!.invite_only) return c.text('Community is invite-only', { status: 403 });
+        if (community!.invite_only) {
+            // If so, check if the user has an invitation to it
+            const invitation = await env.DB.prepare(`
+                SELECT *
+                FROM community_invite as ci
+                WHERE ci.community_id = ? AND ci.recipient_id = ?
+            `).bind(community?.id, userId).first<CommunityRow>();
+
+            console.log("invitation =>", invitation)
+
+            if (!invitation) return c.text('Community is invite-only and user has no invitation', { status: 403 });
+        }
 
         // Add the user to the community
         await env.DB.prepare(`
