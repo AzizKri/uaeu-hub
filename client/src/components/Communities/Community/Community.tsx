@@ -262,7 +262,7 @@ export default function Community() {
             });
     };
 
-    return !loadingInfo || info && (
+    return !loadingInfo && info && (
         <div className={styles.container}>
             {showEditor && (
                 <Modal onClose={() => setShowEditor(false)}>
