@@ -362,33 +362,29 @@ CREATE TABLE IF NOT EXISTS websocket
 
 CREATE TABLE IF NOT EXISTS notification
 (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    recipient_id INTEGER NOT NULL,
-    sender_id    INTEGER,
-    action       TEXT, /* 'like', 'comment', 'mention', 'follow' */
-    entity_id    INTEGER, /* Post ID, Comment ID, etc. */
-    entity_type  TEXT, /* 'post', 'comment', 'subcomment', 'user' */
-    message      TEXT,
-    read         BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (recipient_id) REFERENCES user (id) ON DELETE CASCADE,
-    FOREIGN KEY (sender_id) REFERENCES user (id) ON DELETE CASCADE
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id        INTEGER NOT NULL,
+    recipient_id     INTEGER NOT NULL, /* who to send this notif to */
+    type             TEXT    NOT NULL, /* 'like', 'comment', 'mention', 'follow' */
+    action_entity_id INTEGER, /* Post ID (for mention), Comment ID, etc... */
+    metadata         TEXT,
+    read             BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at       INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 CREATE VIEW IF NOT EXISTS notification_view AS
 SELECT notification.id,
-       notification.recipient_id,
        notification.sender_id,
+       notification.recipient_id,
        sender.username    AS sender,
-       sender.displayname AS sender_displayname,
-       notification.action,
-       notification.entity_id,
-       notification.entity_type,
-       notification.message,
+       notification.type,
+       notification.action_entity_id,
+       notification.metadata,
        notification.read,
        notification.created_at
 FROM notification
-         JOIN user AS recipient ON notification.recipient_id = recipient.id
          LEFT JOIN user AS sender ON notification.sender_id = sender.id;
 
 /* Full Text Search Table */
