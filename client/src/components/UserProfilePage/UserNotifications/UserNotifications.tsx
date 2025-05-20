@@ -92,11 +92,11 @@ export default function UserNotifications() {
     const getMessage= (notification: Notification) => {
         switch (notification.type) {
             case 'like':
-                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</>;
+                return <div className={styles.message}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</div>;
             case 'comment':
-                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> commented on your post!</>;
+                return <div className={styles.message}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Commented on your post!</div>;
             case 'subcomment':
-                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</>;
+                return <div className={styles.message}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</div>;
             default:
                 return '#';
         }
@@ -155,7 +155,7 @@ export default function UserNotifications() {
                                         <span className={styles.sender}>You Received a Notification!</span>
                                         <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
                                     </div>
-                                    <div className={styles.message}>{getMessage(notification)}</div>
+                                    {getMessage(notification)}
                                 </div>
                             </div>
                         </div>
