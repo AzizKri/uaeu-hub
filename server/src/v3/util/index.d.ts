@@ -166,6 +166,7 @@ type WebSocketRow = {
 }
 
 type CommunityRow = {
+    role?: string;
     id: number;
     name: string;
     description: string;

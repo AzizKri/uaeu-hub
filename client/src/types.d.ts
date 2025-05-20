@@ -102,6 +102,7 @@ declare global {
         pfp?: string;
         isAnonymous?: boolean;
         role?: string;
+        status?: "ADMIN" | "NOT-ADMIN" | "MEMBER" | "INVITED" | "NOT-INVITED";
         email?: string;
     }
 

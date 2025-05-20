@@ -1,15 +1,14 @@
 import styles from "./Community.module.scss";
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useParams} from "react-router-dom";
 import {
     deleteCommunity,
     getCommunityByName,
     getLatestCommunityPosts,
     getMembersOfCommunity,
     joinCommunity,
-    leaveCommunity,
+    leaveCommunity, rejectInvitation,
 } from "../../../api/communities.ts";
-import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import Editor from "../../PostStuff/Editor/Editor.tsx";
 import arrowRight from "../../../assets/chevron-right.svg";
@@ -19,15 +18,13 @@ import Post from "../../PostStuff/Post/Post.tsx";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 import SearchUsers from "../SearchUsers/SearchUsers.tsx";
-import { useUser } from "../../../contexts/user/UserContext.ts";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
 
-// export default function Community({info}: {info: CommunityInfo}) {
 export default function Community() {
     // TODO: replace by getCommunityPosts() once it is implemented
-    const { communityName } = useParams<{ communityName: string }>(); // Get the postId from the URL
+    const {communityName} = useParams<{ communityName: string }>(); // Get the postId from the URL
     const [info, setInfo] = useState<CommunityInfo>();
-    const [role, setRole] = useState<"Administrator" | "Member">();
+    const [myRole, setMyRole] = useState<"Administrator" | "Member" | "Invited" | "no-role">("no-role");
     const [activeTab, setActiveTab] = useState<
         "POST" | "ABOUT" | "MEMBER" | "SETTINGS"
     >("POST");
@@ -39,7 +36,7 @@ export default function Community() {
     const [showEditor, setShowEditor] = useState<boolean>(false);
     const [showCommunityEditor, setShowCommunityEditor] =
         useState<boolean>(false);
-    const { isUser } = useUser();
+    // const {isUser} = useUser();
     const [searchMembersVal, setSearchMembersVal] = useState<string>("");
     const [showInviteMembersModal, setShowInviteMembersModal] =
         useState<boolean>(false);
@@ -51,7 +48,7 @@ export default function Community() {
     useEffect(() => {
         if (communityName) {
             getCommunityByName(communityName).then((res) => {
-                setRole(res.data.role);
+                setMyRole(res.data.role);
                 setInfo({
                     id: res.data.id,
                     name: res.data.name,
@@ -167,8 +164,8 @@ export default function Community() {
                 (mem: UserInfo) =>
                     mem.role === "Member" &&
                     (mem.username
-                        .toLowerCase()
-                        .includes(searchMembersVal.toLowerCase()) ||
+                            .toLowerCase()
+                            .includes(searchMembersVal.toLowerCase()) ||
                         mem.displayName
                             .toLowerCase()
                             .includes(searchMembersVal.toLowerCase())),
@@ -179,8 +176,8 @@ export default function Community() {
                 (mem: UserInfo) =>
                     mem.role === "Administrator" &&
                     (mem.username
-                        .toLowerCase()
-                        .includes(searchMembersVal.toLowerCase()) ||
+                            .toLowerCase()
+                            .includes(searchMembersVal.toLowerCase()) ||
                         mem.displayName
                             .toLowerCase()
                             .includes(searchMembersVal.toLowerCase())),
@@ -190,17 +187,35 @@ export default function Community() {
 
     const handleJoinLeave = () => {
         if (info) {
-            if (role) {
+            if (myRole) {
                 leaveCommunity(info.id).then((res) => {
-                    if (res === 200) setRole(undefined);
+                    if (res === 200) setMyRole("no-role");
                 });
             } else {
                 joinCommunity(info.id).then((res) => {
-                    if (res === 200) setRole("Member");
+                    if (res === 200) setMyRole("Member");
                 });
             }
         }
     };
+
+    const handleAcceptInvitation = () => {
+        if (info) joinCommunity(info.id).then((res) => {
+            console.log("res", res);
+            if (res === 200) {
+                setMyRole("Member");
+            }
+        });
+    }
+
+    const handleRejectInvitation = () => {
+        if (info) rejectInvitation(info.id).then((res) => {
+            console.log("res", res);
+            if (res === 200) {
+                setMyRole("no-role");
+            }
+        });
+    }
 
     const handlePosts = () => {
         setActiveTab("POST");
@@ -257,9 +272,7 @@ export default function Community() {
             });
     };
 
-    return loadingInfo || !info ? (
-        <LineSpinner spinnerRadius={"200px"} />
-    ) : (
+    return !loadingInfo && info && (
         <div className={styles.container}>
             {showEditor && (
                 <Modal onClose={() => setShowEditor(false)}>
@@ -274,37 +287,53 @@ export default function Community() {
                 <div className={styles.header_top}>
                     <div className={styles.info}>
                         <div className={styles.icon}>
-                            <CommunityIconComponent source={info.icon} />
+                            <CommunityIconComponent source={info.icon}/>
                         </div>
                         <div className={styles.community_name}>{info.name}</div>
                     </div>
                     <div className={styles.actions}>
-                        {role && (
-                            <button
-                                className={styles.create}
-                                onClick={handleCreatePost}
-                            >
-                                {/*plus icon*/}
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    width="24px"
-                                    height="24px"
-                                    fill="currentColor"
+                        {
+                            myRole === "Member" || myRole === "Administrator" ? (
+                                <button
+                                    className={styles.create}
+                                    onClick={handleCreatePost}
                                 >
-                                    <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                                </svg>
-                                Create Post
-                            </button>
-                        )}
-                        {isUser() && (
-                            <button
-                                className={styles.join}
-                                onClick={handleJoinLeave}
-                            >
-                                {role ? "Leave" : "Join"}
-                            </button>
-                        )}
+                                    {/*plus icon*/}
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 24 24"
+                                        width="24px"
+                                        height="24px"
+                                        fill="currentColor"
+                                    >
+                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                                    </svg>
+                                    Create Post
+                                </button>
+                            ) : myRole === "Invited" ? (
+                                <>
+                                    <button
+                                        className={styles.join}
+                                        onClick={handleAcceptInvitation}
+                                    >
+                                        Accept Invitation
+                                    </button>
+                                    <button
+                                        className={styles.create}
+                                        onClick={handleRejectInvitation}
+                                    >
+                                        Reject Invitation
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    className={styles.join}
+                                    onClick={handleJoinLeave}
+                                >
+                                    Join
+                                </button>
+                            )
+                        }
                     </div>
                 </div>
                 {/*<p className={styles.description}>{info.description}</p>*/}
@@ -328,7 +357,7 @@ export default function Community() {
                 >
                     Members
                 </li>
-                {role === "Administrator" && (
+                {myRole === "Administrator" && (
                     <li
                         className={`${styles.tab} ${activeTab === "SETTINGS" && styles.active}`}
                         onClick={handleSettings}
@@ -343,7 +372,7 @@ export default function Community() {
                         <div className={styles.posts}>
                             {posts}
                             {!noMorePosts && (
-                                <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMorePosts} />
+                                <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMorePosts}/>
                             )}
                         </div>
                     ) : (
@@ -396,11 +425,12 @@ export default function Community() {
                                             <UserPreview
                                                 communityId={info.id}
                                                 profileUser={ad}
-                                                type="ADMIN"
+                                                type="VIEW-MEMBERS"
+                                                userStatus="ADMIN"
                                                 removeMe={() =>
                                                     ad.id && removeUser(ad.id)
                                                 }
-                                                role={role}
+                                                myRole={myRole}
                                             />
                                         </li>
                                     ))}
@@ -418,11 +448,12 @@ export default function Community() {
                                             <UserPreview
                                                 communityId={info.id}
                                                 profileUser={mem}
-                                                type="MEMBER"
+                                                type="VIEW-MEMBERS"
+                                                userStatus="NOT-ADMIN"
                                                 removeMe={() =>
                                                     mem.id && removeUser(mem.id)
                                                 }
-                                                role={role}
+                                                myRole={myRole}
                                             />
                                         </li>
                                     ))}
@@ -439,27 +470,27 @@ export default function Community() {
                             onClick={handleEditCommunity}
                         >
                             Edit Community Information
-                            <img src={arrowRight} alt="arrowRight" />
+                            <img src={arrowRight} alt="arrowRight"/>
                         </li>
                         <li
                             className={styles.setting}
                             onClick={handleInviteMembers}
                         >
                             Invite Members
-                            <img src={arrowRight} alt="arrowRight" />
+                            <img src={arrowRight} alt="arrowRight"/>
                             {showInviteMembersModal && (
                                 <Modal onClose={handleCloseInviteModal}>
-                                    <SearchUsers communityId={info.id} />
+                                    <SearchUsers communityId={info.id}/>
                                 </Modal>
                             )}
                         </li>
                         <li
                             className={styles.setting}
                             onClick={() => setShowDeleteModal(true)}
-                            style={{ color: "#f33" }}
+                            style={{color: "#f33"}}
                         >
                             Delete Community
-                            <img src={arrowRight} alt="arrowRight" />
+                            <img src={arrowRight} alt="arrowRight"/>
                             {showDeleteModal && (
                                 <YesNoPopUp
                                     title={"Delete Community"}

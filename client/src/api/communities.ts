@@ -181,3 +181,12 @@ export async function getLatestCommunityPosts(id: number, offset: number = 0) {
 
     return {status: request.status, data: await request.json() };
 }
+
+// Join community by ID
+export async function rejectInvitation(id: number) {
+    const request = await fetch(base + `/rejectInvitation/${id}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    return request.status;
+}
