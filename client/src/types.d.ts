@@ -181,15 +181,18 @@ declare global {
     interface LikeMetadata {
         entityId: number;
         entityType: string;
+        content? : string;
     }
 
     interface CommentMetadata {
         parentPostId: number;
+        content? : string;
     }
 
     interface SubcommentMetadata {
         parentCommentId: number;
         parentPostId: number;
+        content? : string;
     }
 
     type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata;
