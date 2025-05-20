@@ -7,17 +7,22 @@ export async function handleSubcomment(env: Env, {
 }: NotificationPayload.Subcomment) {
     // Get the receiver ID and generate a message to send through websocket
     const receiverId: number = await getEntityAuthorId(env, parentCommentId, 'comment');
-    const parentPostId = await env.DB.prepare(`
+    const Comment = await env.DB.prepare(`
         SELECT parent_post_id
         FROM comment
         WHERE id = ?
-    `).bind(parentCommentId).first<number>();
+    `).bind(parentCommentId).first<CommentRow>();
+
+    const metadata = {
+        parentCommentId,
+        parentPostId: Comment!.parent_post_id
+    }
 
     // Insert notification into DB
     await env.DB.prepare(`
         INSERT INTO notification (sender_id, recipient_id, type, action_entity_id, metadata)
         VALUES (?, ?, 'subcomment', ?, ?)
-    `).bind(senderId, receiverId, subcommentId, JSON.stringify({ parentCommentId, parentPostId })).run();
+    `).bind(senderId, receiverId, subcommentId, JSON.stringify(metadata)).run();
 
     // Prepare payload
     const subcommentPayload: NotificationPayload.default = {
@@ -25,7 +30,7 @@ export async function handleSubcomment(env: Env, {
         receiverId: receiverId,
         type: 'subcomment',
         actionEntityId: subcommentId,
-        metadata: { parentCommentId, parentPostId }
+        metadata: metadata
     };
 
     // Send to websocket
