@@ -1,7 +1,7 @@
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/notification';
 
-export async function getNotifications(page: number = 0) {
-    const response = await fetch(base + `?page=${page}`, {
+export async function getNotifications(offset: number = 0) {
+    const response = await fetch(base + `?offset=${offset}`, {
         credentials: 'include'
     });
     return { status: response.status, data: await response.json() };
