@@ -5,6 +5,7 @@ import {useNavigate} from "react-router-dom";
 import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 import {getFormattedDate} from "../../../utils/tools.ts";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
+import {getMessage, getNotificationLink} from "../../../utils/notificationsTools.ts";
 
 
 export default function UserNotifications() {
@@ -107,40 +108,6 @@ export default function UserNotifications() {
         setLoadingMoreNotifications(false);
     }
 
-    const getNotificationLink = (notification: Notification) => {
-        switch (notification.type) {
-            case 'like':
-            { const metadata = notification.metadata as LikeMetadata;
-                return `/post/${metadata.entityId}`; }
-            case 'comment':
-            { const metadata = notification.metadata as CommentMetadata;
-                return `/post/${metadata.parentPostId}`; }
-            case 'subcomment':
-            {  const metadata = notification.metadata as SubcommentMetadata;
-                return `/post/${metadata.parentPostId}`; }
-            case 'invite':
-            {  const metadata = notification.metadata as InvitationMetadata;
-                const link = metadata.communityName.split(" ").join("%20");
-                return `/community/${link}`; }
-            default:
-                return '#';
-        }
-    };
-
-    const getMessage= (notification: Notification) => {
-        switch (notification.type) {
-            case 'like':
-                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</span>;
-            case 'comment':
-                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Commented on your post!</span>;
-            case 'subcomment':
-                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Replied to your comment</span>;
-            case 'invite':
-                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> invited you to '{"communityName" in notification.metadata ? notification.metadata.communityName : ""}'</span>;
-            default:
-                return '#';
-        }
-    }
     const handleNotificationClick = (link: string) => {
         navigate(link);
     };
@@ -190,7 +157,7 @@ export default function UserNotifications() {
                             <div className={`${styles.notification} ${!notification.read ? styles.unread : ""}`}>
                                 <div className={styles.content}>
                                     <div className={styles.notificationHeader}>
-                                        {getMessage(notification)}
+                                        <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> {getMessage(notification)}</span>
                                         <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
                                     </div>
                                     {notification.metadata.content && (
