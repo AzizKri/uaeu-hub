@@ -43,7 +43,8 @@ export async function subcomment(c: Context) {
             type: 'subcomment',
             metadata: {
                 subcommentId: subcommentD1!.id,
-                parentCommentId: commentID
+                parentCommentId: commentID,
+                content: subcomment?.content
             }
         }));
 
