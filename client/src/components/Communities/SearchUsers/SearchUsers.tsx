@@ -91,7 +91,7 @@ export default function SearchUsers({ communityId }: { communityId: number }) {
                                 communityId={communityId}
                                 profileUser={user}
                                 type="SEARCH-USERS"
-                                userStatus={user.status}
+                                userStatus={user.status || "NOT-INVITED"}
                                 myRole="Administrator"
                             />
                         </li>
