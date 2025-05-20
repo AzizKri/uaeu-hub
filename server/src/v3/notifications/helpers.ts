@@ -1,33 +1,33 @@
-export async function getEntityAuthorId(
+export async function getEntity(
     env: Env,
     entityId: number,
     entityType: 'post' | 'comment' | 'subcomment'
-): Promise<number> {
+): Promise<PostRow | CommentRow | SubcommentRow> {
     switch (entityType) {
         case 'post':
             const pE = await env.DB.prepare(`
-                SELECT author_id
+                SELECT author_id, content
                 FROM post
                 WHERE id = ?
             `).bind(entityId).first<PostRow>();
             if (!pE) throw new Error('Invalid entity ID');
-            return pE.author_id;
+            return pE;
         case 'comment':
             const cE = await env.DB.prepare(`
-                SELECT author_id
+                SELECT author_id, content, parent_post_id
                 FROM comment
                 WHERE id = ?
             `).bind(entityId).first<CommentRow>();
             if (!cE) throw new Error('Invalid entity ID');
-            return cE.author_id;
+            return cE;
         case 'subcomment':
             const scE = await env.DB.prepare(`
-                SELECT author_id
+                SELECT author_id, content
                 FROM subcomment
                 WHERE id = ?
             `).bind(entityId).first<SubcommentRow>();
             if (!scE) throw new Error('Invalid entity ID');
-            return scE.author_id;
+            return scE;
         default:
             throw new Error('Invalid entity type');
     }

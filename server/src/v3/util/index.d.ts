@@ -255,11 +255,13 @@ namespace NotificationPayload {
         senderId: number;
         commentId: number;
         parentPostId: number;
+        content: string;
     }
     export type Subcomment = {
         senderId: number;
         subcommentId: number;
         parentCommentId: number;
+        content: string;
     }
     export type Mention = {
         senderId: number;
