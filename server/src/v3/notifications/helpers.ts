@@ -14,7 +14,7 @@ export async function getEntity(
             return pE;
         case 'comment':
             const cE = await env.DB.prepare(`
-                SELECT author_id, content
+                SELECT author_id, content, parent_post_id
                 FROM comment
                 WHERE id = ?
             `).bind(entityId).first<CommentRow>();
