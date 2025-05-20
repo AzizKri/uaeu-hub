@@ -34,6 +34,9 @@ export default function UserPreview({
         } else if (type === "USER") {
             inviteUserToCommunity(communityId, profileUser.id!).then((status) => {
                 console.log("invitation sent", status);
+                if (status === 200) {
+                    type = "MEMBER";
+                }
             })
         }
     };

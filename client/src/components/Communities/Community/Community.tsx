@@ -24,7 +24,7 @@ export default function Community() {
     // TODO: replace by getCommunityPosts() once it is implemented
     const {communityName} = useParams<{ communityName: string }>(); // Get the postId from the URL
     const [info, setInfo] = useState<CommunityInfo>();
-    const [role, setRole] = useState<"Administrator" | "Member" | "Invited" | "no-role">();
+    const [myRole, setMyRole] = useState<"Administrator" | "Member" | "Invited" | "no-role">();
     const [activeTab, setActiveTab] = useState<
         "POST" | "ABOUT" | "MEMBER" | "SETTINGS"
     >("POST");
@@ -48,7 +48,7 @@ export default function Community() {
     useEffect(() => {
         if (communityName) {
             getCommunityByName(communityName).then((res) => {
-                setRole(res.data.role);
+                setMyRole(res.data.role);
                 setInfo({
                     id: res.data.id,
                     name: res.data.name,
@@ -187,13 +187,13 @@ export default function Community() {
 
     const handleJoinLeave = () => {
         if (info) {
-            if (role) {
+            if (myRole) {
                 leaveCommunity(info.id).then((res) => {
-                    if (res === 200) setRole(undefined);
+                    if (res === 200) setMyRole(undefined);
                 });
             } else {
                 joinCommunity(info.id).then((res) => {
-                    if (res === 200) setRole("Member");
+                    if (res === 200) setMyRole("Member");
                 });
             }
         }
@@ -203,7 +203,7 @@ export default function Community() {
         if (info) joinCommunity(info.id).then((res) => {
             console.log("res", res);
             if (res === 200) {
-                setRole("Member");
+                setMyRole("Member");
             }
         });
     }
@@ -212,7 +212,7 @@ export default function Community() {
         if (info) rejectInvitation(info.id).then((res) => {
             console.log("res", res);
             if (res === 200) {
-                setRole("no-role");
+                setMyRole("no-role");
             }
         });
     }
@@ -293,7 +293,7 @@ export default function Community() {
                     </div>
                     <div className={styles.actions}>
                         {
-                            role === "Member" || role === "Administrator" ? (
+                            myRole === "Member" || myRole === "Administrator" ? (
                                 <button
                                     className={styles.create}
                                     onClick={handleCreatePost}
@@ -310,7 +310,7 @@ export default function Community() {
                                     </svg>
                                     Create Post
                                 </button>
-                            ) : role === "Invited" ? (
+                            ) : myRole === "Invited" ? (
                                 <>
                                     <button
                                         className={styles.join}
@@ -357,7 +357,7 @@ export default function Community() {
                 >
                     Members
                 </li>
-                {role === "Administrator" && (
+                {myRole === "Administrator" && (
                     <li
                         className={`${styles.tab} ${activeTab === "SETTINGS" && styles.active}`}
                         onClick={handleSettings}
@@ -429,7 +429,7 @@ export default function Community() {
                                                 removeMe={() =>
                                                     ad.id && removeUser(ad.id)
                                                 }
-                                                role={role}
+                                                role={myRole}
                                             />
                                         </li>
                                     ))}
@@ -451,7 +451,7 @@ export default function Community() {
                                                 removeMe={() =>
                                                     mem.id && removeUser(mem.id)
                                                 }
-                                                role={role}
+                                                role={myRole}
                                             />
                                         </li>
                                     ))}
