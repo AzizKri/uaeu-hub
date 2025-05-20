@@ -240,70 +240,28 @@ export async function searchUserWithStatusInCommunity(c: Context) {
 	if (!query || !communityId) return c.text('No query provided', { status: 400 });
 
 	try {
-		/*
-        SELECT *,
-               (SELECT cr.name
-                FROM community_role as cr
-                WHERE cr.id IN (SELECT role_id
-                                FROM user_community as uc
-                                WHERE uc.community_id = c.id
-                                  AND uc.user_id = ?)) as role
-        FROM community c
-        WHERE c.name = ?
-
-
-        if (community && !community.role) {
-            const invitation = await env.DB.prepare(`
-                SELECT *
-                FROM community_invite as ci
-                WHERE ci.community_id = ? AND ci.recipient_id = ?
-            `).bind(community?.id, userId).first<CommunityInviteRow>();
-
-            if (invitation) {
-                community.role = "Invited";
-            } else {
-                community.role = "no-role";
-            }
-        }
-         */
-		// Search for users
-		// const users = await env.DB.prepare(`
-		//     SELECT *, (
-		//         SELECT cr.name
-		//         FROM community_role as cr
-		//         WHERE cr.id IN (
-		//             SELECT role_id
-		//             FROM user_community as uc
-		//             WHERE uc.community_id = c.id
-		//               AND uc.user_id = ?
-		//         )
-		//     ) as role
-		//     FROM user_view uv
-		//     WHERE uv.displayname LIKE %?%
-		//        OR uv.username LIKE %?%
-		//     LIMIT 10 OFFSET ?
-		// `).bind(query, query, offset).all<UserView>();
-
         // trusting ChatGPT on this
 		const users = await env.DB.prepare(
 			`
                 WITH matched_users AS (
                     SELECT id, username, displayname, pfp
                     FROM user_view
-                    WHERE username LIKE ?
-                    OR displayname LIKE ?),
-                    membership_status AS (
-                        SELECT mu.id   AS user_id,
-                        CASE
-                            WHEN uc.user_id IS NOT NULL THEN 'MEMBER'
-                            WHEN ci.recipient_id IS NOT NULL THEN 'INVITED'
-                            ELSE 'NOT-INVITED'
-                            END AS status
-                            FROM matched_users mu
-                                LEFT JOIN user_community uc
-                                    ON uc.user_id = mu.id AND uc.community_id = ?
-                                LEFT JOIN community_invite ci
-                                    ON ci.recipient_id = mu.id AND ci.community_id = ?)
+                    WHERE (
+                        username LIKE ?
+                        OR displayname LIKE ?
+                    ) AND username != "Anonymous"
+                )
+                , membership_status AS (
+                SELECT mu.id AS user_id, CASE
+                    WHEN uc.user_id IS NOT NULL THEN 'MEMBER'
+                    WHEN ci.recipient_id IS NOT NULL THEN 'INVITED'
+                    ELSE 'NOT-INVITED'
+                    END AS status
+                FROM matched_users mu
+                    LEFT JOIN user_community uc
+                ON uc.user_id = mu.id AND uc.community_id = ?
+                    LEFT JOIN community_invite ci
+                    ON ci.recipient_id = mu.id AND ci.community_id = ?)
                 SELECT mu.id,
                        mu.username,
                        mu.displayname,
