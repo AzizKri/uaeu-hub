@@ -84,7 +84,8 @@ export async function createNotification(
             await handleComment(env, <NotificationPayload.Comment>{
                 senderId: senderId,
                 commentId: metadata.commentId,
-                parentPostId: metadata.parentPostId
+                parentPostId: metadata.parentPostId,
+                content: metadata.content
             });
             break;
         case 'subcomment':
@@ -93,7 +94,8 @@ export async function createNotification(
             await handleSubcomment(env, <NotificationPayload.Subcomment>{
                 senderId: senderId,
                 subcommentId: metadata.subcommentId,
-                parentCommentId: metadata.parentCommentId
+                parentCommentId: metadata.parentCommentId,
+                content: metadata.content
             });
             break;
         case 'invite':

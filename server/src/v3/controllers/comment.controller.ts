@@ -44,7 +44,8 @@ export async function comment(c: Context) {
             type: 'comment',
             metadata: {
                 commentId: commentId?.id,
-                parentPostId: postID
+                parentPostId: postID,
+                content: comment?.content
             }
         }));
 

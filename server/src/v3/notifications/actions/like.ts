@@ -1,24 +1,25 @@
-import { getEntityAuthorId, sendToWebSocket } from '../helpers';
+import { getEntity, sendToWebSocket } from '../helpers';
 
 export async function handleLike(env: Env, { senderId, entityId, entityType }: NotificationPayload.Like) {
     // Get the receiver ID and generate a message to send through websocket
-    const receiverId: number = await getEntityAuthorId(env, entityId, entityType);
+    const Entity = await getEntity(env, entityId, entityType);
 
     const metadata = {
         entityId: entityId,
-        entityType: entityType
+        entityType: entityType,
+        content: Entity.content
     }
 
     // Insert notification into DB
     await env.DB.prepare(`
         INSERT INTO notification (sender_id, recipient_id, type, metadata)
         VALUES (?, ?, 'like', ?)
-    `).bind(senderId, receiverId, JSON.stringify(metadata)).run();
+    `).bind(senderId, Entity.author_id, JSON.stringify(metadata)).run();
 
     // Prepare payload
     const likePayload: NotificationPayload.default = {
         senderId: senderId,
-        receiverId: receiverId,
+        receiverId: Entity.author_id,
         type: 'like',
         metadata: metadata
     };
