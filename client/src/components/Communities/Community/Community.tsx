@@ -24,7 +24,7 @@ export default function Community() {
     // TODO: replace by getCommunityPosts() once it is implemented
     const {communityName} = useParams<{ communityName: string }>(); // Get the postId from the URL
     const [info, setInfo] = useState<CommunityInfo>();
-    const [myRole, setMyRole] = useState<"Administrator" | "Member" | "Invited" | "no-role">();
+    const [myRole, setMyRole] = useState<"Administrator" | "Member" | "Invited" | "no-role">("no-role");
     const [activeTab, setActiveTab] = useState<
         "POST" | "ABOUT" | "MEMBER" | "SETTINGS"
     >("POST");
@@ -189,7 +189,7 @@ export default function Community() {
         if (info) {
             if (myRole) {
                 leaveCommunity(info.id).then((res) => {
-                    if (res === 200) setMyRole(undefined);
+                    if (res === 200) setMyRole("no-role");
                 });
             } else {
                 joinCommunity(info.id).then((res) => {
@@ -425,11 +425,12 @@ export default function Community() {
                                             <UserPreview
                                                 communityId={info.id}
                                                 profileUser={ad}
-                                                type="ADMIN"
+                                                type="VIEW-MEMBERS"
+                                                userStatus="ADMIN"
                                                 removeMe={() =>
                                                     ad.id && removeUser(ad.id)
                                                 }
-                                                role={myRole}
+                                                myRole={myRole}
                                             />
                                         </li>
                                     ))}
@@ -447,11 +448,12 @@ export default function Community() {
                                             <UserPreview
                                                 communityId={info.id}
                                                 profileUser={mem}
-                                                type="MEMBER"
+                                                type="VIEW-MEMBERS"
+                                                userStatus="NOT-ADMIN"
                                                 removeMe={() =>
                                                     mem.id && removeUser(mem.id)
                                                 }
-                                                role={myRole}
+                                                myRole={myRole}
                                             />
                                         </li>
                                     ))}

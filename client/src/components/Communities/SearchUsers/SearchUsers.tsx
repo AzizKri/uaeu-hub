@@ -85,8 +85,9 @@ export default function SearchUsers({ communityId }: { communityId: number }) {
                             <UserPreview
                                 communityId={communityId}
                                 profileUser={user}
-                                type="USER"
-                                role="Administrator"
+                                type="SEARCH-USERS"
+                                userStatus={user.status}
+                                myRole="Administrator"
                             />
                         </li>
                     ))

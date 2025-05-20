@@ -295,9 +295,9 @@ export async function searchUserWithStatusInCommunity(c: Context) {
                     membership_status AS (
                         SELECT mu.id   AS user_id,
                         CASE
-                            WHEN uc.user_id IS NOT NULL THEN 'member'
-                            WHEN ci.recipient_id IS NOT NULL THEN 'invited'
-                            ELSE 'not_invited'
+                            WHEN uc.user_id IS NOT NULL THEN 'MEMBER'
+                            WHEN ci.recipient_id IS NOT NULL THEN 'INVITED'
+                            ELSE 'NOT-INVITED'
                             END AS status
                             FROM matched_users mu
                                 LEFT JOIN user_community uc
