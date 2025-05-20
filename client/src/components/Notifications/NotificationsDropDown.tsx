@@ -101,6 +101,10 @@ export default function NotificationsDropDown({
             case 'subcomment':
             {  const metadata = notification.metadata as SubcommentMetadata;
                 return `/post/${metadata.parentPostId}`; }
+            case 'invite':
+            {  const metadata = notification.metadata as InvitationMetadata;
+                const link = metadata.communityName.split(" ").join("%20");
+                return `/community/${link}`; }
             default:
                 return '#';
         }
@@ -113,7 +117,9 @@ export default function NotificationsDropDown({
             case 'comment':
                 return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Commented on your post!</span>;
             case 'subcomment':
-                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</span>;
+                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Replied to your comment</span>;
+            case 'invite':
+                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> invited you to '{"communityName" in notification.metadata ? notification.metadata.communityName : ""}'</span>;
             default:
                 return '#';
         }

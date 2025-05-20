@@ -196,7 +196,13 @@ declare global {
         content? : string;
     }
 
-    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata;
+    interface InvitationMetadata {
+        communityId: number;
+        communityName: string;
+        content? : string;
+    }
+
+    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata | InvitationMetadata;
 
     interface Notification {
         id: number;
