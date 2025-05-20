@@ -74,9 +74,9 @@
                     height: 8px;
                     border-radius: 50%;
                     background-color: #d7420c;
-                    position: absolute;
-                    left: 8px;
-                    margin-top: 5px;
+                    position: relative;
+                    left: 3px;
+                    top: 13px;
                 }
 
                 .notificationHeader, .message, .content {
@@ -107,6 +107,7 @@
                 font-weight: 500;
                 font-size: 14px;
                 margin-bottom: 4px;
+                text-wrap: wrap;
             }
 
             .content {
