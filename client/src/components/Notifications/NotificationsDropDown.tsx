@@ -60,7 +60,6 @@ export default function NotificationsDropDown({
                             createdAt: new Date(notification.created_at),
                         }))
                         .filter((n : Notification) => !n.read)
-                        .sort((a : Notification, b : Notification) => b.createdAt.getTime() - a.createdAt.getTime())
                 );
                 setLoading(false);
             } catch (error) {

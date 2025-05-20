@@ -4,6 +4,7 @@ import { getNotifications, readNotifications } from "../../../api/notifications"
 import {useNavigate} from "react-router-dom";
 import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 import {getFormattedDate} from "../../../utils/tools.ts";
+import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
 
 
 export default function UserNotifications() {
@@ -11,6 +12,8 @@ export default function UserNotifications() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "unread">("all");
     const navigate = useNavigate();
+    const [isLoadingMoreNotifications, setLoadingMoreNotifications] = useState<boolean>(false);
+
 
     useEffect(() => {
         fetchNotifications();
@@ -49,7 +52,6 @@ export default function UserNotifications() {
                         metadata: notification.metadata,
                         createdAt: new Date(notification.created_at),
                     }))
-                    .sort((a : Notification, b : Notification) => b.createdAt.getTime() - a.createdAt.getTime())
             );
             setLoading(false);
         } catch (error) {
@@ -57,7 +59,9 @@ export default function UserNotifications() {
             setLoading(false);
         }
     };
-
+    const filteredNotifications = filter === "all"
+        ? notifications
+        : notifications.filter(n => !n.read);
 
     const handleMarkAllAsRead = async () => {
         try {
@@ -72,6 +76,36 @@ export default function UserNotifications() {
             console.error("Error marking all notifications as read:", error);
         }
     };
+
+    const handleShowMore = async () => {
+        setLoadingMoreNotifications(true);
+        const nextPage = (await getNotifications(filteredNotifications.length)).data;
+        console.log("NEW DATA: ",nextPage);
+        setNotifications(prev =>
+            [...prev, ...nextPage.map((notification: {
+                id: number;
+                action_entity_id: number;
+                recipient_id: number;
+                sender_id: number;
+                sender: string;
+                type: string;
+                read: boolean;
+                metadata: JSON;
+                created_at: number;
+            }) => ({
+                id: notification.id,
+                recipientId: notification.recipient_id,
+                senderId: notification.sender_id,
+                sender: notification.sender,
+                type: notification.type,
+                actionEntityId: notification.action_entity_id,
+                read: notification.read,
+                metadata: notification.metadata,
+                createdAt: new Date(notification.created_at),
+            }))]
+        )
+        setLoadingMoreNotifications(false);
+    }
 
     const getNotificationLink = (notification: Notification) => {
         switch (notification.type) {
@@ -105,9 +139,7 @@ export default function UserNotifications() {
         navigate(link);
     };
 
-    const filteredNotifications = filter === "all"
-        ? notifications
-        : notifications.filter(n => !n.read);
+
 
     return (
         <div className={styles.notificationsContainer}>
@@ -166,6 +198,9 @@ export default function UserNotifications() {
                     <div className={styles.empty}>
                         {filter === "all" ? "No notifications" : "No unread notifications"}
                     </div>
+                )}
+                {(filteredNotifications.length == 10) && (
+                    <ShowMoreBtn onClick={handleShowMore} isLoadingMore={isLoadingMoreNotifications} />
                 )}
             </div>
         </div>
