@@ -5,6 +5,7 @@ import { getNotifications, readNotifications } from "../../api/notifications.ts"
 import Skeleton from "../Reusable/Skeleton/Skeleton.tsx";
 import {useUser} from "../../contexts/user/UserContext.ts";
 import {getFormattedDate} from "../../utils/tools.ts";
+import {getMessage, getNotificationLink} from "../../utils/notificationsTools.ts";
 
 interface NotificationsDropDownProps {
     isVisible: boolean;
@@ -90,35 +91,6 @@ export default function NotificationsDropDown({
         }
     };
 
-    const getNotificationLink = (notification: Notification) => {
-        switch (notification.type) {
-            case 'like':
-                { const metadata = notification.metadata as LikeMetadata;
-                return `/post/${metadata.entityId}`; }
-            case 'comment':
-            { const metadata = notification.metadata as CommentMetadata;
-                return `/post/${metadata.parentPostId}`; }
-            case 'subcomment':
-            {  const metadata = notification.metadata as SubcommentMetadata;
-                return `/post/${metadata.parentPostId}`; }
-            default:
-                return '#';
-        }
-    };
-
-    const getMessage= (notification: Notification) => {
-        switch (notification.type) {
-            case 'like':
-                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</span>;
-            case 'comment':
-                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Commented on your post!</span>;
-            case 'subcomment':
-                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</span>;
-            default:
-                return '#';
-        }
-    }
-
     const handleViewAll = () => {
         onClose();
         navigate(`/user/${user?.username}`, { state: { activeTab: "Notifications" } });
@@ -161,7 +133,7 @@ export default function NotificationsDropDown({
                                 }`}
                             >
                                 <div className={styles.notificationHeader}>
-                                    {getMessage(notification)}
+                                    <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> {getMessage(notification)}</span>
                                     <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
                                 </div>
                                 {notification.metadata.content && (
