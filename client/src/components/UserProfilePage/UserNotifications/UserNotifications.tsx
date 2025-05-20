@@ -92,11 +92,11 @@ export default function UserNotifications() {
     const getMessage= (notification: Notification) => {
         switch (notification.type) {
             case 'like':
-                return <div className={styles.message}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</div>;
+                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</span>;
             case 'comment':
-                return <div className={styles.message}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Commented on your post!</div>;
+                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Commented on your post!</span>;
             case 'subcomment':
-                return <div className={styles.message}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</div>;
+                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</span>;
             default:
                 return '#';
         }
@@ -152,10 +152,12 @@ export default function UserNotifications() {
                             <div className={`${styles.notification} ${!notification.read ? styles.unread : ""}`}>
                                 <div className={styles.content}>
                                     <div className={styles.notificationHeader}>
-                                        <span className={styles.sender}>You Received a Notification!</span>
+                                        {getMessage(notification)}
                                         <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
                                     </div>
-                                    {getMessage(notification)}
+                                    {notification.metadata.content && (
+                                        <div className={styles.notifContent}>{notification.metadata.content}</div>
+                                    )}
                                 </div>
                             </div>
                         </div>
