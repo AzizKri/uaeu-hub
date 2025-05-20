@@ -2,7 +2,8 @@
     position: absolute;
     top: 60px;
     right: 10px;
-    width: 450px;
+    width: fit-content;
+    min-width: 450px;
     max-height: 450px;
     background-color: white;
     border-radius: 8px;
@@ -91,6 +92,7 @@
                 display: flex;
                 justify-content: space-between;
                 margin-bottom: 4px;
+                gap: 15px;
 
                 .sender {
                     font-weight: 500;

@@ -19,6 +19,7 @@ export async function getNotifications(c: Context) {
             SELECT *
             FROM notification_view
             WHERE recipient_id = ?
+            ORDER BY created_at DESC
             LIMIT 10 OFFSET ?
         `).bind(userId, offset).all<NotificationView>();
 
