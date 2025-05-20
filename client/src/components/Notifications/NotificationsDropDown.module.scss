@@ -2,7 +2,8 @@
     position: absolute;
     top: 60px;
     right: 10px;
-    width: 350px;
+    width: fit-content;
+    min-width: 450px;
     max-height: 450px;
     background-color: white;
     border-radius: 8px;
@@ -74,9 +75,9 @@
                     height: 8px;
                     border-radius: 50%;
                     background-color: #d7420c;
-                    position: absolute;
-                    left: 8px;
-                    margin-top: 5px;
+                    position: relative;
+                    left: 3px;
+                    top: 13px;
                 }
 
                 .notificationHeader, .message, .content {
@@ -91,9 +92,10 @@
                 display: flex;
                 justify-content: space-between;
                 margin-bottom: 4px;
+                gap: 15px;
 
                 .sender {
-                    font-weight: 600;
+                    font-weight: 500;
                     font-size: 14px;
                 }
 
@@ -107,6 +109,7 @@
                 font-weight: 500;
                 font-size: 14px;
                 margin-bottom: 4px;
+                text-wrap: wrap;
             }
 
             .content {

@@ -102,6 +102,7 @@ declare global {
         pfp?: string;
         isAnonymous?: boolean;
         role?: string;
+        status?: "ADMIN" | "NOT-ADMIN" | "MEMBER" | "INVITED" | "NOT-INVITED";
         email?: string;
     }
 
@@ -181,15 +182,18 @@ declare global {
     interface LikeMetadata {
         entityId: number;
         entityType: string;
+        content? : string;
     }
 
     interface CommentMetadata {
         parentPostId: number;
+        content? : string;
     }
 
     interface SubcommentMetadata {
         parentCommentId: number;
         parentPostId: number;
+        content? : string;
     }
 
     type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata;

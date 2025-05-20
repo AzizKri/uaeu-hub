@@ -8,7 +8,7 @@ import {
     getCurrentUserLikesOnSubcomments,
     getUserByUsername,
     getUserCommunities,
-    searchUser, searchUserForCommunity
+    searchUser, searchUserForCommunity, searchUserWithStatusInCommunity
 } from '../controllers/user.controller';
 import { authMiddlewareCheckOnly } from '../middleware';
 import { validator } from 'hono/validator';
@@ -39,6 +39,7 @@ app.get('/search', (c: Context) => {
         return searchUser(c)
     }
 });
+app.get('/searchWithStatusInCommunity', (c: Context) => searchUserWithStatusInCommunity(c));
 app.get('/:userId/communities', authMiddlewareCheckOnly, (c: Context) => getUserCommunities(c));
 app.get('/:username', (c: Context) => getUserByUsername(c));
 

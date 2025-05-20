@@ -41,8 +41,8 @@ export const communityEditingSchema = z.object({
 });
 
 export const communityInviteSchema = z.object({
-    userId: z.number(),
-    communityId: z.number()
+    userId: z.coerce.number(),
+    communityId: z.coerce.number()
 });
 
 // User

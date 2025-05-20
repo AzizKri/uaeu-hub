@@ -59,7 +59,7 @@ export default function NotificationsDropDown({
                             metadata: notification.metadata,
                             createdAt: new Date(notification.created_at),
                         }))
-                        .sort((a : Notification, b : Notification) => b.createdAt.getTime() - a.createdAt.getTime())
+                        .filter((n : Notification) => !n.read)
                 );
                 setLoading(false);
             } catch (error) {
@@ -109,11 +109,11 @@ export default function NotificationsDropDown({
     const getMessage= (notification: Notification) => {
         switch (notification.type) {
             case 'like':
-                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</>;
+                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> liked your post!</span>;
             case 'comment':
-                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> commented on your post!</>;
+                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> Commented on your post!</span>;
             case 'subcomment':
-                return <><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</>;
+                return <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> replied to your comment!</span>;
             default:
                 return '#';
         }
@@ -161,10 +161,12 @@ export default function NotificationsDropDown({
                                 }`}
                             >
                                 <div className={styles.notificationHeader}>
-                                    <span className={styles.sender}>You Received a Notification!</span>
+                                    {getMessage(notification)}
                                     <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
                                 </div>
-                                <div className={styles.message}>{getMessage(notification)}</div>
+                                {notification.metadata.content && (
+                                    <div className={styles.content}>{notification.metadata.content}</div>
+                                )}
                             </div>
                         </div>
                     ))
