@@ -1,18 +1,15 @@
 import { useState, useEffect } from "react";
 import styles from "./UserNotifications.module.scss";
 import { getNotifications, readNotifications } from "../../../api/notifications";
-import {useNavigate} from "react-router-dom";
 import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
-import {getFormattedDate} from "../../../utils/tools.ts";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
-import {getMessage, getNotificationLink} from "../../../utils/notificationsTools.ts";
+import NotificationItem from "../../Notifications/NotificationItem.tsx";
 
 
 export default function UserNotifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "unread">("all");
-    const navigate = useNavigate();
     const [isLoadingMoreNotifications, setLoadingMoreNotifications] = useState<boolean>(false);
 
 
@@ -108,12 +105,6 @@ export default function UserNotifications() {
         setLoadingMoreNotifications(false);
     }
 
-    const handleNotificationClick = (link: string) => {
-        navigate(link);
-    };
-
-
-
     return (
         <div className={styles.notificationsContainer}>
             <div className={styles.header}>
@@ -149,23 +140,7 @@ export default function UserNotifications() {
                     </div>
                 ) : filteredNotifications.length > 0 ? (
                     filteredNotifications.map((notification) => (
-                        <div
-                            key={notification.id}
-                            onClick={() => handleNotificationClick(getNotificationLink(notification))}
-                            className={styles.notificationLink}
-                        >
-                            <div className={`${styles.notification} ${!notification.read ? styles.unread : ""}`}>
-                                <div className={styles.content}>
-                                    <div className={styles.notificationHeader}>
-                                        <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> {getMessage(notification)}</span>
-                                        <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
-                                    </div>
-                                    {notification.metadata.content && (
-                                        <div className={styles.notifContent}>{notification.metadata.content}</div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <NotificationItem notification={notification} />
                     ))
                 ) : (
                     <div className={styles.empty}>
