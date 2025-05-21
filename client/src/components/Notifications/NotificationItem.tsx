@@ -1,23 +1,23 @@
 import {getFormattedDate} from "../../utils/tools.ts";
 import {getMessage, getNotificationLink} from "../../utils/notificationsTools.ts";
 import {useNavigate} from "react-router-dom";
-import styles from "./NotificationsDropDown.module.scss";
+import styles from "./NotificationItem.module.scss";
 
 interface NotificationItem {
     notification : Notification,
     onClick? : () => void
-};
+}
 
 export default function NotificationItem({notification, onClick} : NotificationItem) {
     const navigate = useNavigate();
-    
+
     const handleNotificationClick = (link : string) => {
         if (onClick) {
             onClick();
         }
         navigate(link);
     }
-    
+
     return (
         <div
             key={notification.id}
