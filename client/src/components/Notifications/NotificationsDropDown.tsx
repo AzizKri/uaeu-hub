@@ -4,8 +4,7 @@ import {useNavigate} from "react-router-dom";
 import { getNotifications, readNotifications } from "../../api/notifications.ts";
 import Skeleton from "../Reusable/Skeleton/Skeleton.tsx";
 import {useUser} from "../../contexts/user/UserContext.ts";
-import {getFormattedDate} from "../../utils/tools.ts";
-import {getMessage, getNotificationLink} from "../../utils/notificationsTools.ts";
+import NotificationItem from "./NotificationItem.tsx";
 
 interface NotificationsDropDownProps {
     isVisible: boolean;
@@ -96,9 +95,8 @@ export default function NotificationsDropDown({
         navigate(`/user/${user?.username}`, { state: { activeTab: "Notifications" } });
     };
 
-    const handleNotificationClick = (link: string) => {
+    const handleNotificationClick = () => {
         onClose();
-        navigate(link);
     };
 
     if (!isVisible) return null;
@@ -122,25 +120,7 @@ export default function NotificationsDropDown({
                     </div>
                 ) : notifications.length > 0 ? (
                     notifications.map((notification) => (
-                        <div
-                            key={notification.id}
-                            className={styles.notificationLink}
-                            onClick={() => handleNotificationClick(getNotificationLink(notification))}
-                        >
-                            <div
-                                className={`${styles.notification} ${
-                                    !notification.read ? styles.unread : ""
-                                }`}
-                            >
-                                <div className={styles.notificationHeader}>
-                                    <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> {getMessage(notification)}</span>
-                                    <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
-                                </div>
-                                {notification.metadata.content && (
-                                    <div className={styles.content}>{notification.metadata.content}</div>
-                                )}
-                            </div>
-                        </div>
+                        <NotificationItem notification={notification} onClick={handleNotificationClick} />
                     ))
                 ) : (
                     <div className={styles.empty} >No notifications</div>

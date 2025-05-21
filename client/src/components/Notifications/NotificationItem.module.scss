@@ -1,0 +1,85 @@
+.notificationLink {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.notification {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: #f9f9f9;
+    }
+
+    &.unread {
+        background-color: rgba(215, 66, 12, 0.05);
+
+        &::before {
+            content: "";
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #d7420c;
+            position: relative;
+            left: 3px;
+            top: 13px;
+        }
+
+        .notificationHeader, .message, .content {
+            padding-left: 16px;
+        }
+
+        &.unread:hover {
+            background-color: rgba(215, 66, 12, 0.15);
+        }
+    }
+
+    .notificationHeader {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+        gap: 15px;
+
+        .sender {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #888;
+        }
+    }
+
+    .message {
+        font-weight: 500;
+        font-size: 14px;
+        margin-bottom: 4px;
+        text-wrap: wrap;
+    }
+
+    .content {
+        font-size: 13px;
+        color: #555;
+        background-color: #f5f5f5;
+        padding: 8px;
+        border-radius: 4px;
+        margin-top: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+.senderLink{
+    text-decoration: none;
+    font-weight: bold;
+    color: black;
+    transition: 0.3s ease-in-out;
+}
+.senderLink:hover{
+    text-decoration: underline;
+}
