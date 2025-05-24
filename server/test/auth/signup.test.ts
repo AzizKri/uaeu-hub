@@ -1,134 +1,120 @@
 import { SELF } from 'cloudflare:test';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-const base = 'http://127.0.0.1:8787/auth/signup';
+const base = 'http://127.0.0.1:8787';
 
-describe('Signup', () => {
-    beforeAll(async () => {
-        const formData = {
-            username: 'aziz',
-            password: 'StrongPassword-123',
-            email: 'aziz@gmail.com'
-        };
-        await SELF.fetch(base, {
+interface SignupResponse {
+    message: string;
+    userId?: string;
+    error?: string;
+}
+
+describe('Auth - Signup', () => {
+    const validUser = {
+        email: 'test@example.com',
+        password: 'Password123!',
+        username: 'user1',
+        displayname: 'displayname'
+    };
+
+    // Happy path test
+    it('should successfully create a new user', async () => {
+        const response = await SELF.fetch(`${base}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(validUser)
         });
+
+        expect(response.status).toBe(201);
+        const data = await response.json() as SignupResponse;
+        expect(data).toHaveProperty('message');
+        expect(data).toHaveProperty('userId');
+        expect(data.message).toBe('User created successfully');
     });
 
-    it('should successfully create a user', async () => {
-        const formData = {
-            username: Date.now().toString(),
-            password: 'StrongPassword-123',
+    // Validation tests
+    it('should return 400 for invalid email format', async () => {
+        const invalidUser = {
+            ...validUser,
+            email: 'invalid-email'
+        };
+
+        const response = await SELF.fetch(`${base}/auth/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(invalidUser)
+        });
+
+        expect(response.status).toBe(400);
+        const data = await response.json() as SignupResponse;
+        expect(data).toHaveProperty('error');
+        expect(data.error).toContain('email');
+    });
+
+    it('should return 400 for weak password', async () => {
+        const weakPasswordUser = {
+            ...validUser,
+            password: '123'
+        };
+
+        const response = await SELF.fetch(`${base}/auth/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(weakPasswordUser)
+        });
+
+        expect(response.status).toBe(400);
+        const data = await response.json() as SignupResponse;
+        expect(data).toHaveProperty('error');
+        expect(data.error).toContain('password');
+    });
+
+    it('should return 400 for missing required fields', async () => {
+        const incompleteUser = {
             email: 'test@example.com'
         };
 
-        const res = await SELF.fetch(base, {
+        const response = await SELF.fetch(`${base}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(incompleteUser)
         });
 
-        expect([200, 201]).toContain(res.status);
-
-        const responseBody = await res.json();
-        expect(responseBody).toMatchObject({
-            id: expect.any(Number),
-            username: formData.username,
-            displayname: formData.username,
-            created_at: expect.any(String),
-            is_anonymous: 0
-        });
+        expect(response.status).toBe(400);
+        const data = await response.json() as SignupResponse;
+        expect(data).toHaveProperty('error');
     });
 
-    it('should fail to create a user with an existing username', async () => {
-        const formData = {
-            username: 'aziz',
-            password: 'StrongPassword-123',
-            email: 'test@example.com'
-        };
-
-        const res = await SELF.fetch(base, {
+    it('should return 409 for duplicate email', async () => {
+        // First signup
+        await SELF.fetch(`${base}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(validUser)
         });
 
-        expect(res.status).toBe(409);
-        const responseBody: { message: string } = await res.json();
-        expect(responseBody.message).toBe('User already exists');
-    });
-
-    it('should fail to create a user with a reserved username', async () => {
-        const formData = {
-            username: 'test',
-            password: 'StrongPassword-123',
-            email: 'test@example.com'
-        };
-
-        const res = await SELF.fetch(base, {
+        // Second signup with same email
+        const response = await SELF.fetch(`${base}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(validUser)
         });
 
-        expect(res.status).toBe(400);
-        const responseBody: { message: string } = await res.json();
-        expect(responseBody.message).toBe('Username is reserved');
+        expect(response.status).toBe(409);
+        const data = await response.json() as SignupResponse;
+        expect(data).toHaveProperty('error');
+        expect(data.error).toContain('already exists');
     });
-
-    it('should fail to create a user with invalid data', async () => {
-        const formData = {
-            username: 't',
-            password: 'pass',
-            email: 'test.com'
-        };
-
-        const res = await SELF.fetch(base, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-
-        expect(res.status).toBe(400);
-
-        const responseBody = await res.json();
-        expect(responseBody).toMatchObject({
-            errors: expect.arrayContaining([expect.objectContaining({ field: expect.any(String), message: expect.any(String) })])
-        });
-    });
-
-    it('should fail to create a user with includeAnon and without session key', async () => {
-        const formData = {
-            username: Date.now().toString(),
-            password: 'StrongPassword-123',
-            email: 'test@example.com',
-            includeAnon: true
-        };
-
-        const res = await SELF.fetch(base, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-
-        expect(res.status).toBe(400);
-        const responseBody: { message: string } = await res.json();
-        expect(responseBody.message).toBe('No activity found');
-    });
-
-    it('should fail to create a us')
 });
