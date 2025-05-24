@@ -1,4 +1,4 @@
--- Migration number: 0001 	 2025-01-13T13:08:05.136Z
+PRAGMA foreign_keys = on;
 
 /* User Table */
 
@@ -17,18 +17,19 @@ CREATE TABLE IF NOT EXISTS user
     bio            TEXT,
     pfp            TEXT,
     is_anonymous   BOOLEAN          DEFAULT FALSE,
-    deleted        BOOLEAN          DEFAULT FALSE
+    is_admin       INTEGER          DEFAULT 0,
+    is_deleted     BOOLEAN          DEFAULT FALSE
 );
 
 CREATE VIEW IF NOT EXISTS user_view AS
 SELECT id,
        CASE
-           WHEN deleted = true THEN 'DeletedUser'
+           WHEN is_deleted = true THEN 'DeletedUser'
            WHEN is_anonymous = true THEN 'Anonymous'
            ELSE username
            END AS username,
        CASE
-           WHEN deleted = true THEN 'Deleted User'
+           WHEN is_deleted = true THEN 'Deleted User'
            WHEN is_anonymous = true THEN 'Anonymous User'
            ELSE displayname
            END AS displayname,
@@ -36,7 +37,8 @@ SELECT id,
        created_at,
        bio,
        pfp,
-       is_anonymous
+       is_anonymous,
+       is_deleted
 FROM user;
 
 /* Session Table */
@@ -48,6 +50,29 @@ CREATE TABLE IF NOT EXISTS session
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_anonymous BOOLEAN NOT NULL,
     ip           TEXT,
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
+/* Email verification Table */
+
+CREATE TABLE IF NOT EXISTS email_verification
+(
+    token      TEXT PRIMARY KEY,
+    user_id    INTEGER NOT NULL,
+    email      TEXT    NOT NULL,
+    used       BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
+/* Password Reset Table */
+
+CREATE TABLE IF NOT EXISTS password_reset
+(
+    token      TEXT PRIMARY KEY,
+    user_id    INTEGER NOT NULL,
+    used       BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
@@ -64,7 +89,9 @@ CREATE TABLE IF NOT EXISTS community
     invite_only  BOOLEAN NOT NULL DEFAULT FALSE, /* Can anyone join? */
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     tags         TEXT,
-    member_count INTEGER NOT NULL DEFAULT 0
+    member_count INTEGER NOT NULL DEFAULT 0,
+    owner_id     INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (owner_id) REFERENCES user (id) ON DELETE SET DEFAULT
 );
 
 /* Community role Table */
@@ -77,6 +104,7 @@ CREATE TABLE IF NOT EXISTS community_role
     level         INTEGER NOT NULL DEFAULT 0, /* 0 = member, 100 = administrator */
     read_posts    BOOLEAN NOT NULL DEFAULT administrator, /* This should override the community's privacy */
     write_posts   BOOLEAN NOT NULL DEFAULT administrator,
+    delete_posts  BOOLEAN NOT NULL DEFAULT administrator,
     /* read_comments    BOOLEAN NOT NULL DEFAULT read_posts,
     write_comments   BOOLEAN NOT NULL DEFAULT write_posts,
     invite_users     BOOLEAN NOT NULL DEFAULT administrator,
@@ -99,6 +127,20 @@ CREATE TABLE IF NOT EXISTS user_community
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
     FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES community_role (id)
+);
+
+/* Community Invite Table */
+
+CREATE TABLE IF NOT EXISTS community_invite
+(
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    community_id INTEGER NOT NULL,
+    sender_id    INTEGER NOT NULL,
+    recipient_id INTEGER NOT NULL,
+    created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 /* Community Tag Table */
@@ -286,6 +328,24 @@ CREATE TABLE IF NOT EXISTS subcomment_like
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
+/* Reports table */
+
+CREATE TABLE IF NOT EXISTS report
+(
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    reporter_id INTEGER NOT NULL,
+    entity_id   INTEGER NOT NULL,
+    entity_type TEXT    NOT NULL,
+    report_type TEXT    NOT NULL,
+    reason      TEXT,
+    resolved    BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at  INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_id) REFERENCES user (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_report_entity ON report (entity_type, entity_id);
+CREATE INDEX idx_report_resolved ON report (resolved, created_at DESC);
+
 /* Websocket Table */
 
 CREATE TABLE IF NOT EXISTS websocket
@@ -302,32 +362,29 @@ CREATE TABLE IF NOT EXISTS websocket
 
 CREATE TABLE IF NOT EXISTS notification
 (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    recipient_id INTEGER NOT NULL,
-    sender_id    INTEGER,
-    action       TEXT, /* 'like', 'comment', 'mention', 'follow' */
-    entity_id    INTEGER, /* Post ID, Comment ID, etc. */
-    entity_type  TEXT, /* 'post', 'comment', 'subcomment', 'user' */
-    message      TEXT,
-    read         BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (recipient_id) REFERENCES user (id) ON DELETE CASCADE,
-    FOREIGN KEY (sender_id) REFERENCES user (id) ON DELETE CASCADE
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id        INTEGER NOT NULL,
+    recipient_id     INTEGER NOT NULL, /* who to send this notif to */
+    type             TEXT    NOT NULL, /* 'like', 'comment', 'mention', 'follow' */
+    action_entity_id INTEGER, /* Post ID (for mention), Comment ID, etc... */
+    metadata         TEXT,
+    read             BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at       INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (recipient_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
 CREATE VIEW IF NOT EXISTS notification_view AS
 SELECT notification.id,
-       notification.recipient_id,
        notification.sender_id,
+       notification.recipient_id,
        sender.username    AS sender,
-       sender.displayname AS sender_displayname,
        notification.type,
-       notification.entity_id,
-       notification.entity_type,
+       notification.action_entity_id,
+       notification.metadata,
        notification.read,
        notification.created_at
 FROM notification
-         JOIN user AS recipient ON notification.recipient_id = recipient.id
          LEFT JOIN user AS sender ON notification.sender_id = sender.id;
 
 /* Full Text Search Table */
@@ -347,7 +404,7 @@ CREATE INDEX idx_user_username ON user (username);
 CREATE INDEX idx_user_email ON user (email);
 
 CREATE INDEX idx_post_author_id ON post (author_id);
-CREATE INDEX idx_post_community_id ON post (community_id);
+CREATE INDEX idx_post_community ON post (community_id, id);
 
 CREATE INDEX idx_community_name ON community (name);
 CREATE INDEX idx_community_role_community_id ON community_role (community_id);
@@ -355,10 +412,10 @@ CREATE INDEX idx_community_role_community_id ON community_role (community_id);
 CREATE INDEX idx_tag_name ON tag (name);
 
 CREATE INDEX idx_comment_author_id ON comment (author_id);
-CREATE INDEX idx_comment_parent_post_id ON comment (parent_post_id);
+CREATE INDEX idx_comment_parent ON comment (parent_post_id, id);
 
 CREATE INDEX idx_subcomment_author_id ON subcomment (author_id);
-CREATE INDEX idx_subcomment_parent_comment_id ON subcomment (parent_comment_id);
+CREATE INDEX idx_subcomment_parent ON subcomment (parent_comment_id, id);
 
 /* Triggers */
 
@@ -494,3 +551,63 @@ BEGIN
     SET member_count = member_count - 1
     WHERE id = old.community_id;
 END;
+
+/* Down */
+
+DROP TRIGGER IF EXISTS post_created;
+DROP TRIGGER IF EXISTS post_deleted;
+DROP TRIGGER IF EXISTS increment_post_like_count;
+DROP TRIGGER IF EXISTS decrement_post_like_count;
+DROP TRIGGER IF EXISTS increment_post_comment_count;
+DROP TRIGGER IF EXISTS decrement_post_comment_count;
+DROP TRIGGER IF EXISTS increment_comment_like_count;
+DROP TRIGGER IF EXISTS decrement_comment_like_count;
+DROP TRIGGER IF EXISTS increment_comment_subcomment_count;
+DROP TRIGGER IF EXISTS decrement_comment_subcomment_count;
+DROP TRIGGER IF EXISTS increment_subcomment_like_count;
+DROP TRIGGER IF EXISTS decrement_subcomment_like_count;
+DROP TRIGGER IF EXISTS increment_community_member_count;
+DROP TRIGGER IF EXISTS decrement_community_member_count;
+
+DROP INDEX IF EXISTS idx_user_username;
+DROP INDEX IF EXISTS idx_user_email;
+DROP INDEX IF EXISTS idx_post_author_id;
+DROP INDEX IF EXISTS idx_post_community;
+DROP INDEX IF EXISTS idx_community_name;
+DROP INDEX IF EXISTS idx_community_role_community_id;
+DROP INDEX IF EXISTS idx_tag_name;
+DROP INDEX IF EXISTS idx_comment_author_id;
+DROP INDEX IF EXISTS idx_comment_parent;
+DROP INDEX IF EXISTS idx_subcomment_author_id;
+DROP INDEX IF EXISTS idx_subcomment_parent;
+
+DROP TABLE IF EXISTS posts_fts;
+
+DROP VIEW IF EXISTS user_view;
+DROP VIEW IF EXISTS post_view;
+DROP VIEW IF EXISTS comment_view;
+DROP VIEW IF EXISTS subcomment_view;
+DROP VIEW IF EXISTS notification_view;
+
+DROP TABLE session;
+DROP TABLE email_verification;
+DROP TABLE password_reset;
+DROP TABLE community_invite;
+DROP TABLE user_community;
+DROP TABLE community_role;
+DROP TABLE community_tag;
+DROP TABLE user_badge;
+DROP TABLE badge;
+DROP TABLE attachment;
+DROP TABLE post_like;
+DROP TABLE comment_like;
+DROP TABLE subcomment_like;
+DROP TABLE report;
+DROP TABLE notification;
+DROP TABLE websocket;
+DROP TABLE subcomment;
+DROP TABLE comment;
+DROP TABLE post;
+DROP TABLE community;
+DROP TABLE tag;
+DROP TABLE user;
