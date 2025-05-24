@@ -94,6 +94,24 @@ export async function signup(c: Context) {
 
                 const existingSessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
 
+                c.set('userId', user.id);
+                c.set('username', username);
+                c.set('email', email);
+
+                // Finalize the process in the background
+                c.executionCtx.waitUntil(Promise.all([
+                        // Add user to general community
+                        await env.DB.prepare(`
+                            INSERT INTO user_community (user_id, community_id, role_id)
+                            VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
+                        `).bind(user.id).run(),
+
+                        // Send email verification
+                        sendEmailVerification(c, true)
+                    ]).then(() => console.log('User created successfully'))
+                        .catch((e) => console.log('Failed to send email', e))
+                );
+
                 // Send session key & token
                 await sendAuthCookie(c, existingSessionKey);
                 await sendUserIdCookie(c, userId.toString(), false);
