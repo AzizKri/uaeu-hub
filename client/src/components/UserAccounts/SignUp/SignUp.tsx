@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
 import {Link, useLocation, useNavigate} from 'react-router-dom';
-import {sendEmailVerification, signUp} from '../../../api/authentication.ts';
+import {signUp} from '../../../api/authentication.ts';
 import {isAnon} from '../../../api/currentUser.ts';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import {userSchema} from "../../../userSchema.ts";
@@ -85,7 +85,6 @@ export default function SignUp() {
                 bio: data.bio,
                 pfp: data.pfp
             })
-            await sendEmailVerification();
             setShowConfirmationPopup(true);
         } else {
             const newErrors: SignUpErrors = {};
