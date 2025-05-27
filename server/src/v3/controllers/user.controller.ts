@@ -13,8 +13,8 @@ export async function getCurrentUser(c: Context) {
 			// Get user data
 			const user = await env.DB.prepare(
 				`
-                    SELECT *
-                    FROM user_view
+                    SELECT *, u.email
+                    FROM user_view, user u
                     WHERE id = ?
                 `,
 			)
