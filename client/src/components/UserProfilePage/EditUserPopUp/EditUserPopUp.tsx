@@ -9,7 +9,7 @@ type tab = "Edit Profile" | "Change Email" | "Change Password"
 
 const settingsTabs: {label: tab }[] = [
     { label: "Edit Profile" },
-    { label: "Change Email" },
+    // { label: "Change Email" },
     { label: "Change Password" },
 ];
 
