@@ -3,6 +3,9 @@ import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import LoadingFallback from "./components/Reusable/LoadingFallback/LoadingFallback.tsx";
 import ResetPasswordPage from "./components/UserAuthentication/Password/ResetPasswordPage.tsx";
 import Terms from "./components/Legal/Terms/Terms.tsx";
+import TermsLayout from "./components/Legal/Layout/TermsLayout.tsx";
+import PrivacyLayout from "./components/Legal/Layout/PrivacyLayout.tsx";
+import Privacy from "./components/Legal/Privacy/Privacy.tsx";
 
 const App = lazy(() => import("./App.tsx"));
 const Login = lazy(() => import("./components/UserAccounts/Login/Login.tsx"));
@@ -46,9 +49,7 @@ const routes = [
     {
         path: "/",
         element: (
-            <Suspense fallback={<LoadingFallback/>}>
                 <App/>
-            </Suspense>
         ),
         children: [
             {path: "/", element: <Home/>},
@@ -59,13 +60,19 @@ const routes = [
             },
             {path: "community/:communityName", element: <Community/>},
             {path: "community/explore", element: <ExploreCommunities/>},
-            {
-                path: "/terms",
-                element: (
-                    <Terms/>
-                )
-            },
         ],
+    },
+    {
+        path: "/terms",
+        element: (
+            <TermsLayout page={Terms}/>
+        )
+    },
+    {
+        path: "/privacy",
+        element: (
+            <PrivacyLayout page={Privacy}/>
+        )
     },
     {
         path: "/login",
