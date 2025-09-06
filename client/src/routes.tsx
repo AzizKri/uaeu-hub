@@ -49,29 +49,35 @@ const routes = [
     {
         path: "/",
         element: (
+            <Suspense fallback={<LoadingFallback/>}>
                 <App/>
+            </Suspense>
         ),
         children: [
-            {path: "/", element: <Home/>},
-            {path: "post/:postId", element: <PostPage/>},
+            {path: "/", element: <Suspense fallback={<LoadingFallback/>}><Home/></Suspense>},
+            {path: "post/:postId", element: <Suspense fallback={<LoadingFallback/>}><PostPage/></Suspense>},
             {
                 path: "user/:username",
-                element: <UserProfile/>,
+                element: <Suspense fallback={<LoadingFallback/>}><UserProfile/></Suspense>,
             },
-            {path: "community/:communityName", element: <Community/>},
-            {path: "community/explore", element: <ExploreCommunities/>},
+            {path: "community/:communityName", element: <Suspense fallback={<LoadingFallback/>}><Community/></Suspense>},
+            {path: "community/explore", element: <Suspense fallback={<LoadingFallback/>}><ExploreCommunities/></Suspense>},
         ],
     },
     {
         path: "/terms",
         element: (
-            <TermsLayout page={Terms}/>
+            <Suspense fallback={<LoadingFallback/>}>
+                <TermsLayout page={Terms}/>
+            </Suspense>
         )
     },
     {
         path: "/privacy",
         element: (
-            <PrivacyLayout page={Privacy}/>
+            <Suspense fallback={<LoadingFallback/>}>
+                <PrivacyLayout page={Privacy}/>
+            </Suspense>
         )
     },
     {
@@ -114,7 +120,7 @@ const routes = [
             </Suspense>
         )
     },
-    {path: "*", element: <NotFound/>},
+    {path: "*", element: <Suspense fallback={<LoadingFallback/>}><NotFound/></Suspense>},
 ];
 
 const router = createBrowserRouter(routes);
