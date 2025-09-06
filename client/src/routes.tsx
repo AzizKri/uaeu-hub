@@ -49,19 +49,17 @@ const routes = [
     {
         path: "/",
         element: (
-            <Suspense fallback={<LoadingFallback/>}>
                 <App/>
-            </Suspense>
         ),
         children: [
-            {path: "/", element: <Suspense fallback={<LoadingFallback/>}><Home/></Suspense>},
-            {path: "post/:postId", element: <Suspense fallback={<LoadingFallback/>}><PostPage/></Suspense>},
+            {path: "/", element: <Home/>},
+            {path: "post/:postId", element: <PostPage/>},
             {
                 path: "user/:username",
-                element: <Suspense fallback={<LoadingFallback/>}><UserProfile/></Suspense>,
+                element: <UserProfile/>,
             },
-            {path: "community/:communityName", element: <Suspense fallback={<LoadingFallback/>}><Community/></Suspense>},
-            {path: "community/explore", element: <Suspense fallback={<LoadingFallback/>}><ExploreCommunities/></Suspense>},
+            {path: "community/:communityName", element: <Community/>},
+            {path: "community/explore", element: <ExploreCommunities/>},
         ],
     },
     {
