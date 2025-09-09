@@ -1,6 +1,7 @@
 import React, {lazy, Suspense} from "react";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import LoadingFallback from "./components/Reusable/LoadingFallback/LoadingFallback.tsx";
+import NavigationFallback from "./components/Reusable/NavigationFallback/NavigationFallback.tsx";
 import ResetPasswordPage from "./components/UserAuthentication/Password/ResetPasswordPage.tsx";
 import Terms from "./components/Legal/Terms/Terms.tsx";
 
@@ -51,18 +52,52 @@ const routes = [
             </Suspense>
         ),
         children: [
-            {path: "/", element: <Home/>},
-            {path: "post/:postId", element: <PostPage/>},
+            {
+                path: "/", 
+                element: (
+                    <Suspense fallback={<NavigationFallback/>}>
+                        <Home/>
+                    </Suspense>
+                )
+            },
+            {
+                path: "post/:postId", 
+                element: (
+                    <Suspense fallback={<NavigationFallback/>}>
+                        <PostPage/>
+                    </Suspense>
+                )
+            },
             {
                 path: "user/:username",
-                element: <UserProfile/>,
+                element: (
+                    <Suspense fallback={<NavigationFallback/>}>
+                        <UserProfile/>
+                    </Suspense>
+                ),
             },
-            {path: "community/:communityName", element: <Community/>},
-            {path: "community/explore", element: <ExploreCommunities/>},
+            {
+                path: "community/:communityName", 
+                element: (
+                    <Suspense fallback={<NavigationFallback/>}>
+                        <Community/>
+                    </Suspense>
+                )
+            },
+            {
+                path: "community/explore", 
+                element: (
+                    <Suspense fallback={<NavigationFallback/>}>
+                        <ExploreCommunities/>
+                    </Suspense>
+                )
+            },
             {
                 path: "/terms",
                 element: (
-                    <Terms/>
+                    <Suspense fallback={<NavigationFallback/>}>
+                        <Terms/>
+                    </Suspense>
                 )
             },
         ],
