@@ -1,0 +1,20 @@
+.navigationFallback {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    padding: 2rem;
+    background-color: transparent;
+}
+
+.spinnerContainer {
+    margin-bottom: 1rem;
+}
+
+.loadingText {
+    font-size: 0.9rem;
+    color: #666;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    margin: 0;
+}
