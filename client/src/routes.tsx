@@ -6,6 +6,7 @@ import Terms from "./components/Legal/Terms/Terms.tsx";
 import TermsLayout from "./components/Legal/Layout/TermsLayout.tsx";
 import PrivacyLayout from "./components/Legal/Layout/PrivacyLayout.tsx";
 import Privacy from "./components/Legal/Privacy/Privacy.tsx";
+import NavigationFallback from "./components/Reusable/NavigationFallback/NavigationFallback.tsx";
 
 const App = lazy(() => import("./App.tsx"));
 const Login = lazy(() => import("./components/UserAccounts/Login/Login.tsx"));
@@ -54,20 +55,20 @@ const routes = [
             </Suspense>
         ),
         children: [
-            {path: "/", element: <Suspense fallback={<LoadingFallback/>}><Home/></Suspense>},
-            {path: "post/:postId", element: <Suspense fallback={<LoadingFallback/>}><PostPage/></Suspense>},
+            {path: "/", element: <Suspense fallback={<NavigationFallback/>}><Home/></Suspense>},
+            {path: "post/:postId", element: <Suspense fallback={<NavigationFallback/>}><PostPage/></Suspense>},
             {
                 path: "user/:username",
-                element: <Suspense fallback={<LoadingFallback/>}><UserProfile/></Suspense>,
+                element: <Suspense fallback={<NavigationFallback/>}><UserProfile/></Suspense>,
             },
-            {path: "community/:communityName", element: <Suspense fallback={<LoadingFallback/>}><Community/></Suspense>},
-            {path: "community/explore", element: <Suspense fallback={<LoadingFallback/>}><ExploreCommunities/></Suspense>},
+            {path: "community/:communityName", element: <Suspense fallback={<NavigationFallback/>}><Community/></Suspense>},
+            {path: "community/explore", element: <Suspense fallback={<NavigationFallback/>}><ExploreCommunities/></Suspense>},
         ],
     },
     {
         path: "/terms",
         element: (
-            <Suspense fallback={<LoadingFallback/>}>
+            <Suspense fallback={<NavigationFallback/>}>
                 <TermsLayout page={Terms}/>
             </Suspense>
         )
@@ -75,7 +76,7 @@ const routes = [
     {
         path: "/privacy",
         element: (
-            <Suspense fallback={<LoadingFallback/>}>
+            <Suspense fallback={<NavigationFallback/>}>
                 <PrivacyLayout page={Privacy}/>
             </Suspense>
         )
