@@ -4,6 +4,9 @@ import LoadingFallback from "./components/Reusable/LoadingFallback/LoadingFallba
 import NavigationFallback from "./components/Reusable/NavigationFallback/NavigationFallback.tsx";
 import ResetPasswordPage from "./components/UserAuthentication/Password/ResetPasswordPage.tsx";
 import Terms from "./components/Legal/Terms/Terms.tsx";
+import TermsLayout from "./components/Legal/Layout/TermsLayout.tsx";
+import PrivacyLayout from "./components/Legal/Layout/PrivacyLayout.tsx";
+import Privacy from "./components/Legal/Privacy/Privacy.tsx";
 
 const App = lazy(() => import("./App.tsx"));
 const Login = lazy(() => import("./components/UserAccounts/Login/Login.tsx"));
@@ -99,6 +102,7 @@ const routes = [
                         <Terms/>
                     </Suspense>
                 )
+
             },
         ],
     },
@@ -142,7 +146,7 @@ const routes = [
             </Suspense>
         )
     },
-    {path: "*", element: <NotFound/>},
+    {path: "*", element: <Suspense fallback={<LoadingFallback/>}><NotFound/></Suspense>},
 ];
 
 const router = createBrowserRouter(routes);

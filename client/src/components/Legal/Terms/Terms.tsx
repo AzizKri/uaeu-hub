@@ -6,6 +6,9 @@ export default function Terms() {
         <div className={styles.page}>
             <section>
                 <h1>Terms of Service</h1>
+                <p>
+                    <em>Effective 15th of February, 2025</em>
+                </p>
             </section>
             <section className={styles.body}>
                 <p>
@@ -29,7 +32,7 @@ export default function Terms() {
                     platform.
                 </p>
 
-                <h3>Eligibility</h3>
+                <h3 id={"eligibility"}>Eligibility</h3>
                 <p>
                     By accessing or using UAEU Chat, you confirm that you are at least 13 years old or meet the minimum
                     age requirement to use the platform under the laws of your country of residence. If you are under
@@ -41,7 +44,7 @@ export default function Terms() {
                 </p>
 
 
-                <h3>Privacy</h3>
+                <h3 id={"privacy"}>Privacy</h3>
                 <p>
                     Your privacy is important to us. By using UAEU Chat, you acknowledge and agree that we may collect,
                     use, and share your personal information in accordance with our <Link
@@ -50,7 +53,7 @@ export default function Terms() {
                     protect it.
                 </p>
 
-                <h3>Your Use of the Services</h3>
+                <h3 id={"your-use"}>Your Use of the Services</h3>
                 <p>
                     You are prohibited from using UAEU Chat for the following activities:
                 </p>
@@ -81,7 +84,7 @@ export default function Terms() {
                     anonymous is also prohibited.
                 </p>
 
-                <h3>Content on the Platform</h3>
+                <h3 id={"content-platform"}>Content on the Platform</h3>
 
                 <p>
                     All content shared, posted, or uploaded by users on UAEU Chat must adhere to the guidelines set
@@ -114,7 +117,7 @@ export default function Terms() {
                     suspension or termination of your account.
                 </p>
 
-                <h3>Content Moderation</h3>
+                <h3 id={"content-moderation"}>Content Moderation</h3>
 
                 <p>
                     UAEU Chat strives to maintain a safe, respectful, and inclusive environment for all users. While we
@@ -135,7 +138,7 @@ export default function Terms() {
                     decisions fairly and promptly, but the process may not be immediate.
                 </p>
 
-                <h3>No Guarantees or Liability</h3>
+                <h3 id={"no-guarantees"}>No Guarantees or Liability</h3>
 
                 <p>
                     UAEU Chat provides the platform "as is" and without any warranties, express or implied. We do not
@@ -157,7 +160,7 @@ export default function Terms() {
                     environment, we cannot guarantee the accuracy, reliability, or legality of user-generated content.
                 </p>
 
-                <h3>Termination</h3>
+                <h3 id={"termination"}>Termination</h3>
 
                 <p>
                     UAEU Chat reserves the right to terminate or suspend your account at any time, with or without
@@ -173,7 +176,7 @@ export default function Terms() {
                     your account. UAEU Chat is not liable for any losses resulting from the termination of your account.
                 </p>
 
-                <h3>Indemnity</h3>
+                <h3 id={"indemnity"}>Indemnity</h3>
 
                 <p>
                     You agree to indemnify and hold UAEU Chat and its affiliates, administrators, moderators, and agents
@@ -188,7 +191,7 @@ export default function Terms() {
                     the platform.
                 </p>
 
-                <h3>Governing Law and Jurisdiction</h3>
+                <h3 id={"governing"}>Governing Law and Jurisdiction</h3>
 
                 <p>
                     These Terms of Service and any disputes arising out of or related to UAEU Chat shall be governed by
@@ -197,17 +200,13 @@ export default function Terms() {
                     jurisdiction of the courts of the UAE.
                 </p>
 
-                <h3>Modification to the Terms</h3>
+                <h3 id={"modification"}>Modification to the Terms</h3>
                 <p>
                     UAEU Chat reserves the right to update, modify, or revise these Terms of Service at any time,
                     without
                     prior notice. Any changes to the Terms will be effective immediately upon posting the revised
                     version on the UAEU Chat website. It is your responsibility to review the Terms periodically to stay
                     informed about any updates or modifications.
-                </p>
-
-                <p>
-                    <em>Last updated: 15th of February, 2025</em>
                 </p>
 
 

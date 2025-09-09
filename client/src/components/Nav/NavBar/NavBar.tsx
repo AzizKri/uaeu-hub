@@ -1,6 +1,6 @@
 import Search from "../Search/Search.tsx";
 import styles from "./NavBar.module.scss";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, startTransition } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../../assets/logo-text-2.svg";
 import { goToAuth } from "../../../utils/tools.ts";
@@ -45,8 +45,9 @@ export default function NavBar() {
     };
 
     const handleIconClick = () => {
-        window.location.assign(`/user/${user?.username}`);
-        // navigate(`/user/${user?.username}`);
+        startTransition(() => {
+            navigate(`/user/${user?.username}`);
+        });
     };
 
     return (
