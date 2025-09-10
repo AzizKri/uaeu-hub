@@ -3,11 +3,13 @@ import styles from "./Notification.module.scss";
 import NotificationsDropDown from "./NotificationsDropDown";
 import { getNotifications } from "../../api/notifications.ts";
 import notificationLogo from "../../assets/notification-bell.svg";
+import { useUser } from "../../contexts/user/UserContext.ts";
 
 export default function Notification() {
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const notificationRef = useRef<HTMLDivElement>(null);
+    const { user } = useUser();
 
     const fetchUnreadCount = async () => {
         try {
@@ -18,7 +20,7 @@ export default function Notification() {
             }
 
             const unreadNotifications = res.data.filter(
-                (notification: { read: boolean }) => !notification.read
+                (notification: { read: boolean; sender: string }) => !notification.read && notification.sender !== user?.username
             );
 
             setUnreadCount(unreadNotifications.length);
@@ -40,7 +42,16 @@ export default function Notification() {
 
         const intervalId = setInterval(fetchUnreadCount, 30000);
 
-        return () => clearInterval(intervalId);
+        const handleNotificationsMarkedAsRead = () => {
+            fetchUnreadCount();
+        };
+
+        window.addEventListener('notificationsMarkedAsRead', handleNotificationsMarkedAsRead);
+
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener('notificationsMarkedAsRead', handleNotificationsMarkedAsRead);
+        };
     }, []);
 
     useEffect(() => {

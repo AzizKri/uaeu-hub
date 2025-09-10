@@ -4,6 +4,7 @@ import { getNotifications, readNotifications } from "../../../api/notifications"
 import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
 import NotificationItem from "../../Notifications/NotificationItem.tsx";
+import { useUser } from "../../../contexts/user/UserContext.ts";
 
 
 export default function UserNotifications() {
@@ -11,6 +12,7 @@ export default function UserNotifications() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "unread">("all");
     const [isLoadingMoreNotifications, setLoadingMoreNotifications] = useState<boolean>(false);
+    const { user } = useUser();
 
 
     useEffect(() => {
@@ -50,6 +52,7 @@ export default function UserNotifications() {
                         metadata: notification.metadata,
                         createdAt: new Date(notification.created_at),
                     }))
+                    .filter((n: Notification) => n.sender !== user?.username)
             );
             setLoading(false);
         } catch (error) {
@@ -68,7 +71,8 @@ export default function UserNotifications() {
                 setNotifications(notifications.map(notification => ({
                     ...notification,
                     read: true
-                })));
+                })));                
+                window.dispatchEvent(new CustomEvent('notificationsMarkedAsRead'));
             }
         } catch (error) {
             console.error("Error marking all notifications as read:", error);
@@ -100,7 +104,7 @@ export default function UserNotifications() {
                 read: notification.read,
                 metadata: notification.metadata,
                 createdAt: new Date(notification.created_at),
-            }))]
+            })).filter((n: Notification) => n.sender !== user?.username)]
         )
         setLoadingMoreNotifications(false);
     }
