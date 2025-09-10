@@ -59,7 +59,7 @@ export default function NotificationsDropDown({
                             metadata: notification.metadata,
                             createdAt: new Date(notification.created_at),
                         }))
-                        .filter((n : Notification) => !n.read)
+                        .filter((n : Notification) => !n.read && n.sender !== user?.username)
                 );
                 setLoading(false);
             } catch (error) {
@@ -91,6 +91,7 @@ export default function NotificationsDropDown({
     };
 
     const handleViewAll = () => {
+        console.log(notifications);
         onClose();
         navigate(`/user/${user?.username}`, { state: { activeTab: "Notifications" } });
     };
