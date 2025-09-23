@@ -19,12 +19,12 @@ import {getCommunitiesCurrentUser} from "../../../api/currentUser.ts";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import Post from "../Post/Post.tsx";
-import communityIcon from "../../../assets/community-icon.jpg";
 import arrowDownIcon from "../../../assets/chevron-down.svg";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import {subComment} from "../../../api/subComments.ts";
 import PostImage from "../../Reusable/PostImage/PostImage.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
+import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
@@ -559,11 +559,9 @@ export default function Editor({
 export function CommunityPreview({community}: { community: CommunityInfoSimple }) {
     return (
         <div className={styles.community}>
-            <img
-                src={community.icon || communityIcon}
-                alt={community.name}
-                className={styles.icon}
-            />
+            <div style={{ width: "32px", height: "32px" }}>
+            <CommunityIconComponent source={community.icon} />
+            </div>
             <span className={styles.communityName}>{community.name}</span>
         </div>
     );

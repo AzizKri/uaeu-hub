@@ -91,7 +91,7 @@ export default function SignUp() {
             if (response.status === 409) {
                 newErrors.global = 'User already exists';
             } else {
-                newErrors.global = 'Something went wrong please try again';
+                newErrors.global = data.message;
             }
             setErrors(newErrors);
         }

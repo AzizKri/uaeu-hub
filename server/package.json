@@ -19,7 +19,7 @@
         "miniflare": "^4.20250508.3",
         "typescript": "^5.5.2",
         "vitest": "^3.1.4",
-        "wrangler": "^4.15.2"
+        "wrangler": "^4.35.0"
     },
     "dependencies": {
         "@cloudflare/types": "^6.29.1",
