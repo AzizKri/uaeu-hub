@@ -30,6 +30,7 @@ export default function Header({
 
     const goToAuthor: React.MouseEventHandler = (e) => {
         e.stopPropagation()
+        if (username == 'Anonymous') return;
         navigate(`/user/${username}`);
     }
 
