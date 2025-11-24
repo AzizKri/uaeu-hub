@@ -1,40 +1,58 @@
 .postImageWrapper {
-    overflow: hidden;
-    max-height: 350px;
-    display: flex;
-    border-radius: 10px;
-    background-color: #5b5b5b;
-    position: relative;
-    //border: 3px solid red;
-    //filter: blur(5px);
+  overflow: hidden;
+  max-height: 350px;
+  display: flex;
+  border-radius: 10px;
+  background-color: #5b5b5b;
+  position: relative;
+  //border: 3px solid red;
+  //filter: blur(5px);
 
-    .postImageBlur {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        filter: blur(50px) brightness(0.75);
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
+  .postImageBlur {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    filter: blur(50px) brightness(0.75);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .blurredBackground {
+    margin-inline: auto;
+
+    //border: 3px solid green;
+
+    z-index: 1;
+
+    .postImage {
+      margin-inline: auto;
+
+      height: 100%;
+
+      width: 100%;
+
+      object-fit: contain;
+
+      transition: opacity 0.2s ease;
+      //display: none;
+
+      //border: 3px solid blue;
+
+      &.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      &.visible {
+        opacity: 1;
+        visibility: visible;
+      }
     }
-
-
-    .blurredBackground {
-        margin-inline: auto;
-        //border: 3px solid green;
-        z-index: 1;
-
-        .postImage {
-            margin-inline: auto;
-            height: 100%;
-            width: 100%;
-            object-fit: contain;
-            //display: none;
-            //border: 3px solid blue;
-        }
-    }
+  }
 }
 //.spinner {
 //    width: 40px;
