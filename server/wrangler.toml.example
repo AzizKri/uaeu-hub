@@ -1,47 +1,59 @@
-name = "server"
+name = "uaeu-hub-api"
 main = "src/index.ts"
 compatibility_date = "2024-09-25"
 compatibility_flags = ["nodejs_compat"]
 
-[observability]
-enabled = true
-
-[[d1_databases]]
-binding = "DB"
-database_name = "YOUR-D1-DB"
-database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "YOUR-R2-BUCKET"
-preview_bucket_name = "YOUR-R2-PREVIEW-BUCKET"
-
-[triggers]
-crons = ["0 */12 * * *"]
-
-[[unsafe.bindings]]
-name = "POSTS_RL"
-type = "ratelimit"
-namespace_id = "1001"
-simple = { limit = 8, period = 10 }
-
-[[unsafe.bindings]]
-name = "ATTACHMENT_RL"
-type = "ratelimit"
-namespace_id = "1002"
-simple = { limit = 3, period = 10 }
-
-[vars]
-ENVIRONMENT = "production"
-
-[env.dev]
+observability = { enabled = true }
 
 d1_databases = [
-    { binding = "DB", database_name = "YOUR-DEV-D1-DB", database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" }
+    { binding = "DB", database_name = "uaeu-chat", database_id = "PROD_DB_ID", migrations_table = "migrations", migrations_dir = 'migrations' }
 ]
 
 r2_buckets = [
-    { binding = "R2", bucket_name = "YOUR-D2-BUCKET", preview_bucket_name = "YOUR-DEV-D2-BUCKET" }
+    { binding = "R2", bucket_name = "uaeu-chat", preview_bucket_name = "uaeu-chat-dev" }
+]
+
+triggers = { crons = ["0 */12 * * *"] }
+
+unsafe.bindings = [
+    # User - 10XX
+
+    # Auth - 11XX
+    { name = "SIGNUP_RL", type = "ratelimit", namespace_id = "1100", simple = { limit = 1, period = 60 } },
+    { name = "LOGIN_RL", type = "ratelimit", namespace_id = "1101", simple = { limit = 3, period = 10 } },
+
+    # Get Posts, Comments, Replies - 20XX
+    { name = "GET_POSTS_RL", type = "ratelimit", namespace_id = "2001", simple = { limit = 8, period = 10 } },
+    { name = "GET_COMMENTS_RL", type = "ratelimit", namespace_id = "2002", simple = { limit = 8, period = 10 } },
+    { name = "GET_REPLIES_RL", type = "ratelimit", namespace_id = "2003", simple = { limit = 8, period = 10 } },
+
+    # Posting - 21XX
+    { name = "POSTS_RL", type = "ratelimit", namespace_id = "2101", simple = { limit = 4, period = 10 } },
+    { name = "COMMENTS_RL", type = "ratelimit", namespace_id = "2102", simple = { limit = 4, period = 10 } },
+    { name = "REPLIES_RL", type = "ratelimit", namespace_id = "2103", simple = { limit = 4, period = 10 } },
+
+    # Get Communities, Tags - 30XX
+    { name = "GET_COMMUNITIES_RL", type = "ratelimit", namespace_id = "3001", simple = { limit = 8, period = 10 } },
+    { name = "GET_TAGS_RL", type = "ratelimit", namespace_id = "3002", simple = { limit = 8, period = 10 } },
+
+    # Create Communities, Tags - 31XX
+    { name = "COMMUNITIES_RL", type = "ratelimit", namespace_id = "3101", simple = { limit = 1, period = 60 } },
+    { name = "TAGS_RL", type = "ratelimit", namespace_id = "3102", simple = { limit = 8, period = 10 } },
+
+    # Attachments - 40XX
+    { name = "ATTACHMENT_RL", type = "ratelimit", namespace_id = "4001", simple = { limit = 3, period = 10 } }
+]
+
+vars = { ENVIRONMENT = "production", WEBSOCKET_URL = "https://wss.uaeu.chat", EN_SECRET = 'EN_SECRET_HERE' }
+
+[env.production]
+
+d1_databases = [
+    { binding = "DB", database_name = "uaeu-chat", database_id = "UAEU_CHAT_PROD_DB", migrations_table = "migrations", migrations_dir = 'migrations' }
+]
+
+r2_buckets = [
+    { binding = "R2", bucket_name = "uaeu-chat", preview_bucket_name = "uaeu-chat-dev" }
 ]
 
 triggers = { crons = ["0 */12 * * *"] }
@@ -51,7 +63,50 @@ unsafe.bindings = [
     { name = "ATTACHMENT_RL", type = "ratelimit", namespace_id = "1002", simple = { limit = 3, period = 10 } }
 ]
 
-vars = { ENVIRONMENT = "development" }
+vars = { ENVIRONMENT = "production", WEBSOCKET_URL = "https://wss.uaeu.chat", EN_SECRET = 'EN_SECRET_HERE' }
+
+[env.dev]
+
+d1_databases = [
+    { binding = "DB", database_name = "uaeu-chat-dev", database_id = "DEV_DB_ID" }
+]
+
+r2_buckets = [
+    { binding = "R2", bucket_name = "uaeu-chat", preview_bucket_name = "uaeu-chat-dev" }
+]
+
+triggers = { crons = ["0 */12 * * *"] }
+
+unsafe.bindings = [
+    # User - 10XX
+
+    # Auth - 11XX
+    { name = "SIGNUP_RL", type = "ratelimit", namespace_id = "1100", simple = { limit = 1, period = 60 } },
+    { name = "LOGIN_RL", type = "ratelimit", namespace_id = "1101", simple = { limit = 3, period = 10 } },
+
+    # Get Posts, Comments, Replies - 20XX
+    { name = "GET_POSTS_RL", type = "ratelimit", namespace_id = "2001", simple = { limit = 8, period = 10 } },
+    { name = "GET_COMMENTS_RL", type = "ratelimit", namespace_id = "2002", simple = { limit = 8, period = 10 } },
+    { name = "GET_REPLIES_RL", type = "ratelimit", namespace_id = "2003", simple = { limit = 8, period = 10 } },
+
+    # Posting - 21XX
+    { name = "POSTS_RL", type = "ratelimit", namespace_id = "2101", simple = { limit = 4, period = 10 } },
+    { name = "COMMENTS_RL", type = "ratelimit", namespace_id = "2102", simple = { limit = 4, period = 10 } },
+    { name = "REPLIES_RL", type = "ratelimit", namespace_id = "2103", simple = { limit = 4, period = 10 } },
+
+    # Get Communities, Tags - 30XX
+    { name = "GET_COMMUNITIES_RL", type = "ratelimit", namespace_id = "3001", simple = { limit = 8, period = 10 } },
+    { name = "GET_TAGS_RL", type = "ratelimit", namespace_id = "3002", simple = { limit = 8, period = 10 } },
+
+    # Create Communities, Tags - 31XX
+    { name = "COMMUNITIES_RL", type = "ratelimit", namespace_id = "3101", simple = { limit = 1, period = 60 } },
+    { name = "TAGS_RL", type = "ratelimit", namespace_id = "3102", simple = { limit = 8, period = 10 } },
+
+    # Attachments - 40XX
+    { name = "ATTACHMENT_RL", type = "ratelimit", namespace_id = "4001", simple = { limit = 3, period = 10 } }
+]
+
+vars = { ENVIRONMENT = "development", WEBSOCKET_URL = "https://ws.uaeu.chat", EN_SECRET = 'EN_SECRET_HERE' }
 
 [env.staging]
 vars = { ENVIRONMENT = "staging" }

@@ -7,6 +7,12 @@ import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../u
 import { OAuth2Client } from 'google-auth-library';
 import * as sgMail from '@sendgrid/mail';
 import { randomBytes } from 'crypto';
+import { AwsClient } from 'aws4fetch';
+import { createMimeMessage } from 'mimetext/browser';
+
+// @ts-ignore
+import templateHtml from '../util/verification_email.html';
+
 
 /* User Authentication */
 
@@ -259,7 +265,7 @@ export async function authenticateWithGoogle(c: Context) {
             `).bind(username, name, email, sub, picture).first<UserView>();
 
             // I have trust issues
-            if (!newUser) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+            if (!newUser) return c.json({ message: 'Failed to create newUser', status: 500 }, 500);
 
             // Generate session key & token
             const PlainSessionKey = randomBytes(32).toString('hex');
@@ -289,7 +295,7 @@ export async function authenticateWithGoogle(c: Context) {
         }
     } catch (e) {
         console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+        return c.json({ message: `Internal Server Error`, details: e, status: 500 }, 500);
     }
 }
 
@@ -784,7 +790,7 @@ export async function changeEmail(c: Context) {
 
 // MISC
 
-async function sendEmailVerificationEmail(c: Context, to: string, username: string, token: string) {
+async function sendEmailVerificationEmailSendgrid(c: Context, to: string, username: string, token: string) {
     // Set the API Key
     const env: Env = c.env;
     sgMail.setApiKey(env.EMAIL_API);
@@ -813,6 +819,72 @@ async function sendEmailVerificationEmail(c: Context, to: string, username: stri
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
     }
 
+}
+
+async function sendEmailVerificationEmail(
+    c: Context,
+    to: string,
+    username: string,
+    token: string
+) {
+    const env: Env = c.env;
+
+    // Generate the verification link
+    const verificationLink = `https://uaeu.chat/verify-email?token=${token}`;
+
+    // Render the HTML template
+    const htmlBody = templateHtml
+        .replace(/{username}/g, username)
+        .replace(/{verificationLink}/g, verificationLink);
+
+    // Build the SES SendEmail payload (using the "SendEmail" API action)
+    const email = createMimeMessage();
+    email.setSender({
+        name: 'UAEU Chat',
+        addr: 'no-reply@uaeu.chat'
+    })
+    email.setTo({
+        name: username,
+        addr: to
+    })
+    email.setSubject('uaeu.chat - Verify your email address');
+    email.addMessage({
+        contentType: 'text/html',
+        data: htmlBody,
+    })
+
+    const rawMessage = new TextEncoder().encode(email.asRaw());
+
+    // Prepare request to SES API (query protocol)
+    const url = 'https://email.eu-north-1.amazonaws.com/';
+
+    const aws = new AwsClient({
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        service: 'ses',
+        region: 'eu-north-1'
+    });
+
+    try {
+        const response = await aws.fetch(url, {
+            method: 'POST',
+            body: rawMessage,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            console.error('SES error:', text);
+            return c.json({ message: 'SES send failed', status: 500 }, 500);
+        }
+
+        return c.json({ message: 'Email sent', status: 200 }, 200);
+    } catch (err) {
+        console.error('SES send exception:', err);
+        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    }
 }
 
 async function sendPasswordChangedConfirmationEmail(c: Context, username: string, email: string) {
