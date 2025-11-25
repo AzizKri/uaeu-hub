@@ -44,7 +44,7 @@ export async function signInWithGoogle(code: string) {
 }
 
 export async function sendEmailVerification() {
-    return await fetch(base + `/sendEmailVerification`, { credentials: 'include' });
+    return await fetch(base + `/sendEmailVerification`, { method: 'POST', credentials: 'include' });
 }
 
 export async function verifyEmail(token: string) {

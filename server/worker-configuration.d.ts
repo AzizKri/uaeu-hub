@@ -14,4 +14,7 @@ interface Env {
     CLIENT_ID: string;
     CLIENT_SECRET: string;
     EMAIL_API: string;
+    AWS_ACCESS_KEY_ID: string;
+    AWS_SECRET_ACCESS_KEY: string;
+    FIREBASE_PROJECT_ID: string;
 }
