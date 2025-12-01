@@ -1,13 +1,17 @@
 import styles from "./CommunityIconComponent.module.scss";
 import { assetsBase } from "../../../api/api.ts";
 import defaultCommunityIcon from "../../../assets/community-icon.jpg";
-import {memo} from "react";
+import {memo, SyntheticEvent} from "react";
 
 function CommunityIconComponent({
     source,
 }: {
     source: string | undefined | null;
 }) {
+    const handleError = (e: SyntheticEvent<HTMLImageElement>) => {
+        e.currentTarget.src = defaultCommunityIcon;
+    };
+
     return (
         <img
             src={
@@ -19,6 +23,7 @@ function CommunityIconComponent({
             }
             alt="community icon"
             className={styles.communityIcon}
+            onError={handleError}
         />
     );
 }
