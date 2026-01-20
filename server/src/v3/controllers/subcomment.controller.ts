@@ -1,5 +1,6 @@
 import { Context } from 'hono';
 import { createNotification } from '../notifications';
+import { createPublicId } from '../util/nanoid';
 
 export async function subcomment(c: Context) {
     const env: Env = c.env;
@@ -15,20 +16,23 @@ export async function subcomment(c: Context) {
         // Get user ID from Context
         const userId = c.get('userId') as number;
 
+        // Generate public_id for the subcomment
+        const publicId = createPublicId();
+
         let subcommentD1;
         // Check if we have a file & insert into DB
         if (fileName) {
             subcommentD1 = await env.DB.prepare(
-                `INSERT INTO subcomment (parent_comment_id, author_id, content, attachment)
-                 VALUES (?, ?, ?, ?)
+                `INSERT INTO subcomment (parent_comment_id, author_id, content, attachment, public_id)
+                 VALUES (?, ?, ?, ?, ?)
                  RETURNING id`
-            ).bind(commentID, userId, content, fileName).first<SubcommentRow>();
+            ).bind(commentID, userId, content, fileName, publicId).first<SubcommentRow>();
         } else {
             subcommentD1 = await env.DB.prepare(
-                `INSERT INTO subcomment (parent_comment_id, author_id, content)
-                 VALUES (?, ?, ?)
+                `INSERT INTO subcomment (parent_comment_id, author_id, content, public_id)
+                 VALUES (?, ?, ?, ?)
                  RETURNING id`
-            ).bind(commentID, userId, content).first<SubcommentRow>();
+            ).bind(commentID, userId, content, publicId).first<SubcommentRow>();
         }
 
         const subcomment = await env.DB.prepare(`

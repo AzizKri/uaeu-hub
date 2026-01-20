@@ -9,6 +9,7 @@ import * as sgMail from '@sendgrid/mail';
 import { randomBytes } from 'crypto';
 import { AwsClient } from 'aws4fetch';
 import { createMimeMessage } from 'mimetext/browser';
+import { createPublicId } from '../util/nanoid';
 
 // @ts-ignore
 import templateHtml from '../util/verification_email.html';
@@ -321,12 +322,15 @@ export async function anonSignup(c: Context, returnInternal: boolean = false) {
     } while (existingUser.results.length > 0);
 
     try {
+        // Generate public_id for the user
+        const publicId = createPublicId();
+
         // Insert into DB
         const user = await env.DB.prepare(`
-            INSERT INTO user (username, displayname, is_anonymous)
-            VALUES (?, ?, ?)
+            INSERT INTO user (username, displayname, is_anonymous, public_id)
+            VALUES (?, ?, ?, ?)
             RETURNING id
-        `).bind(username, 'Anonymous', true).first<UserRow>();
+        `).bind(username, 'Anonymous', true, publicId).first<UserRow>();
 
         // Error?
         if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
@@ -789,37 +793,6 @@ export async function changeEmail(c: Context) {
 }
 
 // MISC
-
-async function sendEmailVerificationEmailSendgrid(c: Context, to: string, username: string, token: string) {
-    // Set the API Key
-    const env: Env = c.env;
-    sgMail.setApiKey(env.EMAIL_API);
-
-    // Generate the verification link
-    const verificationLink = `https://uaeu.chat/verify-email?token=${token}`;
-
-    // Create the email message
-    const msg = {
-        to,
-        from: 'no-reply@uaeu.chat',
-        templateId: 'd-ea015cfe295f4d98bee1c188b2c57e93',
-        dynamicTemplateData: {
-            username,
-            verification_link: verificationLink
-        },
-        isTransactional: true
-    };
-
-    try {
-        await sgMail.send(msg);
-        return c.json({ message: 'Email sent', status: 200 }, 200);
-    } catch (e: any) {
-        console.error('Error sending email:', e);
-        if (e.response) console.error(e.response.body.errors);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-
-}
 
 async function sendEmailVerificationEmail(
     c: Context,

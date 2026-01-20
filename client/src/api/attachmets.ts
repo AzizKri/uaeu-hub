@@ -1,4 +1,21 @@
+import { getIdToken } from '../firebase/config';
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/attachment';
+
+/**
+ * Helper to get authorization headers with Firebase ID token
+ */
+async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
+    const token = await getIdToken();
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+}
 
 const allowedMimeTypes = [
     // Images
@@ -43,10 +60,11 @@ export async function uploadAttachment(attachments: File[]) {
         formData.append('height', height.toString());
     }
 
+    const headers = await getAuthHeaders(false);
     const request = await fetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
 
     if (request.status === 201) {
@@ -68,9 +86,10 @@ export async function getAttachmentDetails(filename: string) {
 
 // Delete attachment by filename
 export async function deleteAttachment(filename: string) {
+    const headers = await getAuthHeaders();
     const request = await fetch(base + `/${filename}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
@@ -84,10 +103,11 @@ export async function uploadIcon(attachments: File, type: 'icon' | 'pfp') {
     formData.append('files[]', attachments);
     formData.append('source', type);
 
+    const headers = await getAuthHeaders(false);
     const request = await fetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
 
     if (request.status === 201) {

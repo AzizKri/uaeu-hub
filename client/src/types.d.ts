@@ -12,6 +12,7 @@ declare global {
 
     interface PostInfo {
         id: number,
+        publicId?: string,
         authorUsername: string,
         authorDisplayName: string,
         postDate: Date,
@@ -135,9 +136,11 @@ declare global {
     interface UserContextInterface {
         user: UserInfo | null;
         userReady: boolean;
-        updateUser: (userInfo) => void;
+        updateUser: (userInfo: UserInfo) => void;
         removeUser: () => void;
         isUser: () => boolean;
+        isFirebaseAnonymous: () => boolean;
+        getFirebaseUser: () => import('firebase/auth').User | null;
     }
 
     interface GenericMetadata {

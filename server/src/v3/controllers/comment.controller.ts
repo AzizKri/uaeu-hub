@@ -1,5 +1,6 @@
 import { Context } from 'hono';
 import { createNotification } from '../notifications';
+import { createPublicId } from '../util/nanoid';
 
 export async function comment(c: Context) {
     const env: Env = c.env;
@@ -15,20 +16,23 @@ export async function comment(c: Context) {
     if (!content) return c.text('No content provided', { status: 400 });
 
     try {
+        // Generate public_id for the comment
+        const publicId = createPublicId();
+
         let commentId;
         // Check if we have a file & insert into DB
         if (fileName) {
             commentId = await env.DB.prepare(
-                `INSERT INTO comment (parent_post_id, author_id, content, attachment)
-                 VALUES (?, ?, ?, ?)
+                `INSERT INTO comment (parent_post_id, author_id, content, attachment, public_id)
+                 VALUES (?, ?, ?, ?, ?)
                  RETURNING id`
-            ).bind(postID, userId, content, fileName).first<CommentView>();
+            ).bind(postID, userId, content, fileName, publicId).first<CommentView>();
         } else {
             commentId = await env.DB.prepare(`
-                INSERT INTO comment (parent_post_id, author_id, content)
-                VALUES (?, ?, ?)
+                INSERT INTO comment (parent_post_id, author_id, content, public_id)
+                VALUES (?, ?, ?, ?)
                 RETURNING id
-            `).bind(postID, userId, content).first<CommentView>();
+            `).bind(postID, userId, content, publicId).first<CommentView>();
         }
 
         // Get the comment data to return

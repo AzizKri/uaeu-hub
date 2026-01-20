@@ -25,6 +25,7 @@ import {subComment} from "../../../api/subComments.ts";
 import PostImage from "../../Reusable/PostImage/PostImage.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
+import { auth, signInAnonymously } from "../../../firebase/config.ts";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
@@ -233,6 +234,14 @@ export default function Editor({
                 throw new Error("Please wait for file upload to complete");
             }
 
+            // If user is not logged in, sign them in anonymously first
+            // This ensures anonymous content can be transferred when they sign up later
+            if (!user && !auth.currentUser) {
+                console.log("No user, signing in anonymously...");
+                await signInAnonymously(auth);
+                console.log("Signed in anonymously:", auth.currentUser?.uid);
+            }
+
             if (type === "POST") {
                 console.log("type is post");
                 let post;
@@ -255,6 +264,7 @@ export default function Editor({
                 }
                 const postInfo: PostInfo = {
                     id: post.id,
+                    publicId: post.public_id,
                     content: post.content,
                     authorUsername: post.author,
                     authorDisplayName: post.displayname,

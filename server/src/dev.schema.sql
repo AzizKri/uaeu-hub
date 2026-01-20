@@ -5,6 +5,8 @@ PRAGMA foreign_keys = on;
 CREATE TABLE IF NOT EXISTS user
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    public_id      TEXT UNIQUE,
+    firebase_uid   TEXT UNIQUE,
     username       TEXT    NOT NULL UNIQUE COLLATE NOCASE,
     displayname    TEXT,
     email          TEXT UNIQUE COLLATE NOCASE,
@@ -23,6 +25,7 @@ CREATE TABLE IF NOT EXISTS user
 
 CREATE VIEW IF NOT EXISTS user_view AS
 SELECT id,
+       public_id,
        CASE
            WHEN is_deleted = true THEN 'DeletedUser'
            WHEN is_anonymous = true THEN 'Anonymous'
@@ -81,6 +84,7 @@ CREATE TABLE IF NOT EXISTS password_reset
 CREATE TABLE IF NOT EXISTS community
 (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    public_id    TEXT UNIQUE,
     name         TEXT    NOT NULL UNIQUE COLLATE NOCASE,
     description  TEXT,
     icon         TEXT,
@@ -201,6 +205,7 @@ CREATE TABLE IF NOT EXISTS attachment
 CREATE TABLE IF NOT EXISTS post
 (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    public_id     TEXT UNIQUE,
     author_id     INTEGER NOT NULL DEFAULT -1,
     community_id  INTEGER NOT NULL DEFAULT 0, /* General Community */
     content       TEXT    NOT NULL,
@@ -215,6 +220,7 @@ CREATE TABLE IF NOT EXISTS post
 
 CREATE VIEW IF NOT EXISTS post_view AS
 SELECT post.id,
+       post.public_id,
        post.author_id,
        user.username       AS author,
        user.displayname    AS displayname,
@@ -239,6 +245,7 @@ FROM post
 CREATE TABLE IF NOT EXISTS comment
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    public_id      TEXT UNIQUE,
     parent_post_id INTEGER NOT NULL,
     author_id      INTEGER NOT NULL,
     content        TEXT    NOT NULL,
@@ -253,6 +260,7 @@ CREATE TABLE IF NOT EXISTS comment
 
 CREATE VIEW IF NOT EXISTS comment_view AS
 SELECT comment.id,
+       comment.public_id,
        comment.parent_post_id,
        comment.author_id,
        user.username    AS author,
@@ -271,6 +279,7 @@ FROM comment
 CREATE TABLE IF NOT EXISTS subcomment
 (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    public_id         TEXT UNIQUE,
     parent_comment_id INTEGER NOT NULL,
     author_id         INTEGER NOT NULL,
     content           TEXT    NOT NULL,
@@ -284,6 +293,7 @@ CREATE TABLE IF NOT EXISTS subcomment
 
 CREATE VIEW IF NOT EXISTS subcomment_view AS
 SELECT subcomment.id,
+       subcomment.public_id,
        subcomment.parent_comment_id,
        subcomment.author_id,
        user.username    AS author,
@@ -402,20 +412,26 @@ CREATE VIRTUAL TABLE posts_fts USING fts5
 
 CREATE INDEX idx_user_username ON user (username);
 CREATE INDEX idx_user_email ON user (email);
+CREATE UNIQUE INDEX idx_user_public_id ON user (public_id);
+CREATE UNIQUE INDEX idx_user_firebase_uid ON user (firebase_uid);
 
 CREATE INDEX idx_post_author_id ON post (author_id);
 CREATE INDEX idx_post_community ON post (community_id, id);
+CREATE UNIQUE INDEX idx_post_public_id ON post (public_id);
 
 CREATE INDEX idx_community_name ON community (name);
 CREATE INDEX idx_community_role_community_id ON community_role (community_id);
+CREATE UNIQUE INDEX idx_community_public_id ON community (public_id);
 
 CREATE INDEX idx_tag_name ON tag (name);
 
 CREATE INDEX idx_comment_author_id ON comment (author_id);
 CREATE INDEX idx_comment_parent ON comment (parent_post_id, id);
+CREATE UNIQUE INDEX idx_comment_public_id ON comment (public_id);
 
 CREATE INDEX idx_subcomment_author_id ON subcomment (author_id);
 CREATE INDEX idx_subcomment_parent ON subcomment (parent_comment_id, id);
+CREATE UNIQUE INDEX idx_subcomment_public_id ON subcomment (public_id);
 
 /* Triggers */
 

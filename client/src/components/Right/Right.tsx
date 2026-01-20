@@ -4,8 +4,10 @@ import { getCommunities } from '../../api/communities.ts';
 import CommunityPreview from '../Communities/CommunityPreview/CommunityPreview.tsx';
 import { getNotifications } from '../../api/notifications.ts';
 import {Link} from "react-router-dom";
+import {useUser} from "../../contexts/user/UserContext.ts";
 
 export default function Right() {
+    const { userReady } = useUser();
     const [trendingCommunities, setTrendingCommunities] = useState<
         CommunityInfo[]
     >([]);
@@ -15,6 +17,10 @@ export default function Right() {
     const year = new Date().getFullYear();
 
     useEffect(() => {
+        // Wait for Firebase auth to be ready before fetching communities
+        // This ensures the auth token is available for membership status
+        if (!userReady) return;
+
         getCommunities('members').then((res) => {
             setTrendingCommunities(
                 res.data.map(
@@ -44,11 +50,14 @@ export default function Right() {
                 )
             );
         });
-    }, []);
+    }, [userReady]);
 
     // TODO - Hussain or Mohammmad: Move this to a notifications page. Below is the implementation.
 
     useEffect(() => {
+        // Wait for Firebase auth to be ready before fetching notifications
+        if (!userReady) return;
+
         getNotifications().then((res) => {
             if (Object.keys(res.data).length === 0) return;
             setNotifications(
@@ -83,7 +92,7 @@ export default function Right() {
                 )
             );
         });
-    }, []);
+    }, [userReady]);
 
     const onJoin = (id: number) => {
         setTrendingCommunities((prev) => (

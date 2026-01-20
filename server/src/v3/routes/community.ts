@@ -1,5 +1,5 @@
 import { Context, Hono } from 'hono';
-import { authMiddlewareCheckOnly } from '../middleware';
+import { firebaseAuthMiddlewareCheckOnly } from '../middleware';
 import {
     addAdminToCommunity,
     communityExists,
@@ -39,13 +39,13 @@ app.post('/',
         }
         return parsed.data;
     }),
-    authMiddlewareCheckOnly,
+    firebaseAuthMiddlewareCheckOnly,
     (c: Context) => createCommunity(c));
 
 // Community Memberships
-app.post('/join/:id', authMiddlewareCheckOnly, (c: Context) => joinCommunity(c));
-app.post('/rejectInvitation/:id', authMiddlewareCheckOnly, (c: Context) => rejectInvitation(c));
-app.post('/leave/:id', authMiddlewareCheckOnly, (c: Context) => leaveCommunity(c));
+app.post('/join/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => joinCommunity(c));
+app.post('/rejectInvitation/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => rejectInvitation(c));
+app.post('/leave/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => leaveCommunity(c));
 app.post('/invite',
     validator('form', (value, c: Context) => {
         const parsed = communityInviteSchema.safeParse(value);
@@ -55,14 +55,14 @@ app.post('/invite',
         }
         return parsed.data;
     }),
-    authMiddlewareCheckOnly,
+    firebaseAuthMiddlewareCheckOnly,
     (c: Context) => inviteUserToCommunity(c));
-app.get('/getMembers/:id', authMiddlewareCheckOnly, (c: Context) => getCommunityMembers(c));
+app.get('/getMembers/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => getCommunityMembers(c));
 // app.post('/addMember/:id/:userId', (c: Context) => addMemberToCommunity(c));
-app.delete('/removeMember/:id/:userId', authMiddlewareCheckOnly, (c: Context) => removeMemberFromCommunity(c));
+app.delete('/removeMember/:id/:userId', firebaseAuthMiddlewareCheckOnly, (c: Context) => removeMemberFromCommunity(c));
 
 // Get Community Posts
-app.get('/posts/:id', authMiddlewareCheckOnly, (c: Context) => {
+app.get('/posts/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => {
     const { sortBy } = c.req.query();
     switch (sortBy) {
         case 'best':
@@ -74,7 +74,7 @@ app.get('/posts/:id', authMiddlewareCheckOnly, (c: Context) => {
 });
 
 // Get Communities
-app.get('/getCommunities', authMiddlewareCheckOnly, (c: Context) => {
+app.get('/getCommunities', firebaseAuthMiddlewareCheckOnly, (c: Context) => {
     const { sortBy } = c.req.query();
     switch (sortBy) {
         case 'latest':
@@ -86,11 +86,11 @@ app.get('/getCommunities', authMiddlewareCheckOnly, (c: Context) => {
             return getCommunitiesSortByMembers(c);
     }
 });
-app.get('/getCommunitiesByTag', authMiddlewareCheckOnly, (c: Context) => getCommunitiesByTag(c));
-app.get('/getCommunitiesByTags', authMiddlewareCheckOnly, (c: Context) => getCommunitiesByTags(c));
-app.get('/searchCommunities', authMiddlewareCheckOnly, (c: Context) => searchCommunities(c));
-app.get('/getCommunityByName/:name', authMiddlewareCheckOnly, (c: Context) => getCommunityByName(c));
-app.get('/:id', authMiddlewareCheckOnly, (c: Context) => getCommunityById(c));
+app.get('/getCommunitiesByTag', firebaseAuthMiddlewareCheckOnly, (c: Context) => getCommunitiesByTag(c));
+app.get('/getCommunitiesByTags', firebaseAuthMiddlewareCheckOnly, (c: Context) => getCommunitiesByTags(c));
+app.get('/searchCommunities', firebaseAuthMiddlewareCheckOnly, (c: Context) => searchCommunities(c));
+app.get('/getCommunityByName/:name', firebaseAuthMiddlewareCheckOnly, (c: Context) => getCommunityByName(c));
+app.get('/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => getCommunityById(c));
 app.get('/exists/:name', (c: Context) => communityExists(c));
 
 // Edit Community
@@ -104,7 +104,7 @@ app.post('/:id',
         }
         return parsed.data;
     }),
-    authMiddlewareCheckOnly,
+    firebaseAuthMiddlewareCheckOnly,
     (c: Context) => editCommunity(c));
 app.post('/addAdmin',
     validator('form', (value, c: Context) => {
@@ -115,10 +115,10 @@ app.post('/addAdmin',
         }
         return parsed.data;
     }),
-    authMiddlewareCheckOnly,
+    firebaseAuthMiddlewareCheckOnly,
     (c: Context) => addAdminToCommunity(c));
 
 // Delete Community
-app.delete('/:id', authMiddlewareCheckOnly, (c: Context) => deleteCommunity(c));
+app.delete('/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => deleteCommunity(c));
 
 export default app;

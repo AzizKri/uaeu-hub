@@ -35,7 +35,8 @@ export default function PostPage() {
 
     useEffect(() => {
         if (postId) {
-            getPostByID(parseInt(postId)).then((res) => {
+            // postId can be either numeric or public_id string
+            getPostByID(postId).then((res) => {
                 if (!res.data || res.data.length === 0) {
                     setIsFound(false);
                     return;
@@ -44,6 +45,7 @@ export default function PostPage() {
                 const post = res.data[0];
                 const postInfo: PostInfo = {
                     id: post.id,
+                    publicId: post.public_id,
                     content: post.content,
                     authorUsername: post.author,
                     authorDisplayName: post.displayname,
@@ -70,22 +72,26 @@ export default function PostPage() {
                 setPost(fetchedPost);
             });
 
-            getCommentsOnPost(parseInt(postId), 0).then((res) => {
-                setComments(res.data.map((cd: CommentBack) => ({
-                    attachment: cd.attachment,
-                    author: cd.author,
-                    authorId: cd.author_id,
-                    content: cd.content,
-                    displayName: cd.displayname,
-                    id: cd.id,
-                    likeCount: cd.like_count,
-                    commentCount: cd.comment_count,
-                    liked: cd.liked,
-                    parentId: cd.parent_post_id,
-                    pfp: cd.pfp,
-                    postTime: new Date(cd.post_time),
-                })));
-            })
+            // Use internal ID for comments (needs numeric id)
+            const numericPostId = parseInt(postId);
+            if (!isNaN(numericPostId)) {
+                getCommentsOnPost(numericPostId, 0).then((res) => {
+                    setComments(res.data.map((cd: CommentBack) => ({
+                        attachment: cd.attachment,
+                        author: cd.author,
+                        authorId: cd.author_id,
+                        content: cd.content,
+                        displayName: cd.displayname,
+                        id: cd.id,
+                        likeCount: cd.like_count,
+                        commentCount: cd.comment_count,
+                        liked: cd.liked,
+                        parentId: cd.parent_post_id,
+                        pfp: cd.pfp,
+                        postTime: new Date(cd.post_time),
+                    })));
+                });
+            }
         }
     }, [postId]); // Fetch the post when postId changes
 

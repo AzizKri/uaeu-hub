@@ -23,6 +23,7 @@ export default function UserLikes () {
             for (const post of data) {
                 const postInfo: PostInfo = {
                     id: post.id,
+                    publicId: post.public_id,
                     content: post.content,
                     authorUsername: post.author,
                     authorDisplayName: post.displayname,
