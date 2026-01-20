@@ -4,6 +4,7 @@ import { getSignedCookie } from 'hono/cookie';
 import { anonSignup } from '../controllers/auth.controller';
 import { getUserFromSessionKey, sendAuthCookie, sendUserIdCookie } from '../util/util';
 import { createRemoteJWKSet, JWTPayload, jwtVerify } from 'jose';
+import { createPublicId } from '../util/nanoid';
 
 /**
  * @sets `{ userId, isAnonymous }` on the context ONLY IF there is a valid user
@@ -148,10 +149,10 @@ export const firebaseAuthMiddleware = createMiddleware(
             console.log('firebaseAuthMiddleware -> Valid token for user:', claims.user_id);
 
             // Upsert user and get their internal user ID
+            // Note: upsertFirebaseUser also sets 'isAnonymous' in context based on DB value
             const userId = await upsertFirebaseUser(c, claims);
 
             c.set('userId', userId);
-            c.set('isAnonymous', false);
             c.set('firebaseClaims', claims);
 
             await next();
@@ -196,10 +197,10 @@ export const firebaseAuthMiddlewareCheckOnly = createMiddleware(
             console.log('firebaseAuthMiddlewareCheckOnly -> Valid token for user:', claims.user_id);
 
             // Upsert user and get their internal user ID
+            // Note: upsertFirebaseUser also sets 'isAnonymous' in context based on DB value
             const userId = await upsertFirebaseUser(c, claims);
 
             c.set('userId', userId);
-            c.set('isAnonymous', false);
             c.set('firebaseClaims', claims);
         } catch (e) {
             console.log('firebaseAuthMiddlewareCheckOnly -> Invalid token:', e);
@@ -224,34 +225,49 @@ async function upsertFirebaseUser(c: Context, claims: FirebaseClaims): Promise<n
     const photoUrl = claims.picture ?? null;
     const authProvider = claims.firebase?.sign_in_provider || 'firebase';
     const now = Math.floor(Date.now() / 1000);
+    
+    // Check if this is a Firebase anonymous user
+    const isAnonymous = authProvider === 'anonymous' ? 1 : 0;
+
+    console.log('upsertFirebaseUser -> claims.picture:', photoUrl, 'provider:', authProvider, 'isAnonymous:', isAnonymous, 'emailVerified:', emailVerified);
 
     // Generate a username from email or Firebase UID
     const username = email ? email.split('@')[0] : `user_${firebaseUid.substring(0, 8)}`;
 
+    // Generate public_id for the user
+    const publicId = createPublicId();
+
     try {
         // Try to insert or update user
+        // Note: We DON'T update is_anonymous or displayname here - those are handled by registerUser/upgradeAnonymous
         const result = await c.env.DB.prepare(
             `INSERT INTO user (
                 firebase_uid, username, displayname, email, email_verified,
-                auth_provider, pfp, created_at, is_anonymous
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                auth_provider, pfp, created_at, is_anonymous, public_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(firebase_uid) DO UPDATE SET
                 email = COALESCE(excluded.email, user.email),
                 email_verified = excluded.email_verified,
-                displayname = COALESCE(excluded.displayname, user.displayname),
                 pfp = COALESCE(excluded.pfp, user.pfp),
                 auth_provider = excluded.auth_provider
-            RETURNING id`
+            RETURNING id, is_anonymous`
         ).bind(
             firebaseUid, username, displayName || username, email, emailVerified,
-            authProvider, photoUrl, now
-        ).first() as { id: number } | null;
+            authProvider, photoUrl, now, isAnonymous, publicId
+        ).first() as { id: number; is_anonymous: number } | null;
 
         if (!result) {
             throw new Error('Failed to upsert Firebase user');
         }
 
-        console.log('upsertFirebaseUser -> User ID:', result.id);
+        console.log('upsertFirebaseUser -> User ID:', result.id, 'isAnonymous:', result.is_anonymous);
+        
+        // Set the isAnonymous flag in the context
+        c.set('isAnonymous', result.is_anonymous === 1);
+        
+        // Add user to general community (id=0) if not already a member
+        await addUserToGeneralCommunity(c, result.id);
+        
         return result.id;
     } catch (e) {
         console.error('upsertFirebaseUser -> Error:', e);
@@ -262,23 +278,24 @@ async function upsertFirebaseUser(c: Context, claims: FirebaseClaims): Promise<n
             const result = await c.env.DB.prepare(
                 `INSERT INTO user (
                     firebase_uid, username, displayname, email_verified,
-                    auth_provider, pfp, created_at, is_anonymous
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+                    auth_provider, pfp, created_at, is_anonymous, public_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(firebase_uid) DO UPDATE SET
                     email_verified = excluded.email_verified,
-                    displayname = COALESCE(excluded.displayname, user.displayname),
                     pfp = COALESCE(excluded.pfp, user.pfp),
                     auth_provider = excluded.auth_provider
-                RETURNING id`
+                RETURNING id, is_anonymous`
             ).bind(
                 firebaseUid, username, displayName || username, emailVerified,
-                authProvider, photoUrl, now
-            ).first() as { id: number } | null;
+                authProvider, photoUrl, now, isAnonymous, publicId
+            ).first() as { id: number; is_anonymous: number } | null;
 
             if (!result) {
                 throw new Error('Failed to upsert Firebase user without email');
             }
 
+            c.set('isAnonymous', result.is_anonymous === 1);
+            await addUserToGeneralCommunity(c, result.id);
             return result.id;
         }
 
@@ -290,28 +307,44 @@ async function upsertFirebaseUser(c: Context, claims: FirebaseClaims): Promise<n
             const result = await c.env.DB.prepare(
                 `INSERT INTO user (
                     firebase_uid, username, displayname, email, email_verified,
-                    auth_provider, pfp, created_at, is_anonymous
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
+                    auth_provider, pfp, created_at, is_anonymous, public_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(firebase_uid) DO UPDATE SET
                     email = COALESCE(excluded.email, user.email),
                     email_verified = excluded.email_verified,
-                    displayname = COALESCE(excluded.displayname, user.displayname),
                     pfp = COALESCE(excluded.pfp, user.pfp),
                     auth_provider = excluded.auth_provider
-                RETURNING id`
+                RETURNING id, is_anonymous`
             ).bind(
                 firebaseUid, uniqueUsername, displayName || uniqueUsername, email, emailVerified,
-                authProvider, photoUrl, now
-            ).first() as { id: number } | null;
+                authProvider, photoUrl, now, isAnonymous, publicId
+            ).first() as { id: number; is_anonymous: number } | null;
 
             if (!result) {
                 throw new Error('Failed to upsert Firebase user with unique username');
             }
 
+            c.set('isAnonymous', result.is_anonymous === 1);
+            await addUserToGeneralCommunity(c, result.id);
             return result.id;
         }
 
         throw e;
+    }
+}
+
+/**
+ * Add user to the general community (id=0) if not already a member
+ */
+async function addUserToGeneralCommunity(c: Context, userId: number): Promise<void> {
+    try {
+        await c.env.DB.prepare(`
+            INSERT OR IGNORE INTO user_community (user_id, community_id, role_id)
+            VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
+        `).bind(userId).run();
+    } catch (e) {
+        // Log but don't fail - community membership is not critical for auth
+        console.error('addUserToGeneralCommunity -> Error:', e);
     }
 }
 

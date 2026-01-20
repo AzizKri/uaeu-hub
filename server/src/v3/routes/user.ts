@@ -10,14 +10,14 @@ import {
     getUserCommunities,
     searchUser, searchUserForCommunity, searchUserWithStatusInCommunity
 } from '../controllers/user.controller';
-import { authMiddlewareCheckOnly } from '../middleware';
+import { firebaseAuthMiddlewareCheckOnly } from '../middleware';
 import { validator } from 'hono/validator';
 import { userEditingSchema } from '../util/validationSchemas';
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get('/', authMiddlewareCheckOnly, (c: Context) => getCurrentUser(c));
-app.get('/likes', authMiddlewareCheckOnly, (c: Context) => {
+app.get('/', firebaseAuthMiddlewareCheckOnly, (c: Context) => getCurrentUser(c));
+app.get('/likes', firebaseAuthMiddlewareCheckOnly, (c: Context) => {
     const type = c.req.query('type');
     switch (type) {
         case 'comments':
@@ -29,7 +29,7 @@ app.get('/likes', authMiddlewareCheckOnly, (c: Context) => {
             return getCurrentUserLikesOnPosts(c);
     }
 });
-app.get('/communities', authMiddlewareCheckOnly, (c: Context) => getCurrentUserCommunities(c));
+app.get('/communities', firebaseAuthMiddlewareCheckOnly, (c: Context) => getCurrentUserCommunities(c));
 
 app.get('/search', (c: Context) => {
     const communityId = c.req.query('communityId');
@@ -40,7 +40,7 @@ app.get('/search', (c: Context) => {
     }
 });
 app.get('/searchWithStatusInCommunity', (c: Context) => searchUserWithStatusInCommunity(c));
-app.get('/:userId/communities', authMiddlewareCheckOnly, (c: Context) => getUserCommunities(c));
+app.get('/:userId/communities', firebaseAuthMiddlewareCheckOnly, (c: Context) => getUserCommunities(c));
 app.get('/:username', (c: Context) => getUserByUsername(c));
 
 app.post('/',
@@ -51,7 +51,7 @@ app.post('/',
             return c.json({ errors }, 400);
         }
         return parsed.data;
-    }), authMiddlewareCheckOnly,
+    }), firebaseAuthMiddlewareCheckOnly,
     (c: Context) => editCurrentUser(c));
 
 export default app;

@@ -10,7 +10,6 @@ import { editCurrentUser } from "../../../api/currentUser.ts";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 import UserProfileSkeleton from "./UserProfileSkeleton.tsx";
-import {changePassword} from "../../../api/authentication.ts";
 import ConfirmationPopUp from "../../UserAuthentication/ConfirmationPopUp/ConfirmationPopUp.tsx";
 import UserNotifications from "../UserNotifications/UserNotifications.tsx";
 
@@ -108,9 +107,10 @@ export default function UserProfile() {
                         pfp: updatedPfp,
                     }))
 
-                    if (user?.username === username) {
+                    if (user && user.username === username) {
                         updateUser({
                             ...user,
+                            username: user.username,
                             displayName: updatedDisplayName,
                             bio: updatedBio,
                             pfp: updatedPfp,
@@ -133,34 +133,16 @@ export default function UserProfile() {
         })
     };
 
-    const onSaveChangePassword = (
-        currPass: string,
-        newPass: string,
-    ) => {
-        setIsProcessing(true);
-        changePassword(currPass, newPass).then(async (res) => {
-                const data = await res.json();
-                console.log(res.status);
-                if (res.status === 200) {
-                    setShowPopup(false);
-                    setShowConfirmationPopup(true);
-                    setSuccess(true);
-                    setIsProcessing(false);
-                } else {
-                    setIsProcessing(false);
-                    setSuccess(false);
-                    setShowConfirmationPopup(true);
-                    setConfirmationMessage(data.message || "An error has occurred please try again");
-                }
-            },
-        ).catch(
-            (err) => {
-                console.error(err);
-                setIsProcessing(false);
-                setSuccess(false);
-                setConfirmationMessage("An error has occurred please try again");
-            }
-        );
+    const onPasswordChangeSuccess = () => {
+        setShowPopup(false);
+        setShowConfirmationPopup(true);
+        setSuccess(true);
+    };
+
+    const onPasswordChangeError = (message: string) => {
+        setSuccess(false);
+        setShowConfirmationPopup(true);
+        setConfirmationMessage(message);
     };
 
 
@@ -276,7 +258,8 @@ export default function UserProfile() {
                     currentBio={profileUser?.bio ? profileUser.bio : ""}
                     currentEmail={profileUser?.email ? profileUser.email : ""}
                     onSaveEditProfile={onSaveEditProfile}
-                    onSaveChangePassword={onSaveChangePassword}
+                    onPasswordChangeSuccess={onPasswordChangeSuccess}
+                    onPasswordChangeError={onPasswordChangeError}
                     isLoading={isProcessing}
                 />
             )}

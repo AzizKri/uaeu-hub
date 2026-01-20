@@ -9,12 +9,14 @@ import unLikedIcon from "../../../assets/unliked.svg"
 
 export default function PostFooter({
     id,
+    publicId,
     likes,
     comments,
     isLiked,
     type
 }: {
     id: number;
+    publicId?: string;
     likes: number;
     comments: number;
     isLiked: boolean;
@@ -24,6 +26,9 @@ export default function PostFooter({
     const [likesCount, setLikesCount] = useState<number>(0);
     const [showShareModal, setShowShareModal] = useState<boolean>(false);
     const navigate = useNavigate();
+    
+    // Use publicId for URLs, fall back to numeric id
+    const postIdForUrl = publicId || id;
 
     useEffect(() => {
         setLiked(isLiked);
@@ -35,7 +40,7 @@ export default function PostFooter({
         if (navigator.share) {
             navigator.share({
                 title: 'UAEU Chat',
-                url: `https://uaeu.chat/post/${id}`
+                url: `https://uaeu.chat/post/${postIdForUrl}`
             }).then(() => console.log("Shared"))
                 .catch(console.error);
         } else {
@@ -51,7 +56,7 @@ export default function PostFooter({
     };
 
     const redirectToPost = () => {
-        if (type !== "POST-PAGE") navigate(`/post/${id}`);
+        if (type !== "POST-PAGE") navigate(`/post/${postIdForUrl}`);
     };
 
     return (
@@ -117,7 +122,7 @@ export default function PostFooter({
                 <div className={styles.modalContainer}>
                     {showShareModal && (
                         <Modal onClose={() => setShowShareModal(false)}>
-                            <ShareModal id={id} />
+                            <ShareModal id={id} publicId={publicId} />
                         </Modal>
                     )}
                 </div>

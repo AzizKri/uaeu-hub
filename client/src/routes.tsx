@@ -46,6 +46,13 @@ const PasswordLandingPage = lazy(
             ),
 );
 
+const FirebaseActionHandler = lazy(
+    () =>
+        import(
+            "./components/UserAuthentication/FirebaseActionHandler.tsx"
+            ),
+);
+
 const routes = [
     {
         path: "/",
@@ -118,6 +125,14 @@ const routes = [
         element: (
             <Suspense fallback={<LoadingFallback/>}>
                 <ResetPasswordPage/>
+            </Suspense>
+        )
+    },
+    {
+        path: "/auth/action",
+        element: (
+            <Suspense fallback={<LoadingFallback/>}>
+                <FirebaseActionHandler/>
             </Suspense>
         )
     },

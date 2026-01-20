@@ -77,6 +77,7 @@ export default function Community() {
                     res.data.map(
                         (post: {
                             id: number;
+                            public_id?: string;
                             author: string;
                             displayname: string;
                             post_time: string | number | Date;
@@ -91,6 +92,7 @@ export default function Community() {
                                 key={post.id}
                                 postInfo={{
                                     id: post.id,
+                                    publicId: post.public_id,
                                     authorUsername: post.author,
                                     authorDisplayName: post.displayname,
                                     postDate: new Date(post.post_time),
@@ -123,6 +125,7 @@ export default function Community() {
                     ...res.data.map(
                         (post: {
                             id: number;
+                            public_id?: string;
                             author: string;
                             displayname: string;
                             post_time: string | number | Date;
@@ -137,6 +140,7 @@ export default function Community() {
                                 key={post.id}
                                 postInfo={{
                                     id: post.id,
+                                    publicId: post.public_id,
                                     authorUsername: post.author,
                                     authorDisplayName: post.displayname,
                                     postDate: new Date(post.post_time),

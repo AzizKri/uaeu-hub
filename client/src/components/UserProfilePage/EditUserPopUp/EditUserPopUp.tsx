@@ -1,17 +1,12 @@
-import {useState} from 'react';
+import {useState, useMemo} from 'react';
 import styles from './EditUserPopUp.module.scss';
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import EditProfile from "../UserProfileSettings/EditProfile.tsx";
 import ChangePassword from "../UserProfileSettings/ChangePassword.tsx";
 import ChangeEmail from "../UserProfileSettings/ChangeEmail.tsx";
+import { auth } from "../../../firebase/config";
 
 type tab = "Edit Profile" | "Change Email" | "Change Password"
-
-const settingsTabs: {label: tab }[] = [
-    { label: "Edit Profile" },
-    // { label: "Change Email" },
-    { label: "Change Password" },
-];
 
 interface EditUserPopUpProps {
     onClose: () => void;
@@ -20,7 +15,8 @@ interface EditUserPopUpProps {
     currentBio: string;
     currentEmail: string;
     onSaveEditProfile: (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => void;
-    onSaveChangePassword: (currPass : string, newPass : string) => void;
+    onPasswordChangeSuccess: () => void;
+    onPasswordChangeError: (message: string) => void;
     isLoading: boolean;
 }
 
@@ -30,25 +26,35 @@ export default function EditUserPopUp({
                                           currentDisplayName,
                                           currentBio,
                                           currentEmail,
-                                          onSaveChangePassword,
                                           onSaveEditProfile,
+                                          onPasswordChangeSuccess,
+                                          onPasswordChangeError,
                                           isLoading,
                                       }: EditUserPopUpProps) {
-    // const [displayName, setDisplayName] = useState(currentDisplayName);
-    // const [bio, setBio] = useState(currentBio);
     const [activeTab, setActiveTab] = useState<tab>("Edit Profile");
-    // const [uploadState, setUploadState] = useState<UploadState>({
-    //         status: "IDLE",
-    //         file: null,
-    //         preview: currentProfilePicture,
-    //         fileName: currentProfilePicture
-    //     }
-    // );
 
-    // const handleSave = () => {
-    //     onSave(displayName, bio, (uploadState?.fileName ? uploadState.fileName : ''));
-    //     onClose();
-    // };
+    // Check if user has a password provider (email/password auth)
+    // Google-only users won't have a password provider
+    const hasPasswordProvider = useMemo(() => {
+        const user = auth.currentUser;
+        if (!user) return false;
+        return user.providerData.some(provider => provider.providerId === 'password');
+    }, []);
+
+    // Build tabs list based on whether user has password auth
+    const settingsTabs = useMemo(() => {
+        const tabs: { label: tab }[] = [
+            { label: "Edit Profile" },
+            // { label: "Change Email" },
+        ];
+        
+        // Only show Change Password for users with password auth
+        if (hasPasswordProvider) {
+            tabs.push({ label: "Change Password" });
+        }
+        
+        return tabs;
+    }, [hasPasswordProvider]);
 
     const handleTabClick = (tabLabel: tab) => {
         setActiveTab(tabLabel);
@@ -77,7 +83,7 @@ export default function EditUserPopUp({
                 ) : activeTab === "Change Email" ? (
                     <ChangeEmail currentEmail={currentEmail} />
                 ) : activeTab === "Change Password" ? (
-                    <ChangePassword  onSave={onSaveChangePassword} isLoading={isLoading}/>
+                    <ChangePassword onSuccess={onPasswordChangeSuccess} onError={onPasswordChangeError} />
                 ) : (
                     <></>
                 )}

@@ -1,4 +1,21 @@
+import { getIdToken } from '../firebase/config';
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/ws';
+
+/**
+ * Helper to get authorization headers with Firebase ID token
+ */
+async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
+    const token = await getIdToken();
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+}
 
 export async function createWebsocketConnection() {
     console.log("createWebsocketConnection");
@@ -34,18 +51,20 @@ async function createWebSocketEntryInDatabase(uuid: string, timestamp: number, n
     formData.append('nonce', nonce);
     formData.append('signature', signature);
 
+    const headers = await getAuthHeaders(false);
     return await fetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
 }
 
 // Delete the WebSocket entry from the database (in case of failed connections)
 export async function deleteWebSocketEntryFromDatabase(uuid: string) {
+    const headers = await getAuthHeaders();
     return await fetch(base + `/${uuid}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
     });
 }
 

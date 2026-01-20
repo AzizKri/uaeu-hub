@@ -2,6 +2,7 @@ import { Context } from 'hono';
 import { getOrCreateTags } from './tags.controller';
 import { parseId } from '../util/util';
 import { createNotification } from '../notifications';
+import { createPublicId } from '../util/nanoid';
 
 export async function createCommunity(c: Context) {
     // Get userId & isAnonymous from Context
@@ -35,12 +36,15 @@ export async function createCommunity(c: Context) {
         c.set('tags', tags);
         const tagIds = await getOrCreateTags(c, true) as number[];
 
+        // Generate public_id for the community
+        const publicId = createPublicId();
+
         // Create the community
         const community = await env.DB.prepare(
-            `INSERT INTO community (name, description, icon, tags, owner_id)
-             VALUES (?, ?, ?, ?, ?)
+            `INSERT INTO community (name, description, icon, tags, owner_id, public_id)
+             VALUES (?, ?, ?, ?, ?, ?)
              RETURNING id`
-        ).bind(name, desc, icon || null, tags.join(','), userId).first<CommunityRow>();
+        ).bind(name, desc, icon || null, tags.join(','), userId, publicId).first<CommunityRow>();
 
         // Add tags to community
         await Promise.all(tagIds.map(async (tagId) => {

@@ -30,6 +30,7 @@ function UserPosts() {
             for (const post of res.data) {
                 const postInfo: PostInfo = {
                     id: post.id,
+                    publicId: post.public_id,
                     content: post.content,
                     authorUsername: post.author,
                     authorDisplayName: post.displayname,

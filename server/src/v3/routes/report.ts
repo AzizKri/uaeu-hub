@@ -1,5 +1,5 @@
 import { Context, Hono } from 'hono';
-import { authMiddlewareCheckOnly } from '../middleware';
+import { firebaseAuthMiddlewareCheckOnly } from '../middleware';
 import {
     createReport,
     getReport,
@@ -21,7 +21,7 @@ app.post('/',
         }
         return parsed.data;
     }),
-    authMiddlewareCheckOnly,
+    firebaseAuthMiddlewareCheckOnly,
     (c: Context) => createReport(c)
 );
 app.post('/resolve',
@@ -33,12 +33,12 @@ app.post('/resolve',
         }
         return parsed.data;
     }),
-    authMiddlewareCheckOnly,
+    firebaseAuthMiddlewareCheckOnly,
     (c: Context) => resolveReport(c)
 );
 
-app.get('/:communityId', authMiddlewareCheckOnly, (c: Context) => getReportsForCommunity(c));
-app.get('/:reportId', authMiddlewareCheckOnly, (c: Context) => getReport(c));
-app.get('/', authMiddlewareCheckOnly, (c: Context) => getReports(c));
+app.get('/:communityId', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReportsForCommunity(c));
+app.get('/:reportId', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReport(c));
+app.get('/', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReports(c));
 
 export default app;

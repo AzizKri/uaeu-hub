@@ -11,6 +11,7 @@ import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import { useLocation, useNavigate } from "react-router-dom";
 import ThreeDotsLine from "../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
 import { logout } from "../../api/authentication.ts";
+import { auth, signOut } from "../../firebase/config.ts";
 import { getCommunitiesCurrentUser } from "../../api/currentUser.ts";
 import CreateCommunity from "../Communities/CreateCommunity/CreateCommunity.tsx";
 import {useUser} from "../../contexts/user/UserContext.ts";
@@ -43,12 +44,17 @@ export default function Aside() {
     }, [location.pathname]);
 
     const handleLogout = async () => {
-        const response = await logout();
-        if (response == 200) {
+        try {
+            // Sign out from Firebase first
+            await signOut(auth);
+            // Then call backend logout (clears any server-side state)
+            await logout();
+            // Clear local state
             removeUser();
-            window.location.reload();
-        } else {
-            console.log("Error logging out", response);
+            // Redirect to home
+            navigate('/');
+        } catch (error) {
+            console.error("Error logging out", error);
         }
     };
 
