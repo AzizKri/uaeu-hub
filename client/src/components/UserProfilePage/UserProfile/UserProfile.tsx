@@ -107,9 +107,10 @@ export default function UserProfile() {
                         pfp: updatedPfp,
                     }))
 
-                    if (user?.username === username) {
+                    if (user && user.username === username) {
                         updateUser({
                             ...user,
+                            username: user.username,
                             displayName: updatedDisplayName,
                             bio: updatedBio,
                             pfp: updatedPfp,

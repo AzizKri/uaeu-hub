@@ -238,8 +238,8 @@ export default function Editor({
             // This ensures anonymous content can be transferred when they sign up later
             if (!user && !auth.currentUser) {
                 console.log("No user, signing in anonymously...");
-                await signInAnonymously(auth);
-                console.log("Signed in anonymously:", auth.currentUser?.uid);
+                const userCredential = await signInAnonymously(auth);
+                console.log("Signed in anonymously:", userCredential.user.uid);
             }
 
             if (type === "POST") {

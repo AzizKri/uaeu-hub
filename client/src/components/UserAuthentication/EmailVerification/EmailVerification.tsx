@@ -1,65 +1,26 @@
-import {useEffect, useState} from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {verifyEmail} from "../../../api/authentication.ts";
-import styles from "./EmailVerification.module.scss";
-import LoadingFallback from "../../Reusable/LoadingFallback/LoadingFallback.tsx";
-import successLogo from "../../../assets/check-mark-svgrepo.svg";
-import failedLogo from "../../../assets/cross-mark-button-svgrepo.svg";
 
-
-export default function EmailVerification () {
+/**
+ * Legacy email verification page - redirects to the new Firebase action handler
+ * This page is kept for backwards compatibility with old verification links
+ */
+export default function EmailVerification() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const token = searchParams.get("token");
 
-    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-    const [message, setMessage] = useState("Verification failed. Please try again.");
-
     useEffect(() => {
-        if (!token) {
-            setStatus("error");
-            setMessage("Invalid or missing verification token.");
-            return;
+        // Redirect old-style verification links to the new Firebase action handler
+        // Old links won't work with Firebase, but we redirect anyway for UX
+        if (token) {
+            // Old token-based verification is no longer supported
+            // Redirect to home with a message
+            navigate("/", { replace: true });
+        } else {
+            navigate("/", { replace: true });
         }
+    }, [token, navigate]);
 
-        // Call the verifyEmail API function
-        verifyEmail(token)
-            .then(async (data) => {
-                if (data.status === 200) {
-                    setStatus("success");
-                    setMessage("Your email has been successfully verified!");
-                } else {
-                    const res = await data.json();
-                    setStatus("error");
-                    setMessage(res.message || "Verification failed. Please try again.");
-                }
-            })
-            .catch(() => {
-                setStatus("error");
-                setMessage("An error occurred while verifying your email.");
-            });
-    }, [token]);
-
-    return (
-        <div className={styles.emailVerificationContainer}>
-            {status === "loading" && <LoadingFallback />}
-            {status === "success" && (
-                <div className={styles.emailVerified}>
-                    <img src={successLogo} className={styles.verificationIcon} alt="success logo" />
-                    <h2>Email Verified 🎉</h2>
-                    <p>{message}</p>
-                    <button onClick={() => navigate("/")}>Go to Home</button>
-                </div>
-            )}
-            {status === "error" && (
-                <div className={styles.emailVerified}>
-                    <img src={failedLogo} className={styles.verificationIcon} alt="success logo"/>
-                    <h2>Verification Failed ❌</h2>
-                    <p>{message}</p>
-                    <button onClick={() => navigate("/")}>Go to Home</button>
-                </div>
-            )}
-        </div>
-    );
-};
-
+    return null;
+}
