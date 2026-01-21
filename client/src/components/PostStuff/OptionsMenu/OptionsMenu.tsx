@@ -1,6 +1,7 @@
 import styles from "./OptionsMenu.module.scss";
 import React, { useState } from "react";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
+import ReportPopUp from "../../Reusable/ReportPopUp/ReportPopUp.tsx";
 import { deleteComment as apiDeleteComment } from "../../../api/comments.ts";
 import { deletePost as apiDeletePost } from "../../../api/posts.ts";
 import { deleteSubComment as apiDeleteSubComment } from "../../../api/subComments.ts";
@@ -22,8 +23,24 @@ export default function OptionsMenu({
 }: OptionsMenuProps) {
     const [optionsDisplayed, setOptionsDisplayed] = useState<boolean>(false);
     const [showPopUp, setShowPopUp] = useState<boolean>(false);
+    const [showReportPopUp, setShowReportPopUp] = useState<boolean>(false);
     const { deletePost } = useUpdatePosts();
     const { user } = useUser();
+
+    const getReportEntityType = (): "post" | "comment" | "subcomment" => {
+        switch (type) {
+            case "POST":
+                return "post";
+            case "COMMENT":
+                return "comment";
+            case "SUB-COMMENT":
+                return "subcomment";
+        }
+    };
+
+    const handleReport = () => {
+        setShowReportPopUp(true);
+    };
 
     const handleClickOptions: React.MouseEventHandler<HTMLDivElement> = (e) => {
         e.stopPropagation();
@@ -62,6 +79,16 @@ export default function OptionsMenu({
                             hidePopUp={() => {
                                 setShowPopUp(false);
                                 setOptionsDisplayed(true);
+                            }}
+                        />
+                    )}
+                    {showReportPopUp && (
+                        <ReportPopUp
+                            entityType={getReportEntityType()}
+                            entityId={id}
+                            hidePopUp={() => {
+                                setShowReportPopUp(false);
+                                setOptionsDisplayed(false);
                             }}
                         />
                     )}
@@ -104,7 +131,7 @@ export default function OptionsMenu({
                             </li>
                         </>
                     ) : (
-                        <li className={styles.options_menu__option}>
+                        <li className={styles.options_menu__option} onClick={handleReport}>
                             <div className={styles.icon}>
                                 {/*report flag icon*/}
                                 <svg
