@@ -198,7 +198,7 @@ export default function Aside() {
                             <ThreeDotsLine />
                         </div>
                     ) : (
-                        myCommunities && myCommunities.length &&
+                        myCommunities && myCommunities.length > 0 &&
                         myCommunities.map((community) => (
                             <li key={community.name}>
                                 <div onClick={() => {
