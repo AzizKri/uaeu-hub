@@ -39,6 +39,15 @@ export default function GoogleAuth({
             // Try to get existing user data from backend
             const userData = await me();
 
+            // Check if user is banned
+            if (userData && userData.is_banned) {
+                // Sign out the banned user
+                await auth.signOut();
+                setErrors({ global: 'This account has been banned. You cannot log in.' });
+                setIsLoading(false);
+                return;
+            }
+
             if (userData && userData.username && !userData.is_anonymous) {
                 // Existing user with username - login successful
                 updateUser({

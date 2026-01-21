@@ -120,3 +120,16 @@ export const resolveReportSchema = z.object({
     reportId: z.number(),
     communityId: z.string()
 });
+
+// Feedback (Bug Reports & Feature Requests)
+
+export const feedbackSchema = z.object({
+    description: z.string()
+        .min(10, 'Description must be at least 10 characters long')
+        .max(2048, 'Description must be at most 2048 characters long'),
+    screenshot: z.string().optional()
+});
+
+export const feedbackStatusSchema = z.object({
+    status: z.enum(['pending', 'reviewed', 'resolved', 'closed'])
+});

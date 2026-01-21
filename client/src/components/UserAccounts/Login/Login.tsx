@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from '../Forms.module.scss';
 import { lookupEmail, me } from '../../../api/authentication';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -21,6 +21,15 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const location = useLocation();
     const previousPage = location.state?.from;
+
+    // Check if user was redirected here after a banned login attempt
+    useEffect(() => {
+        const bannedAttempt = sessionStorage.getItem("bannedUserAttempt");
+        if (bannedAttempt) {
+            setErrors({ global: "This account has been banned. You cannot log in." });
+            sessionStorage.removeItem("bannedUserAttempt");
+        }
+    }, []);
 
     const handleFocus = () => {
         setErrors({});
@@ -52,6 +61,11 @@ export default function Login() {
             // If it doesn't look like an email, look up the email for the username
             if (!formData.identifier.includes('@')) {
                 const lookupResult = await lookupEmail(formData.identifier);
+                if (lookupResult.banned) {
+                    setErrors({ global: 'This account has been banned. You cannot log in.' });
+                    setIsLoading(false);
+                    return;
+                }
                 if (lookupResult.error || !lookupResult.email) {
                     setErrors({ global: lookupResult.error || 'User not found' });
                     setIsLoading(false);

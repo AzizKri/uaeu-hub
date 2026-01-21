@@ -3,6 +3,10 @@ import { handleLike } from './actions/like';
 import { handleComment } from './actions/comment';
 import { handleSubcomment } from './actions/subcomment';
 import { handleCommunityInvite } from './actions/communityInvite';
+import { handleAdminDeletion } from './actions/adminDeletion';
+import { handleSuspension } from './actions/suspension';
+import { handleBan } from './actions/ban';
+import { handleCommunityWarning } from './actions/communityWarning';
 
 export async function createNotification(
     c: Context, {
@@ -59,6 +63,47 @@ export async function createNotification(
             break;
         case 'mention':
             throw new Error('Not implemented yet');
+        case 'admin_deletion':
+            if (!receiverId) throw new Error('No receiver ID provided');
+            if (!metadata.entityType || !metadata.reason) throw new Error('Missing entityType or reason for admin deletion');
+            await handleAdminDeletion(env, <NotificationPayload.AdminDeletion>{
+                senderId,
+                receiverId,
+                entityType: metadata.entityType,
+                entityContent: metadata.entityContent || '',
+                reason: metadata.reason
+            });
+            break;
+        case 'suspension':
+            if (!receiverId) throw new Error('No receiver ID provided');
+            if (!metadata.suspendedUntil || !metadata.reason) throw new Error('Missing suspendedUntil or reason for suspension');
+            await handleSuspension(env, {
+                senderId,
+                receiverId,
+                suspendedUntil: metadata.suspendedUntil,
+                reason: metadata.reason
+            });
+            break;
+        case 'ban':
+            if (!receiverId) throw new Error('No receiver ID provided');
+            if (!metadata.reason) throw new Error('Missing reason for ban');
+            await handleBan(env, {
+                senderId,
+                receiverId,
+                reason: metadata.reason
+            });
+            break;
+        case 'community_warning':
+            if (!receiverId) throw new Error('No receiver ID provided');
+            if (!metadata.communityId || !metadata.reason) throw new Error('Missing communityId or reason for community warning');
+            await handleCommunityWarning(env, {
+                senderId,
+                receiverId,
+                communityId: metadata.communityId,
+                reason: metadata.reason,
+                communityName: metadata.content
+            });
+            break;
         default:
             throw new Error('Invalid action provided');
     }

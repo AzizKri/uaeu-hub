@@ -11,6 +11,7 @@ import {Link} from "react-router-dom";
 import reply from "../../../assets/reply.svg"
 import {likeComment} from "../../../api/comments.ts";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
+import SuspendedPopUp from "../../Reusable/SuspendedPopUp/SuspendedPopUp.tsx";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import SubComment from "../SubComment/SubComment.tsx";
 import likeIconUnliked from "../../../assets/unliked.svg";
@@ -44,7 +45,8 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
     const [likeState, setLikeState] = useState<"LIKE" | "DISLIKE" | "NONE">("NONE");
     const [likesCount, setLikesCount] = useState<number>(0);
     const [showActionPopUp, setShowActionPopUp] = useState<boolean>(false);
-    const {isUser} = useUser();
+    const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
+    const {isUser, isSuspended} = useUser();
 
     useEffect(() => {
         setDateText(getFormattedDate(info.postTime))
@@ -56,6 +58,10 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
     }, [info.postTime]);
 
     const handleReply = () => {
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
+            return;
+        }
         setShowReplyPopUp(true)
     }
 
@@ -124,6 +130,10 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
             setShowActionPopUp(true);
             return;
         }
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
+            return;
+        }
         if (likeState === "LIKE") {
             setLikeState("NONE");
             setLikesCount(prev => prev - 1);
@@ -152,6 +162,9 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
         <div className={styles.comment}>
             {showActionPopUp && (
                 <UnAuthorizedPopUp hidePopUp={hideActionPopUp} />
+            )}
+            {showSuspendedPopUp && (
+                <SuspendedPopUp hidePopUp={() => setShowSuspendedPopUp(false)} />
             )}
             {showReplyPopUp && (
                 <Modal onClose={hideReplyPopUp}>

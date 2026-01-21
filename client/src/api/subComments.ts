@@ -57,11 +57,13 @@ export async function likeSubComment(subComment: number) {
 }
 
 // Delete subComment by its ID
-export async function deleteSubComment(subComment: number) {
+// Optional reason for admin deletions
+export async function deleteSubComment(subComment: number, reason?: string) {
     const headers = await getAuthHeaders();
     const request = await fetch(base + `/${subComment}`, {
         method: 'DELETE',
         headers,
+        body: reason ? JSON.stringify({ reason }) : undefined,
     });
     return request.status;
 }

@@ -5,7 +5,9 @@ import {
     getReport,
     getReports,
     getReportsForCommunity,
-    resolveReport
+    resolveReport,
+    takeReportAction,
+    getReportsWithDetails
 } from '../controllers/report.controller';
 import { validator } from 'hono/validator';
 import { reportSchema, resolveReportSchema } from '../util/validationSchemas';
@@ -37,7 +39,11 @@ app.post('/resolve',
     (c: Context) => resolveReport(c)
 );
 
-app.get('/:communityId', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReportsForCommunity(c));
+// Admin-only routes (must come before parameterized routes)
+app.get('/admin/all', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReportsWithDetails(c));
+app.post('/:reportId/action', firebaseAuthMiddlewareCheckOnly, (c: Context) => takeReportAction(c));
+
+app.get('/community/:communityId', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReportsForCommunity(c));
 app.get('/:reportId', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReport(c));
 app.get('/', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReports(c));
 

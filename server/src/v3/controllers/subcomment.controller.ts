@@ -118,29 +118,70 @@ export async function deleteSubcomment(c: Context) {
 
     if (!subcommentID) return c.text('No subcomment ID provided', { status: 400 });
 
+    // Get optional reason from request body (for admin deletions)
+    let reason: string | undefined;
     try {
-        // Attempt to delete the subcomment
-        const result = await env.DB.prepare(
-            `DELETE
-             FROM subcomment
-             WHERE id = ?
-               AND author_id = ?`
-        ).bind(subcommentID, userId).first<SubcommentRow>();
+        const body = await c.req.json();
+        reason = body?.reason;
+    } catch {
+        // No body or invalid JSON is fine for regular deletions
+    }
 
-        if (!result) return c.text('Failed to delete subcomment', { status: 400 });
+    try {
+        // First fetch the subcomment to check ownership and get content
+        const subcomment = await env.DB.prepare(`
+            SELECT id, author_id, content, attachment FROM subcomment WHERE id = ?
+        `).bind(subcommentID).first<SubcommentRow>();
+
+        if (!subcomment) return c.text('Subcomment not found', { status: 404 });
+
+        // Check if user is admin
+        const adminCheck = await env.DB.prepare(`
+            SELECT is_admin FROM user WHERE id = ?
+        `).bind(userId).first<{ is_admin: number }>();
+        const isAdmin = !!(adminCheck?.is_admin);
+
+        // Not the author and not admin? 403
+        if (userId !== subcomment.author_id && !isAdmin) {
+            return c.text('Unauthorized', { status: 403 });
+        }
+
+        // Admin deleting someone else's subcomment? Require reason and send notification
+        if (userId !== subcomment.author_id && isAdmin) {
+            if (!reason || reason.trim().length === 0) {
+                return c.text('Reason is required for admin deletion', { status: 400 });
+            }
+
+            // Send notification to subcomment author
+            c.executionCtx.waitUntil(createNotification(c, {
+                senderId: userId,
+                receiverId: subcomment.author_id,
+                type: 'admin_deletion',
+                metadata: {
+                    entityType: 'subcomment',
+                    entityContent: subcomment.content,
+                    reason: reason.trim()
+                }
+            }));
+        }
+
+        // Delete the subcomment
+        await env.DB.prepare(`
+            DELETE FROM subcomment WHERE id = ?
+        `).bind(subcommentID).run();
 
         // Check for attachment and delete in the background
-        if (result.attachment) {
+        if (subcomment.attachment) {
             c.executionCtx.waitUntil(Promise.all([
                     // Delete the attachment from R2
-                    env.R2.delete(`attachments/${result.attachment}`),
+                    env.R2.delete(`attachments/${subcomment.attachment}`),
 
                     // Delete the attachment from the DB
                     env.DB.prepare(`
                         DELETE
                         FROM attachment
                         WHERE filename = ?
-                    `).bind(result.attachment).run()
+                    `).bind(subcomment.attachment).run()
                 ]).then(() => console.log('Attachment deleted'))
                     .catch((e) => console.log('Attachment delete failed', e))
             );

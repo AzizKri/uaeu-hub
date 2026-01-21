@@ -6,7 +6,6 @@ import {
     verifyPasswordResetCode,
     confirmPasswordReset,
 } from '../../firebase/config';
-import { syncEmailVerified } from '../../api/authentication';
 import styles from '../UserAccounts/Forms.module.scss';
 import verifyStyles from './EmailVerification/EmailVerification.module.scss';
 import LoadingFallback from '../Reusable/LoadingFallback/LoadingFallback';
@@ -87,16 +86,8 @@ function EmailVerificationHandler({ oobCode, continueUrl }: { oobCode: string; c
                 if (auth.currentUser) {
                     await auth.currentUser.reload();
                     // Force refresh the token to get updated claims
+                    // The next API call will automatically sync email_verified with the backend
                     await auth.currentUser.getIdToken(true);
-                    
-                    // Sync email verification status with backend database
-                    try {
-                        await syncEmailVerified();
-                        console.log('Email verification synced with backend');
-                    } catch (syncError) {
-                        console.error('Failed to sync email verification with backend:', syncError);
-                        // Don't fail the whole operation if sync fails
-                    }
                 }
                 
                 setStatus('success');

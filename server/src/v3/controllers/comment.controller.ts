@@ -115,29 +115,70 @@ export async function deleteComment(c: Context) {
     // Check for required fields
     if (!commentId) return c.text('No comment ID provided', { status: 400 });
 
+    // Get optional reason from request body (for admin deletions)
+    let reason: string | undefined;
     try {
-        // Attempt to delete the comment
-        const result = await env.DB.prepare(`
-            DELETE
-            FROM comment
-            WHERE id = ?
-              AND author_id = ?
-        `).bind(commentId, userId).first<CommentView>();
+        const body = await c.req.json();
+        reason = body?.reason;
+    } catch {
+        // No body or invalid JSON is fine for regular deletions
+    }
 
-        if (!result) return c.text('Failed to delete comment', { status: 400 });
+    try {
+        // First fetch the comment to check ownership and get content
+        const comment = await env.DB.prepare(`
+            SELECT id, author_id, content, attachment FROM comment WHERE id = ?
+        `).bind(commentId).first<CommentRow>();
+
+        if (!comment) return c.text('Comment not found', { status: 404 });
+
+        // Check if user is admin
+        const adminCheck = await env.DB.prepare(`
+            SELECT is_admin FROM user WHERE id = ?
+        `).bind(userId).first<{ is_admin: number }>();
+        const isAdmin = !!(adminCheck?.is_admin);
+
+        // Not the author and not admin? 403
+        if (userId !== comment.author_id && !isAdmin) {
+            return c.text('Unauthorized', { status: 403 });
+        }
+
+        // Admin deleting someone else's comment? Require reason and send notification
+        if (userId !== comment.author_id && isAdmin) {
+            if (!reason || reason.trim().length === 0) {
+                return c.text('Reason is required for admin deletion', { status: 400 });
+            }
+
+            // Send notification to comment author
+            c.executionCtx.waitUntil(createNotification(c, {
+                senderId: userId,
+                receiverId: comment.author_id,
+                type: 'admin_deletion',
+                metadata: {
+                    entityType: 'comment',
+                    entityContent: comment.content,
+                    reason: reason.trim()
+                }
+            }));
+        }
+
+        // Delete the comment
+        await env.DB.prepare(`
+            DELETE FROM comment WHERE id = ?
+        `).bind(commentId).run();
 
         // Check for attachment and delete in the background
-        if (result.attachment) {
+        if (comment.attachment) {
             c.executionCtx.waitUntil(Promise.all([
                     // Delete the attachment from R2
-                    env.R2.delete(`attachments/${result.attachment}`),
+                    env.R2.delete(`attachments/${comment.attachment}`),
 
                     // Delete the attachment from the DB
                     env.DB.prepare(`
                         DELETE
                         FROM attachment
                         WHERE filename = ?
-                    `).bind(result.attachment).run()
+                    `).bind(comment.attachment).run()
                 ]).then(() => console.log('Attachment deleted'))
                     .catch((e) => console.log('Attachment delete failed', e))
             );

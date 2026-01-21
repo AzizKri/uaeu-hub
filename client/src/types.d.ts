@@ -111,9 +111,13 @@ declare global {
         bio?: string;
         pfp?: string;
         isAnonymous?: boolean;
+        isAdmin?: boolean;
         role?: string;
         status?: "ADMIN" | "NOT-ADMIN" | "MEMBER" | "INVITED" | "NOT-INVITED";
         email?: string;
+        isSuspended?: boolean;
+        suspendedUntil?: number;
+        isBanned?: boolean;
     }
 
     interface SignUpErrors {
@@ -150,6 +154,10 @@ declare global {
         isUser: () => boolean;
         isFirebaseAnonymous: () => boolean;
         getFirebaseUser: () => import('firebase/auth').User | null;
+        isSuspended: () => boolean;
+        isBanned: () => boolean;
+        setSuspended: (suspendedUntil: number) => void;
+        setBanned: () => void;
     }
 
     interface GenericMetadata {
@@ -214,7 +222,28 @@ declare global {
         content? : string;
     }
 
-    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata | InvitationMetadata;
+    interface AdminDeletionMetadata {
+        entityType: 'post' | 'comment' | 'subcomment';
+        content: string;
+        reason: string;
+    }
+
+    interface SuspensionMetadata {
+        suspendedUntil: number;
+        reason: string;
+    }
+
+    interface BanMetadata {
+        reason: string;
+    }
+
+    interface CommunityWarningMetadata {
+        communityId: number;
+        communityName: string;
+        reason: string;
+    }
+
+    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata | InvitationMetadata | AdminDeletionMetadata | SuspensionMetadata | BanMetadata | CommunityWarningMetadata;
 
     interface Notification {
         id: number;

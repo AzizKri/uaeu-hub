@@ -16,6 +16,7 @@ import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
 import UserPreview from "../../UserPreview/UserPreview.tsx";
 import Post from "../../PostStuff/Post/Post.tsx";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
+import ReportPopUp from "../../Reusable/ReportPopUp/ReportPopUp.tsx";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 import SearchUsers from "../SearchUsers/SearchUsers.tsx";
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx";
@@ -41,6 +42,7 @@ export default function Community() {
     const [showInviteMembersModal, setShowInviteMembersModal] =
         useState<boolean>(false);
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [showReportModal, setShowReportModal] = useState<boolean>(false);
     const [isLoadingMorePosts, setIsLoadingMorePosts] =
         useState<boolean>(false);
     const [noMorePosts, setNoMorePosts] = useState<boolean>(false);
@@ -302,22 +304,41 @@ export default function Community() {
                     <div className={styles.actions}>
                         {
                             myRole === "Member" || myRole === "Administrator" ? (
-                                <button
-                                    className={styles.create}
-                                    onClick={handleCreatePost}
-                                >
-                                    {/*plus icon*/}
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        width="24px"
-                                        height="24px"
-                                        fill="currentColor"
+                                <>
+                                    <button
+                                        className={styles.create}
+                                        onClick={handleCreatePost}
                                     >
-                                        <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
-                                    </svg>
-                                    Create Post
-                                </button>
+                                        {/*plus icon*/}
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24"
+                                            width="24px"
+                                            height="24px"
+                                            fill="currentColor"
+                                        >
+                                            <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+                                        </svg>
+                                        Create Post
+                                    </button>
+                                    {info.name.toLowerCase() !== "general" && (
+                                        <button
+                                            className={styles.report}
+                                            onClick={() => setShowReportModal(true)}
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                height="20px"
+                                                viewBox="0 -960 960 960"
+                                                width="20px"
+                                                fill="currentColor"
+                                            >
+                                                <path d="M220-130v-650h323.84l16 80H780v360H536.16l-16-80H280v290h-60Zm280-430Zm86 160h134v-240H510l-16-80H280v240h290l16 80Z" />
+                                            </svg>
+                                            Report
+                                        </button>
+                                    )}
+                                </>
                             ) : myRole === "Invited" ? (
                                 <>
                                     <button
@@ -342,6 +363,13 @@ export default function Community() {
                                 </button>
                             )
                         }
+                        {showReportModal && (
+                            <ReportPopUp
+                                entityType="community"
+                                entityId={info.id}
+                                hidePopUp={() => setShowReportModal(false)}
+                            />
+                        )}
                     </div>
                 </div>
                 {/*<p className={styles.description}>{info.description}</p>*/}

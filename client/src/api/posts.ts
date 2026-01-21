@@ -100,11 +100,13 @@ export async function togglePostLike(post: number | string) {
 }
 
 // Delete post by its ID (supports both numeric id and public_id)
-export async function deletePost(post: number | string) {
+// Optional reason for admin deletions
+export async function deletePost(post: number | string, reason?: string) {
     const headers = await getAuthHeaders();
     const request = await fetch(base + `/${post}`, {
         method: 'DELETE',
         headers,
+        body: reason ? JSON.stringify({ reason }) : undefined,
     });
     return request.status;
 }

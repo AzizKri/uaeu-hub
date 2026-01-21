@@ -21,7 +21,6 @@ async function getAuthHeaders(): Promise<HeadersInit> {
  * Uses Firebase ID token for authentication
  */
 export async function me() {
-    console.log("me");
     const headers = await getAuthHeaders();
     const request = await fetch(base + `/me`, { headers });
     const data = await request.json();
@@ -54,9 +53,9 @@ export async function checkUsername(username: string): Promise<{ available: bool
 /**
  * Look up email for a given username (for login with username)
  * @param username - The username to look up
- * @returns Promise<{ email: string } | { error: string }>
+ * @returns Promise<{ email: string } | { error: string, banned?: boolean }>
  */
-export async function lookupEmail(username: string): Promise<{ email?: string; error?: string }> {
+export async function lookupEmail(username: string): Promise<{ email?: string; error?: string; banned?: boolean }> {
     const response = await fetch(base + `/lookup-email?username=${encodeURIComponent(username)}`);
     return await response.json();
 }
