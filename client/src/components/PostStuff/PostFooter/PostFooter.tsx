@@ -6,6 +6,8 @@ import Modal from "../../Reusable/Modal/Modal.tsx";
 import ShareModal from "../ShareModal/ShareModal.tsx";
 import likedIcon from "../../../assets/liked.svg"
 import unLikedIcon from "../../../assets/unliked.svg"
+import {useUser} from "../../../contexts/user/UserContext.ts";
+import SuspendedPopUp from "../../Reusable/SuspendedPopUp/SuspendedPopUp.tsx";
 
 export default function PostFooter({
     id,
@@ -25,7 +27,9 @@ export default function PostFooter({
     const [liked, setLiked] = useState(false);
     const [likesCount, setLikesCount] = useState<number>(0);
     const [showShareModal, setShowShareModal] = useState<boolean>(false);
+    const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
     const navigate = useNavigate();
+    const { isSuspended } = useUser();
     
     // Use publicId for URLs, fall back to numeric id
     const postIdForUrl = publicId || id;
@@ -50,6 +54,10 @@ export default function PostFooter({
 
     const handleToggleLike: React.MouseEventHandler = (e) => {
         e.stopPropagation();
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
+            return;
+        }
         setLikesCount(prev => prev + (liked ? -1 : 1));
         setLiked(prev => !prev);
         togglePostLike(id);
@@ -61,6 +69,9 @@ export default function PostFooter({
 
     return (
         <div className={styles.footer}>
+            {showSuspendedPopUp && (
+                <SuspendedPopUp hidePopUp={() => setShowSuspendedPopUp(false)} />
+            )}
             <div className={styles.footerLeft}>
                 {/*likes button*/}
                 <div

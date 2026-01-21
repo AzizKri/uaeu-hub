@@ -1,7 +1,7 @@
 import styles from './SearchResult.module.scss';
 import { Link } from "react-router-dom";
-import { assetsBase } from "../../../api/api.ts";
 import { getFormattedDate } from "../../../utils/tools.ts";
+import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 
 export default function SearchResult({ result }: { result: SearchResult }) {
     const postUrl = `/post/${result.public_id || result.id}`;
@@ -24,17 +24,7 @@ export default function SearchResult({ result }: { result: SearchResult }) {
                 {/* Header: Avatar + Author + Community + Time */}
                 <div className={styles.header}>
                     <div className={styles.avatarWrapper}>
-                        {result.pfp ? (
-                            <img 
-                                src={`${assetsBase}/pfp/${result.pfp}`} 
-                                alt={result.author}
-                                className={styles.avatar}
-                            />
-                        ) : (
-                            <div className={styles.avatarPlaceholder}>
-                                {result.author?.charAt(0).toUpperCase() || '?'}
-                            </div>
-                        )}
+                        <ProfilePictureComponent source={result.pfp} />
                     </div>
                     <div className={styles.meta}>
                         <div className={styles.topMeta}>

@@ -9,6 +9,7 @@ import {
     isUserFirebase,
     isAnonFirebase,
     logoutFirebase,
+    checkAdminEmail,
 } from '../controllers/firebase-auth.controller';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -20,6 +21,9 @@ const app = new Hono<{ Bindings: Env }>();
 // Username and email utilities (no auth required)
 app.get('/check-username', (c: Context) => checkUsername(c));
 app.get('/lookup-email', (c: Context) => lookupEmail(c));
+
+// Admin check (no auth required - used before login)
+app.post('/check-admin', (c: Context) => checkAdminEmail(c));
 
 // Registration - requires Firebase auth
 app.post('/register', firebaseAuthMiddleware, (c: Context) => registerUser(c));

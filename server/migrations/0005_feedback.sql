@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS bug_report
     FOREIGN KEY (screenshot) REFERENCES attachment (filename) ON DELETE SET NULL
 );
 
-CREATE UNIQUE INDEX idx_bug_report_public_id ON bug_report(public_id);
-CREATE INDEX idx_bug_report_status ON bug_report(status, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_bug_report_public_id ON bug_report(public_id);
+CREATE INDEX IF NOT EXISTS idx_bug_report_status ON bug_report(status, created_at DESC);
 
 -- Feature Request Table
 CREATE TABLE IF NOT EXISTS feature_request
@@ -31,5 +31,5 @@ CREATE TABLE IF NOT EXISTS feature_request
     FOREIGN KEY (screenshot) REFERENCES attachment (filename) ON DELETE SET NULL
 );
 
-CREATE UNIQUE INDEX idx_feature_request_public_id ON feature_request(public_id);
-CREATE INDEX idx_feature_request_status ON feature_request(status, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_feature_request_public_id ON feature_request(public_id);
+CREATE INDEX IF NOT EXISTS idx_feature_request_status ON feature_request(status, created_at DESC);

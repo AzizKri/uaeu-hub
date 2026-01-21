@@ -18,9 +18,11 @@ CREATE TABLE IF NOT EXISTS user
     created_at     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     bio            TEXT,
     pfp            TEXT,
-    is_anonymous   BOOLEAN          DEFAULT FALSE,
-    is_admin       INTEGER          DEFAULT 0,
-    is_deleted     BOOLEAN          DEFAULT FALSE
+    is_anonymous    BOOLEAN          DEFAULT FALSE,
+    is_admin        INTEGER          DEFAULT 0,
+    is_deleted      BOOLEAN          DEFAULT FALSE,
+    suspended_until INTEGER          DEFAULT NULL,
+    is_banned       BOOLEAN          DEFAULT FALSE
 );
 
 CREATE VIEW IF NOT EXISTS user_view AS

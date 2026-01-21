@@ -1,0 +1,216 @@
+.feedback {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    
+    h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+}
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.filterSelect {
+    padding: 10px 16px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    
+    &:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+}
+
+.feedbackList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feedbackCard {
+    background-color: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1.25rem;
+    border-left: 4px solid var(--accent);
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: background-color 0.2s ease;
+}
+
+.feedbackHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    
+    &.warning {
+        background-color: rgba(237, 137, 54, 0.15);
+        color: #c76c07;
+    }
+    
+    &.info {
+        background-color: rgba(66, 153, 225, 0.15);
+        color: #2b6cb0;
+    }
+    
+    &.success {
+        background-color: rgba(72, 187, 120, 0.15);
+        color: #276749;
+    }
+    
+    &.secondary {
+        background-color: var(--bg-card);
+        color: var(--text-secondary);
+    }
+}
+
+.id {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-family: "Montserrat", monospace;
+    font-weight: 500;
+}
+
+.feedbackContent {
+    margin-bottom: 1rem;
+}
+
+.description {
+    color: var(--text-primary);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.screenshot {
+    margin-top: 1rem;
+    
+    img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+        
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+}
+
+.screenshotLink {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: var(--bg-card);
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    
+    &:hover {
+        background-color: var(--bg-hover);
+        border-color: var(--accent);
+    }
+}
+
+.feedbackFooter {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.meta {
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+}
+
+.statusSelect {
+    margin-left: auto;
+    padding: 10px 16px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    
+    &:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+}
+
+.empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+    background-color: var(--bg-secondary);
+    border-radius: 10px;
+}
+
+.error {
+    background-color: rgba(245, 101, 101, 0.1);
+    border: 1px solid var(--error);
+    color: var(--error);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

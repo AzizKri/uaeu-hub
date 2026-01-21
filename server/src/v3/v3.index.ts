@@ -11,6 +11,7 @@ import notification from './routes/notification';
 import auth from './routes/auth';
 import report from './routes/report';
 import feedback from './routes/feedback';
+import admin from './routes/admin';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -26,5 +27,6 @@ app.route('/notification', notification);
 app.route('/ws', websocket);
 app.route('/report', report);
 app.route('/feedback', feedback);
+app.route('/admin', admin);
 
 export default app;

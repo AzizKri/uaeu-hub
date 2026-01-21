@@ -26,6 +26,7 @@ import PostImage from "../../Reusable/PostImage/PostImage.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 import CommunityIconComponent from "../../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 import { auth, signInAnonymously } from "../../../firebase/config.ts";
+import SuspendedPopUp from "../../Reusable/SuspendedPopUp/SuspendedPopUp.tsx";
 
 interface UploadState {
     status: "IDLE" | "UPLOADING" | "COMPLETED" | "ERROR";
@@ -95,7 +96,8 @@ export default function Editor({
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{ clearEditorContent: () => void }>(null);
-    const { user, isUser } = useUser();
+    const { user, isUser, isSuspended } = useUser();
+    const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
 
 
     const initialConfig = {
@@ -223,6 +225,12 @@ export default function Editor({
         console.log(`submitPost: type is ${type}, parent id is ${parentId}`);
         if (isSubmitting || plainText.length === 0) {
             console.log("either is submitting or plainText.length is equal to 0");
+            return;
+        }
+
+        // Check if user is suspended
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
             return;
         }
 
@@ -404,6 +412,9 @@ export default function Editor({
 
     return (
         <div className={styles.container}>
+            {showSuspendedPopUp && (
+                <SuspendedPopUp hidePopUp={() => setShowSuspendedPopUp(false)} />
+            )}
             <div ref={editorContainerRef} className={styles.editorContainer}>
                 <LexicalComposer initialConfig={initialConfig}>
                     <RichTextPlugin

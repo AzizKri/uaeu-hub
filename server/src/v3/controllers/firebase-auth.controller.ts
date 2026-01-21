@@ -57,11 +57,16 @@ export async function lookupEmail(c: Context) {
 
     // Look up user by username
     const user = await env.DB.prepare(`
-        SELECT email FROM user WHERE username = ? COLLATE NOCASE AND is_anonymous = 0
-    `).bind(username).first<{ email: string }>();
+        SELECT email, is_banned FROM user WHERE username = ? COLLATE NOCASE AND is_anonymous = 0
+    `).bind(username).first<{ email: string; is_banned: number }>();
 
     if (!user || !user.email) {
         return c.json({ error: 'User not found' }, 404);
+    }
+
+    // Block banned users from logging in
+    if (user.is_banned === 1) {
+        return c.json({ error: 'This account has been banned', banned: true }, 403);
     }
 
     return c.json({ email: user.email }, 200);
@@ -336,10 +341,10 @@ export async function authenticateUserFirebase(c: Context) {
 
     try {
         const user = await env.DB.prepare(`
-            SELECT id, username, displayname, email, email_verified, bio, pfp, is_anonymous, is_admin, created_at
+            SELECT id, username, displayname, email, email_verified, bio, pfp, is_anonymous, is_admin, suspended_until, is_banned, created_at
             FROM user
             WHERE id = ?
-        `).bind(userId).first<UserView & { is_admin: number }>();
+        `).bind(userId).first<UserView & { is_admin: number; suspended_until: number | null; is_banned: number }>();
 
         if (!user) {
             return c.json({ user: null }, 200);
@@ -400,6 +405,33 @@ export async function logoutFirebase(c: Context) {
     // Firebase logout is handled client-side
     // This endpoint is here for any server-side cleanup if needed
     return c.json({ message: 'Logged out' }, 200);
+}
+
+/**
+ * Check if an email belongs to an admin user
+ * Used by admin panel to verify admin status before Firebase login
+ * POST /auth/check-admin
+ */
+export async function checkAdminEmail(c: Context) {
+    const env: Env = c.env;
+    
+    const body = await c.req.json();
+    const { email } = body;
+
+    if (!email) {
+        return c.json({ isAdmin: false, message: 'Email is required' }, 400);
+    }
+
+    // Check if email exists and is admin
+    const user = await env.DB.prepare(`
+        SELECT is_admin FROM user WHERE email = ? COLLATE NOCASE AND is_deleted = 0
+    `).bind(email).first<{ is_admin: number }>();
+
+    if (!user) {
+        return c.json({ isAdmin: false, message: 'User not found' }, 200);
+    }
+
+    return c.json({ isAdmin: user.is_admin === 1 }, 200);
 }
 
 // Type definition for Firebase Claims

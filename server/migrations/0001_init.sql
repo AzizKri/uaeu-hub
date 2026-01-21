@@ -343,8 +343,8 @@ CREATE TABLE IF NOT EXISTS report
     FOREIGN KEY (reporter_id) REFERENCES user (id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_report_entity ON report (entity_type, entity_id);
-CREATE INDEX idx_report_resolved ON report (resolved, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_report_entity ON report (entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_report_resolved ON report (resolved, created_at DESC);
 
 /* Websocket Table */
 
@@ -389,7 +389,7 @@ FROM notification
 
 /* Full Text Search Table */
 
-CREATE VIRTUAL TABLE posts_fts USING fts5
+CREATE VIRTUAL TABLE IF NOT EXISTS posts_fts USING fts5
 (
     title,
     content,
@@ -400,28 +400,28 @@ CREATE VIRTUAL TABLE posts_fts USING fts5
 
 /* Indexes */
 
-CREATE INDEX idx_user_username ON user (username);
-CREATE INDEX idx_user_email ON user (email);
+CREATE INDEX IF NOT EXISTS idx_user_username ON user (username);
+CREATE INDEX IF NOT EXISTS idx_user_email ON user (email);
 
-CREATE INDEX idx_post_author_id ON post (author_id);
-CREATE INDEX idx_post_community ON post (community_id, id);
+CREATE INDEX IF NOT EXISTS idx_post_author_id ON post (author_id);
+CREATE INDEX IF NOT EXISTS idx_post_community ON post (community_id, id);
 
-CREATE INDEX idx_community_name ON community (name);
-CREATE INDEX idx_community_role_community_id ON community_role (community_id);
+CREATE INDEX IF NOT EXISTS idx_community_name ON community (name);
+CREATE INDEX IF NOT EXISTS idx_community_role_community_id ON community_role (community_id);
 
-CREATE INDEX idx_tag_name ON tag (name);
+CREATE INDEX IF NOT EXISTS idx_tag_name ON tag (name);
 
-CREATE INDEX idx_comment_author_id ON comment (author_id);
-CREATE INDEX idx_comment_parent ON comment (parent_post_id, id);
+CREATE INDEX IF NOT EXISTS idx_comment_author_id ON comment (author_id);
+CREATE INDEX IF NOT EXISTS idx_comment_parent ON comment (parent_post_id, id);
 
-CREATE INDEX idx_subcomment_author_id ON subcomment (author_id);
-CREATE INDEX idx_subcomment_parent ON subcomment (parent_comment_id, id);
+CREATE INDEX IF NOT EXISTS idx_subcomment_author_id ON subcomment (author_id);
+CREATE INDEX IF NOT EXISTS idx_subcomment_parent ON subcomment (parent_comment_id, id);
 
 /* Triggers */
 
 /* Post triggers */
 
-CREATE TRIGGER post_created
+CREATE TRIGGER IF NOT EXISTS post_created
     AFTER INSERT
     ON post
 BEGIN
@@ -429,7 +429,7 @@ BEGIN
     VALUES (new.id, new.content, (SELECT username FROM user WHERE user.id = new.author_id));
 END;
 
-CREATE TRIGGER post_deleted
+CREATE TRIGGER IF NOT EXISTS post_deleted
     AFTER DELETE
     ON post
 BEGIN
@@ -438,7 +438,7 @@ BEGIN
     WHERE rowid = old.id;
 END;
 
-CREATE TRIGGER increment_post_like_count
+CREATE TRIGGER IF NOT EXISTS increment_post_like_count
     AFTER INSERT
     ON post_like
 BEGIN
@@ -447,7 +447,7 @@ BEGIN
     WHERE id = new.post_id;
 END;
 
-CREATE TRIGGER decrement_post_like_count
+CREATE TRIGGER IF NOT EXISTS decrement_post_like_count
     AFTER DELETE
     ON post_like
 BEGIN
@@ -456,7 +456,7 @@ BEGIN
     WHERE id = old.post_id;
 END;
 
-CREATE TRIGGER increment_post_comment_count
+CREATE TRIGGER IF NOT EXISTS increment_post_comment_count
     AFTER INSERT
     ON comment
 BEGIN
@@ -465,7 +465,7 @@ BEGIN
     WHERE id = new.parent_post_id;
 END;
 
-CREATE TRIGGER decrement_post_comment_count
+CREATE TRIGGER IF NOT EXISTS decrement_post_comment_count
     AFTER DELETE
     ON comment
 BEGIN
@@ -476,7 +476,7 @@ END;
 
 /* Comment triggers */
 
-CREATE TRIGGER increment_comment_like_count
+CREATE TRIGGER IF NOT EXISTS increment_comment_like_count
     AFTER INSERT
     ON comment_like
 BEGIN
@@ -485,7 +485,7 @@ BEGIN
     WHERE id = new.comment_id;
 END;
 
-CREATE TRIGGER decrement_comment_like_count
+CREATE TRIGGER IF NOT EXISTS decrement_comment_like_count
     AFTER DELETE
     ON comment_like
 BEGIN
@@ -494,7 +494,7 @@ BEGIN
     WHERE id = old.comment_id;
 END;
 
-CREATE TRIGGER increment_comment_subcomment_count
+CREATE TRIGGER IF NOT EXISTS increment_comment_subcomment_count
     AFTER INSERT
     ON subcomment
 BEGIN
@@ -503,7 +503,7 @@ BEGIN
     WHERE id = new.parent_comment_id;
 END;
 
-CREATE TRIGGER decrement_comment_subcomment_count
+CREATE TRIGGER IF NOT EXISTS decrement_comment_subcomment_count
     AFTER DELETE
     ON subcomment
 BEGIN
@@ -514,7 +514,7 @@ END;
 
 /* Subcomment triggers */
 
-CREATE TRIGGER increment_subcomment_like_count
+CREATE TRIGGER IF NOT EXISTS increment_subcomment_like_count
     AFTER INSERT
     ON subcomment_like
 BEGIN
@@ -523,7 +523,7 @@ BEGIN
     WHERE id = new.subcomment_id;
 END;
 
-CREATE TRIGGER decrement_subcomment_like_count
+CREATE TRIGGER IF NOT EXISTS decrement_subcomment_like_count
     AFTER DELETE
     ON subcomment_like
 BEGIN
@@ -534,7 +534,7 @@ END;
 
 /* Community triggers */
 
-CREATE TRIGGER increment_community_member_count
+CREATE TRIGGER IF NOT EXISTS increment_community_member_count
     AFTER INSERT
     ON user_community
 BEGIN
@@ -543,7 +543,7 @@ BEGIN
     WHERE id = new.community_id;
 END;
 
-CREATE TRIGGER decrement_community_member_count
+CREATE TRIGGER IF NOT EXISTS decrement_community_member_count
     AFTER DELETE
     ON user_community
 BEGIN
@@ -551,63 +551,3 @@ BEGIN
     SET member_count = member_count - 1
     WHERE id = old.community_id;
 END;
-
-/* Down */
-
-DROP TRIGGER IF EXISTS post_created;
-DROP TRIGGER IF EXISTS post_deleted;
-DROP TRIGGER IF EXISTS increment_post_like_count;
-DROP TRIGGER IF EXISTS decrement_post_like_count;
-DROP TRIGGER IF EXISTS increment_post_comment_count;
-DROP TRIGGER IF EXISTS decrement_post_comment_count;
-DROP TRIGGER IF EXISTS increment_comment_like_count;
-DROP TRIGGER IF EXISTS decrement_comment_like_count;
-DROP TRIGGER IF EXISTS increment_comment_subcomment_count;
-DROP TRIGGER IF EXISTS decrement_comment_subcomment_count;
-DROP TRIGGER IF EXISTS increment_subcomment_like_count;
-DROP TRIGGER IF EXISTS decrement_subcomment_like_count;
-DROP TRIGGER IF EXISTS increment_community_member_count;
-DROP TRIGGER IF EXISTS decrement_community_member_count;
-
-DROP INDEX IF EXISTS idx_user_username;
-DROP INDEX IF EXISTS idx_user_email;
-DROP INDEX IF EXISTS idx_post_author_id;
-DROP INDEX IF EXISTS idx_post_community;
-DROP INDEX IF EXISTS idx_community_name;
-DROP INDEX IF EXISTS idx_community_role_community_id;
-DROP INDEX IF EXISTS idx_tag_name;
-DROP INDEX IF EXISTS idx_comment_author_id;
-DROP INDEX IF EXISTS idx_comment_parent;
-DROP INDEX IF EXISTS idx_subcomment_author_id;
-DROP INDEX IF EXISTS idx_subcomment_parent;
-
-DROP TABLE IF EXISTS posts_fts;
-
-DROP VIEW IF EXISTS user_view;
-DROP VIEW IF EXISTS post_view;
-DROP VIEW IF EXISTS comment_view;
-DROP VIEW IF EXISTS subcomment_view;
-DROP VIEW IF EXISTS notification_view;
-
-DROP TABLE session;
-DROP TABLE email_verification;
-DROP TABLE password_reset;
-DROP TABLE community_invite;
-DROP TABLE user_community;
-DROP TABLE community_role;
-DROP TABLE community_tag;
-DROP TABLE user_badge;
-DROP TABLE badge;
-DROP TABLE attachment;
-DROP TABLE post_like;
-DROP TABLE comment_like;
-DROP TABLE subcomment_like;
-DROP TABLE report;
-DROP TABLE notification;
-DROP TABLE websocket;
-DROP TABLE subcomment;
-DROP TABLE comment;
-DROP TABLE post;
-DROP TABLE community;
-DROP TABLE tag;
-DROP TABLE user;

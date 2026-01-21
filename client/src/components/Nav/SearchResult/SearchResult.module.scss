@@ -29,26 +29,8 @@
 
 .avatarWrapper {
     flex-shrink: 0;
-}
-
-.avatar {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.avatarPlaceholder {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
 }
 
 .meta {
@@ -167,8 +149,7 @@
         padding: 10px 12px;
     }
 
-    .avatar,
-    .avatarPlaceholder {
+    .avatarWrapper {
         width: 28px;
         height: 28px;
     }

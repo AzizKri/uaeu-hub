@@ -18,6 +18,7 @@ import {useUser} from "../../contexts/user/UserContext.ts";
 import {inActivateLeft} from "../../utils/tools.ts";
 import CommunityIconComponent from "../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
 import FeedbackPopUp from "../Reusable/FeedbackPopUp/FeedbackPopUp.tsx";
+import SuspendedPopUp from "../Reusable/SuspendedPopUp/SuspendedPopUp.tsx";
 // import bookmarkIcon from "../../assets/bookmark-outline-thin.svg";
 // import settingIcon from "../../assets/cog-outline-thin.svg";
 
@@ -27,13 +28,14 @@ export default function Aside() {
     const [logoutPopUpShown, setLogoutPopUpShown] = useState<boolean>(false);
     const [myCommunities, setMyCommunities] = useState<CommunityINI[]>();
     const [loadingMyCommunities, setLoadingMyCommunities] = useState<boolean>(false);
-    const { isUser, user, removeUser } = useUser();
+    const { isUser, user, removeUser, isSuspended } = useUser();
     const navigate = useNavigate();
     const location = useLocation();
     const [redirectPopUpShown, setRedirectPopUpShown] = useState<boolean>(false);
     const [selected, setSelected] = useState<string>("");
     const [showCreateCommunityModal, setShowCreateCommunityModal] = useState<boolean>(false);
     const [feedbackType, setFeedbackType] = useState<"bug" | "feature" | null>(null);
+    const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
 
     useEffect(() => {
         const ptr = /\/(\w+)\//;
@@ -86,6 +88,10 @@ export default function Aside() {
     };
 
     const handleCreate = async () => {
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
+            return;
+        }
         setShowCreateCommunityModal(true);
     };
 
@@ -340,6 +346,9 @@ export default function Aside() {
             )}
             {feedbackType && (
                 <FeedbackPopUp type={feedbackType} hidePopUp={() => setFeedbackType(null)} />
+            )}
+            {showSuspendedPopUp && (
+                <SuspendedPopUp hidePopUp={() => setShowSuspendedPopUp(false)} />
             )}
         </ul>
     );

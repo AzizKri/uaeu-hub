@@ -236,7 +236,7 @@ namespace NotificationPayload {
     export default interface NotificationPayload {
         senderId: number;
         receiverId: number;
-        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite' | 'admin_deletion';
+        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite' | 'admin_deletion' | 'suspension' | 'ban' | 'community_warning';
         actionEntityId?: number;
         content?: string;
         metadata: {[key: string]: any};
@@ -244,7 +244,7 @@ namespace NotificationPayload {
     export type IncomingNotificationPayload = {
         senderId: number;
         receiverId?: number;
-        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite' | 'admin_deletion';
+        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite' | 'admin_deletion' | 'suspension' | 'ban' | 'community_warning';
         metadata: NotificationMetadata[NotificationMetadata.Like | NotificationMetadata.Comment | NotificationMetadata.Subcomment];
     }
     export type Like = {
@@ -281,6 +281,24 @@ namespace NotificationPayload {
         receiverId: number;
         entityType: 'post' | 'comment' | 'subcomment';
         entityContent: string;
+        reason: string;
+    }
+    export type Suspension = {
+        senderId: number;
+        receiverId: number;
+        suspendedUntil: number;
+        reason: string;
+    }
+    export type Ban = {
+        senderId: number;
+        receiverId: number;
+        reason: string;
+    }
+    export type CommunityWarning = {
+        senderId: number;
+        receiverId: number;
+        communityId: number;
+        communityName: string;
         reason: string;
     }
 }
