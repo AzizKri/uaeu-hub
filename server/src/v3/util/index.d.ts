@@ -236,7 +236,7 @@ namespace NotificationPayload {
     export default interface NotificationPayload {
         senderId: number;
         receiverId: number;
-        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
+        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite' | 'admin_deletion';
         actionEntityId?: number;
         content?: string;
         metadata: {[key: string]: any};
@@ -244,7 +244,7 @@ namespace NotificationPayload {
     export type IncomingNotificationPayload = {
         senderId: number;
         receiverId?: number;
-        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite';
+        type: 'like' | 'comment' | 'subcomment' | 'mention' | 'invite' | 'admin_deletion';
         metadata: NotificationMetadata[NotificationMetadata.Like | NotificationMetadata.Comment | NotificationMetadata.Subcomment];
     }
     export type Like = {
@@ -275,6 +275,13 @@ namespace NotificationPayload {
         receiverId: number;
         inviteId: number;
         communityId: number;
+    }
+    export type AdminDeletion = {
+        senderId: number;
+        receiverId: number;
+        entityType: 'post' | 'comment' | 'subcomment';
+        entityContent: string;
+        reason: string;
     }
 }
 

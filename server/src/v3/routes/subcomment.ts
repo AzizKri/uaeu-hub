@@ -13,6 +13,6 @@ const app = new Hono<{ Bindings: Env }>();
 app.post('/', postRateLimitMiddleware, firebaseAuthMiddleware, (c: Context) => subcomment(c));
 app.post('/like/:scid', firebaseAuthMiddleware, (c: Context) => likeSubcomment(c));
 app.get('/:cid', firebaseAuthMiddlewareCheckOnly, (c: Context) => getSubcommentsOnComment(c));
-app.delete('/:scid', firebaseAuthMiddlewareCheckOnly, (c: Context) => deleteSubcomment(c));
+app.delete('/:scid', firebaseAuthMiddleware, (c: Context) => deleteSubcomment(c));
 
 export default app;

@@ -111,6 +111,7 @@ declare global {
         bio?: string;
         pfp?: string;
         isAnonymous?: boolean;
+        isAdmin?: boolean;
         role?: string;
         status?: "ADMIN" | "NOT-ADMIN" | "MEMBER" | "INVITED" | "NOT-INVITED";
         email?: string;
@@ -214,7 +215,13 @@ declare global {
         content? : string;
     }
 
-    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata | InvitationMetadata;
+    interface AdminDeletionMetadata {
+        entityType: 'post' | 'comment' | 'subcomment';
+        content: string;
+        reason: string;
+    }
+
+    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata | InvitationMetadata | AdminDeletionMetadata;
 
     interface Notification {
         id: number;

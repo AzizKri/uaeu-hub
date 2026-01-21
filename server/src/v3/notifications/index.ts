@@ -3,6 +3,7 @@ import { handleLike } from './actions/like';
 import { handleComment } from './actions/comment';
 import { handleSubcomment } from './actions/subcomment';
 import { handleCommunityInvite } from './actions/communityInvite';
+import { handleAdminDeletion } from './actions/adminDeletion';
 
 export async function createNotification(
     c: Context, {
@@ -59,6 +60,17 @@ export async function createNotification(
             break;
         case 'mention':
             throw new Error('Not implemented yet');
+        case 'admin_deletion':
+            if (!receiverId) throw new Error('No receiver ID provided');
+            if (!metadata.entityType || !metadata.reason) throw new Error('Missing entityType or reason for admin deletion');
+            await handleAdminDeletion(env, <NotificationPayload.AdminDeletion>{
+                senderId,
+                receiverId,
+                entityType: metadata.entityType,
+                entityContent: metadata.entityContent || '',
+                reason: metadata.reason
+            });
+            break;
         default:
             throw new Error('Invalid action provided');
     }

@@ -30,6 +30,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
                     // Use backend pfp if available, otherwise fall back to Firebase photo URL
                     pfp: data.pfp || fbUser.photoURL || '',
                     isAnonymous: data.is_anonymous || fbUser.isAnonymous,
+                    isAdmin: !!data.is_admin,
                 };
                 cacheUserData(usefulData);
                 setUser(usefulData);

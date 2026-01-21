@@ -20,7 +20,7 @@ const app = new Hono<{ Bindings: Env }>();
 // do NOT place any route with parameters above /latest/:page? or the parameterless route will break, with your bones
 
 app.post('/', postRateLimitMiddleware, firebaseAuthMiddleware, (c: Context) => createPost(c));
-app.delete('/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => deletePost(c));
+app.delete('/:id', firebaseAuthMiddleware, (c: Context) => deletePost(c));
 app.post('/like/:id', firebaseAuthMiddleware, (c: Context) => likePost(c));
 
 app.get('/latest', firebaseAuthMiddlewareCheckOnly, (c: Context) => getLatestPosts(c));

@@ -336,10 +336,10 @@ export async function authenticateUserFirebase(c: Context) {
 
     try {
         const user = await env.DB.prepare(`
-            SELECT id, username, displayname, email, email_verified, bio, pfp, is_anonymous, created_at
+            SELECT id, username, displayname, email, email_verified, bio, pfp, is_anonymous, is_admin, created_at
             FROM user
             WHERE id = ?
-        `).bind(userId).first<UserView>();
+        `).bind(userId).first<UserView & { is_admin: number }>();
 
         if (!user) {
             return c.json({ user: null }, 200);

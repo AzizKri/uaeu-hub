@@ -2,6 +2,7 @@ import styles from "./OptionsMenu.module.scss";
 import React, { useState } from "react";
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import ReportPopUp from "../../Reusable/ReportPopUp/ReportPopUp.tsx";
+import AdminDeletePopUp from "../../Reusable/AdminDeletePopUp/AdminDeletePopUp.tsx";
 import { deleteComment as apiDeleteComment } from "../../../api/comments.ts";
 import { deletePost as apiDeletePost } from "../../../api/posts.ts";
 import { deleteSubComment as apiDeleteSubComment } from "../../../api/subComments.ts";
@@ -23,9 +24,14 @@ export default function OptionsMenu({
 }: OptionsMenuProps) {
     const [optionsDisplayed, setOptionsDisplayed] = useState<boolean>(false);
     const [showPopUp, setShowPopUp] = useState<boolean>(false);
+    const [showAdminDeletePopUp, setShowAdminDeletePopUp] = useState<boolean>(false);
     const [showReportPopUp, setShowReportPopUp] = useState<boolean>(false);
     const { deletePost } = useUpdatePosts();
     const { user } = useUser();
+
+    const isAuthor = user && user.username === author;
+    const isAdmin = user?.isAdmin;
+    const canDelete = isAuthor || isAdmin;
 
     const getReportEntityType = (): "post" | "comment" | "subcomment" => {
         switch (type) {
@@ -53,16 +59,28 @@ export default function OptionsMenu({
         document.addEventListener("click", listener);
     };
 
-    const handleDeletePost = async () => {
+    const handleDeletePost = async (reason?: string) => {
         if (type === "POST") {
             deletePost(id);
-            await apiDeletePost(id);
+            await apiDeletePost(id, reason);
         } else if (type === "COMMENT") {
             deleteComment!(id);
-            await apiDeleteComment(id);
+            await apiDeleteComment(id, reason);
         } else if (type === "SUB-COMMENT") {
             deleteComment!(id);
-            await apiDeleteSubComment(id);
+            await apiDeleteSubComment(id, reason);
+        }
+    };
+
+    const handleAdminDelete = async (reason: string) => {
+        await handleDeletePost(reason);
+    };
+
+    const handleDeleteClick = () => {
+        if (isAuthor) {
+            setShowPopUp(true);
+        } else if (isAdmin) {
+            setShowAdminDeletePopUp(true);
         }
     };
 
@@ -74,11 +92,22 @@ export default function OptionsMenu({
                         <YesNoPopUp
                             title={`Delete ${type.toLowerCase()}`}
                             text={`Are you sure you want to delete this ${type.toLowerCase()}?`}
-                            onYes={handleDeletePost}
+                            onYes={() => handleDeletePost()}
                             onNo={() => null}
                             hidePopUp={() => {
                                 setShowPopUp(false);
                                 setOptionsDisplayed(true);
+                            }}
+                        />
+                    )}
+                    {showAdminDeletePopUp && (
+                        <AdminDeletePopUp
+                            type={type}
+                            onConfirm={handleAdminDelete}
+                            onCancel={() => null}
+                            hidePopUp={() => {
+                                setShowAdminDeletePopUp(false);
+                                setOptionsDisplayed(false);
                             }}
                         />
                     )}
@@ -92,48 +121,29 @@ export default function OptionsMenu({
                             }}
                         />
                     )}
-                    {user && user.username === author ? (
-                        <>
-                            {/*{type === "POST" && (*/}
-                            {/*    <li className={styles.options_menu__option}>*/}
-                            {/*        <div className={styles.icon}>*/}
-                            {/*            <svg*/}
-                            {/*                xmlns="http://www.w3.org/2000/svg"*/}
-                            {/*                viewBox="0 0 24 24"*/}
-                            {/*                width="24px"*/}
-                            {/*                height="24px"*/}
-                            {/*                fill="currentColor"*/}
-                            {/*            >*/}
-                            {/*                <path d="M17,18L12,15.82L7,18V5H17M17,3H7A2,2 0 0,0 5,5V21L12,18L19,21V5C19,3.89 18.1,3 17,3Z" />*/}
-                            {/*            </svg>*/}
-                            {/*        </div>*/}
-                            {/*        <span>Save</span>*/}
-                            {/*    </li>*/}
-                            {/*)}*/}
-                            <li
-                                className={styles.options_menu__option}
-                                onClick={() => setShowPopUp(true)}
-                                style={{color: "#f33"}}
-                            >
-                                <div className={styles.icon}>
-                                    {/*report flag icon*/}
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        height="24px"
-                                        width="24px"
-                                        fill="currentColor"
-                                    >
-                                        <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" />
-                                    </svg>
-                                </div>
-                                <span>Delete</span>
-                            </li>
-                        </>
-                    ) : (
+                    {canDelete && (
+                        <li
+                            className={styles.options_menu__option}
+                            onClick={handleDeleteClick}
+                            style={{color: "#f33"}}
+                        >
+                            <div className={styles.icon}>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    height="24px"
+                                    width="24px"
+                                    fill="currentColor"
+                                >
+                                    <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" />
+                                </svg>
+                            </div>
+                            <span>Delete</span>
+                        </li>
+                    )}
+                    {!isAuthor && (
                         <li className={styles.options_menu__option} onClick={handleReport}>
                             <div className={styles.icon}>
-                                {/*report flag icon*/}
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     height="24px"

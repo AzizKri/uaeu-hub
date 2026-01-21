@@ -59,11 +59,13 @@ export async function likeComment(comment: number) {
 }
 
 // Delete comment by its ID
-export async function deleteComment(comment: number) {
+// Optional reason for admin deletions
+export async function deleteComment(comment: number, reason?: string) {
     const headers = await getAuthHeaders();
     const request = await fetch(base + `/${comment}`, {
         method: 'DELETE',
         headers,
+        body: reason ? JSON.stringify({ reason }) : undefined,
     });
     return request.status;
 }
