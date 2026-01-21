@@ -271,6 +271,7 @@ export default function Editor({
                     pfp: post.pfp,
                     postDate: new Date(post.post_time),
                     filename: post.attachment,
+                    attachmentMime: post.attachment_mime,
                     likeCount: post.like_count,
                     commentCount: post.comment_count,
                     type: "POST",
@@ -424,16 +425,39 @@ export default function Editor({
                     {autoFocus && <AutoFocusPlugin/>}
                 </LexicalComposer>
 
-                {uploadState.preview && (
-                    <div className={styles.imagePreview}>
-                        {typeof uploadState.preview === "string" && (
-                            <PostImage
-                                source={uploadState.preview}
-                                alt={"uploaded image preview"}
-                                onError={() => null}
-                                onLoad={() => null}
-                                isLoading={uploadState.status === "UPLOADING"}
-                            />
+                {uploadState.file && (
+                    <div className={uploadState.file.type === 'application/pdf' ? styles.pdfPreview : styles.imagePreview}>
+                        {uploadState.file.type === 'application/pdf' ? (
+                            // PDF Preview Card
+                            <div className={styles.pdfCard}>
+                                <div className={styles.pdfIcon}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10.92,12.31C10.68,11.54 10.15,9.08 11.55,9.04C12.95,9 12.03,12.16 12.03,12.16C12.42,13.65 14.05,14.72 14.05,14.72C14.55,14.57 17.4,14.24 17,15.72C16.57,17.2 13.5,15.81 13.5,15.81C11.55,15.95 10.09,16.47 10.09,16.47C8.96,18.58 7.64,19.5 7.1,18.61C6.43,17.5 9.23,16.07 9.23,16.07C10.68,13.72 10.9,12.35 10.92,12.31Z"/>
+                                    </svg>
+                                </div>
+                                <div className={styles.pdfInfo}>
+                                    <span className={styles.pdfName}>{uploadState.file.name}</span>
+                                    <span className={styles.pdfSize}>
+                                        {(uploadState.file.size / 1024).toFixed(1)} KB
+                                    </span>
+                                </div>
+                                {uploadState.status === "UPLOADING" && (
+                                    <div className={styles.pdfLoading}>
+                                        <LineSpinner spinnerRadius="20px" />
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            // Image Preview
+                            typeof uploadState.preview === "string" && (
+                                <PostImage
+                                    source={uploadState.preview}
+                                    alt={"uploaded image preview"}
+                                    onError={() => null}
+                                    onLoad={() => null}
+                                    isLoading={uploadState.status === "UPLOADING"}
+                                />
+                            )
                         )}
                         <div
                             className={styles.changeImage}
@@ -537,14 +561,14 @@ export default function Editor({
                         fill="currentColor"
                     >
                         <path
-                            d="M480-480ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h320v80H200v560h560v-320h80v320q0 33-23.5 56.5T760-120H200Zm40-160h480L570-480 450-320l-90-120-120 160Zm440-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z"/>
+                            d="M720-330q0 104-73 177T470-80q-104 0-177-73t-73-177v-370q0-75 52.5-127.5T400-880q75 0 127.5 52.5T580-700v350q0 46-32 78t-78 32q-46 0-78-32t-32-78v-370h80v370q0 13 8.5 21.5T470-320q13 0 21.5-8.5T500-350v-350q-1-42-29.5-71T400-800q-42 0-71 29t-29 71v370q-1 71 49 120.5T470-160q70 0 119-49.5T640-330v-390h80v390Z"/>
                     </svg>
                 </div>
                 <input
                     ref={imageInputRef}
                     className={styles.postImageInput}
                     type="file"
-                    accept="image/*"
+                    accept="image/*,application/pdf"
                     onChange={handleFileUpload}
                 />
                 <div className={styles.buttonIcon} onClick={submitPost}>

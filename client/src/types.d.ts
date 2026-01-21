@@ -3,10 +3,18 @@ import React from "react";
 declare global {
     interface SearchResult {
         id: number;
+        public_id?: string;
         author: string;
+        displayname?: string;
+        pfp?: string;
         content: string;
-        postTime: number;
+        post_time: number;
         attachment: string | null;
+        attachment_mime?: string | null;
+        community?: string;
+        community_icon?: string;
+        like_count?: number;
+        comment_count?: number;
         rank: number;
     }
 
@@ -19,6 +27,7 @@ declare global {
         content: string,
         pfp: string,
         filename?: string,
+        attachmentMime?: string,
         likeCount: number,
         commentCount: number,
         type: "POST" | "POST-PAGE" | "NO_COMMUNITY",

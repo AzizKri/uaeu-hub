@@ -2,25 +2,25 @@ import styles from "./Content.module.scss";
 import React, { useState } from "react";
 import { assetsBase } from "../../../api/api.ts";
 import PostImage from "../../Reusable/PostImage/PostImage.tsx";
-// import { getAttachmentDetails } from "../../../api/attachmets.ts";
+import PostPDF from "../../Reusable/PostPDF/PostPDF.tsx";
 
 export default function Content({
   content,
   filename,
+  attachmentMime,
   type,
 }: {
   content: string;
   filename: string | undefined;
+  attachmentMime?: string;
   type: string;
 }) {
   const [showContent, setShowContent] = useState<boolean>(content.length < 300);
-  // const [imageSrc, setImageSrc] = useState<string>("");
-  // const [imageDims, setImageDims] = useState<{
-  //     width: number;
-  //     height: number;
-  // }>({ width: 0, height: 0 });
   const [error, setError] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(filename != null);
+  const [isLoading, setIsLoading] = useState<boolean>(filename != null && attachmentMime?.startsWith('image/'));
+
+  const isImage = attachmentMime?.startsWith('image/') ?? true; // Default to image for backwards compatibility
+  const isPDF = attachmentMime === 'application/pdf';
 
   const handleShowMore: React.MouseEventHandler<HTMLSpanElement> = (e) => {
     e.stopPropagation();
@@ -57,9 +57,17 @@ export default function Content({
           </span>
         )}
       </div>
-      {/*<ReadOnlyEditor content={editorContent} />*/}
-      {/*{isLoading && !error && <LineSpinner spinnerRadius="100px" />}*/}
-      {filename && !error && (
+      
+      {/* PDF Attachment */}
+      {filename && isPDF && (
+        <PostPDF
+          source={`${assetsBase}/attachments/${filename}`}
+          filename={filename}
+        />
+      )}
+      
+      {/* Image Attachment */}
+      {filename && isImage && !isPDF && !error && (
         <PostImage
           source={`${assetsBase}/attachments/${filename}`}
           alt="post attachment"
@@ -68,7 +76,8 @@ export default function Content({
           isLoading={isLoading}
         />
       )}
-      {error && <p>Error Loading the image</p>}
+      
+      {error && isImage && <p>Error Loading the image</p>}
     </>
   );
 }

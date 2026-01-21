@@ -68,9 +68,9 @@ export async function getBestPostsFromMyCommunities(offset: number = 0) {
 // Search post by query
 export async function searchPosts(query: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/search?query=${query}`, { headers });
+    const request = await fetch(base + `/search?query=${encodeURIComponent(query)}`, { headers });
     if (request.status === 400) {
-        return { results: [] };
+        return { status: 400, data: [] };
     }
     return { status: request.status, data: await request.json() };
 }
