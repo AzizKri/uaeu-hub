@@ -84,6 +84,7 @@ export default function Community() {
                             content: string;
                             pfp: string;
                             attachment: string;
+                            attachment_mime?: string;
                             like_count: number;
                             comment_count: number;
                             liked: boolean;
@@ -99,6 +100,7 @@ export default function Community() {
                                     content: post.content,
                                     pfp: post.pfp,
                                     filename: post.attachment,
+                                    attachmentMime: post.attachment_mime,
                                     likeCount: post.like_count,
                                     commentCount: post.comment_count,
                                     type: "NO_COMMUNITY",
@@ -132,6 +134,7 @@ export default function Community() {
                             content: string;
                             pfp: string;
                             attachment: string;
+                            attachment_mime?: string;
                             like_count: number;
                             comment_count: number;
                             liked: boolean;
@@ -147,6 +150,7 @@ export default function Community() {
                                     content: post.content,
                                     pfp: post.pfp,
                                     filename: post.attachment,
+                                    attachmentMime: post.attachment_mime,
                                     likeCount: post.like_count,
                                     commentCount: post.comment_count,
                                     type: "NO_COMMUNITY",
