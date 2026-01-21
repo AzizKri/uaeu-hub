@@ -50,6 +50,7 @@ export default function Post({
             <Content
                 content={postInfo.content}
                 filename={postInfo.filename}
+                attachmentMime={postInfo.attachmentMime}
                 type={postInfo.type}
             />
             <PostFooter

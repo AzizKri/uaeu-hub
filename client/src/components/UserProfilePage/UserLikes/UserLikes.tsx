@@ -30,6 +30,7 @@ export default function UserLikes () {
                     pfp: post.pfp,
                     postDate: new Date(post.post_time),
                     filename: post.attachment,
+                    attachmentMime: post.attachment_mime,
                     likeCount: post.like_count,
                     commentCount: post.comment_count,
                     type: "POST",

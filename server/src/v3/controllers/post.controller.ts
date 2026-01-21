@@ -299,6 +299,30 @@ export async function searchPosts(c: Context) {
     if (!query || query.length < 3) return c.text('Query too short', { status: 400 });
 
     try {
+        // Sanitize and prepare FTS5 query
+        // Split into terms, escape special characters, wrap in quotes, add wildcard
+        const sanitizedQuery = query
+            .trim()
+            .split(/\s+/)
+            .filter(term => term.length > 0)
+            .map(term => {
+                // Remove FTS5 special characters and escape double quotes
+                const escaped = term
+                    .replace(/[*"():^]/g, '')
+                    .replace(/^(AND|OR|NOT)$/i, '');
+                // Only include non-empty terms
+                if (!escaped) return null;
+                // Wrap in quotes for exact matching, add wildcard for prefix search
+                return `"${escaped}"*`;
+            })
+            .filter(Boolean)
+            .join(' ');
+
+        // If no valid terms after sanitization, return empty
+        if (!sanitizedQuery) {
+            return c.json([], 200);
+        }
+
         // Get results from FTS
         const results = await env.DB.prepare(
             `SELECT *, bm25(posts_fts, 1.0, 0.75) AS rank
@@ -307,7 +331,7 @@ export async function searchPosts(c: Context) {
              WHERE posts_fts MATCH ?
              ORDER BY rank DESC
              LIMIT 10`
-        ).bind(query?.concat('*')).all<PostView>();
+        ).bind(sanitizedQuery).all<PostView>();
 
         return c.json(results.results, 200);
     } catch (e) {

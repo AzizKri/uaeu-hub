@@ -20,28 +20,9 @@ async function getAuthHeaders(includeContentType: boolean = true): Promise<Heade
 const allowedMimeTypes = [
     // Images
     'image/jpeg',           // .jpeg, .jpg
-    'image/png'            // .png
-    // 'image/gif',            // .gif
-    // 'image/webp',           // .webp
-    // 'image/svg+xml',        // .svg
-    // 'image/bmp',            // .bmp
-    // 'image/tiff',           // .tiff
-    // // Videos
-    // 'video/mp4',            // .mp4
-    // 'video/quicktime',      // .mov
-    // 'video/webm',           // .webm
-    // // Audios
-    // 'audio/mpeg',           // .mp3
-    // 'audio/ogg',            // .ogg
-    // 'audio/wav',            // .wav
-    // // Documents
-    // 'application/pdf',      // .pdf
-    // 'application/vnd.ms-powerpoint',    // .ppt
-    // 'application/vnd.openxmlformats-officedocument.presentationml.presentation',    // .pptx
-    // 'application/msword',   // .doc
-    // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',   // .docx
-    // 'application/vnd.ms-excel',    // .xls
-    // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',    // .xlsx
+    'image/png',            // .png
+    // Documents
+    'application/pdf',      // .pdf
 ];
 
 // Upload attachment

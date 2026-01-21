@@ -1,14 +1,48 @@
 .resultsList {
-    max-height: 400px;
-    //width: 350px;
+    max-height: 450px;
+    min-width: 320px;
     background-color: white;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 8px #ddd;
-    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
     overflow-y: auto;
+    border: 1px solid #e5e5e5;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 3px;
+
+        &:hover {
+            background: #aaa;
+        }
+    }
+}
+
+.noCommunityMessage {
+    padding: 24px 16px;
+    text-align: center;
+    color: #888;
+    font-size: 14px;
 }
 
 .hidden {
     display: none;
+}
+
+@media screen and (max-width: 480px) {
+    .resultsList {
+        min-width: 280px;
+        max-height: 350px;
+    }
 }
