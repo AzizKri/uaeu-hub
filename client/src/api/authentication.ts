@@ -21,7 +21,6 @@ async function getAuthHeaders(): Promise<HeadersInit> {
  * Uses Firebase ID token for authentication
  */
 export async function me() {
-    console.log("me");
     const headers = await getAuthHeaders();
     const request = await fetch(base + `/me`, { headers });
     const data = await request.json();

@@ -17,6 +17,7 @@ import CreateCommunity from "../Communities/CreateCommunity/CreateCommunity.tsx"
 import {useUser} from "../../contexts/user/UserContext.ts";
 import {inActivateLeft} from "../../utils/tools.ts";
 import CommunityIconComponent from "../Reusable/CommunityIconComponent/CommunityIconComponent.tsx";
+import FeedbackPopUp from "../Reusable/FeedbackPopUp/FeedbackPopUp.tsx";
 // import bookmarkIcon from "../../assets/bookmark-outline-thin.svg";
 // import settingIcon from "../../assets/cog-outline-thin.svg";
 
@@ -32,6 +33,7 @@ export default function Aside() {
     const [redirectPopUpShown, setRedirectPopUpShown] = useState<boolean>(false);
     const [selected, setSelected] = useState<string>("");
     const [showCreateCommunityModal, setShowCreateCommunityModal] = useState<boolean>(false);
+    const [feedbackType, setFeedbackType] = useState<"bug" | "feature" | null>(null);
 
     useEffect(() => {
         const ptr = /\/(\w+)\//;
@@ -234,6 +236,46 @@ export default function Aside() {
             {/*        </div>*/}
             {/*    </li>*/}
             {/*)}*/}
+            {isUser() && (
+                <>
+                    <li>
+                        <div
+                            className={`${styles.top_element} ${styles.element}`}
+                            onClick={() => setFeedbackType("bug")}
+                        >
+                            {/* Bug icon */}
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                width="24px"
+                                height="24px"
+                                fill="currentColor"
+                            >
+                                <path d="M14,12H10V10H14M14,16H10V14H14M20,8H17.19C16.74,7.22 16.12,6.55 15.37,6.04L17,4.41L15.59,3L13.42,5.17C12.96,5.06 12.5,5 12,5C11.5,5 11.04,5.06 10.59,5.17L8.41,3L7,4.41L8.62,6.04C7.88,6.55 7.26,7.22 6.81,8H4V10H6.09C6.04,10.33 6,10.66 6,11V12H4V14H6V15C6,15.34 6.04,15.67 6.09,16H4V18H6.81C7.85,19.79 9.78,21 12,21C14.22,21 16.15,19.79 17.19,18H20V16H17.91C17.96,15.67 18,15.34 18,15V14H20V12H18V11C18,10.66 17.96,10.33 17.91,10H20V8Z" />
+                            </svg>
+                            <span>Report Bug</span>
+                        </div>
+                    </li>
+                    <li>
+                        <div
+                            className={`${styles.top_element} ${styles.element}`}
+                            onClick={() => setFeedbackType("feature")}
+                        >
+                            {/* Lightbulb/idea icon */}
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                width="24px"
+                                height="24px"
+                                fill="currentColor"
+                            >
+                                <path d="M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21Z" />
+                            </svg>
+                            <span>Request Feature</span>
+                        </div>
+                    </li>
+                </>
+            )}
             <li>
                 <div
                     className={`${styles.top_element} ${styles.element} ${active === "setting" && styles.active}`}
@@ -295,6 +337,9 @@ export default function Aside() {
             )}
             {showCreateCommunityModal && (
                 <CreateCommunity type="CREATE" onClose={() => setShowCreateCommunityModal(false)}/>
+            )}
+            {feedbackType && (
+                <FeedbackPopUp type={feedbackType} hidePopUp={() => setFeedbackType(null)} />
             )}
         </ul>
     );

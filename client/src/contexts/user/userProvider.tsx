@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { auth, onAuthStateChanged, User, reloadUserAndRefreshToken } from '../../firebase/config';
-import { me, syncEmailVerified } from '../../api/authentication';
+import { auth, onAuthStateChanged, User } from '../../firebase/config';
+import { me } from '../../api/authentication';
 
 export const UserContext = createContext<UserContextInterface | null>(null);
 
@@ -77,36 +77,6 @@ export default function UserProvider({ children }: { children: ReactNode }) {
         // Cleanup subscription on unmount
         return () => unsubscribe();
     }, []);
-
-    // Refresh token and sync email verification status when user returns to the app
-    useEffect(() => {
-        const handleVisibilityChange = async () => {
-            if (document.visibilityState === 'visible' && firebaseUser && !firebaseUser.isAnonymous) {
-                console.log("User returned to app, refreshing token...");
-                const isVerified = await reloadUserAndRefreshToken();
-                console.log("Email verified status after refresh:", isVerified);
-                
-                // Sync email verification status with backend
-                if (isVerified) {
-                    console.log("Syncing email verification with backend...");
-                    try {
-                        const result = await syncEmailVerified();
-                        console.log("Email sync result:", result);
-                    } catch (e) {
-                        console.error("Error syncing email verification:", e);
-                    }
-                }
-                
-                // Re-fetch user data to sync with backend
-                if (firebaseUser) {
-                    await fetchUserData(firebaseUser);
-                }
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [firebaseUser]);
 
     const updateUser = (newUser: UserInfo) => {
         setUser(newUser);
