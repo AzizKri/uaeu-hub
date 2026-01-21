@@ -17,7 +17,7 @@ export default function Content({
 }) {
   const [showContent, setShowContent] = useState<boolean>(content.length < 300);
   const [error, setError] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(filename != null && attachmentMime?.startsWith('image/'));
+  const [isLoading, setIsLoading] = useState<boolean>(filename != null && (attachmentMime?.startsWith('image/') ?? true));
 
   const isImage = attachmentMime?.startsWith('image/') ?? true; // Default to image for backwards compatibility
   const isPDF = attachmentMime === 'application/pdf';
