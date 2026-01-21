@@ -4,6 +4,9 @@ export async function handleComment(env: Env, { senderId, commentId, parentPostI
     // Get the receiver ID and generate a message to send through websocket
     const Entity = await getEntity(env, parentPostId, 'post') as PostRow;
 
+    // Don't notify yourself
+    if (senderId === Entity.author_id) return;
+
     const metadata = {
         parentPostId: parentPostId,
         content: content

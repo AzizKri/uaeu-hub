@@ -102,7 +102,7 @@ async function sharedAuthMiddleware(c: Context, checkOnly: boolean) {
                 await sendAuthCookie(c, sessionKey);
                 await sendUserIdCookie(c, userFromSessionKey.userId.toString(), userFromSessionKey.isAnonymous);
                 c.set('userId', userFromSessionKey.userId);
-                c.set('isAnonymous', true);
+                c.set('isAnonymous', userFromSessionKey.isAnonymous);
             }
         }
 
