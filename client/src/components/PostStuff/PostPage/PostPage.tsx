@@ -25,6 +25,7 @@ interface CommentBack {
 
 export default function PostPage() {
     const [post, setPost] = useState<React.ReactElement | null>(null);
+    const [numericPostId, setNumericPostId] = useState<number | null>(null);
     const [totalComments, setTotalComments] = useState<number>(0);
     const [comments, setComments] = useState<CommentInfo[]>([]);
     const [isFound, setIsFound] = useState<boolean>(true);
@@ -59,6 +60,7 @@ export default function PostPage() {
                     liked: post.liked,
                 };
                 setTotalComments(postInfo.commentCount);
+                setNumericPostId(post.id);
                 const communityInfo: CommunityInfoSimple = {
                     name: post.community,
                     icon: post.community_icon
@@ -71,12 +73,9 @@ export default function PostPage() {
                     />
                 );
                 setPost(fetchedPost);
-            });
 
-            // Use internal ID for comments (needs numeric id)
-            const numericPostId = parseInt(postId);
-            if (!isNaN(numericPostId)) {
-                getCommentsOnPost(numericPostId, 0).then((res) => {
+                // Fetch comments using the numeric ID from the post data
+                getCommentsOnPost(post.id, 0).then((res) => {
                     setComments(res.data.map((cd: CommentBack) => ({
                         attachment: cd.attachment,
                         author: cd.author,
@@ -92,7 +91,7 @@ export default function PostPage() {
                         postTime: new Date(cd.post_time),
                     })));
                 });
-            }
+            });
         }
     }, [postId]); // Fetch the post when postId changes
 
@@ -119,8 +118,9 @@ export default function PostPage() {
     }
 
     const handleShowMore = async () => {
+        if (!numericPostId) return;
         setLoadingMoreComments(true);
-        const nextPage = (await getCommentsOnPost(parseInt(postId!), comments.length)).data;
+        const nextPage = (await getCommentsOnPost(numericPostId, comments.length)).data;
         setComments(prev =>
             [...prev, ...nextPage.map((cd: CommentBack) => ({
                 attachment: cd.attachment,
@@ -159,7 +159,7 @@ export default function PostPage() {
                             <div className={styles.write_answer}>
                                 <Editor
                                     type="COMMENT"
-                                    parentId={postId ? parseInt(postId) : undefined}
+                                    parentId={numericPostId ?? undefined}
                                     prependComment={prependComment}
                                 />
                             </div>
