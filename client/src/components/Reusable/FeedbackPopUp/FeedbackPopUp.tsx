@@ -4,7 +4,6 @@ import React, { useState, useRef } from "react";
 import { submitBugReport, submitFeatureRequest } from "../../../api/feedback.ts";
 import { uploadAttachment } from "../../../api/attachmets.ts";
 import ThreeDotsLine from "../Animations/ThreeDotsLine/ThreeDotsLine.tsx";
-import { assetsBase } from "../../../api/api.ts";
 
 interface FeedbackPopUpProps {
     type: "bug" | "feature";
