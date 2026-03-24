@@ -88,10 +88,11 @@ export async function registerUser(c: Context) {
         return c.json({ message: 'Authentication required' }, 401);
     }
 
-    const body = await c.req.json();
-    const { username, displayname } = body;
-    
-    console.log('registerUser -> received body:', JSON.stringify(body));
+    const { username, displayname } = (c.req as any).valid('json') as {
+        username: string;
+        displayname?: string;
+    };
+
     console.log('registerUser -> username:', username, 'displayname:', displayname);
 
     if (!username) {
@@ -113,7 +114,6 @@ export async function registerUser(c: Context) {
     const firebaseUid = firebaseClaims.user_id || firebaseClaims.sub;
     const email = firebaseClaims.email ?? null;
     const emailVerified = firebaseClaims.email_verified ? 1 : 0;
-    const photoUrl = firebaseClaims.picture ?? null;
     const authProvider = firebaseClaims.firebase?.sign_in_provider || 'firebase';
 
     console.log('registerUser -> userId:', userId, 'isAnonymous:', isAnonymous);
@@ -144,12 +144,11 @@ export async function registerUser(c: Context) {
                 UPDATE user
                 SET username = ?,
                     displayname = ?,
-                    pfp = COALESCE(?, pfp)
+                pfp = pfp
                 WHERE id = ? AND firebase_uid = ?
             `).bind(
                 username,
                 finalDisplayname,
-                photoUrl,
                 userId,
                 firebaseUid
             ).run();
@@ -201,7 +200,7 @@ export async function registerUser(c: Context) {
             email,
             emailVerified,
             authProvider,
-            photoUrl
+            null
         ).first<UserView>();
 
         if (!user) {
@@ -249,7 +248,10 @@ export async function upgradeAnonymous(c: Context) {
         return c.json({ message: 'No anonymous user to upgrade' }, 400);
     }
 
-    const { username, displayname } = await c.req.json();
+    const { username, displayname } = (c.req as any).valid('json') as {
+        username: string;
+        displayname?: string;
+    };
 
     if (!username) {
         return c.json({ message: 'Username is required' }, 400);
@@ -270,7 +272,6 @@ export async function upgradeAnonymous(c: Context) {
     const firebaseUid = firebaseClaims.user_id || firebaseClaims.sub;
     const email = firebaseClaims.email ?? null;
     const emailVerified = firebaseClaims.email_verified ? 1 : 0;
-    const photoUrl = firebaseClaims.picture ?? null;
     const authProvider = firebaseClaims.firebase?.sign_in_provider || 'firebase';
 
     try {
@@ -295,7 +296,7 @@ export async function upgradeAnonymous(c: Context) {
                 email = ?,
                 email_verified = ?,
                 auth_provider = ?,
-                pfp = COALESCE(pfp, ?),
+                pfp = pfp,
                 is_anonymous = 0
             WHERE id = ?
             RETURNING id, username, displayname, email, bio, pfp, is_anonymous
@@ -306,7 +307,6 @@ export async function upgradeAnonymous(c: Context) {
             email,
             emailVerified,
             authProvider,
-            photoUrl,
             userId
         ).first<UserView>();
 
@@ -414,9 +414,8 @@ export async function logoutFirebase(c: Context) {
  */
 export async function checkAdminEmail(c: Context) {
     const env: Env = c.env;
-    
-    const body = await c.req.json();
-    const { email } = body;
+
+    const { email } = (c.req as any).valid('json') as { email: string };
 
     if (!email) {
         return c.json({ isAdmin: false, message: 'Email is required' }, 400);

@@ -1,5 +1,7 @@
 import { Context } from 'hono';
 import { createPublicId } from '../util/nanoid';
+import { feedbackListQuerySchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 // Create Bug Report
 export async function createBugReport(c: Context) {
@@ -60,8 +62,13 @@ export async function getBugReports(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const status = c.req.query('status') || null;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(feedbackListQuerySchema, {
+        status: c.req.query('status') || undefined,
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const { status, offset } = parsedQuery.data;
 
     // Only logged-in users can view bug reports
     if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
@@ -98,8 +105,13 @@ export async function getFeatureRequests(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const status = c.req.query('status') || null;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(feedbackListQuerySchema, {
+        status: c.req.query('status') || undefined,
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const { status, offset } = parsedQuery.data;
 
     // Only logged-in users can view feature requests
     if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
@@ -136,8 +148,8 @@ export async function updateFeedbackStatus(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const type = c.req.param('type'); // 'bug' or 'feature'
-    const id = c.req.param('id');
+    // @ts-ignore
+    const { type, id } = c.req.valid('param');
 
     // Only logged-in users can update feedback status
     if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
@@ -149,25 +161,17 @@ export async function updateFeedbackStatus(c: Context) {
     // @ts-ignore
     const { status } = c.req.valid('json');
 
-    // Validate type
-    if (type !== 'bug' && type !== 'feature') {
-        return c.json({ message: 'Invalid feedback type', status: 400 }, 400);
-    }
-
-    // Validate status
-    const validStatuses = ['pending', 'reviewed', 'resolved', 'closed'];
-    if (!validStatuses.includes(status)) {
-        return c.json({ message: 'Invalid status', status: 400 }, 400);
-    }
-
-    const table = type === 'bug' ? 'bug_report' : 'feature_request';
-
-    // Update status
-    const result = await env.DB.prepare(`
-        UPDATE ${table}
-        SET status = ?
-        WHERE id = ?
-    `).bind(status, id).run();
+    const result = type === 'bug'
+        ? await env.DB.prepare(`
+            UPDATE bug_report
+            SET status = ?
+            WHERE id = ?
+        `).bind(status, id).run()
+        : await env.DB.prepare(`
+            UPDATE feature_request
+            SET status = ?
+            WHERE id = ?
+        `).bind(status, id).run();
 
     if (result.meta.changes === 0) {
         return c.json({ message: 'Feedback not found', status: 404 }, 404);

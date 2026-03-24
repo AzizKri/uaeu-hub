@@ -1,19 +1,17 @@
 import { Context } from 'hono';
 import { createNotification } from '../notifications';
 import { createPublicId } from '../util/nanoid';
+import { numericIdSchema, offsetSchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function comment(c: Context) {
     const env: Env = c.env;
-    const formData = await c.req.parseBody();
-    const postID: number = Number(formData['postId']);
-    const content: string = formData['content'] as string;
-    const fileName: string | null = formData['filename'] as string;
+    // @ts-ignore
+    const { postId: postID, content, filename } = c.req.valid('form');
+    const fileName = filename ?? null;
 
     // Get userId from Context
     const userId = c.get('userId') as number;
-
-    // Check for required fields
-    if (!content) return c.text('No content provided', { status: 400 });
 
     try {
         // Generate public_id for the comment
@@ -62,8 +60,14 @@ export async function comment(c: Context) {
 
 export async function getCommentsOnPost(c: Context) {
     const env: Env = c.env;
-    const postID: number = Number(c.req.param('postId'));
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const params = validateWithSchema(numericIdSchema, c.req.param('postId'));
+    if (!params.success) return validationError(c, params.error);
+
+    const offsetQuery = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!offsetQuery.success) return validationError(c, offsetQuery.error);
+
+    const postID = params.data;
+    const offset = offsetQuery.data;
 
     // Get userId from Context
     const userId = c.get('userId') as number;
@@ -106,14 +110,13 @@ export async function getCommentsOnPost(c: Context) {
 
 export async function deleteComment(c: Context) {
     const env: Env = c.env;
-    const commentId = Number(c.req.param('commentId'));
+    const parsedCommentId = validateWithSchema(numericIdSchema, c.req.param('commentId'));
+    if (!parsedCommentId.success) return validationError(c, parsedCommentId.error);
+    const commentId = parsedCommentId.data;
 
     // Get userId from Context
     const userId = c.get('userId') as number;
     if (!userId) return c.text('Unauthorized', { status: 401 });
-
-    // Check for required fields
-    if (!commentId) return c.text('No comment ID provided', { status: 400 });
 
     // Get optional reason from request body (for admin deletions)
     let reason: string | undefined;
@@ -193,13 +196,12 @@ export async function deleteComment(c: Context) {
 
 export async function likeComment(c: Context) {
     const env: Env = c.env;
-    const commentId = Number(c.req.param('commentId'));
+    const parsedCommentId = validateWithSchema(numericIdSchema, c.req.param('commentId'));
+    if (!parsedCommentId.success) return validationError(c, parsedCommentId.error);
+    const commentId = parsedCommentId.data;
 
     // Get userId from Context
     const userId = c.get('userId') as number;
-
-    // Check for required fields
-    if (!commentId) return c.text('No comment ID provided', { status: 400 });
 
     try {
         // Check if the user has already liked the comment

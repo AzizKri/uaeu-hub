@@ -1,5 +1,7 @@
 import { Context } from 'hono';
 import { createNotification } from '../notifications';
+import { numericIdSchema, reportListQuerySchema, reportsWithDetailsQuerySchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function createReport(c: Context) {
     const env: Env = c.env;
@@ -82,8 +84,12 @@ export async function getReports(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const includeResolved = c.req.query('includeResolved') ? c.req.query('includeResolved') === 'true' : false;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(reportListQuerySchema, {
+        includeResolved: c.req.query('includeResolved'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+    const { includeResolved, offset } = parsedQuery.data;
 
     // Only logged-in users can view reports
     if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
@@ -107,15 +113,21 @@ export async function getReportsForCommunity(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const communityId = c.req.param('communityId') ? Number(c.req.param('communityId')) : -1;
-    const includeResolved = c.req.query('includeResolved') ? c.req.query('includeResolved') === 'true' : false;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedCommunityId = validateWithSchema(numericIdSchema, c.req.param('communityId'));
+    if (!parsedCommunityId.success) return validationError(c, parsedCommunityId.error);
+
+    const parsedQuery = validateWithSchema(reportListQuerySchema, {
+        includeResolved: c.req.query('includeResolved'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const communityId = parsedCommunityId.data;
+    const { includeResolved, offset } = parsedQuery.data;
 
     // Only logged-in users can view reports
     if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
 
-    // Check if the community exists
-    if (communityId === -1) return c.json({ message: 'Community ID required', status: 400 }, 400);
     const community = await env.DB.prepare(`
         SELECT id
         FROM community
@@ -158,12 +170,12 @@ export async function getReport(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const reportId = c.req.param('reportId');
+    const parsedReportId = validateWithSchema(numericIdSchema, c.req.param('reportId'));
+    if (!parsedReportId.success) return validationError(c, parsedReportId.error);
+    const reportId = parsedReportId.data;
 
     // Only logged-in users can view reports
     if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
-    if (!reportId || isNaN(Number(reportId))) return c.json({ message: 'Report ID required', status: 400 }, 400);
-
     // Get the report
     const report = await env.DB.prepare(`
         SELECT *
@@ -311,7 +323,8 @@ export async function takeReportAction(c: Context) {
     const env: Env = c.env;
     const adminUserId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const reportId = c.req.param('reportId');
+    // @ts-ignore
+    const { reportId } = c.req.valid('param');
 
     // Only logged-in admins can take action
     if (!adminUserId || isAnonymous) {
@@ -323,16 +336,8 @@ export async function takeReportAction(c: Context) {
         return c.json({ message: 'Forbidden: Admin access required', status: 403 }, 403);
     }
 
-    const body = await c.req.json();
-    const { action, reason } = body;
-
-    if (!action || !['delete', 'delete_suspend', 'delete_ban', 'warn', 'dismiss'].includes(action)) {
-        return c.json({ message: 'Invalid action', status: 400 }, 400);
-    }
-
-    if (action !== 'dismiss' && !reason) {
-        return c.json({ message: 'Reason is required', status: 400 }, 400);
-    }
+    // @ts-ignore
+    const { action, reason } = c.req.valid('json');
 
     // Get the report
     const report = await env.DB.prepare(`
@@ -531,9 +536,13 @@ export async function getReportsWithDetails(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const includeResolved = c.req.query('includeResolved') === 'true';
-    const entityType = c.req.query('entityType') || null;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(reportsWithDetailsQuerySchema, {
+        includeResolved: c.req.query('includeResolved'),
+        entityType: c.req.query('entityType') || undefined,
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+    const { includeResolved, entityType, offset } = parsedQuery.data;
 
     // Only logged-in admins can access
     if (!userId || isAnonymous) {
@@ -571,7 +580,6 @@ export async function getReportsWithDetails(c: Context) {
         const reportsWithDetails = await Promise.all(
             (reports.results || []).map(async (report: any) => {
                 let entity = null;
-                let entityAuthor = null;
 
                 switch (report.entity_type) {
                     case 'post': {

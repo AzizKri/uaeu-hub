@@ -8,7 +8,8 @@ import {
     updateFeedbackStatus
 } from '../controllers/feedback.controller';
 import { validator } from 'hono/validator';
-import { feedbackSchema, feedbackStatusSchema } from '../util/validationSchemas';
+import { feedbackSchema, feedbackStatusParamSchema, feedbackStatusSchema } from '../util/validationSchemas';
+import { validationError } from '../util/requestValidation';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -48,6 +49,13 @@ app.get('/features', firebaseAuthMiddlewareCheckOnly, (c: Context) => getFeature
 
 // Update feedback status (admin only)
 app.patch('/:type/:id',
+    validator('param', (value, c: Context) => {
+        const parsed = feedbackStatusParamSchema.safeParse(value);
+        if (!parsed.success) {
+            return validationError(c, parsed.error);
+        }
+        return parsed.data;
+    }),
     validator('json', (value, c: Context) => {
         const parsed = feedbackStatusSchema.safeParse(value);
         if (!parsed.success) {

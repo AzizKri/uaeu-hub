@@ -1,16 +1,14 @@
 import { Context } from 'hono';
 import { createNotification } from '../notifications';
 import { createPublicId } from '../util/nanoid';
+import { numericIdSchema, offsetSchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function subcomment(c: Context) {
     const env: Env = c.env;
-    const formData = await c.req.parseBody();
-    const commentID: number = Number(formData['commentId']);
-    const content: string = formData['content'] as string;
-    const fileName: string | null = formData['filename'] as string;
-
-    // Check for required fields
-    if (!content) return c.text('No content provided', { status: 400 });
+    // @ts-ignore
+    const { commentId: commentID, content, filename } = c.req.valid('form');
+    const fileName = filename ?? null;
 
     try {
         // Get user ID from Context
@@ -65,11 +63,14 @@ export async function getSubcommentsOnComment(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const commentID: number = Number(c.req.param('cid'));
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedCommentId = validateWithSchema(numericIdSchema, c.req.param('cid'));
+    if (!parsedCommentId.success) return validationError(c, parsedCommentId.error);
 
-    // Check for required fields
-    if (!commentID) return c.text('No comment ID provided', { status: 400 });
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+
+    const commentID = parsedCommentId.data;
+    const offset = parsedOffset.data;
 
     try {
         // New user? Get without likes
@@ -114,9 +115,9 @@ export async function deleteSubcomment(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const subcommentID = Number(c.req.param('scid'));
-
-    if (!subcommentID) return c.text('No subcomment ID provided', { status: 400 });
+    const parsedSubcommentId = validateWithSchema(numericIdSchema, c.req.param('scid'));
+    if (!parsedSubcommentId.success) return validationError(c, parsedSubcommentId.error);
+    const subcommentID = parsedSubcommentId.data;
 
     // Get optional reason from request body (for admin deletions)
     let reason: string | undefined;
@@ -200,9 +201,9 @@ export async function likeSubcomment(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const subcommentID = Number(c.req.param('scid'));
-
-    if (!subcommentID) return c.text('No subcomment ID provided', { status: 400 });
+    const parsedSubcommentId = validateWithSchema(numericIdSchema, c.req.param('scid'));
+    if (!parsedSubcommentId.success) return validationError(c, parsedSubcommentId.error);
+    const subcommentID = parsedSubcommentId.data;
 
     try {
         // Check if the user has already liked the subcomment
