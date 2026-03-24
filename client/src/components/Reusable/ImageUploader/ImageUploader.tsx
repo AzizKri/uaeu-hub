@@ -5,7 +5,7 @@ import { deleteAttachment, uploadIcon } from "../../../api/attachmets.ts";
 import DotsSpinner from "../Animations/DotsSpinner/DotsSpinner.tsx";
 import ProfilePictureComponent from "../ProfilePictureComponent/ProfilePictureComponent.tsx";
 import CommunityIconComponent from "../CommunityIconComponent/CommunityIconComponent.tsx";
-import {getDefaultIconForCommunity} from "../../../utils/tools.ts";
+import {getDefaultIconForCommunity, isAssetId} from "../../../utils/tools.ts";
 
 interface ImageUploaderProps {
     type: "COMMUNITY" | "PROFILE";
@@ -29,7 +29,7 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
         });
 
         const handleChangeImage = () => {
-            if (typeof uploadState.fileName === "string")
+            if (isAssetId(uploadState.fileName))
                 deleteAttachment(uploadState.fileName).then(() =>
                     console.log("attachment deleted"),
                 );
@@ -94,7 +94,7 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
         };
 
         const removeImage = () => {
-            if (typeof uploadState.fileName === "string")
+            if (isAssetId(uploadState.fileName))
                 deleteAttachment(uploadState.fileName).then(() =>
                     console.log("attachment deleted"),
                 );

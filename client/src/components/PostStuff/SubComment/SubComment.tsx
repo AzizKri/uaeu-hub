@@ -1,6 +1,6 @@
 import styles from '../Comment/Comment.module.scss';
 import Content from "../Content/Content.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {getFormattedDate} from "../../../utils/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import Modal from "../../Reusable/Modal/Modal.tsx";
@@ -15,7 +15,7 @@ import likeIconLiked from "../../../assets/liked.svg";
 import likeIconUnliked from "../../../assets/unliked.svg";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 
-export default function SubComment({info, deleteComment, parentPrependSubComment}: {info: CommentInfo, deleteComment: (commentId: number) => void, parentPrependSubComment?: (commentInfo: CommentInfo) => void}) {
+export default function SubComment({info, deleteComment, parentPrependSubComment, highlighted = false}: {info: CommentInfo, deleteComment: (commentId: number) => void, parentPrependSubComment?: (commentInfo: CommentInfo) => void, highlighted?: boolean}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
     const [dateText, setDateText] = useState<string>("");
     const [likeState, setLikeState] = useState<"LIKE" | "DISLIKE" | "NONE">("NONE");
@@ -24,6 +24,8 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
     const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
     const {isUser, isSuspended} = useUser();
     const [initialText, setInitialText] = useState<string>("");
+    const subCommentRef = useRef<HTMLDivElement>(null);
+    const [isHighlighted, setIsHighlighted] = useState(false);
 
     useEffect(() => {
         setDateText(getFormattedDate(info.postTime))
@@ -32,6 +34,21 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
             setLikeState("LIKE");
         }
     }, []);
+
+    useEffect(() => {
+        if (!highlighted) return;
+
+        setIsHighlighted(true);
+        subCommentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        const timeout = window.setTimeout(() => {
+            setIsHighlighted(false);
+        }, 2500);
+
+        return () => {
+            window.clearTimeout(timeout);
+        };
+    }, [highlighted]);
 
     const handleReply = () => {
         if (isSuspended()) {
@@ -79,7 +96,7 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
     }
 
     return (
-        <div className={styles.comment}>
+        <div ref={subCommentRef} className={`${styles.comment} ${isHighlighted ? styles.targeted : ""}`}>
             {showActionPopUp && (
                 <UnAuthorizedPopUp hidePopUp={hideActionPopUp}/>
             )}

@@ -14,7 +14,7 @@ interface EditUserPopUpProps {
     currentDisplayName: string;
     currentBio: string;
     currentEmail: string;
-    onSaveEditProfile: (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => void;
+    onSaveEditProfile: (updatedDisplayName: string, updatedBio: string, updatedPfp?: string) => void;
     onPasswordChangeSuccess: () => void;
     onPasswordChangeError: (message: string) => void;
     isLoading: boolean;

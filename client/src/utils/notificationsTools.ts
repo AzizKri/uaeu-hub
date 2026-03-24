@@ -5,13 +5,13 @@ export function getNotificationLink (notification: Notification) {
             return `/post/${metadata.entityId}`; }
         case 'comment':
         { const metadata = notification.metadata as CommentMetadata;
-            return `/post/${metadata.parentPostId}`; }
+            return `/post/${metadata.parentPostId}?comment=${notification.actionEntityId}`; }
         case 'subcomment':
         {  const metadata = notification.metadata as SubcommentMetadata;
-            return `/post/${metadata.parentPostId}`; }
+            return `/post/${metadata.parentPostId}?comment=${metadata.parentCommentId}&reply=${notification.actionEntityId}`; }
         case 'invite':
         {  const metadata = notification.metadata as InvitationMetadata;
-            const link = metadata.communityName.split(" ").join("%20");
+            const link = encodeURIComponent(metadata.communityName);
             return `/community/${link}`; }
         case 'admin_deletion':
         case 'suspension':
@@ -20,7 +20,7 @@ export function getNotificationLink (notification: Notification) {
             return '#';
         case 'community_warning':
         {  const metadata = notification.metadata as CommunityWarningMetadata;
-            const link = metadata.communityName.split(" ").join("%20");
+            const link = encodeURIComponent(metadata.communityName);
             return `/community/${link}`; }
         default:
             return '#';

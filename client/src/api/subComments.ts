@@ -37,9 +37,9 @@ export async function subComment(comment: number, content: string, attachment?: 
 }
 
 // Get subComments on a comment by its ID
-export async function getSubCommentsOnComment(comment: number, page: number = 0) {
+export async function getSubCommentsOnComment(comment: number, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/${comment}?page=${page}`, {
+    const request = await fetch(base + `/${comment}?offset=${offset}`, {
         method: 'GET',
         headers,
     });

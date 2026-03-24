@@ -1,4 +1,5 @@
 import { getIdToken } from '../firebase/config';
+import { isAssetId } from '../utils/tools.ts';
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/attachment';
 
@@ -23,6 +24,15 @@ const allowedMimeTypes = [
     'image/png',            // .png
     // Documents
     'application/pdf',      // .pdf
+];
+
+const allowedIconMimeTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/bmp',
+    'image/tiff'
 ];
 
 // Upload attachment
@@ -67,6 +77,10 @@ export async function getAttachmentDetails(filename: string) {
 
 // Delete attachment by filename
 export async function deleteAttachment(filename: string) {
+    if (!isAssetId(filename)) {
+        return 400;
+    }
+
     const headers = await getAuthHeaders();
     const request = await fetch(base + `/${filename}`, {
         method: 'DELETE',
@@ -77,15 +91,15 @@ export async function deleteAttachment(filename: string) {
 
 // Upload pfp/icon
 export async function uploadIcon(attachments: File, type: 'icon' | 'pfp') {
-    if (!attachments || !allowedMimeTypes.includes(attachments.type)) {
+    if (!attachments || !allowedIconMimeTypes.includes(attachments.type)) {
         return { status: 400 };
     }
     const formData = new FormData();
-    formData.append('files[]', attachments);
+    formData.append('file', attachments);
     formData.append('source', type);
 
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base, {
+    const request = await fetch(base + `/icon`, {
         method: 'POST',
         headers,
         body: formData,

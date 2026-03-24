@@ -2,12 +2,13 @@ import ImageUploader from "../../Reusable/ImageUploader/ImageUploader.tsx";
 import {useState} from "react";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
+import { isAssetId } from "../../../utils/tools.ts";
 
 interface EditProfileProps {
     currentProfilePicture?: string;
     currentDisplayName: string;
     currentBio: string;
-    onSave: (updatedDisplayName: string, updatedBio: string, updatedPfp: string) => void;
+    onSave: (updatedDisplayName: string, updatedBio: string, updatedPfp?: string) => void;
     isLoading: boolean;
 }
 
@@ -32,7 +33,7 @@ export default function EditProfile(
     );
     const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSave(displayName, bio, (uploadState?.fileName ? uploadState.fileName : ''));
+        onSave(displayName, bio, isAssetId(uploadState?.fileName) ? uploadState.fileName : undefined);
     };
     return (
         <>
