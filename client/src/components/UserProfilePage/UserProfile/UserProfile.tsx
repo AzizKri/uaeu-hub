@@ -88,7 +88,7 @@ export default function UserProfile() {
     const onSaveEditProfile = (
         updatedDisplayName: string,
         updatedBio: string,
-        updatedPfp: string,
+        updatedPfp?: string,
     )=> {
 
         setIsProcessing(true);

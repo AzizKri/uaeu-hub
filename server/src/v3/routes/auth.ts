@@ -11,6 +11,9 @@ import {
     logoutFirebase,
     checkAdminEmail,
 } from '../controllers/firebase-auth.controller';
+import { validator } from 'hono/validator';
+import { adminEmailCheckSchema, firebaseRegisterSchema } from '../util/validationSchemas';
+import { validationError } from '../util/requestValidation';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -23,11 +26,34 @@ app.get('/check-username', (c: Context) => checkUsername(c));
 app.get('/lookup-email', (c: Context) => lookupEmail(c));
 
 // Admin check (no auth required - used before login)
-app.post('/check-admin', (c: Context) => checkAdminEmail(c));
+app.post('/check-admin',
+    validator('json', (value, c: Context) => {
+        const parsed = adminEmailCheckSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    (c: Context) => checkAdminEmail(c)
+);
 
 // Registration - requires Firebase auth
-app.post('/register', firebaseAuthMiddleware, (c: Context) => registerUser(c));
-app.post('/upgrade-anonymous', firebaseAuthMiddleware, (c: Context) => upgradeAnonymous(c));
+app.post('/register',
+    validator('json', (value, c: Context) => {
+        const parsed = firebaseRegisterSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    firebaseAuthMiddleware,
+    (c: Context) => registerUser(c)
+);
+app.post('/upgrade-anonymous',
+    validator('json', (value, c: Context) => {
+        const parsed = firebaseRegisterSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    firebaseAuthMiddleware,
+    (c: Context) => upgradeAnonymous(c)
+);
 
 // User data - uses Firebase auth
 app.get('/me', firebaseAuthMiddlewareCheckOnly, (c: Context) => authenticateUserFirebase(c));

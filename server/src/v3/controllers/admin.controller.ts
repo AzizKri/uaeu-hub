@@ -1,4 +1,6 @@
 import { Context } from 'hono';
+import { feedbackListQuerySchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 /**
  * Admin Controller
@@ -101,7 +103,12 @@ export async function getUsers(c: Context) {
     const env: Env = c.env;
     const userId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(feedbackListQuerySchema, {
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const offset = parsedQuery.data.offset;
     const search = c.req.query('search') || '';
 
     // Only logged-in users can access
@@ -153,7 +160,8 @@ export async function suspendUser(c: Context) {
     const env: Env = c.env;
     const adminUserId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const targetUserId = c.req.param('userId');
+    // @ts-ignore
+    const { userId: targetUserId } = c.req.valid('param');
 
     // Only logged-in users can access
     if (!adminUserId || isAnonymous) {
@@ -169,8 +177,8 @@ export async function suspendUser(c: Context) {
         return c.json({ message: 'Forbidden: Admin access required', status: 403 }, 403);
     }
 
-    const body = await c.req.json();
-    const { days = 7, reason } = body;
+    // @ts-ignore
+    const { days = 7, reason } = c.req.valid('json');
 
     if (!reason) {
         return c.json({ message: 'Reason is required', status: 400 }, 400);
@@ -203,7 +211,8 @@ export async function banUser(c: Context) {
     const env: Env = c.env;
     const adminUserId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const targetUserId = c.req.param('userId');
+    // @ts-ignore
+    const { userId: targetUserId } = c.req.valid('param');
 
     // Only logged-in users can access
     if (!adminUserId || isAnonymous) {
@@ -219,8 +228,8 @@ export async function banUser(c: Context) {
         return c.json({ message: 'Forbidden: Admin access required', status: 403 }, 403);
     }
 
-    const body = await c.req.json();
-    const { reason } = body;
+    // @ts-ignore
+    const { reason } = c.req.valid('json');
 
     if (!reason) {
         return c.json({ message: 'Reason is required', status: 400 }, 400);
@@ -246,7 +255,8 @@ export async function unbanUser(c: Context) {
     const env: Env = c.env;
     const adminUserId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const targetUserId = c.req.param('userId');
+    // @ts-ignore
+    const { userId: targetUserId } = c.req.valid('param');
 
     // Only logged-in users can access
     if (!adminUserId || isAnonymous) {
@@ -282,7 +292,8 @@ export async function unsuspendUser(c: Context) {
     const env: Env = c.env;
     const adminUserId = c.get('userId');
     const isAnonymous = c.get('isAnonymous');
-    const targetUserId = c.req.param('userId');
+    // @ts-ignore
+    const { userId: targetUserId } = c.req.valid('param');
 
     // Only logged-in users can access
     if (!adminUserId || isAnonymous) {

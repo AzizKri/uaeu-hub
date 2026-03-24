@@ -13,6 +13,7 @@ export default defineWorkersProject(async () => {
             setupFiles: [resolve(__dirname, 'test/setup.ts')],
             poolOptions: {
                 workers: {
+                    isolatedStorage: false,
                     singleWorker: true,
                     wrangler: {
                         configPath: resolve(__dirname, 'wrangler.toml'),

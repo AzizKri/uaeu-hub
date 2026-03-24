@@ -1,4 +1,5 @@
 import { getIdToken } from '../firebase/config';
+import { isAssetId } from '../utils/tools.ts';
 
 const userBase = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/user';
 const authBase = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/auth';
@@ -54,10 +55,18 @@ export async function getCommunitiesCurrentUser() {
 
 export async function editCurrentUser({ displayname, bio, pfp }: { displayname?: string, bio?: string, pfp?: string }) {
     const headers = await getAuthHeaders();
+    const payload: { displayname?: string; bio?: string; pfp?: string } = {};
+
+    if (displayname !== undefined) payload.displayname = displayname;
+    if (bio !== undefined) payload.bio = bio;
+    if (isAssetId(pfp)) {
+        payload.pfp = pfp;
+    }
+
     const request = await fetch(userBase, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ displayname, bio, pfp }),
+        body: JSON.stringify(payload),
     });
     return { status: request.status, data: await request.json() };
 }

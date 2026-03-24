@@ -3,6 +3,8 @@ import { getOrCreateTags } from './tags.controller';
 import { parseId } from '../util/util';
 import { createNotification } from '../notifications';
 import { createPublicId } from '../util/nanoid';
+import { communitySearchQuerySchema, communitySortQuerySchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function createCommunity(c: Context) {
     // Get userId & isAnonymous from Context
@@ -481,8 +483,14 @@ export async function getCommunitiesSortByMembers(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(communitySortQuerySchema, {
+        order: c.req.query('order'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const { order, offset } = parsedQuery.data;
+    const orderBy = order === 'asc' ? 'ASC' : 'DESC';
 
     try {
         if (!userId) {
@@ -490,9 +498,9 @@ export async function getCommunitiesSortByMembers(c: Context) {
             const communities = await env.DB.prepare(`
                 SELECT *
                 FROM community
-                ORDER BY ?
+                ORDER BY member_count ${orderBy}
                 LIMIT 5 OFFSET ?
-            `).bind(`member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
+            `).bind(offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -502,9 +510,9 @@ export async function getCommunitiesSortByMembers(c: Context) {
                 const communities = await env.DB.prepare(`
                     SELECT *
                     FROM community
-                    ORDER BY ?
+                    ORDER BY member_count ${orderBy}
                     LIMIT 5 OFFSET ?
-                `).bind(`member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -513,9 +521,9 @@ export async function getCommunitiesSortByMembers(c: Context) {
                     SELECT *,
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
                     FROM community c
-                    ORDER BY ?
+                    ORDER BY member_count ${orderBy}
                     LIMIT 5 OFFSET ?
-                `).bind(userId, `member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(userId, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -533,8 +541,14 @@ export async function getCommunitiesSortByCreation(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(communitySortQuerySchema, {
+        order: c.req.query('order'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const { order, offset } = parsedQuery.data;
+    const orderBy = order === 'asc' ? 'ASC' : 'DESC';
 
     try {
         if (!userId) {
@@ -542,9 +556,9 @@ export async function getCommunitiesSortByCreation(c: Context) {
             const communities = await env.DB.prepare(`
                 SELECT *
                 FROM community
-                ORDER BY ?
+                ORDER BY created_at ${orderBy}
                 LIMIT 10 OFFSET ?
-            `).bind(`created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
+            `).bind(offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -554,9 +568,9 @@ export async function getCommunitiesSortByCreation(c: Context) {
                 const communities = await env.DB.prepare(`
                     SELECT *
                     FROM community
-                    ORDER BY ?
+                    ORDER BY created_at ${orderBy}
                     LIMIT 10 OFFSET ?
-                `).bind(`created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -565,9 +579,9 @@ export async function getCommunitiesSortByCreation(c: Context) {
                     SELECT *,
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
                     FROM community c
-                    ORDER BY ?
+                    ORDER BY created_at ${orderBy}
                     LIMIT 10 OFFSET ?
-                `).bind(userId, `created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(userId, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -586,8 +600,14 @@ export async function getCommunitiesSortByActivity(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(communitySortQuerySchema, {
+        order: c.req.query('order'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const { order, offset } = parsedQuery.data;
+    const orderBy = order === 'asc' ? 'ASC' : 'DESC';
 
     try {
         if (!userId) {
@@ -598,10 +618,10 @@ export async function getCommunitiesSortByActivity(c: Context) {
                         FROM post
                         WHERE community_id = c.id
                           AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
-                FROM community
-                ORDER BY ?
+                FROM community c
+                ORDER BY activity_score ${orderBy}
                 LIMIT 10 OFFSET ?
-            `).bind(`activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
+            `).bind(offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -614,10 +634,10 @@ export async function getCommunitiesSortByActivity(c: Context) {
                             FROM post
                             WHERE community_id = c.id
                               AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
-                    FROM community
-                    ORDER BY ?
+                    FROM community c
+                    ORDER BY activity_score ${orderBy}
                     LIMIT 10 OFFSET ?
-                `).bind(`activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -630,9 +650,9 @@ export async function getCommunitiesSortByActivity(c: Context) {
                             WHERE community_id = c.id
                               AND post_time >= datetime('%s', 'now', '-1 day'))                     as activity_score
                     FROM community c
-                    ORDER BY ?
+                    ORDER BY activity_score ${orderBy}
                     LIMIT 10 OFFSET ?
-                `).bind(userId, `activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(userId, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -650,11 +670,12 @@ export async function searchCommunities(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const query = c.req.query('query');
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
-
-    // Check for required fields
-    if (!query) return c.text('No query provided', { status: 400 });
+    const parsedQuery = validateWithSchema(communitySearchQuerySchema, {
+        query: c.req.query('query'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+    const { query, offset } = parsedQuery.data;
 
     try {
         if (!userId) {

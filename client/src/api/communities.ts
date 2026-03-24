@@ -40,7 +40,7 @@ export async function createCommunity(name: string, description: string, tags: s
 // Check if a community exists with the given name
 export async function communityExists(name: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/exists/${name}`, {
+    const request = await fetch(base + `/exists/${encodeURIComponent(name)}`, {
         method: 'GET',
         headers,
     });
@@ -61,7 +61,7 @@ export async function getCommunityById(id: number) {
 // Get community by name
 export async function getCommunityByName(name: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/getCommunityByName/${name}`, {
+    const request = await fetch(base + `/getCommunityByName/${encodeURIComponent(name)}`, {
         method: 'GET',
         headers,
     });
@@ -71,7 +71,7 @@ export async function getCommunityByName(name: string) {
 // Get communities by tag
 export async function getCommunitiesByTag(tag: string, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/getCommunitiesByTag?tag=${tag}&offset=${offset}`, {
+    const request = await fetch(base + `/getCommunitiesByTag?tag=${encodeURIComponent(tag)}&offset=${offset}`, {
         method: 'GET',
         headers,
     });
@@ -81,7 +81,7 @@ export async function getCommunitiesByTag(tag: string, offset: number = 0) {
 // Get communities by multiple tags
 export async function getCommunitiesByTags(tags: string[]) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/getCommunitiesByTags?tags=${tags.join(',')}`, {
+    const request = await fetch(base + `/getCommunitiesByTags?tags=${encodeURIComponent(tags.join(','))}`, {
         method: 'GET',
         headers,
     });
@@ -101,7 +101,7 @@ export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' =
 // Search communities by query
 export async function searchCommunities(query: string, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/searchCommunities?query=${query}&offset=${offset}`, {
+    const request = await fetch(base + `/searchCommunities?query=${encodeURIComponent(query)}&offset=${offset}`, {
         method: 'GET',
         headers,
     });

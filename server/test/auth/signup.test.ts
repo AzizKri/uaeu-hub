@@ -3,118 +3,62 @@ import { describe, expect, it } from 'vitest';
 
 const base = 'http://127.0.0.1:8787';
 
-interface SignupResponse {
-    message: string;
-    userId?: string;
-    error?: string;
-}
+describe('Auth utilities', () => {
+    it('reports username availability for valid usernames', async () => {
+        const response = await SELF.fetch(`${base}/auth/check-username?username=user1`);
 
-describe('Auth - Signup', () => {
-    const validUser = {
-        email: 'test@example.com',
-        password: 'Password123!',
-        username: 'user1',
-        displayname: 'displayname'
-    };
-
-    // Happy path test
-    it('should successfully create a new user', async () => {
-        const response = await SELF.fetch(`${base}/auth/signup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(validUser)
-        });
-
-        expect(response.status).toBe(201);
-        const data = await response.json() as SignupResponse;
-        expect(data).toHaveProperty('message');
-        expect(data).toHaveProperty('userId');
-        expect(data.message).toBe('User created successfully');
+        expect(response.status).toBe(200);
+        const data = await response.json() as { available: boolean };
+        expect(data.available).toBe(true);
     });
 
-    // Validation tests
-    it('should return 400 for invalid email format', async () => {
-        const invalidUser = {
-            ...validUser,
-            email: 'invalid-email'
-        };
+    it('rejects invalid usernames', async () => {
+        const response = await SELF.fetch(`${base}/auth/check-username?username=??`);
 
-        const response = await SELF.fetch(`${base}/auth/signup`, {
+        expect(response.status).toBe(400);
+        const data = await response.json() as { message: string };
+        expect(data.message).toContain('Username');
+    });
+
+    it('rejects invalid admin email checks', async () => {
+        const response = await SELF.fetch(`${base}/auth/check-admin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(invalidUser)
+            body: JSON.stringify({ email: 'invalid-email' })
         });
 
         expect(response.status).toBe(400);
-        const data = await response.json() as SignupResponse;
-        expect(data).toHaveProperty('error');
-        expect(data.error).toContain('email');
+        const data = await response.json() as { errors: Array<{ field: string; message: string }> };
+        expect(data.errors.some((error) => error.field === 'email')).toBe(true);
     });
 
-    it('should return 400 for weak password', async () => {
-        const weakPasswordUser = {
-            ...validUser,
-            password: '123'
-        };
-
-        const response = await SELF.fetch(`${base}/auth/signup`, {
+    it('returns false for non-admin emails that are not in the system', async () => {
+        const response = await SELF.fetch(`${base}/auth/check-admin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(weakPasswordUser)
+            body: JSON.stringify({ email: 'missing@example.com' })
+        });
+
+        expect(response.status).toBe(200);
+        const data = await response.json() as { isAdmin: boolean };
+        expect(data.isAdmin).toBe(false);
+    });
+
+    it('rejects invalid register payloads before auth runs', async () => {
+        const response = await SELF.fetch(`${base}/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: '??' })
         });
 
         expect(response.status).toBe(400);
-        const data = await response.json() as SignupResponse;
-        expect(data).toHaveProperty('error');
-        expect(data.error).toContain('password');
-    });
-
-    it('should return 400 for missing required fields', async () => {
-        const incompleteUser = {
-            email: 'test@example.com'
-        };
-
-        const response = await SELF.fetch(`${base}/auth/signup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(incompleteUser)
-        });
-
-        expect(response.status).toBe(400);
-        const data = await response.json() as SignupResponse;
-        expect(data).toHaveProperty('error');
-    });
-
-    it('should return 409 for duplicate email', async () => {
-        // First signup
-        await SELF.fetch(`${base}/auth/signup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(validUser)
-        });
-
-        // Second signup with same email
-        const response = await SELF.fetch(`${base}/auth/signup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(validUser)
-        });
-
-        expect(response.status).toBe(409);
-        const data = await response.json() as SignupResponse;
-        expect(data).toHaveProperty('error');
-        expect(data.error).toContain('already exists');
+        const data = await response.json() as { errors: Array<{ field: string; message: string }> };
+        expect(data.errors.some((error) => error.field === 'username')).toBe(true);
     });
 });

@@ -222,7 +222,7 @@ async function upsertFirebaseUser(c: Context, claims: FirebaseClaims): Promise<n
     const email = claims.email ?? null;
     const emailVerified = claims.email_verified ? 1 : 0;
     const displayName = claims.name ?? null;
-    const photoUrl = claims.picture ?? null;
+    const photoUrl = null;
     const authProvider = claims.firebase?.sign_in_provider || 'firebase';
     const now = Math.floor(Date.now() / 1000);
     
@@ -248,7 +248,7 @@ async function upsertFirebaseUser(c: Context, claims: FirebaseClaims): Promise<n
             ON CONFLICT(firebase_uid) DO UPDATE SET
                 email = COALESCE(excluded.email, user.email),
                 email_verified = excluded.email_verified,
-                pfp = COALESCE(excluded.pfp, user.pfp),
+                pfp = user.pfp,
                 auth_provider = excluded.auth_provider
             RETURNING id, is_anonymous`
         ).bind(
@@ -278,11 +278,11 @@ async function upsertFirebaseUser(c: Context, claims: FirebaseClaims): Promise<n
             const result = await c.env.DB.prepare(
                 `INSERT INTO user (
                     firebase_uid, username, displayname, email_verified,
-                    auth_provider, pfp, created_at, is_anonymous, public_id
+                auth_provider, pfp, created_at, is_anonymous, public_id
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(firebase_uid) DO UPDATE SET
                     email_verified = excluded.email_verified,
-                    pfp = COALESCE(excluded.pfp, user.pfp),
+                    pfp = user.pfp,
                     auth_provider = excluded.auth_provider
                 RETURNING id, is_anonymous`
             ).bind(
@@ -312,7 +312,7 @@ async function upsertFirebaseUser(c: Context, claims: FirebaseClaims): Promise<n
                 ON CONFLICT(firebase_uid) DO UPDATE SET
                     email = COALESCE(excluded.email, user.email),
                     email_verified = excluded.email_verified,
-                    pfp = COALESCE(excluded.pfp, user.pfp),
+                    pfp = user.pfp,
                     auth_provider = excluded.auth_provider
                 RETURNING id, is_anonymous`
             ).bind(

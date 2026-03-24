@@ -1,6 +1,8 @@
 import { NavigateFunction } from "react-router-dom";
 import { startTransition } from "react";
 
+const assetIdRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export function getFormattedDate(postDate: Date) {
     const months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -49,6 +51,21 @@ export function inActivateLeft() {
     const left = document.getElementById('left');
     left?.classList.remove('active');
     document.getElementById("overlay")?.classList.remove('active');
+}
+
+export function isAssetId(value: string | null | undefined): value is string {
+    return !!value && assetIdRegex.test(value);
+}
+
+export function parsePositiveInt(value: string | null): number | null {
+    if (!value) return null;
+
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        return null;
+    }
+
+    return parsed;
 }
 
 const colorOptions: {background: string, fontColor: string}[] = [

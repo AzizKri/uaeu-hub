@@ -5,8 +5,9 @@ import {getCommentsOnPost} from '../../../api/comments.ts';
 import styles from './PostPage.module.scss';
 import Comment from "../Comment/Comment.tsx";
 import Editor from "../Editor/Editor.tsx";
-import {useLocation, useNavigate, useParams} from 'react-router-dom';
+import {useLocation, useNavigate, useParams, useSearchParams} from 'react-router-dom';
 import ShowMoreBtn from "../../Reusable/ShowMoreBtn/ShowMoreBtn.tsx"; // To access the postId from the URL
+import { parsePositiveInt } from "../../../utils/tools.ts";
 
 interface CommentBack {
     attachment: string,
@@ -23,6 +24,23 @@ interface CommentBack {
     post_time: Date,
 }
 
+function mapComment(cd: CommentBack): CommentInfo {
+    return {
+        attachment: cd.attachment,
+        author: cd.author,
+        authorId: cd.author_id,
+        content: cd.content,
+        displayName: cd.displayname,
+        id: cd.id,
+        likeCount: cd.like_count,
+        commentCount: cd.comment_count,
+        liked: cd.liked,
+        parentId: cd.parent_post_id,
+        pfp: cd.pfp,
+        postTime: new Date(cd.post_time),
+    };
+}
+
 export default function PostPage() {
     const [post, setPost] = useState<React.ReactElement | null>(null);
     const [numericPostId, setNumericPostId] = useState<number | null>(null);
@@ -31,13 +49,21 @@ export default function PostPage() {
     const [isFound, setIsFound] = useState<boolean>(true);
     const [isLoadingMoreComments, setLoadingMoreComments] = useState<boolean>(false);
     const location = useLocation();
+    const [searchParams] = useSearchParams();
     const { postId } = useParams<{ postId: string }>(); // Get the postId from the URL
     const navigate = useNavigate();
+    const targetCommentId = parsePositiveInt(searchParams.get('comment'));
+    const targetReplyId = parsePositiveInt(searchParams.get('reply'));
 
     useEffect(() => {
-        if (postId) {
-            // postId can be either numeric or public_id string
-            getPostByID(postId).then((res) => {
+        let isCancelled = false;
+
+        const loadPostPage = async () => {
+            if (!postId) return;
+
+            const res = await getPostByID(postId);
+            if (isCancelled) return;
+
                 if (!res.data || res.data.length === 0) {
                     setIsFound(false);
                     return;
@@ -64,7 +90,7 @@ export default function PostPage() {
                 const communityInfo: CommunityInfoSimple = {
                     name: post.community,
                     icon: post.community_icon
-                }
+                };
                 const fetchedPost = (
                     <Post
                         key={post.id}
@@ -74,26 +100,37 @@ export default function PostPage() {
                 );
                 setPost(fetchedPost);
 
-                // Fetch comments using the numeric ID from the post data
-                getCommentsOnPost(post.id, 0).then((res) => {
-                    setComments(res.data.map((cd: CommentBack) => ({
-                        attachment: cd.attachment,
-                        author: cd.author,
-                        authorId: cd.author_id,
-                        content: cd.content,
-                        displayName: cd.displayname,
-                        id: cd.id,
-                        likeCount: cd.like_count,
-                        commentCount: cd.comment_count,
-                        liked: cd.liked,
-                        parentId: cd.parent_post_id,
-                        pfp: cd.pfp,
-                        postTime: new Date(cd.post_time),
-                    })));
-                });
-            });
-        }
-    }, [postId]); // Fetch the post when postId changes
+                const loadedComments: CommentInfo[] = [];
+                let offset = 0;
+
+                while (true) {
+                    const commentsResponse = await getCommentsOnPost(post.id, offset);
+                    if (isCancelled) return;
+
+                    const nextBatch = commentsResponse.data.map((cd: CommentBack) => mapComment(cd));
+                    loadedComments.push(...nextBatch);
+
+                    const foundTarget = targetCommentId
+                        ? loadedComments.some((comment) => comment.id === targetCommentId)
+                        : true;
+                    const reachedEnd = nextBatch.length === 0 || loadedComments.length >= postInfo.commentCount;
+
+                    if (foundTarget || reachedEnd) {
+                        break;
+                    }
+
+                    offset = loadedComments.length;
+                }
+
+                setComments(loadedComments);
+        };
+
+        void loadPostPage();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [postId, targetCommentId]); // Fetch the post when postId changes
 
     const goBack = () => {
         if (location.key !== "default") {
@@ -122,21 +159,8 @@ export default function PostPage() {
         setLoadingMoreComments(true);
         const nextPage = (await getCommentsOnPost(numericPostId, comments.length)).data;
         setComments(prev =>
-            [...prev, ...nextPage.map((cd: CommentBack) => ({
-                attachment: cd.attachment,
-                author: cd.author,
-                authorId: cd.author_id,
-                content: cd.content,
-                displayName: cd.displayname,
-                id: cd.id,
-                likeCount: cd.like_count,
-                commentCount: cd.comment_count,
-                liked: cd.like_count,
-                parentId: cd.parent_post_id,
-                pfp: cd.pfp,
-                postTime: new Date(cd.post_time),
-            }))]
-        )
+            [...prev, ...nextPage.map((cd: CommentBack) => mapComment(cd))]
+        );
         setLoadingMoreComments(false);
     }
 
@@ -168,6 +192,8 @@ export default function PostPage() {
                                     key={cur.id}
                                     info={cur}
                                     deleteComment={deleteComment}
+                                    shouldFocusComment={targetCommentId === cur.id}
+                                    targetReplyId={targetCommentId === cur.id ? (targetReplyId ?? undefined) : undefined}
                                 />
                             ))}
                             {(comments.length !== 0 && comments.length < totalComments) && (

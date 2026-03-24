@@ -1,17 +1,18 @@
 import { Context } from 'hono';
 import { createNotification } from '../notifications';
 import { createPublicId } from '../util/nanoid';
+import { offsetSchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
     const env: Env = c.env;
-    const formData = await c.req.parseBody();
-    const content = formData['content'] as string;
-    const communityId = Number(formData['communityId']);
-    const fileName: string | null = formData['filename'] as string;
-
-    // Check for required fields
-    if (!content) return c.text('No content defined', { status: 400 });
+    const { content, communityId, filename } = (c.req as any).valid('form') as {
+        content: string;
+        communityId: number;
+        filename?: string;
+    };
+    const fileName = filename ?? null;
 
     // Trim excess newlines
     const trimmedContent = content.replace(/\n{3,}/g, '\n');
@@ -83,7 +84,9 @@ export async function getLatestPosts(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     try {
         if (!userId || isAnonymous) {
@@ -125,7 +128,9 @@ export async function getBestPosts(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     try {
         if (!userId || isAnonymous) {
@@ -177,7 +182,9 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     try {
         // Get posts
@@ -211,7 +218,9 @@ export async function getBestPostsFromMyCommunities(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     try {
         // Get posts
@@ -249,7 +258,9 @@ export async function getPostsByUser(c: Context) {
     // Get the required fields
     const env: Env = c.env;
     const { user } = c.req.param();
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     // Check for user param
     if (!user) return c.json([], { status: 400 });

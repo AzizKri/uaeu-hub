@@ -23,18 +23,18 @@ export async function getUserByUsername(username: string) {
     return { status: request.status, data: await request.json() };
 }
 
-export async function searchUser(query: string, page: number = 0) {
+export async function searchUser(query: string, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/search?query=${query}&page=${page}`, {
+    const request = await fetch(base + `/search?query=${encodeURIComponent(query)}&offset=${offset}`, {
         method: 'GET',
         headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
-export async function searchUsersWithStatusInCommunity(query: string, communityId: number, page: number = 0) {
+export async function searchUsersWithStatusInCommunity(query: string, communityId: number, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/searchWithStatusInCommunity?query=${query}&communityId=${communityId}&page=${page}`, {
+    const request = await fetch(base + `/searchWithStatusInCommunity?query=${encodeURIComponent(query)}&communityId=${communityId}&offset=${offset}`, {
         method: 'GET',
         headers,
     });
