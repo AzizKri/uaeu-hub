@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import styles from './Layout.module.scss';
@@ -16,8 +16,7 @@ export default function Layout({ children }: LayoutProps) {
 
     // Redirect to login if not authenticated
     if (!isLoading && !isAuthenticated) {
-        navigate('/login', { replace: true });
-        return null;
+        return <Navigate to="/login" replace state={{ from: location }} />;
     }
 
     if (isLoading) {
