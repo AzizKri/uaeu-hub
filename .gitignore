@@ -31,3 +31,6 @@ dist-ssr
 .env.production
 
 /.VSCodeCounter
+
+# Local agent/worktree metadata
+.claude/
