@@ -3,13 +3,15 @@
     "version": "1.0.0",
     "description": "The websocket server for uaeu.chat",
     "main": "src/server.ts",
+    "packageManager": "npm@11.6.2",
     "scripts": {
         "start": "tsx src/server.ts",
         "test": "echo \"Error: no test specified\" && exit 1",
         "server": "tsc"
     },
     "engines": {
-        "node": "^20.19.0 || >=22.13.0"
+        "node": ">=24 <25",
+        "npm": ">=11 <12"
     },
     "devDependencies": {
         "@types/express": "5.0.6",
