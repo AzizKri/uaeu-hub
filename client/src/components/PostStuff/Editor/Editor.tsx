@@ -90,12 +90,11 @@ export default function Editor({
     const [selectedCommunity, setSelectedCommunity] = useState<CommunityINI>();
     const [loadingUserCommunities, setLoadingUserCommunities] =
         useState<boolean>(false);
-    const selectCommunityButtonRef = useRef<HTMLButtonElement>(null);
     const selectCommunityInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const editorContainerRef = useRef<HTMLDivElement | null>(null);
     const editorHelperRef = useRef<{ clearEditorContent: () => void }>(null);
-    const { user, isUser, isSuspended } = useUser();
+    const { isUser, isSuspended } = useUser();
     const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
 
 
@@ -247,19 +246,14 @@ export default function Editor({
                 if (communityId !== undefined) {
                     console.log("there is a community id");
                     post = await createPost(plainText, uploadState.fileName, communityId);
-                } else if (!user || user.isAnonymous || user.new) {
-                    post = await createPost(plainText, uploadState.fileName);
-                } else if (!selectedCommunity) {
-                    selectCommunityButtonRef.current?.classList.add(
-                        styles.warning,
-                    );
-                    return;
-                } else {
+                } else if (selectedCommunity) {
                     post = await createPost(
                         plainText,
                         uploadState.fileName,
                         selectedCommunity.id,
                     );
+                } else {
+                    post = await createPost(plainText, uploadState.fileName);
                 }
                 const postInfo: PostInfo = {
                     id: post.id,
@@ -536,14 +530,13 @@ export default function Editor({
                             <button
                                 className={styles.showCommunities}
                                 onClick={handleSelectCommunityClick}
-                                ref={selectCommunityButtonRef}
                             >
                                 {selectedCommunity ? (
                                     <CommunityPreview
                                         community={selectedCommunity}
                                     />
                                 ) : (
-                                    <span>Select a community</span>
+                                    <span>General</span>
                                 )}
                                 <img
                                     src={arrowDownIcon}

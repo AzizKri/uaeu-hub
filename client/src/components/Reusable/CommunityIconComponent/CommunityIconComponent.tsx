@@ -1,6 +1,6 @@
 import styles from "./CommunityIconComponent.module.scss";
 import { assetsBase } from "../../../api/api.ts";
-import defaultCommunityIcon from "../../../assets/community-icon.jpg";
+import defaultCommunityIcon from "../../../assets/community-default.svg";
 import {memo, SyntheticEvent} from "react";
 
 function CommunityIconComponent({

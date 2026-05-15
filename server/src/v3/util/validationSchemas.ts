@@ -6,6 +6,14 @@ const nonEmptyText = (fieldName: string) => z.string().refine((value) => value.t
     message: `${fieldName} cannot be empty`
 });
 const optionalAssetIdSchema = z.string().regex(uuidRegex, 'Invalid asset identifier').optional();
+const communityTagsSchema = z
+    .string()
+    .optional()
+    .default('')
+    .transform((tags) => {
+        const parsedTags = tags.split(',').map((tag) => tag.trim()).filter((tag) => tag.length > 0);
+        return parsedTags.length > 0 ? parsedTags : ['Other'];
+    });
 const booleanQuerySchema = z.preprocess(
     (value) => value === undefined ? 'false' : value,
     z.enum(['true', 'false']).transform((value) => value === 'true')
@@ -33,9 +41,7 @@ export const communitySchema = z.object({
         .max(1024, 'Community description must be at most 1024 characters long'),
     icon: assetIdSchema
         .optional(),
-    tags: z.string()
-        .transform((tags) => tags.split(',').map((tag) => tag.trim()).filter((tag) => tag.length > 0))
-        .refine((tags) => tags.length > 0, { message: 'Tags cannot be empty' })
+    tags: communityTagsSchema
 
     // Currently unimplemented
 

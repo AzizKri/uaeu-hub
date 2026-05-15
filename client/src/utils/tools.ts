@@ -68,35 +68,25 @@ export function parsePositiveInt(value: string | null): number | null {
     return parsed;
 }
 
-const colorOptions: {background: string, fontColor: string}[] = [
-    { background: "#F44336", fontColor: "white" }, // Red
-    { background: "#E91E63", fontColor: "white" }, // Pink
-    { background: "#9C27B0", fontColor: "white" }, // Purple
-    { background: "#673AB7", fontColor: "white" }, // Deep Purple
-    { background: "#3F51B5", fontColor: "white" }, // Indigo
-    { background: "#2196F3", fontColor: "white" }, // Blue
-    { background: "#03A9F4", fontColor: "black" }, // Light Blue
-    { background: "#00BCD4", fontColor: "black" }, // Cyan
-    { background: "#009688", fontColor: "white" }, // Teal
-    { background: "#4CAF50", fontColor: "white" }, // Green
-    { background: "#8BC34A", fontColor: "black" }, // Light Green
-    { background: "#CDDC39", fontColor: "black" }, // Lime
-    { background: "#FFEB3B", fontColor: "black" }, // Yellow
-    { background: "#FFC107", fontColor: "black" }, // Amber
-    { background: "#FF9800", fontColor: "black" }, // Orange
-    { background: "#FF5722", fontColor: "white" }, // Deep Orange
-    { background: "#795548", fontColor: "white" }, // Brown
-    { background: "#607D8B", fontColor: "white" }, // Blue Grey
+const communityIconPalettes: { background: string, accent: string, secondary: string, text: string }[] = [
+    { background: "#fff4ec", accent: "#ff7115", secondary: "#00a19a", text: "#2f4858" },
+    { background: "#eefaf8", accent: "#00a19a", secondary: "#ff7115", text: "#2f4858" },
+    { background: "#f4f7f9", accent: "#2f4858", secondary: "#ff7115", text: "#ffffff" },
+    { background: "#fff8dc", accent: "#f4a261", secondary: "#00a19a", text: "#2f4858" },
 ];
 
+function hashCommunityName(communityName: string) {
+    return communityName.split('').reduce((hash, char) => hash + char.charCodeAt(0), 0);
+}
 
-
-let ind: number;
 export function getDefaultIconForCommunity(communityName: string, newIcon: boolean) {
     const firstTwoLetters: string = communityName.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase();
     console.log("first two letters", firstTwoLetters);
-
-    if (newIcon || !ind) ind = Math.floor(Math.random() * colorOptions.length);
+    const palette = communityIconPalettes[
+        newIcon
+            ? Math.floor(Math.random() * communityIconPalettes.length)
+            : hashCommunityName(communityName) % communityIconPalettes.length
+    ];
 
     const canvas = document.createElement("canvas");
     canvas.width = 150;
@@ -104,14 +94,44 @@ export function getDefaultIconForCommunity(communityName: string, newIcon: boole
     const ctx = canvas.getContext("2d");
 
     if (ctx) {
-        ctx.fillStyle = colorOptions[ind].background;
+        ctx.fillStyle = palette.background;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.fillStyle = colorOptions[ind].fontColor;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.font = "bold 60px Arial";
-        ctx.fillText(firstTwoLetters, canvas.width / 2, canvas.height / 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(75, 75, 50, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = palette.secondary;
+        ctx.beginPath();
+        ctx.arc(48, 72, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(102, 72, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = palette.accent;
+        ctx.beginPath();
+        ctx.arc(75, 58, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = palette.secondary;
+        ctx.beginPath();
+        ctx.roundRect(28, 88, 94, 42, 21);
+        ctx.fill();
+
+        ctx.fillStyle = palette.accent;
+        ctx.beginPath();
+        ctx.roundRect(42, 78, 66, 52, 26);
+        ctx.fill();
+
+        if (firstTwoLetters) {
+            ctx.fillStyle = palette.text;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "bold 42px Arial";
+            ctx.fillText(firstTwoLetters, canvas.width / 2, 104);
+        }
     }
     return canvas.toDataURL();
 }

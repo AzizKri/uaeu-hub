@@ -652,7 +652,8 @@ VALUES ('UAEU'),
        ('Study'),
        ('Gaming'),
        ('Hobbies'),
-       ('Jobs');
+       ('Jobs'),
+       ('Other');
 
 INSERT OR IGNORE INTO community (
     id,
