@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { assetsBase } from '../../../api/api.ts';
 import { getAdminStats } from '../../../api/admin';
 import styles from './Dashboard.module.scss';
-import defaultCommunityIcon from '../../../assets/community-icon.jpg';
+import defaultCommunityIcon from '../../../assets/community-default.svg';
 
 export default function Dashboard() {
     const navigate = useNavigate();

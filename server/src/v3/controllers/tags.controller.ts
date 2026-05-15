@@ -31,6 +31,10 @@ export async function getOrCreateTags(c: Context, internal: boolean = false) {
         tagNames = tags.split(',').map((tag: string) => tag.trim());
     }
 
+    if (internal && tagNames.length === 0) {
+        tagNames = ['Other'];
+    }
+
     // Check if tags are empty
     if (tagNames.length === 0) {
         return c.text('Tags cannot be empty', 400);
