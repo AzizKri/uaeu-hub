@@ -47,12 +47,12 @@ export default function Dashboard() {
     }
 
     const statCards = [
-        { label: 'Total Users', value: stats?.totalUsers || 0, icon: '👥', color: '#4299e1' },
-        { label: 'Total Posts', value: stats?.totalPosts || 0, icon: '📝', color: '#48bb78' },
-        { label: 'Communities', value: stats?.totalCommunities || 0, icon: '🏘️', color: '#ed8936' },
-        { label: 'Pending Reports', value: stats?.pendingReports || 0, icon: '🚨', color: '#f56565', onClick: () => navigate('/admin/reports') },
-        { label: 'Bug Reports', value: stats?.pendingBugReports || 0, icon: '🐛', color: '#9f7aea', onClick: () => navigate('/admin/bug-reports') },
-        { label: 'Feature Requests', value: stats?.pendingFeatureRequests || 0, icon: '💡', color: '#38b2ac', onClick: () => navigate('/admin/feature-requests') },
+        { label: 'Total Users', value: stats?.totalUsers || 0, icon: '👥' },
+        { label: 'Total Posts', value: stats?.totalPosts || 0, icon: '📝' },
+        { label: 'Communities', value: stats?.totalCommunities || 0, icon: '🏘️' },
+        { label: 'Pending Reports', value: stats?.pendingReports || 0, icon: '🚨', onClick: () => navigate('/admin/reports') },
+        { label: 'Bug Reports', value: stats?.pendingBugReports || 0, icon: '🐛', onClick: () => navigate('/admin/bug-reports') },
+        { label: 'Feature Requests', value: stats?.pendingFeatureRequests || 0, icon: '💡', onClick: () => navigate('/admin/feature-requests') },
     ];
 
     const formatDate = (timestamp: number | string) => {
@@ -82,7 +82,6 @@ export default function Dashboard() {
                     <div 
                         key={index} 
                         className={`${styles.statCard} ${card.onClick ? styles.clickable : ''}`}
-                        style={{ borderLeftColor: card.color }}
                         onClick={card.onClick}
                     >
                         <div className={styles.statIcon}>{card.icon}</div>

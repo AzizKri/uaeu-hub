@@ -14,12 +14,18 @@
     --text-secondary: #666666;
     --accent: #d7420c;
     --accent-hover: #9d3008;
+    --accent-soft: rgba(215, 66, 12, 0.1);
+    --accent-ring: rgba(215, 66, 12, 0.1);
     --success: #48bb78;
+    --success-soft: rgba(72, 187, 120, 0.15);
     --warning: #ed8936;
+    --warning-soft: rgba(237, 137, 54, 0.15);
     --error: #f56565;
+    --error-soft: rgba(245, 101, 101, 0.1);
     --border: #e5e5e5;
     --shadow: rgba(0, 0, 0, 0.05);
     --shadow-hover: rgba(0, 0, 0, 0.1);
+    --overlay: rgba(73, 63, 57, 0.35);
 }
 
 input {
