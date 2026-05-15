@@ -31,7 +31,7 @@ const allowedMimeTypes = [
 
 export async function uploadAttachment(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const formData: FormData = await c.req.formData();
     const parsedSource = validateWithSchema(attachmentSourceSchema, formData.get('source'));
     if (!parsedSource.success) return validationError(c, parsedSource.error);
@@ -122,7 +122,7 @@ export async function getAttachmentDetails(c: Context) {
 
 export async function deleteAttachment(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     // Check if user is authenticated
     if (!userId) return c.text('Unauthorized', { status: 403 });
@@ -175,7 +175,7 @@ const allowedPFPMimeTypes = [
 
 export async function uploadIcon(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as number;
     const formData: FormData = await c.req.formData();
     const parsedSource = validateWithSchema(attachmentSourceSchema, formData.get('source'));

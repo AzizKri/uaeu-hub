@@ -1,16 +1,11 @@
-import { getIdToken } from "../firebase/config.ts";
+import { apiFetch } from "./client";
 
 const base = import.meta.env.VITE_API_URL || "https://api.uaeu.chat";
 
 async function getAuthHeaders(): Promise<HeadersInit> {
-    const token = await getIdToken();
     const headers: HeadersInit = {
         "Content-Type": "application/json",
     };
-
-    if (token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
 
     return headers;
 }
@@ -26,7 +21,7 @@ export async function getAdminReports(
     params.append("includeResolved", includeResolved.toString());
     if (entityType) params.append("entityType", entityType);
 
-    const response = await fetch(`${base}/report/admin/all?${params.toString()}`, { headers });
+    const response = await apiFetch(`${base}/report/admin/all?${params.toString()}`, { headers });
     return await response.json();
 }
 
@@ -36,7 +31,7 @@ export async function takeAdminReportAction(
     reason?: string,
 ): Promise<{ message: string; status: number }> {
     const headers = await getAuthHeaders();
-    const response = await fetch(`${base}/report/${reportId}/action`, {
+    const response = await apiFetch(`${base}/report/${reportId}/action`, {
         method: "POST",
         headers,
         body: JSON.stringify({ action, reason }),

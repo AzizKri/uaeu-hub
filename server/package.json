@@ -23,15 +23,8 @@
         "wrangler": "4.91.0"
     },
     "dependencies": {
-        "@aws-sdk/signature-v4-crt": "3.1047.0",
-        "@sendgrid/mail": "8.1.6",
-        "aws4fetch": "1.0.20",
-        "bcryptjs": "3.0.3",
-        "google-auth-library": "10.6.2",
         "hono": "4.12.18",
         "hono-rate-limiter": "0.5.3",
-        "jose": "6.2.3",
-        "mimetext": "3.0.28",
         "nanoid": "5.1.11",
         "zod": "4.4.3"
     }

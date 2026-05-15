@@ -1,18 +1,23 @@
 import { z } from 'zod';
 import usernames from './usernames.json';
 
-const assetIdRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const nonEmptyText = (fieldName: string) => z.string().refine((value) => value.trim().length > 0, {
     message: `${fieldName} cannot be empty`
 });
-const optionalAssetIdSchema = z.string().regex(assetIdRegex, 'Invalid asset identifier').optional();
+const optionalAssetIdSchema = z.string().regex(uuidRegex, 'Invalid asset identifier').optional();
 const booleanQuerySchema = z.preprocess(
     (value) => value === undefined ? 'false' : value,
     z.enum(['true', 'false']).transform((value) => value === 'true')
 );
 
-export const assetIdSchema = z.string().regex(assetIdRegex, 'Invalid asset identifier');
+export const assetIdSchema = z.string().regex(uuidRegex, 'Invalid asset identifier');
+export const uuidSchema = z.string().regex(uuidRegex, 'Invalid identifier');
 export const numericIdSchema = z.coerce.number().int().positive('Invalid identifier');
+export const reportEntityIdSchema = z.union([
+    numericIdSchema.transform((value) => value.toString()),
+    uuidSchema
+]);
 export const offsetSchema = z.coerce.number().int().min(0, 'Offset must be a non-negative integer').default(0);
 export const sortOrderSchema = z.enum(['asc', 'desc']).default('desc');
 export const entityTypeSchema = z.enum(['user', 'post', 'comment', 'subcomment', 'community']);
@@ -58,7 +63,7 @@ export const communityEditingSchema = z.object({
 });
 
 export const communityInviteSchema = z.object({
-    userId: z.coerce.number(),
+    userId: uuidSchema,
     communityId: z.coerce.number()
 });
 
@@ -96,6 +101,15 @@ export const userSchema = z.object({
     password: passwordSchema
 });
 
+export const signupSchema = userSchema.extend({
+    includeAnon: z.boolean().optional()
+});
+
+export const loginSchema = z.object({
+    identifier: z.string().min(1, 'Username or email is required'),
+    password: z.string().min(1, 'Password is required')
+});
+
 export const userEditingSchema = z.object({
     displayname: displaynameSchema.optional(),
     bio: z.string().max(1024, 'Bio must be at most 1024 characters long').optional(),
@@ -127,7 +141,7 @@ export function isUsernameValid(username: string): boolean {
 // Report
 
 export const reportSchema = z.object({
-    entityId: numericIdSchema,
+    entityId: reportEntityIdSchema,
     entityType: entityTypeSchema,
     reportType: nonEmptyText('Report type'),
     reason: z.string().max(1024, 'Reason must be at most 1024 characters long').optional()
@@ -174,7 +188,7 @@ export const subcommentCreationSchema = z.object({
 // Admin
 
 export const adminTargetParamSchema = z.object({
-    userId: numericIdSchema
+    userId: uuidSchema
 });
 
 export const adminSuspendSchema = z.object({
@@ -226,17 +240,6 @@ export const feedbackListQuerySchema = z.object({
 export const feedbackStatusParamSchema = z.object({
     type: z.enum(['bug', 'feature']),
     id: numericIdSchema
-});
-
-// Firebase auth
-
-export const firebaseRegisterSchema = z.object({
-    username: usernameSchema,
-    displayname: displaynameSchema.optional()
-});
-
-export const adminEmailCheckSchema = z.object({
-    email: emailSchema
 });
 
 // Query helpers

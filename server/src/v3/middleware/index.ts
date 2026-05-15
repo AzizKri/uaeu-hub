@@ -1,8 +1,6 @@
 export {
     authMiddlewareCheckOnly,
-    authMiddleware,
-    firebaseAuthMiddleware,
-    firebaseAuthMiddlewareCheckOnly
+    authMiddleware
 } from './authentication';
 export { postRateLimitMiddleware, uploadAttachmentLimitMiddleware } from './ratelimit';
 export { 

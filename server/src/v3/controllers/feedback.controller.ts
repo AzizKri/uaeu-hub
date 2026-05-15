@@ -181,7 +181,7 @@ export async function updateFeedbackStatus(c: Context) {
 }
 
 // Helper function to check if user is global admin
-async function isGlobalAdmin(env: Env, userId: number) {
+async function isGlobalAdmin(env: Env, userId: string) {
     const user = await env.DB.prepare(`
         SELECT is_admin
         FROM user

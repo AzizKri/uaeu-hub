@@ -19,7 +19,7 @@ export async function createPost(c: Context) {
 
     try {
         // Get userId & isAnon from Context
-        const userId = c.get('userId') as number;
+        const userId = c.get('userId') as string;
         const isAnonymous = c.get('isAnonymous') as boolean;
 
         // Check if user isn't anon and is in community
@@ -79,7 +79,7 @@ export async function createPost(c: Context) {
 // api.uaeu.chat/post/latest/:offset?
 export async function getLatestPosts(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -123,7 +123,7 @@ export async function getLatestPosts(c: Context) {
 // api.uaeu.chat/post/best/:offset?
 export async function getBestPosts(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -174,7 +174,7 @@ export async function getBestPosts(c: Context) {
 
 export async function getLatestPostsFromMyCommunities(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -210,7 +210,7 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
 
 export async function getBestPostsFromMyCommunities(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -252,7 +252,7 @@ export async function getBestPostsFromMyCommunities(c: Context) {
 // api.uaeu.chat/post/user/:id?offset=0
 export async function getPostsByUser(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -355,7 +355,7 @@ export async function searchPosts(c: Context) {
 // Supports both numeric id and public_id
 export async function getPostByID(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -411,7 +411,7 @@ export async function getPostByID(c: Context) {
 // Supports both numeric id and public_id
 export async function deletePost(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     // Check if user is valid
     if (!userId) return c.text('Unauthorized', { status: 401 });
@@ -512,7 +512,7 @@ export async function deletePost(c: Context) {
 // Supports both numeric id and public_id
 export async function likePost(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Make sure we have a valid user

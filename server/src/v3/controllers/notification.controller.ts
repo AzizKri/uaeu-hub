@@ -6,7 +6,7 @@ export async function getNotifications(c: Context) {
     const env: Env = c.env;
 
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -134,7 +134,7 @@ export async function readNotifications(c: Context) {
     const env: Env = c.env;
 
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous

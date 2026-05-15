@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { signOut, auth } from '../../../firebase/config';
+import { logout } from '../../../api/authentication.ts';
 import styles from './BannedModal.module.scss';
 
 interface BannedModalProps {
@@ -10,7 +10,7 @@ export default function BannedModal({ onClose }: BannedModalProps) {
     useEffect(() => {
         // Auto-logout after showing the modal
         const timer = setTimeout(async () => {
-            await signOut(auth);
+            await logout();
             if (onClose) onClose();
         }, 5000); // Wait 5 seconds before logging out
 
@@ -18,7 +18,7 @@ export default function BannedModal({ onClose }: BannedModalProps) {
     }, [onClose]);
 
     const handleLogout = async () => {
-        await signOut(auth);
+        await logout();
         if (onClose) onClose();
     };
 

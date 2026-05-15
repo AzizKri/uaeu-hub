@@ -1,26 +1,64 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { apiFetch } from "../../../api/client.ts";
+import styles from "./EmailVerification.module.scss";
+import successLogo from "../../../assets/check-mark-svgrepo.svg";
+import failedLogo from "../../../assets/cross-mark-button-svgrepo.svg";
+import LoadingFallback from "../../Reusable/LoadingFallback/LoadingFallback.tsx";
 
-/**
- * Legacy email verification page - redirects to the new Firebase action handler
- * This page is kept for backwards compatibility with old verification links
- */
+const authBase = (import.meta.env.VITE_API_URL || "https://api.uaeu.chat") + "/auth";
+
 export default function EmailVerification() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const token = searchParams.get("token");
+    const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+    const [message, setMessage] = useState("");
 
     useEffect(() => {
-        // Redirect old-style verification links to the new Firebase action handler
-        // Old links won't work with Firebase, but we redirect anyway for UX
-        if (token) {
-            // Old token-based verification is no longer supported
-            // Redirect to home with a message
-            navigate("/", { replace: true });
-        } else {
-            navigate("/", { replace: true });
-        }
-    }, [token, navigate]);
+        async function verify() {
+            if (!token) {
+                setStatus("error");
+                setMessage("This verification link is invalid.");
+                return;
+            }
 
-    return null;
+            try {
+                const response = await apiFetch(`${authBase}/verifyEmail?token=${encodeURIComponent(token)}`);
+                const data = await response.json();
+                if (response.ok) {
+                    setStatus("success");
+                    setMessage("Your email has been verified.");
+                } else {
+                    setStatus("error");
+                    setMessage(data.message || "This verification link is invalid or expired.");
+                }
+            } catch {
+                setStatus("error");
+                setMessage("Unable to verify email right now.");
+            }
+        }
+
+        verify();
+    }, [token]);
+
+    return (
+        <div className={styles.emailVerificationContainer}>
+            {status === "loading" && <LoadingFallback />}
+            {status !== "loading" && (
+                <div className={styles.emailVerified}>
+                    <img
+                        src={status === "success" ? successLogo : failedLogo}
+                        className={styles.verificationIcon}
+                        alt={status}
+                    />
+                    <h2>{status === "success" ? "Email Verified" : "Verification Failed"}</h2>
+                    <p>{message}</p>
+                    <button onClick={() => navigate(status === "success" ? "/" : "/login")}>
+                        Continue
+                    </button>
+                </div>
+            )}
+        </div>
+    );
 }

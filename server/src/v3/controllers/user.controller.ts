@@ -8,7 +8,7 @@ import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function getCurrentUser(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 
 	if (userId) {
 		try {
@@ -40,7 +40,7 @@ export async function getCurrentUser(c: Context) {
 
 export async function getCurrentUserLikesOnPosts(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -68,7 +68,7 @@ export async function getCurrentUserLikesOnPosts(c: Context) {
 
 export async function getCurrentUserLikesOnComments(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -95,7 +95,7 @@ export async function getCurrentUserLikesOnComments(c: Context) {
 
 export async function getCurrentUserLikesOnSubcomments(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -122,7 +122,7 @@ export async function getCurrentUserLikesOnSubcomments(c: Context) {
 
 export async function getCurrentUserCommunities(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -150,7 +150,7 @@ export async function getCurrentUserCommunities(c: Context) {
 
 export async function editCurrentUser(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -348,7 +348,7 @@ export async function getUserByUsername(c: Context) {
 
 export async function getUserCommunities(c: Context) {
 	const env: Env = c.env;
-	const currentUserId = c.get('userId') as number;
+	const currentUserId = c.get('userId') as string;
 	const currentIsAnonymous = c.get('isAnonymous') as boolean;
 
 	// Get the required fields

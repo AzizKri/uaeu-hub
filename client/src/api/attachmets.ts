@@ -1,19 +1,12 @@
-import { getIdToken } from '../firebase/config';
+import { apiFetch } from "./client";
 import { isAssetId } from '../utils/tools.ts';
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/attachment';
 
-/**
- * Helper to get authorization headers with Firebase ID token
- */
 async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
-    const token = await getIdToken();
     const headers: HeadersInit = {};
     if (includeContentType) {
         headers['Content-Type'] = 'application/json';
-    }
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
 }
@@ -52,7 +45,7 @@ export async function uploadAttachment(attachments: File[]) {
     }
 
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base, {
+    const request = await apiFetch(base, {
         method: 'POST',
         headers,
         body: formData,
@@ -70,7 +63,7 @@ export async function uploadAttachment(attachments: File[]) {
 
 // Get attachment details by filename (length and height for images, video length, etc...)
 export async function getAttachmentDetails(filename: string) {
-    const request = await fetch(base + `/${filename}`, { method: 'GET' });
+    const request = await apiFetch(base + `/${filename}`, { method: 'GET' });
 
     return { status: request.status, data: await request.json() };
 }
@@ -82,7 +75,7 @@ export async function deleteAttachment(filename: string) {
     }
 
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/${filename}`, {
+    const request = await apiFetch(base + `/${filename}`, {
         method: 'DELETE',
         headers,
     });
@@ -99,7 +92,7 @@ export async function uploadIcon(attachments: File, type: 'icon' | 'pfp') {
     formData.append('source', type);
 
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base + `/icon`, {
+    const request = await apiFetch(base + `/icon`, {
         method: 'POST',
         headers,
         body: formData,

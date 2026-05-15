@@ -1,5 +1,5 @@
 import { Context, Hono } from 'hono';
-import { firebaseAuthMiddleware } from '../middleware';
+import { authMiddlewareCheckOnly } from '../middleware';
 import {
     getAdminStats,
     getUsers,
@@ -14,8 +14,7 @@ import { validationError } from '../util/requestValidation';
 
 const app = new Hono<{ Bindings: Env }>();
 
-// All admin routes require Firebase authentication
-app.use('/*', firebaseAuthMiddleware);
+app.use('/*', authMiddlewareCheckOnly);
 
 // Dashboard stats
 app.get('/stats', (c: Context) => getAdminStats(c));

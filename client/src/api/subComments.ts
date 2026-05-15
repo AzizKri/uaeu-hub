@@ -1,18 +1,11 @@
-import { getIdToken } from '../firebase/config';
+import { apiFetch } from "./client";
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/subcomment';
 
-/**
- * Helper to get authorization headers with Firebase ID token
- */
 async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
-    const token = await getIdToken();
     const headers: HeadersInit = {};
     if (includeContentType) {
         headers['Content-Type'] = 'application/json';
-    }
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
 }
@@ -28,7 +21,7 @@ export async function subComment(comment: number, content: string, attachment?: 
     }
 
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base, {
+    const request = await apiFetch(base, {
         method: 'POST',
         headers,
         body: formData,
@@ -39,7 +32,7 @@ export async function subComment(comment: number, content: string, attachment?: 
 // Get subComments on a comment by its ID
 export async function getSubCommentsOnComment(comment: number, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/${comment}?offset=${offset}`, {
+    const request = await apiFetch(base + `/${comment}?offset=${offset}`, {
         method: 'GET',
         headers,
     });
@@ -49,7 +42,7 @@ export async function getSubCommentsOnComment(comment: number, offset: number = 
 // Like/unlike a subComment by its ID
 export async function likeSubComment(subComment: number) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/like/${subComment}`, {
+    const request = await apiFetch(base + `/like/${subComment}`, {
         method: 'POST',
         headers,
     });
@@ -60,7 +53,7 @@ export async function likeSubComment(subComment: number) {
 // Optional reason for admin deletions
 export async function deleteSubComment(subComment: number, reason?: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/${subComment}`, {
+    const request = await apiFetch(base + `/${subComment}`, {
         method: 'DELETE',
         headers,
         body: reason ? JSON.stringify({ reason }) : undefined,

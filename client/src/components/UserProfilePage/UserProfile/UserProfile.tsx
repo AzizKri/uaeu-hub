@@ -238,7 +238,7 @@ export default function UserProfile() {
                     <UserPosts/>
                 ) : activeTab === "Communities" ? (
                     <UserCommunities
-                        id={profileUser?.id ? profileUser.id : -1}
+                        id={profileUser?.id ?? ""}
                     />
                 ) : activeTab === "Likes" ? (
                     <UserLikes/>

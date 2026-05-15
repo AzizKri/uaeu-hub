@@ -349,7 +349,7 @@ export async function takeReportAction(c: Context) {
     }
 
     try {
-        let targetUserId: number | null = null;
+        let targetUserId: string | null = null;
         let entityContent: string = '';
 
         // Get entity and target user based on entity type
@@ -357,7 +357,7 @@ export async function takeReportAction(c: Context) {
             case 'post': {
                 const post = await env.DB.prepare(`
                     SELECT id, author_id, content FROM post WHERE id = ?
-                `).bind(report.entity_id).first<{ id: number; author_id: number; content: string }>();
+                `).bind(report.entity_id).first<{ id: number; author_id: string; content: string }>();
                 if (post) {
                     targetUserId = post.author_id;
                     entityContent = post.content;
@@ -367,7 +367,7 @@ export async function takeReportAction(c: Context) {
             case 'comment': {
                 const comment = await env.DB.prepare(`
                     SELECT id, author_id, content FROM comment WHERE id = ?
-                `).bind(report.entity_id).first<{ id: number; author_id: number; content: string }>();
+                `).bind(report.entity_id).first<{ id: number; author_id: string; content: string }>();
                 if (comment) {
                     targetUserId = comment.author_id;
                     entityContent = comment.content;
@@ -377,7 +377,7 @@ export async function takeReportAction(c: Context) {
             case 'subcomment': {
                 const subcomment = await env.DB.prepare(`
                     SELECT id, author_id, content FROM subcomment WHERE id = ?
-                `).bind(report.entity_id).first<{ id: number; author_id: number; content: string }>();
+                `).bind(report.entity_id).first<{ id: number; author_id: string; content: string }>();
                 if (subcomment) {
                     targetUserId = subcomment.author_id;
                     entityContent = subcomment.content;
@@ -388,7 +388,7 @@ export async function takeReportAction(c: Context) {
                 // For communities, we warn the admins
                 const community = await env.DB.prepare(`
                     SELECT id, name, owner_id FROM community WHERE id = ?
-                `).bind(report.entity_id).first<{ id: number; name: string; owner_id: number }>();
+                `).bind(report.entity_id).first<{ id: number; name: string; owner_id: string }>();
                 if (community) {
                     targetUserId = community.owner_id;
                     entityContent = community.name;
@@ -423,7 +423,7 @@ export async function takeReportAction(c: Context) {
                 FROM user_community uc
                 JOIN community_role cr ON uc.role_id = cr.id
                 WHERE uc.community_id = ? AND cr.administrator = 1
-            `).bind(report.entity_id).all<{ user_id: number }>();
+            `).bind(report.entity_id).all<{ user_id: string }>();
 
             for (const admin of communityAdmins.results || []) {
                 await createNotification(c, {
@@ -431,7 +431,7 @@ export async function takeReportAction(c: Context) {
                     receiverId: admin.user_id,
                     type: 'community_warning',
                     metadata: {
-                        communityId: report.entity_id,
+                        communityId: Number(report.entity_id),
                         reason: reason,
                         content: entityContent
                     }
@@ -654,7 +654,7 @@ export async function getReportsWithDetails(c: Context) {
 
 // MISC
 
-async function isCommunityAdmin(env: Env, communityId: number, userId: number) {
+async function isCommunityAdmin(env: Env, communityId: number, userId: string) {
     return !!(await env.DB.prepare(
         `SELECT 1
          FROM user_community
@@ -664,7 +664,7 @@ async function isCommunityAdmin(env: Env, communityId: number, userId: number) {
     ).bind(userId, communityId, communityId).first<CommunityMemberRow>());
 }
 
-async function isGlobalAdmin(env: Env, userId: number) {
+async function isGlobalAdmin(env: Env, userId: string) {
     const user = await env.DB.prepare(`
         SELECT is_admin
         FROM user

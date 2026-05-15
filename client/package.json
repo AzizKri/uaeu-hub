@@ -15,7 +15,6 @@
     "dependencies": {
         "@lexical/react": "0.44.0",
         "dompurify": "3.4.3",
-        "firebase": "12.13.0",
         "lexical": "0.44.0",
         "react": "19.2.6",
         "react-dom": "19.2.6",

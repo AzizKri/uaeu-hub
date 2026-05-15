@@ -22,7 +22,7 @@ import {useUser} from "../../../contexts/user/UserContext.ts";
 interface SubCommentBack {
     attachment: string,
     author: string,
-    author_id: number,
+    author_id: string,
     comment_count: number,
     content: string,
     displayname: string,

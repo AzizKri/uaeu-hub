@@ -37,7 +37,7 @@ declare global {
     interface CommentInfo {
         attachment: string
         author: string
-        authorId: number
+        authorId: string
         content: string
         displayName: string
         id: number
@@ -76,8 +76,8 @@ declare global {
 
     interface Notification {
         id: number;
-        recipient_id: number;
-        sender_id: number;
+        recipient_id: string;
+        sender_id: string;
         sender: string;
         sender_displayname: string;
         type: string;
@@ -104,7 +104,7 @@ declare global {
     }
 
     interface UserInfo {
-        id?: number;
+        id?: string;
         new?: boolean;
         username: string;
         displayName: string;
@@ -152,8 +152,6 @@ declare global {
         updateUser: (userInfo: UserInfo) => void;
         removeUser: () => void;
         isUser: () => boolean;
-        isFirebaseAnonymous: () => boolean;
-        getFirebaseUser: () => import('firebase/auth').User | null;
         isSuspended: () => boolean;
         isBanned: () => boolean;
         setSuspended: (suspendedUntil: number) => void;
@@ -181,9 +179,9 @@ declare global {
 
     interface AdminReport {
         id: number;
-        reporter_id: number;
+        reporter_id: string;
         reporter_username?: string;
-        entity_id: number;
+        entity_id: string | number;
         entity_type: "post" | "comment" | "subcomment" | "community" | "user";
         report_type: string;
         reason: string;
@@ -193,7 +191,7 @@ declare global {
     }
 
     interface AdminReportEntity {
-        id: number;
+        id: string | number;
         content?: string;
         author_username?: string;
         author_displayname?: string;
@@ -208,7 +206,7 @@ declare global {
     interface AdminBugReport {
         id: number;
         public_id: string;
-        reporter_id: number;
+        reporter_id: string;
         reporter_username?: string;
         description: string;
         screenshot?: string;
@@ -219,7 +217,7 @@ declare global {
     interface AdminFeatureRequest {
         id: number;
         public_id: string;
-        reporter_id: number;
+        reporter_id: string;
         reporter_username?: string;
         description: string;
         screenshot?: string;
@@ -315,8 +313,8 @@ declare global {
     interface Notification {
         id: number;
         actionEntityId: number;
-        recipientId: number;
-        senderId: number;
+        recipientId: string;
+        senderId: string;
         sender: string;
         type: string;
         read: boolean;

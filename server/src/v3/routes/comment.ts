@@ -1,5 +1,5 @@
 import { Context, Hono } from 'hono';
-import { firebaseAuthMiddleware, firebaseAuthMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware } from '../middleware';
+import { authMiddleware, authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware } from '../middleware';
 import { comment, deleteComment, getCommentsOnPost, likeComment } from '../controllers/comment.controller';
 import { validator } from 'hono/validator';
 import { commentCreationSchema } from '../util/validationSchemas';
@@ -14,13 +14,13 @@ app.post('/',
         if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    firebaseAuthMiddleware,
+    authMiddleware,
     penaltyCheckMiddleware,
     blockPenalizedUserMiddleware,
     (c: Context) => comment(c)
 );
-app.post('/like/:commentId', firebaseAuthMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => likeComment(c));
-app.get('/:postId', firebaseAuthMiddlewareCheckOnly, (c: Context) => getCommentsOnPost(c));
-app.delete('/:commentId', firebaseAuthMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => deleteComment(c));
+app.post('/like/:commentId', authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => likeComment(c));
+app.get('/:postId', authMiddlewareCheckOnly, (c: Context) => getCommentsOnPost(c));
+app.delete('/:commentId', authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => deleteComment(c));
 
 export default app;

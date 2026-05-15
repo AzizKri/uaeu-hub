@@ -1,18 +1,11 @@
-import { getIdToken } from '../firebase/config';
+import { apiFetch } from "./client";
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/comment';
 
-/**
- * Helper to get authorization headers with Firebase ID token
- */
 async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
-    const token = await getIdToken();
     const headers: HeadersInit = {};
     if (includeContentType) {
         headers['Content-Type'] = 'application/json';
-    }
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
 }
@@ -29,7 +22,7 @@ export async function comment(post: number, content: string, attachment?: string
 
     // Don't include Content-Type for FormData - browser sets it with boundary
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base, {
+    const request = await apiFetch(base, {
         method: 'POST',
         headers,
         body: formData,
@@ -41,7 +34,7 @@ export async function comment(post: number, content: string, attachment?: string
 export async function getCommentsOnPost(post: number, offset: number = 0) {
     console.log("getting more comments on posts, offset:", offset);
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/${post}?offset=${offset}`, {
+    const request = await apiFetch(base + `/${post}?offset=${offset}`, {
         method: 'GET',
         headers,
     });
@@ -51,7 +44,7 @@ export async function getCommentsOnPost(post: number, offset: number = 0) {
 // Like/unlike a comment by its ID
 export async function likeComment(comment: number) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/like/${comment}`, {
+    const request = await apiFetch(base + `/like/${comment}`, {
         method: 'POST',
         headers,
     });
@@ -62,7 +55,7 @@ export async function likeComment(comment: number) {
 // Optional reason for admin deletions
 export async function deleteComment(comment: number, reason?: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/${comment}`, {
+    const request = await apiFetch(base + `/${comment}`, {
         method: 'DELETE',
         headers,
         body: reason ? JSON.stringify({ reason }) : undefined,

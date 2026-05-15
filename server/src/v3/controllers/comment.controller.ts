@@ -11,7 +11,7 @@ export async function comment(c: Context) {
     const fileName = filename ?? null;
 
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     try {
         // Generate public_id for the comment
@@ -70,7 +70,7 @@ export async function getCommentsOnPost(c: Context) {
     const offset = offsetQuery.data;
 
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     try {
         // New user? Get without likes
@@ -115,7 +115,7 @@ export async function deleteComment(c: Context) {
     const commentId = parsedCommentId.data;
 
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     if (!userId) return c.text('Unauthorized', { status: 401 });
 
     // Get optional reason from request body (for admin deletions)
@@ -201,7 +201,7 @@ export async function likeComment(c: Context) {
     const commentId = parsedCommentId.data;
 
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     try {
         // Check if the user has already liked the comment

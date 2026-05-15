@@ -1,131 +1,100 @@
 import { Context, Hono } from 'hono';
-import { firebaseAuthMiddleware, firebaseAuthMiddlewareCheckOnly } from '../middleware';
-import {
-    checkUsername,
-    lookupEmail,
-    registerUser,
-    upgradeAnonymous,
-    authenticateUserFirebase,
-    isUserFirebase,
-    isAnonFirebase,
-    logoutFirebase,
-    checkAdminEmail,
-} from '../controllers/firebase-auth.controller';
 import { validator } from 'hono/validator';
-import { adminEmailCheckSchema, firebaseRegisterSchema } from '../util/validationSchemas';
+import { authMiddlewareCheckOnly } from '../middleware';
+import {
+    authenticateUser,
+    changeEmail,
+    changePassword,
+    checkUsername,
+    isAnon,
+    isUser,
+    login,
+    logout,
+    resetPassword,
+    sendEmailVerification,
+    sendForgotPasswordEmail,
+    signup,
+    verifyEmail
+} from '../controllers/auth.controller';
+import {
+    emailChangeSchema,
+    forgotPasswordSchema,
+    loginSchema,
+    passwordChangeSchema,
+    passwordResetSchema,
+    signupSchema
+} from '../util/validationSchemas';
 import { validationError } from '../util/requestValidation';
 
 const app = new Hono<{ Bindings: Env }>();
 
-// ============================================
-// Firebase Authentication Routes
-// ============================================
-
-// Username and email utilities (no auth required)
 app.get('/check-username', (c: Context) => checkUsername(c));
-app.get('/lookup-email', (c: Context) => lookupEmail(c));
 
-// Admin check (no auth required - used before login)
-app.post('/check-admin',
+app.post('/signup',
     validator('json', (value, c: Context) => {
-        const parsed = adminEmailCheckSchema.safeParse(value);
+        const parsed = signupSchema.safeParse(value);
         if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    (c: Context) => checkAdminEmail(c)
+    authMiddlewareCheckOnly,
+    (c: Context) => signup(c)
 );
 
-// Registration - requires Firebase auth
-app.post('/register',
+app.post('/login',
     validator('json', (value, c: Context) => {
-        const parsed = firebaseRegisterSchema.safeParse(value);
+        const parsed = loginSchema.safeParse(value);
         if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    firebaseAuthMiddleware,
-    (c: Context) => registerUser(c)
+    authMiddlewareCheckOnly,
+    (c: Context) => login(c)
 );
-app.post('/upgrade-anonymous',
+
+app.post('/logout', authMiddlewareCheckOnly, (c: Context) => logout(c));
+
+app.get('/me', authMiddlewareCheckOnly, (c: Context) => authenticateUser(c));
+app.get('/isUser', authMiddlewareCheckOnly, (c: Context) => isUser(c));
+app.get('/isAnon', authMiddlewareCheckOnly, (c: Context) => isAnon(c));
+
+app.post('/sendEmailVerification', authMiddlewareCheckOnly, (c: Context) => sendEmailVerification(c));
+app.get('/verifyEmail', (c: Context) => verifyEmail(c));
+
+app.post('/forgotPassword',
     validator('json', (value, c: Context) => {
-        const parsed = firebaseRegisterSchema.safeParse(value);
+        const parsed = forgotPasswordSchema.safeParse(value);
         if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    firebaseAuthMiddleware,
-    (c: Context) => upgradeAnonymous(c)
+    (c: Context) => sendForgotPasswordEmail(c)
 );
 
-// User data - uses Firebase auth
-app.get('/me', firebaseAuthMiddlewareCheckOnly, (c: Context) => authenticateUserFirebase(c));
-app.get('/isUser', firebaseAuthMiddlewareCheckOnly, (c: Context) => isUserFirebase(c));
-app.get('/isAnon', firebaseAuthMiddlewareCheckOnly, (c: Context) => isAnonFirebase(c));
+app.post('/resetPassword',
+    validator('json', (value, c: Context) => {
+        const parsed = passwordResetSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    (c: Context) => resetPassword(c)
+);
 
-// Sync email verification status from Firebase token to database
-app.post('/sync-email-verified', firebaseAuthMiddleware, async (c: Context) => {
-    const userId = c.get('userId') as number | undefined;
-    const firebaseClaims = c.get('firebaseClaims') as { email_verified?: boolean } | undefined;
-    
-    if (!userId || !firebaseClaims) {
-        return c.json({ message: 'Not authenticated' }, 401);
-    }
-    
-    const emailVerified = firebaseClaims.email_verified ? 1 : 0;
-    console.log('sync-email-verified -> userId:', userId, 'emailVerified from token:', emailVerified);
-    
-    try {
-        await c.env.DB.prepare(`
-            UPDATE user SET email_verified = ? WHERE id = ?
-        `).bind(emailVerified, userId).run();
-        
-        const user = await c.env.DB.prepare(`
-            SELECT id, email, email_verified FROM user WHERE id = ?
-        `).bind(userId).first();
-        
-        console.log('sync-email-verified -> after update:', user);
-        
-        return c.json({ 
-            message: 'Email verification status synced',
-            email_verified: emailVerified === 1,
-            user
-        }, 200);
-    } catch (e) {
-        console.error('sync-email-verified error:', e);
-        return c.json({ message: 'Failed to sync' }, 500);
-    }
-});
+app.post('/changePassword',
+    validator('json', (value, c: Context) => {
+        const parsed = passwordChangeSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c: Context) => changePassword(c)
+);
 
-// Logout
-app.post('/logout', (c: Context) => logoutFirebase(c));
-
-// ============================================
-// Deprecated Routes (kept for backward compatibility)
-// These will be removed in a future version
-// ============================================
-
-// Email verification - now handled by Firebase
-app.post('/sendEmailVerification', firebaseAuthMiddlewareCheckOnly, (c: Context) => {
-    return c.json({ message: 'Email verification is now handled by Firebase' }, 200);
-});
-
-app.get('/verifyEmail', (c: Context) => {
-    return c.json({ message: 'Email verification is now handled by Firebase' }, 200);
-});
-
-// Password reset - now handled by Firebase
-app.post('/forgotPassword', (c: Context) => {
-    return c.json({ message: 'Password reset is now handled by Firebase' }, 200);
-});
-
-app.post('/resetPassword', (c: Context) => {
-    return c.json({ message: 'Password reset is now handled by Firebase' }, 200);
-});
-
-app.post('/changePassword', firebaseAuthMiddlewareCheckOnly, (c: Context) => {
-    return c.json({ message: 'Password change is now handled by Firebase' }, 200);
-});
-
-app.post('/changeEmail', firebaseAuthMiddlewareCheckOnly, (c: Context) => {
-    return c.json({ message: 'Email change is now handled by Firebase' }, 200);
-});
+app.post('/changeEmail',
+    validator('json', (value, c: Context) => {
+        const parsed = emailChangeSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c: Context) => changeEmail(c)
+);
 
 export default app;

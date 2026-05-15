@@ -4,17 +4,14 @@ PRAGMA foreign_keys = on;
 
 CREATE TABLE IF NOT EXISTS user
 (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    id             TEXT PRIMARY KEY,
     public_id      TEXT UNIQUE,
-    firebase_uid   TEXT UNIQUE,
     username       TEXT    NOT NULL UNIQUE COLLATE NOCASE,
     displayname    TEXT,
     email          TEXT UNIQUE COLLATE NOCASE,
     email_verified BOOLEAN          DEFAULT FALSE,
-    auth_provider  TEXT    NOT NULL DEFAULT 'local',
     password       TEXT,
     salt           TEXT,
-    google_id      TEXT,
     created_at     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     bio            TEXT,
     pfp            TEXT,
@@ -38,7 +35,6 @@ SELECT id,
            WHEN is_anonymous = true THEN 'Anonymous User'
            ELSE displayname
            END AS displayname,
-       auth_provider,
        created_at,
        bio,
        pfp,
@@ -51,7 +47,7 @@ FROM user;
 CREATE TABLE IF NOT EXISTS session
 (
     id           TEXT PRIMARY KEY,
-    user_id      INTEGER NOT NULL,
+    user_id      TEXT    NOT NULL,
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_anonymous BOOLEAN NOT NULL,
     ip           TEXT,
@@ -63,7 +59,7 @@ CREATE TABLE IF NOT EXISTS session
 CREATE TABLE IF NOT EXISTS email_verification
 (
     token      TEXT PRIMARY KEY,
-    user_id    INTEGER NOT NULL,
+    user_id    TEXT    NOT NULL,
     email      TEXT    NOT NULL,
     used       BOOLEAN NOT NULL DEFAULT FALSE,
     created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -75,7 +71,7 @@ CREATE TABLE IF NOT EXISTS email_verification
 CREATE TABLE IF NOT EXISTS password_reset
 (
     token      TEXT PRIMARY KEY,
-    user_id    INTEGER NOT NULL,
+    user_id    TEXT    NOT NULL,
     used       BOOLEAN NOT NULL DEFAULT FALSE,
     created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE
@@ -96,7 +92,7 @@ CREATE TABLE IF NOT EXISTS community
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     tags         TEXT,
     member_count INTEGER NOT NULL DEFAULT 0,
-    owner_id     INTEGER NOT NULL DEFAULT 0,
+    owner_id     TEXT    NOT NULL DEFAULT 'b21d6c6a-3e65-4b79-8ef4-7d956d35733c',
     FOREIGN KEY (owner_id) REFERENCES user (id) ON DELETE SET DEFAULT
 );
 
@@ -125,7 +121,7 @@ CREATE TABLE IF NOT EXISTS community_role
 
 CREATE TABLE IF NOT EXISTS user_community
 (
-    user_id      INTEGER NOT NULL,
+    user_id      TEXT    NOT NULL,
     community_id INTEGER NOT NULL,
     joined_at    INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     role_id      INTEGER NOT NULL,
@@ -141,8 +137,8 @@ CREATE TABLE IF NOT EXISTS community_invite
 (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     community_id INTEGER NOT NULL,
-    sender_id    INTEGER NOT NULL,
-    recipient_id INTEGER NOT NULL,
+    sender_id    TEXT    NOT NULL,
+    recipient_id TEXT    NOT NULL,
     created_at   INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (community_id) REFERENCES community (id) ON DELETE CASCADE,
     FOREIGN KEY (sender_id) REFERENCES user (id) ON DELETE CASCADE,
@@ -182,7 +178,7 @@ CREATE TABLE IF NOT EXISTS badge
 
 CREATE TABLE IF NOT EXISTS user_badge
 (
-    user_id    INTEGER NOT NULL,
+    user_id    TEXT    NOT NULL,
     badge_id   INTEGER NOT NULL,
     awarded_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, badge_id),
@@ -197,7 +193,7 @@ CREATE TABLE IF NOT EXISTS attachment
     filename   TEXT PRIMARY KEY,
     mimetype   TEXT    NOT NULL,
     metadata   TEXT,
-    author_id  INTEGER NOT NULL DEFAULT -1,
+    author_id  TEXT    NOT NULL DEFAULT 'b21d6c6a-3e65-4b79-8ef4-7d956d35733c',
     created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (author_id) REFERENCES user (id) ON DELETE SET DEFAULT
 );
@@ -208,7 +204,7 @@ CREATE TABLE IF NOT EXISTS post
 (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     public_id     TEXT UNIQUE,
-    author_id     INTEGER NOT NULL DEFAULT -1,
+    author_id     TEXT    NOT NULL DEFAULT 'b21d6c6a-3e65-4b79-8ef4-7d956d35733c',
     community_id  INTEGER NOT NULL DEFAULT 0, /* General Community */
     content       TEXT    NOT NULL,
     post_time     INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -224,8 +220,16 @@ CREATE VIEW IF NOT EXISTS post_view AS
 SELECT post.id,
        post.public_id,
        post.author_id,
-       user.username       AS author,
-       user.displayname    AS displayname,
+       CASE
+           WHEN user.is_deleted = true THEN 'DeletedUser'
+           WHEN user.is_anonymous = true THEN 'Anonymous'
+           ELSE user.username
+           END AS author,
+       CASE
+           WHEN user.is_deleted = true THEN 'Deleted User'
+           WHEN user.is_anonymous = true THEN 'Anonymous User'
+           ELSE user.displayname
+           END AS displayname,
        user.pfp            AS pfp,
        post.community_id,
        community.name      AS community,
@@ -249,7 +253,7 @@ CREATE TABLE IF NOT EXISTS comment
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     public_id      TEXT UNIQUE,
     parent_post_id INTEGER NOT NULL,
-    author_id      INTEGER NOT NULL,
+    author_id      TEXT    NOT NULL,
     content        TEXT    NOT NULL,
     post_time      INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     attachment     TEXT,
@@ -265,9 +269,17 @@ SELECT comment.id,
        comment.public_id,
        comment.parent_post_id,
        comment.author_id,
-       user.username    AS author,
+       CASE
+           WHEN user.is_deleted = true THEN 'DeletedUser'
+           WHEN user.is_anonymous = true THEN 'Anonymous'
+           ELSE user.username
+           END AS author,
        user.pfp         AS pfp,
-       user.displayname AS displayname,
+       CASE
+           WHEN user.is_deleted = true THEN 'Deleted User'
+           WHEN user.is_anonymous = true THEN 'Anonymous User'
+           ELSE user.displayname
+           END AS displayname,
        comment.content,
        comment.post_time,
        comment.attachment,
@@ -283,7 +295,7 @@ CREATE TABLE IF NOT EXISTS subcomment
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
     public_id         TEXT UNIQUE,
     parent_comment_id INTEGER NOT NULL,
-    author_id         INTEGER NOT NULL,
+    author_id         TEXT    NOT NULL,
     content           TEXT    NOT NULL,
     post_time         INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     attachment        TEXT,
@@ -298,9 +310,17 @@ SELECT subcomment.id,
        subcomment.public_id,
        subcomment.parent_comment_id,
        subcomment.author_id,
-       user.username    AS author,
+       CASE
+           WHEN user.is_deleted = true THEN 'DeletedUser'
+           WHEN user.is_anonymous = true THEN 'Anonymous'
+           ELSE user.username
+           END AS author,
        user.pfp         AS pfp,
-       user.displayname AS displayname,
+       CASE
+           WHEN user.is_deleted = true THEN 'Deleted User'
+           WHEN user.is_anonymous = true THEN 'Anonymous User'
+           ELSE user.displayname
+           END AS displayname,
        subcomment.content,
        subcomment.post_time,
        subcomment.attachment,
@@ -345,8 +365,8 @@ CREATE TABLE IF NOT EXISTS subcomment_like
 CREATE TABLE IF NOT EXISTS report
 (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    reporter_id INTEGER NOT NULL,
-    entity_id   INTEGER NOT NULL,
+    reporter_id TEXT    NOT NULL,
+    entity_id   TEXT    NOT NULL,
     entity_type TEXT    NOT NULL,
     report_type TEXT    NOT NULL,
     reason      TEXT,
@@ -364,7 +384,7 @@ CREATE TABLE IF NOT EXISTS bug_report
 (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     public_id   TEXT UNIQUE,
-    reporter_id INTEGER NOT NULL,
+    reporter_id TEXT    NOT NULL,
     description TEXT    NOT NULL,
     screenshot  TEXT,
     status      TEXT    NOT NULL DEFAULT 'pending',
@@ -382,7 +402,7 @@ CREATE TABLE IF NOT EXISTS feature_request
 (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     public_id   TEXT UNIQUE,
-    reporter_id INTEGER NOT NULL,
+    reporter_id TEXT    NOT NULL,
     description TEXT    NOT NULL,
     screenshot  TEXT,
     status      TEXT    NOT NULL DEFAULT 'pending',
@@ -398,7 +418,7 @@ CREATE INDEX idx_feature_request_status ON feature_request(status, created_at DE
 
 CREATE TABLE IF NOT EXISTS websocket
 (
-    user_id    INTEGER NOT NULL,
+    user_id    TEXT    NOT NULL,
     socket_id  TEXT    NOT NULL,
     created_at INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
     used       BOOLEAN NOT NULL DEFAULT FALSE,
@@ -411,8 +431,8 @@ CREATE TABLE IF NOT EXISTS websocket
 CREATE TABLE IF NOT EXISTS notification
 (
     id               INTEGER PRIMARY KEY AUTOINCREMENT,
-    sender_id        INTEGER NOT NULL,
-    recipient_id     INTEGER NOT NULL, /* who to send this notif to */
+    sender_id        TEXT    NOT NULL,
+    recipient_id     TEXT    NOT NULL, /* who to send this notif to */
     type             TEXT    NOT NULL, /* 'like', 'comment', 'mention', 'follow' */
     action_entity_id INTEGER, /* Post ID (for mention), Comment ID, etc... */
     metadata         TEXT,
@@ -451,7 +471,6 @@ CREATE VIRTUAL TABLE posts_fts USING fts5
 CREATE INDEX idx_user_username ON user (username);
 CREATE INDEX idx_user_email ON user (email);
 CREATE UNIQUE INDEX idx_user_public_id ON user (public_id);
-CREATE UNIQUE INDEX idx_user_firebase_uid ON user (firebase_uid);
 
 CREATE INDEX idx_post_author_id ON post (author_id);
 CREATE INDEX idx_post_community ON post (community_id, id);
@@ -605,6 +624,101 @@ BEGIN
     SET member_count = member_count - 1
     WHERE id = old.community_id;
 END;
+
+/* Baseline seed data */
+
+INSERT OR IGNORE INTO user (
+    id,
+    public_id,
+    username,
+    displayname,
+    email_verified,
+    password,
+    salt,
+    is_admin
+) VALUES (
+    'b21d6c6a-3e65-4b79-8ef4-7d956d35733c',
+    'system',
+    'System',
+    'System',
+    true,
+    '',
+    '',
+    1
+);
+
+INSERT OR IGNORE INTO tag (name)
+VALUES ('UAEU'),
+       ('Study'),
+       ('Gaming'),
+       ('Hobbies'),
+       ('Jobs');
+
+INSERT OR IGNORE INTO community (
+    id,
+    public_id,
+    name,
+    description,
+    icon,
+    tags,
+    owner_id
+) VALUES (
+    0,
+    'general',
+    'general',
+    'This is the general community',
+    NULL,
+    'UAEU,Study,Gaming,Hobbies,Jobs',
+    'b21d6c6a-3e65-4b79-8ef4-7d956d35733c'
+);
+
+INSERT OR IGNORE INTO community_tag (community_id, tag_id)
+SELECT 0, id
+FROM tag
+WHERE name IN ('UAEU', 'Study', 'Gaming', 'Hobbies', 'Jobs');
+
+INSERT OR IGNORE INTO community_role (
+    id,
+    community_id,
+    name,
+    level,
+    read_posts,
+    write_posts,
+    delete_posts,
+    administrator
+) VALUES (
+    1,
+    0,
+    'Administrator',
+    100,
+    true,
+    true,
+    true,
+    true
+);
+
+INSERT OR IGNORE INTO community_role (
+    id,
+    community_id,
+    name,
+    level,
+    read_posts,
+    write_posts,
+    delete_posts,
+    administrator
+) VALUES (
+    2,
+    0,
+    'Member',
+    0,
+    true,
+    true,
+    false,
+    false
+);
+
+INSERT OR IGNORE INTO user_community (user_id, community_id, role_id)
+VALUES ('b21d6c6a-3e65-4b79-8ef4-7d956d35733c', 0, 1);
 
 
 /*
