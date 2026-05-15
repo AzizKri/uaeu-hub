@@ -20,11 +20,14 @@ export async function sendEmail(c: Context, payload: EmailPayload): Promise<Emai
         return { id: `test_${Date.now()}` };
     }
 
-    if (!c.env.RESEND_API_KEY) {
-        throw new Error('RESEND_API_KEY is not configured');
-    }
+    const resendApiKey = c.env.RESEND_API_KEY || (c.env as { EMAIL_API?: string }).EMAIL_API;
+    if (!resendApiKey) throw new Error('RESEND_API_KEY or EMAIL_API is not configured');
 
-    const authorization = `Bearer ${c.env.RESEND_API_KEY}`;
+    return sendResendEmail(c, payload, resendApiKey);
+}
+
+async function sendResendEmail(c: Context, payload: EmailPayload, apiKey: string): Promise<EmailResult> {
+    const authorization = `Bearer ${apiKey}`;
     const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
