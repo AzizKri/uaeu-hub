@@ -141,14 +141,14 @@ export default function Reports() {
                     reports.map((report) => (
                         <div 
                             key={report.id} 
-                            className={`${styles.reportCard} ${!!report.resolved ? styles.resolved : ''}`}
+                            className={`${styles.reportCard} ${report.resolved ? styles.resolved : ''}`}
                         >
                             <div className={styles.reportHeader}>
                                 <span className={styles.entityType}>
                                     {getEntityTypeLabel(report.entity_type)}
                                 </span>
                                 <span className={styles.reportType}>{report.report_type}</span>
-                                {!!report.resolved && <span className={styles.resolvedBadge}>Resolved</span>}
+                                {report.resolved && <span className={styles.resolvedBadge}>Resolved</span>}
                             </div>
                             
                             <div className={styles.reportContent}>

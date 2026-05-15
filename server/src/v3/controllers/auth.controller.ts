@@ -55,7 +55,7 @@ export async function signup(c: Context) {
         userSchema.parse({ displayname, email, username, password });
     } catch (e) {
         if (e instanceof z.ZodError) {
-            const errors = e.errors.map(err => ({ field: err.path[0], message: err.message }));
+            const errors = e.issues.map(err => ({ field: err.path[0], message: err.message }));
             return c.json({ errors }, 400);
         } else {
             return c.json({ message: 'Internal Server Error', status: 500 }, 500);
@@ -473,7 +473,7 @@ export async function sendForgotPasswordEmail(c: Context) {
         return c.json({ message: 'Email sent', status: 200 }, 200);
     } catch (e: any) {
         console.error('Error sending email:', e);
-        if (e.response) console.error(e.response.body.errors);
+        if (e.response) console.error(e.response.body.issues);
         return c.json({ message: 'Internal Server Error', status: 500 }, 500);
     }
 }
@@ -881,6 +881,6 @@ async function sendPasswordChangedConfirmationEmail(c: Context, username: string
         await sgMail.send(msg);
     } catch (e: any) {
         console.error('Error sending email:', e);
-        if (e.response) console.error(e.response.body.errors);
+        if (e.response) console.error(e.response.body.issues);
     }
 }

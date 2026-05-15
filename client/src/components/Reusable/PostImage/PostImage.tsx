@@ -15,8 +15,8 @@ export default function PostImage({
   onLoad: () => void;
   isLoading: boolean;
 }) {
-  const loadAnimationFrame = useRef<number>();
-  const errorAnimationFrame = useRef<number>();
+  const loadAnimationFrame = useRef<number | null>(null);
+  const errorAnimationFrame = useRef<number | null>(null);
   const hasSettled = useRef(false);
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { z } from 'zod';
 
 export function validationError(c: Context, error: z.ZodError) {
-    const errors = error.errors.map((issue) => ({
+    const errors = error.issues.map((issue) => ({
         field: issue.path[0] ?? 'request',
         message: issue.message
     }));

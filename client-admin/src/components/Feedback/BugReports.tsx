@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getBugReports, updateFeedbackStatus } from '../../api/feedback';
 import styles from './Feedback.module.scss';
 
+type FeedbackStatus = 'pending' | 'reviewed' | 'resolved' | 'closed';
+
 export default function BugReports() {
     const [reports, setReports] = useState<BugReport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +27,7 @@ export default function BugReports() {
         }
     };
 
-    const handleStatusChange = async (reportId: number, newStatus: 'pending' | 'reviewed' | 'resolved' | 'closed') => {
+    const handleStatusChange = async (reportId: number, newStatus: FeedbackStatus) => {
         try {
             const result = await updateFeedbackStatus('bug', reportId, newStatus);
             if (result === 200) {
@@ -136,7 +138,7 @@ export default function BugReports() {
                                 <select
                                     className={styles.statusSelect}
                                     value={report.status}
-                                    onChange={(e) => handleStatusChange(report.id, e.target.value as any)}
+                                    onChange={(e) => handleStatusChange(report.id, e.target.value as FeedbackStatus)}
                                 >
                                     <option value="pending">Pending</option>
                                     <option value="reviewed">Reviewed</option>

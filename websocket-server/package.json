@@ -4,20 +4,21 @@
     "description": "The websocket server for uaeu.chat",
     "main": "src/server.ts",
     "scripts": {
-        "start": "ts-node src/server.ts",
+        "start": "tsx src/server.ts",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "server": "npm install && tsc"
+        "server": "tsc"
     },
     "devDependencies": {
-        "@types/express": "^5.0.0",
-        "@types/node": "^22.10.3",
-        "@types/ws": "^8.5.13",
-        "typescript": "^5.7.2"
+        "@types/express": "5.0.6",
+        "@types/node": "25.8.0",
+        "@types/ws": "8.18.1",
+        "tsx": "4.22.0",
+        "typescript": "6.0.3"
     },
     "dependencies": {
-        "body-parser": "^1.20.3",
-        "dotenv": "^16.4.7",
-        "express": "^4.21.2",
-        "ws": "^8.18.0"
+        "body-parser": "2.2.2",
+        "dotenv": "17.4.2",
+        "express": "5.2.1",
+        "ws": "8.20.1"
     }
 }
