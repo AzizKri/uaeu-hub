@@ -6,6 +6,7 @@ import homeIcon from "../../assets/home-outline-thin.svg";
 import logoutIcon from "../../assets/logout-thin.svg";
 import courseMaterial from "../../assets/course-material.svg";
 import professorIcon from "../../assets/professor.svg";
+import adminIcon from "../../assets/cog-outline-thin.svg";
 import redirectImg from "../../assets/redirect_square.svg"
 import YesNoPopUp from "../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -38,6 +39,11 @@ export default function Aside() {
     const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
 
     useEffect(() => {
+        if (location.pathname.startsWith("/admin")) {
+            setActive("admin");
+            return;
+        }
+
         const ptr = /\/(\w+)\//;
         const match = location.pathname.match(ptr);
         if (!match) {
@@ -107,6 +113,12 @@ export default function Aside() {
         inActivateLeft();
     }
 
+    const handleAdmin = () => {
+        navigate('/admin');
+        setActive("admin");
+        inActivateLeft();
+    }
+
     return (
         <ul
             className={styles.aside}
@@ -134,6 +146,18 @@ export default function Aside() {
                         >
                             <img src={accountIcon} alt="profile icon" />
                             <span>Profile</span>
+                        </div>
+                    </div>
+                </li>
+            )}
+            {isUser() && user?.isAdmin && (
+                <li>
+                    <div onClick={handleAdmin}>
+                        <div
+                            className={`${styles.top_element} ${styles.element} ${active === "admin" && styles.active}`}
+                        >
+                            <img src={adminIcon} alt="admin dashboard icon" />
+                            <span>Admin Dashboard</span>
                         </div>
                     </div>
                 </li>

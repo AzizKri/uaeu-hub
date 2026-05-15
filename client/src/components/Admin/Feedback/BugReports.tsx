@@ -1,20 +1,15 @@
-import { useState, useEffect } from 'react';
-import { getBugReports, updateFeedbackStatus } from '../../api/feedback';
+import { useState, useEffect, useCallback } from 'react';
+import { assetsBase } from '../../../api/api.ts';
+import { getBugReports, updateFeedbackStatus } from '../../../api/feedback.ts';
 import styles from './Feedback.module.scss';
 
-type FeedbackStatus = 'pending' | 'reviewed' | 'resolved' | 'closed';
-
 export default function BugReports() {
-    const [reports, setReports] = useState<BugReport[]>([]);
+    const [reports, setReports] = useState<AdminBugReport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-    const [filterStatus, setFilterStatus] = useState<string>('');
+    const [filterStatus, setFilterStatus] = useState<AdminFeedbackStatus | ''>('');
 
-    useEffect(() => {
-        loadReports();
-    }, [filterStatus]);
-
-    const loadReports = async () => {
+    const loadReports = useCallback(async () => {
         setIsLoading(true);
         try {
             const data = await getBugReports(filterStatus || undefined);
@@ -25,9 +20,13 @@ export default function BugReports() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [filterStatus]);
 
-    const handleStatusChange = async (reportId: number, newStatus: FeedbackStatus) => {
+    useEffect(() => {
+        void loadReports();
+    }, [loadReports]);
+
+    const handleStatusChange = async (reportId: number, newStatus: AdminFeedbackStatus) => {
         try {
             const result = await updateFeedbackStatus('bug', reportId, newStatus);
             if (result === 200) {
@@ -58,7 +57,7 @@ export default function BugReports() {
         });
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: AdminFeedbackStatus) => {
         const colors: Record<string, string> = {
             'pending': 'warning',
             'reviewed': 'info',
@@ -83,7 +82,7 @@ export default function BugReports() {
                 <div className={styles.filters}>
                     <select 
                         value={filterStatus} 
-                        onChange={(e) => setFilterStatus(e.target.value)}
+                        onChange={(e) => setFilterStatus(e.target.value as AdminFeedbackStatus | '')}
                         className={styles.filterSelect}
                     >
                         <option value="">All Statuses</option>
@@ -114,12 +113,12 @@ export default function BugReports() {
                                 {report.screenshot && (
                                     <div className={styles.screenshot}>
                                         <a 
-                                            href={report.screenshot.startsWith('http') ? report.screenshot : `https://r2.uaeu.chat/attachments/${report.screenshot}`}
+                                            href={report.screenshot.startsWith('http') ? report.screenshot : `${assetsBase}/attachments/${report.screenshot}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
                                             <img 
-                                                src={report.screenshot.startsWith('http') ? report.screenshot : `https://r2.uaeu.chat/attachments/${report.screenshot}`}
+                                                src={report.screenshot.startsWith('http') ? report.screenshot : `${assetsBase}/attachments/${report.screenshot}`}
                                                 alt="Bug screenshot"
                                             />
                                         </a>
@@ -138,7 +137,7 @@ export default function BugReports() {
                                 <select
                                     className={styles.statusSelect}
                                     value={report.status}
-                                    onChange={(e) => handleStatusChange(report.id, e.target.value as FeedbackStatus)}
+                                    onChange={(e) => handleStatusChange(report.id, e.target.value as AdminFeedbackStatus)}
                                 >
                                     <option value="pending">Pending</option>
                                     <option value="reviewed">Reviewed</option>

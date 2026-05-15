@@ -6,6 +6,7 @@ import { me, register, checkUsername } from '../../../api/authentication';
 import { useUser } from "../../../contexts/user/UserContext.ts";
 import Modal from '../../Reusable/Modal/Modal';
 import FormItem from '../../Reusable/Forms/FormItem';
+import { mapBackendUserToUserInfo } from "../../../contexts/user/mapBackendUser.ts";
 
 export default function GoogleAuth({
     setErrors,
@@ -50,14 +51,7 @@ export default function GoogleAuth({
 
             if (userData && userData.username && !userData.is_anonymous) {
                 // Existing user with username - login successful
-                updateUser({
-                    new: false,
-                    username: userData.username,
-                    displayName: userData.displayname,
-                    bio: userData.bio,
-                    // Use backend pfp if available, otherwise use Firebase photo URL
-                    pfp: userData.pfp || user.photoURL || ''
-                });
+                updateUser(mapBackendUserToUserInfo(userData, user));
                 setIsLoading(false);
                 onSubmit();
             } else {
@@ -134,7 +128,10 @@ export default function GoogleAuth({
                     username: data.username || username,
                     displayName: data.displayname || pendingUser?.displayName,
                     bio: data.bio || '',
-                    pfp: data.pfp || pendingUser?.photoURL || ''
+                    pfp: data.pfp || pendingUser?.photoURL || '',
+                    isAdmin: false,
+                    isSuspended: false,
+                    isBanned: false,
                 });
                 setShowUsernameModal(false);
                 onSubmit();

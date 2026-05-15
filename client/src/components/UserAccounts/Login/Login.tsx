@@ -7,6 +7,7 @@ import { useUser } from "../../../contexts/user/UserContext.ts";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 import { auth, signInWithEmailAndPassword } from '../../../firebase/config';
+import { mapBackendUserToUserInfo } from "../../../contexts/user/mapBackendUser.ts";
 
 export default function Login() {
     const navigate = useNavigate();
@@ -80,13 +81,7 @@ export default function Login() {
             // Get user data from backend
             const data = await me();
             if (data) {
-                updateUser({
-                    new: false,
-                    username: data.username,
-                    displayName: data.displayname,
-                    bio: data.bio,
-                    pfp: data.pfp
-                });
+                updateUser(mapBackendUserToUserInfo(data, auth.currentUser));
             }
 
             goBack();

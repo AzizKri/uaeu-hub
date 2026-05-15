@@ -160,6 +160,73 @@ declare global {
         setBanned: () => void;
     }
 
+    interface AdminStats {
+        totalUsers: number;
+        totalPosts: number;
+        totalCommunities: number;
+        pendingReports: number;
+        pendingBugReports: number;
+        pendingFeatureRequests: number;
+    }
+
+    interface TopCommunity {
+        id: number;
+        public_id: string;
+        name: string;
+        description: string;
+        icon: string | null;
+        member_count: number;
+        created_at: number | string;
+    }
+
+    interface AdminReport {
+        id: number;
+        reporter_id: number;
+        reporter_username?: string;
+        entity_id: number;
+        entity_type: "post" | "comment" | "subcomment" | "community" | "user";
+        report_type: string;
+        reason: string;
+        resolved: boolean;
+        created_at: number | string;
+        entity?: AdminReportEntity;
+    }
+
+    interface AdminReportEntity {
+        id: number;
+        content?: string;
+        author_username?: string;
+        author_displayname?: string;
+        name?: string;
+        username?: string;
+        attachment?: string;
+        attachment_mime?: string;
+    }
+
+    type AdminFeedbackStatus = "pending" | "reviewed" | "resolved" | "closed";
+
+    interface AdminBugReport {
+        id: number;
+        public_id: string;
+        reporter_id: number;
+        reporter_username?: string;
+        description: string;
+        screenshot?: string;
+        status: AdminFeedbackStatus;
+        created_at: number | string;
+    }
+
+    interface AdminFeatureRequest {
+        id: number;
+        public_id: string;
+        reporter_id: number;
+        reporter_username?: string;
+        description: string;
+        screenshot?: string;
+        status: AdminFeedbackStatus;
+        created_at: number | string;
+    }
+
     interface GenericMetadata {
         size: number
     }
