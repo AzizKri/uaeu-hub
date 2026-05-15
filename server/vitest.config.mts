@@ -1,36 +1,35 @@
-// @ts-ignore
-import { defineWorkersProject, readD1Migrations } from '@cloudflare/vitest-pool-workers/config';
-import { resolve } from 'node:path';
+import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
+import { defineConfig } from 'vitest/config';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export default defineWorkersProject(async () => {
-    // Read all migrations in the `migrations` directory
-    const migrationsPath = resolve(__dirname, 'migrations');
-    const migrations = await readD1Migrations(migrationsPath);
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
-    return {
-        test: {
-            globals: true,
-            setupFiles: [resolve(__dirname, 'test/setup.ts')],
-            poolOptions: {
-                workers: {
-                    isolatedStorage: false,
-                    singleWorker: true,
-                    wrangler: {
-                        configPath: resolve(__dirname, 'wrangler.toml'),
-                        environment: 'dev'
-                    },
-                    miniflare: {
-                        // Add a test-only binding for migrations
-                        bindings: { TEST_MIGRATIONS: migrations }
-                    }
+export default defineConfig({
+    plugins: [
+        cloudflareTest(async () => {
+            const migrations = await readD1Migrations(resolve(projectRoot, 'migrations'));
+
+            return {
+                wrangler: {
+                    configPath: resolve(projectRoot, 'wrangler.toml'),
+                    environment: 'dev'
+                },
+                miniflare: {
+                    // Add a test-only binding for migrations.
+                    bindings: { TEST_MIGRATIONS: migrations }
                 }
-            },
-            testTimeout: 10000,
-            hookTimeout: 10000,
-            alias: {
-                'google-auth-library': resolve(__dirname, 'test/mocks/google-auth.ts'),
-                '@sendgrid/mail': resolve(__dirname, 'test/mocks/sendgrid.ts')
-            }
+            };
+        })
+    ],
+    test: {
+        globals: true,
+        setupFiles: [resolve(projectRoot, 'test/setup.ts')],
+        testTimeout: 10000,
+        hookTimeout: 10000,
+        alias: {
+            'google-auth-library': resolve(projectRoot, 'test/mocks/google-auth.ts'),
+            '@sendgrid/mail': resolve(projectRoot, 'test/mocks/sendgrid.ts')
         }
-    };
+    }
 });

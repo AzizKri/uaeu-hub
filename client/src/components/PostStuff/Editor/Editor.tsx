@@ -75,7 +75,7 @@ export default function Editor({
     prependComment,
     communityId,
     autoFocus = false,
-}: EditorProps ): JSX.Element {
+}: EditorProps ): React.ReactElement {
     const [plainText, setPlainText] = useState<string>("");
     const [uploadState, setUploadState] = useState<UploadState>({
         status: "IDLE",

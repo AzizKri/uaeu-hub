@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getFeatureRequests, updateFeedbackStatus } from '../../api/feedback';
 import styles from './Feedback.module.scss';
 
+type FeedbackStatus = 'pending' | 'reviewed' | 'resolved' | 'closed';
+
 export default function FeatureRequests() {
     const [requests, setRequests] = useState<FeatureRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +27,7 @@ export default function FeatureRequests() {
         }
     };
 
-    const handleStatusChange = async (requestId: number, newStatus: 'pending' | 'reviewed' | 'resolved' | 'closed') => {
+    const handleStatusChange = async (requestId: number, newStatus: FeedbackStatus) => {
         try {
             const result = await updateFeedbackStatus('feature', requestId, newStatus);
             if (result === 200) {
@@ -136,7 +138,7 @@ export default function FeatureRequests() {
                                 <select
                                     className={styles.statusSelect}
                                     value={request.status}
-                                    onChange={(e) => handleStatusChange(request.id, e.target.value as any)}
+                                    onChange={(e) => handleStatusChange(request.id, e.target.value as FeedbackStatus)}
                                 >
                                     <option value="pending">Pending</option>
                                     <option value="reviewed">Reviewed</option>
