@@ -5,6 +5,7 @@ import styles from "./EmailVerification.module.scss";
 import successLogo from "../../../assets/check-mark-svgrepo.svg";
 import failedLogo from "../../../assets/cross-mark-button-svgrepo.svg";
 import LoadingFallback from "../../Reusable/LoadingFallback/LoadingFallback.tsx";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 const authBase = (import.meta.env.VITE_API_URL || "https://api.uaeu.chat") + "/auth";
 
@@ -25,17 +26,21 @@ export default function EmailVerification() {
 
             try {
                 const response = await apiFetch(`${authBase}/verifyEmail?token=${encodeURIComponent(token)}`);
-                const data = await response.json();
                 if (response.ok) {
                     setStatus("success");
                     setMessage("Your email has been verified.");
                 } else {
                     setStatus("error");
-                    setMessage(data.message || "This verification link is invalid or expired.");
+                    setMessage(
+                        await getResponseErrorMessage(
+                            response,
+                            "This verification link is invalid or expired.",
+                        ),
+                    );
                 }
-            } catch {
+            } catch (error) {
                 setStatus("error");
-                setMessage("Unable to verify email right now.");
+                setMessage(getRequestFailureMessage("verify email", error));
             }
         }
 

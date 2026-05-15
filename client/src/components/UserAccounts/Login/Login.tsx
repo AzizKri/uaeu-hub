@@ -6,6 +6,7 @@ import { useUser } from "../../../contexts/user/UserContext.ts";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 import { mapBackendUserToUserInfo } from "../../../contexts/user/mapBackendUser.ts";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 export default function Login() {
     const navigate = useNavigate();
@@ -55,19 +56,31 @@ export default function Login() {
 
         try {
             const response = await login(formData.identifier, formData.password);
-            const data = await response.json();
 
-            if (response.ok && data.user) {
+            if (response.ok) {
+                const data = await response.json();
+                if (!data.user) {
+                    setErrors({
+                        global:
+                            'Login succeeded, but the server did not return your profile. Refresh and try again.',
+                    });
+                    return;
+                }
                 updateUser(mapBackendUserToUserInfo(data.user));
                 goBack();
-            } else if (data.banned) {
+            } else if ((await response.clone().json().catch(() => ({}))).banned) {
                 setErrors({ global: 'This account has been banned. You cannot log in.' });
             } else {
-                setErrors({ global: data.message || 'Invalid credentials' });
+                setErrors({
+                    global: await getResponseErrorMessage(
+                        response,
+                        'Could not log in. Check your username or email and password.',
+                    ),
+                });
             }
         } catch (error: unknown) {
             console.error('Login error:', error);
-            setErrors({ global: 'Something went wrong, please try again' });
+            setErrors({ global: getRequestFailureMessage('log in', error) });
         }
         setIsLoading(false);
     };

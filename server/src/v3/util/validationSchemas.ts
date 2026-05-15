@@ -7,12 +7,13 @@ const nonEmptyText = (fieldName: string) => z.string().refine((value) => value.t
 });
 const optionalAssetIdSchema = z.string().regex(uuidRegex, 'Invalid asset identifier').optional();
 const communityTagsSchema = z
-    .string()
-    .optional()
-    .default('')
+    .string({ error: 'Please select at least one tag' })
     .transform((tags) => {
         const parsedTags = tags.split(',').map((tag) => tag.trim()).filter((tag) => tag.length > 0);
-        return parsedTags.length > 0 ? parsedTags : ['Other'];
+        return parsedTags;
+    })
+    .refine((tags) => tags.length > 0, {
+        message: 'Please select at least one tag'
     });
 const booleanQuerySchema = z.preprocess(
     (value) => value === undefined ? 'false' : value,
@@ -53,9 +54,7 @@ export const communityEditingSchema = z.object({
     name: z.string().min(3, 'Community name must be at least 3 characters long').max(32, 'Community name must be at most 32 characters long').nullable().optional(),
     desc: z.string().max(1024, 'Community description must be at most 1024 characters long').optional().nullable(),
     icon: assetIdSchema.optional(),
-    tags: z
-        .string()
-        .transform((value) => value.split(',').map((tag) => tag.trim()))
+    tags: communityTagsSchema
         .refine((array) => array.length <= 5, {
             message: 'Community tags must be at most 5 tags long'
         })

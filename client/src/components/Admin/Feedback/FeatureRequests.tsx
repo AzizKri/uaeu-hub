@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { assetsBase } from '../../../api/api.ts';
 import { getFeatureRequests, updateFeedbackStatus } from '../../../api/feedback.ts';
 import styles from './Feedback.module.scss';
+import { getRequestFailureMessage } from '../../../api/errors.ts';
 
 export default function FeatureRequests() {
     const [requests, setRequests] = useState<AdminFeatureRequest[]>([]);
@@ -16,7 +17,11 @@ export default function FeatureRequests() {
             setRequests(data.requests || []);
         } catch (err) {
             console.error('Failed to load feature requests:', err);
-            setError('Failed to load feature requests');
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : 'Could not load feature requests.',
+            );
         } finally {
             setIsLoading(false);
         }
@@ -29,14 +34,16 @@ export default function FeatureRequests() {
     const handleStatusChange = async (requestId: number, newStatus: AdminFeedbackStatus) => {
         try {
             const result = await updateFeedbackStatus('feature', requestId, newStatus);
-            if (result === 200) {
+            if (result.status === 200) {
                 setRequests(requests.map(r => 
                     r.id === requestId ? { ...r, status: newStatus } : r
                 ));
+            } else {
+                alert(result.message || 'Could not update feature request status.');
             }
         } catch (err) {
             console.error('Failed to update status:', err);
-            alert('Failed to update status');
+            alert(getRequestFailureMessage('update feature request status', err));
         }
     };
 

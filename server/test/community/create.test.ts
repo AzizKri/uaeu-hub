@@ -35,13 +35,33 @@ async function signupUser() {
 }
 
 describe('Community creation', () => {
-    it('creates a community with the Other tag when no tags are selected', async () => {
+    it('rejects community creation when no tags are selected', async () => {
+        const formData = new FormData();
+        formData.append('name', unique('community'));
+        formData.append('desc', 'A community without tags');
+        formData.append('tags', '');
+        formData.append('icon', validAssetId);
+
+        const response = await SELF.fetch(`${base}/community`, {
+            method: 'POST',
+            body: formData
+        });
+
+        expect(response.status).toBe(400);
+        const body = await response.json() as { errors?: Array<{ field?: string; message?: string }> };
+        expect(body.errors).toContainEqual({
+            field: 'tags',
+            message: 'Please select at least one tag'
+        });
+    });
+
+    it('creates a community with the selected tag', async () => {
         const cookie = await signupUser();
         const name = unique('community');
         const formData = new FormData();
         formData.append('name', name);
-        formData.append('desc', 'A community without tags');
-        formData.append('tags', '');
+        formData.append('desc', 'A community with a selected tag');
+        formData.append('tags', 'Study');
         formData.append('icon', validAssetId);
 
         const response = await SELF.fetch(`${base}/community`, {
@@ -57,7 +77,7 @@ describe('Community creation', () => {
             FROM community
             WHERE id = ?
         `).bind(body.id).first<{ name: string; tags: string | null }>();
-        expect(community).toEqual({ name, tags: 'Other' });
+        expect(community).toEqual({ name, tags: 'Study' });
 
         const communityTags = await env.DB.prepare(`
             SELECT tag.name
@@ -65,6 +85,6 @@ describe('Community creation', () => {
             JOIN tag ON tag.id = community_tag.tag_id
             WHERE community_tag.community_id = ?
         `).bind(body.id).first<{ name: string }>();
-        expect(communityTags?.name).toBe('Other');
+        expect(communityTags?.name).toBe('Study');
     });
 });

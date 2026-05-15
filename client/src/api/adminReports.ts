@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import { ApiMutationResult, getResponseErrorMessage, toApiMutationResult } from "./errors";
 
 const base = import.meta.env.VITE_API_URL || "https://api.uaeu.chat";
 
@@ -22,6 +23,11 @@ export async function getAdminReports(
     if (entityType) params.append("entityType", entityType);
 
     const response = await apiFetch(`${base}/report/admin/all?${params.toString()}`, { headers });
+    if (!response.ok) {
+        throw new Error(
+            await getResponseErrorMessage(response, 'Could not load reports.'),
+        );
+    }
     return await response.json();
 }
 
@@ -29,7 +35,7 @@ export async function takeAdminReportAction(
     reportId: number,
     action: "delete" | "delete_suspend" | "delete_ban" | "warn" | "dismiss",
     reason?: string,
-): Promise<{ message: string; status: number }> {
+): Promise<ApiMutationResult> {
     const headers = await getAuthHeaders();
     const response = await apiFetch(`${base}/report/${reportId}/action`, {
         method: "POST",
@@ -37,5 +43,8 @@ export async function takeAdminReportAction(
         body: JSON.stringify({ action, reason }),
     });
 
-    return await response.json();
+    return toApiMutationResult(
+        response,
+        'Could not apply the report action.',
+    );
 }

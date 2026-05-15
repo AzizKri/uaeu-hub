@@ -2,6 +2,7 @@ import {useState} from "react";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 import { changeEmail } from "../../../api/authentication.ts";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 interface ChangeEmailProps {
     currentEmail: string;
@@ -37,12 +38,15 @@ export default function ChangeEmail({ currentEmail, onSuccess, onError }: Change
             if (response.ok) {
                 onSuccess();
             } else {
-                const data = await response.json();
-                setErrors({ global: data.message || "Unable to change email" });
+                setErrors({
+                    global: await getResponseErrorMessage(
+                        response,
+                        "Could not change email. Please review the email and password.",
+                    ),
+                });
             }
         } catch (error: unknown) {
-            const typedError = error as { message?: string };
-            onError(typedError.message || "Unable to change email");
+            onError(getRequestFailureMessage("change email", error));
         }
         setIsLoading(false);
     };

@@ -62,3 +62,23 @@ test("community form validation requires a description before upload", () => {
         "Community description must be at most 1024 characters long",
     );
 });
+
+test("community form validation requires at least one tag", () => {
+    const { getCommunityTagsError } = loadValidationModule();
+
+    assert.equal(getCommunityTagsError([]), "Please select at least one tag");
+    assert.equal(getCommunityTagsError(["   "]), "Please select at least one tag");
+    assert.equal(getCommunityTagsError(["Study"]), "");
+});
+
+test("community form validation includes the typed pending tag before submit", () => {
+    const { getFinalCommunityTags, getCommunityTagsError } =
+        loadValidationModule();
+
+    assert.deepEqual(getFinalCommunityTags([], "Research"), ["Research"]);
+    assert.deepEqual(getFinalCommunityTags([{ name: "Study" }], "Research"), [
+        "Study",
+        "Research",
+    ]);
+    assert.equal(getCommunityTagsError(getFinalCommunityTags([], "   ")), "Please select at least one tag");
+});

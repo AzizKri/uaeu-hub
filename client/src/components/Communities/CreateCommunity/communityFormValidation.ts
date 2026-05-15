@@ -1,6 +1,7 @@
 export const COMMUNITY_NAME_MIN_LENGTH = 3;
 export const COMMUNITY_NAME_MAX_LENGTH = 32;
 export const COMMUNITY_DESCRIPTION_MAX_LENGTH = 1024;
+export const COMMUNITY_TAGS_REQUIRED_MESSAGE = "Please select at least one tag";
 
 export function getCommunityNameError(name: string) {
     const trimmedName = name.trim();
@@ -32,4 +33,27 @@ export function getCommunityDescriptionError(description: string) {
     }
 
     return "";
+}
+
+export function getFinalCommunityTags(
+    selectedTags: Array<{ name: string } | string>,
+    pendingTag: string = "",
+) {
+    const finalTags = selectedTags
+        .map((tag) => (typeof tag === "string" ? tag : tag.name))
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+
+    const trimmedPendingTag = pendingTag.trim();
+    if (trimmedPendingTag.length > 0 && !finalTags.includes(trimmedPendingTag)) {
+        finalTags.push(trimmedPendingTag);
+    }
+
+    return finalTags;
+}
+
+export function getCommunityTagsError(tags: string[]) {
+    return tags.some((tag) => tag.trim().length > 0)
+        ? ""
+        : COMMUNITY_TAGS_REQUIRED_MESSAGE;
 }

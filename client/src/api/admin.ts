@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import { getResponseErrorMessage } from "./errors";
 
 const base = import.meta.env.VITE_API_URL || "https://api.uaeu.chat";
 
@@ -16,5 +17,13 @@ export async function getAdminStats(): Promise<{
 }> {
     const headers = await getAuthHeaders();
     const response = await apiFetch(`${base}/admin/stats`, { headers });
+    if (!response.ok) {
+        throw new Error(
+            await getResponseErrorMessage(
+                response,
+                'Could not load dashboard data.',
+            ),
+        );
+    }
     return await response.json();
 }

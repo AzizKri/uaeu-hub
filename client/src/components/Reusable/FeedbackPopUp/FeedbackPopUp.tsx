@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { submitBugReport, submitFeatureRequest } from "../../../api/feedback.ts";
 import { uploadAttachment } from "../../../api/attachmets.ts";
 import ThreeDotsLine from "../Animations/ThreeDotsLine/ThreeDotsLine.tsx";
+import { ApiMutationResult, getRequestFailureMessage } from "../../../api/errors.ts";
 
 interface FeedbackPopUpProps {
     type: "bug" | "feature";
@@ -37,26 +38,34 @@ export default function FeedbackPopUp({ type, hidePopUp }: FeedbackPopUpProps) {
         setError("");
 
         try {
-            let status: number;
+            let result: ApiMutationResult;
 
             if (type === "bug") {
-                status = await submitBugReport(description, screenshot || undefined);
+                result = await submitBugReport(description, screenshot || undefined);
             } else {
-                status = await submitFeatureRequest(description, screenshot || undefined);
+                result = await submitFeatureRequest(description, screenshot || undefined);
             }
 
-            if (status === 201) {
+            if (result.status === 201) {
                 setSuccess(true);
                 setTimeout(() => {
                     hidePopUp();
                 }, 1500);
-            } else if (status === 401) {
+            } else if (result.status === 401) {
                 setError("You must be logged in to submit feedback");
             } else {
-                setError("Failed to submit. Please try again.");
+                setError(
+                    result.message ||
+                        `Could not submit ${type === "bug" ? "bug report" : "feature request"}. Please review the description and try again.`,
+                );
             }
-        } catch {
-            setError("An error occurred. Please try again.");
+        } catch (error) {
+            setError(
+                getRequestFailureMessage(
+                    `submit ${type === "bug" ? "bug report" : "feature request"}`,
+                    error,
+                ),
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -100,11 +109,14 @@ export default function FeedbackPopUp({ type, hidePopUp }: FeedbackPopUpProps) {
             if (result.status === 201 && result.filename) {
                 setScreenshot(result.filename);
             } else {
-                setError("Failed to upload screenshot. Please try again.");
+                setError(
+                    result.message ||
+                        "Could not upload screenshot. Please choose a supported image and try again.",
+                );
                 setScreenshotPreview(null);
             }
-        } catch {
-            setError("Failed to upload screenshot. Please try again.");
+        } catch (error) {
+            setError(getRequestFailureMessage("upload screenshot", error));
             setScreenshotPreview(null);
         } finally {
             setIsUploading(false);

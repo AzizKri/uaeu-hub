@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 import { changePassword } from "../../../api/authentication.ts";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 interface ChangePasswordProps {
     onSuccess: () => void;
@@ -60,11 +61,20 @@ export default function ChangePassword({ onSuccess, onError }: ChangePasswordPro
         try {
             const response = await changePassword(formData.currPassword, formData.newPassword);
             if (!response.ok) {
-                const data = await response.json();
                 if (response.status === 401) {
-                    setErrors({ currPassword: data.message || "Current password is incorrect" });
+                    setErrors({
+                        currPassword: await getResponseErrorMessage(
+                            response,
+                            "Current password is incorrect",
+                        ),
+                    });
                 } else {
-                    onError(data.message || "An error occurred while changing your password");
+                    onError(
+                        await getResponseErrorMessage(
+                            response,
+                            "Could not change password. Please review the form and try again.",
+                        ),
+                    );
                 }
                 setIsLoading(false);
                 return;
@@ -78,9 +88,8 @@ export default function ChangePassword({ onSuccess, onError }: ChangePasswordPro
 
             onSuccess();
         } catch (error: unknown) {
-            const typedError = error as { message?: string };
-            console.error('Password change error:', typedError);
-            onError(typedError.message || "An error occurred while changing your password");
+            console.error('Password change error:', error);
+            onError(getRequestFailureMessage('change password', error));
         }
 
         setIsLoading(false);
