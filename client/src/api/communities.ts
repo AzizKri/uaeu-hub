@@ -2,12 +2,41 @@ import { apiFetch } from "./client";
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/community';
 
+type CommunityMutationResult = {
+    status: number;
+    message?: string;
+};
+
 async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
     const headers: HeadersInit = {};
     if (includeContentType) {
         headers['Content-Type'] = 'application/json';
     }
     return headers;
+}
+
+async function getCommunityMutationResult(request: Response): Promise<CommunityMutationResult> {
+    if (request.ok) {
+        return { status: request.status };
+    }
+
+    const contentType = request.headers.get('content-type') || '';
+
+    if (contentType.includes('application/json')) {
+        try {
+            const body = await request.json() as { errors?: { message?: string }[]; message?: string };
+            const errorMessage = body.errors?.map((error) => error.message).filter(Boolean).join('\n') || body.message;
+
+            if (errorMessage) {
+                return { status: request.status, message: errorMessage };
+            }
+        } catch {
+            return { status: request.status, message: 'Something went wrong' };
+        }
+    }
+
+    const text = await request.text();
+    return { status: request.status, message: text || 'Something went wrong' };
 }
 
 // Create a community
@@ -27,7 +56,7 @@ export async function createCommunity(name: string, description: string, tags: s
         headers,
         body: formData,
     });
-    return request.status;
+    return getCommunityMutationResult(request);
 }
 
 // Check if a community exists with the given name
@@ -115,7 +144,7 @@ export async function editCommunity(id: number, name?: string, description?: str
         headers,
         body: formData,
     });
-    return request.status;
+    return getCommunityMutationResult(request);
 }
 
 // Delete community by ID
