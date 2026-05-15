@@ -11,10 +11,8 @@ app.use(cors({
         'https://uaeu.chat',
         'https://dev.uaeu.chat',
         'https://osama.uaeu.chat',
-        'https://admin.uaeu.chat',
         'https://post-page.uaeu-hub.pages.dev',
-        'http://localhost:5173',
-        'http://localhost:5174'
+        'http://localhost:5173'
     ],
     credentials: true
 }));

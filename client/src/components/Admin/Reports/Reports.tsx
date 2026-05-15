@@ -1,28 +1,25 @@
-import { useState, useEffect } from 'react';
-import { getReports, takeReportAction } from '../../api/reports';
+import { useState, useEffect, useCallback } from 'react';
+import { assetsBase } from '../../../api/api.ts';
+import { getAdminReports, takeAdminReportAction } from '../../../api/adminReports.ts';
 import styles from './Reports.module.scss';
 
 export default function Reports() {
-    const [reports, setReports] = useState<Report[]>([]);
+    const [reports, setReports] = useState<AdminReport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [showResolved, setShowResolved] = useState(false);
     const [filterType, setFilterType] = useState<string>('');
-    const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+    const [selectedReport, setSelectedReport] = useState<AdminReport | null>(null);
     const [actionModal, setActionModal] = useState(false);
     const [contentModal, setContentModal] = useState(false);
-    const [viewingReport, setViewingReport] = useState<Report | null>(null);
+    const [viewingReport, setViewingReport] = useState<AdminReport | null>(null);
     const [actionReason, setActionReason] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        loadReports();
-    }, [showResolved, filterType]);
-
-    const loadReports = async () => {
+    const loadReports = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await getReports(0, showResolved, filterType || undefined);
+            const data = await getAdminReports(0, showResolved, filterType || undefined);
             setReports(data.reports || []);
         } catch (err) {
             console.error('Failed to load reports:', err);
@@ -30,7 +27,11 @@ export default function Reports() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [filterType, showResolved]);
+
+    useEffect(() => {
+        void loadReports();
+    }, [loadReports]);
 
     const handleAction = async (action: 'delete' | 'delete_suspend' | 'delete_ban' | 'warn' | 'dismiss') => {
         if (!selectedReport) return;
@@ -42,11 +43,11 @@ export default function Reports() {
 
         setIsSubmitting(true);
         try {
-            await takeReportAction(selectedReport.id, action, actionReason);
+            await takeAdminReportAction(selectedReport.id, action, actionReason);
             setActionModal(false);
             setSelectedReport(null);
             setActionReason('');
-            loadReports();
+            void loadReports();
         } catch (err) {
             console.error('Failed to take action:', err);
             alert('Failed to execute action');
@@ -210,7 +211,7 @@ export default function Reports() {
                                     </p>
                                     {viewingReport.entity.attachment && viewingReport.entity.attachment_mime?.startsWith('image/') && (
                                         <img 
-                                            src={`${import.meta.env.VITE_ASSETS_URL || 'https://assets.uaeu.chat'}/attachments/${viewingReport.entity.attachment}`}
+                                            src={`${assetsBase}/attachments/${viewingReport.entity.attachment}`}
                                             alt="Attachment"
                                             className={styles.attachmentImage}
                                         />

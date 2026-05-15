@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { auth, onAuthStateChanged, User, signOut } from '../../firebase/config';
 import { me } from '../../api/authentication';
+import { mapBackendUserToUserInfo, mapFirebaseUserToNewUser } from "./mapBackendUser.ts";
 
 export const UserContext = createContext<UserContextInterface | null>(null);
 
@@ -32,48 +33,19 @@ export default function UserProvider({ children }: { children: ReactNode }) {
                     return;
                 }
 
-                // Check suspension status
-                const now = Math.floor(Date.now() / 1000);
-                const isSuspended = data.suspended_until && data.suspended_until > now;
-                
-                const usefulData: UserInfo = {
-                    new: (!data.username),
-                    username: data.username,
-                    displayName: data.displayname,
-                    bio: data.bio,
-                    // Use backend pfp if available, otherwise fall back to Firebase photo URL
-                    pfp: data.pfp || fbUser.photoURL || '',
-                    isAnonymous: data.is_anonymous || fbUser.isAnonymous,
-                    isAdmin: !!data.is_admin,
-                    isSuspended: isSuspended,
-                    suspendedUntil: data.suspended_until,
-                    isBanned: false, // We already checked above, so this is always false here
-                };
+                const usefulData = mapBackendUserToUserInfo(data, fbUser);
+                usefulData.isBanned = false; // We already checked above, so this is always false here.
                 cacheUserData(usefulData);
                 setUser(usefulData);
             } else {
                 // Firebase user exists but no backend user yet
                 // This happens for new Google sign-ins that need registration
-                setUser({
-                    new: true,
-                    username: '',
-                    displayName: fbUser.displayName || '',
-                    bio: '',
-                    pfp: fbUser.photoURL || '',
-                    isAnonymous: fbUser.isAnonymous,
-                });
+                setUser(mapFirebaseUserToNewUser(fbUser));
             }
         } catch (error) {
             console.log("Error fetching user data from backend", error);
             // Set basic info from Firebase
-            setUser({
-                new: true,
-                username: '',
-                displayName: fbUser.displayName || '',
-                bio: '',
-                pfp: fbUser.photoURL || '',
-                isAnonymous: fbUser.isAnonymous,
-            });
+            setUser(mapFirebaseUserToNewUser(fbUser));
         }
     };
 

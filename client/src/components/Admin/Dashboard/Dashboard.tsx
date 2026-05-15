@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAdminStats } from '../../api/admin';
+import { assetsBase } from '../../../api/api.ts';
+import { getAdminStats } from '../../../api/admin';
 import styles from './Dashboard.module.scss';
-import defaultCommunityIcon from '../../assets/NicePng_community-icon-png_2066059.png';
+import defaultCommunityIcon from '../../../assets/community-icon.jpg';
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -11,11 +12,7 @@ export default function Dashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        loadStats();
-    }, []);
-
-    const loadStats = async () => {
+    const loadStats = useCallback(async () => {
         try {
             const data = await getAdminStats();
             setStats(data.stats);
@@ -26,7 +23,11 @@ export default function Dashboard() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        void loadStats();
+    }, [loadStats]);
 
     if (isLoading) {
         return (
@@ -49,9 +50,9 @@ export default function Dashboard() {
         { label: 'Total Users', value: stats?.totalUsers || 0, icon: '👥', color: '#4299e1' },
         { label: 'Total Posts', value: stats?.totalPosts || 0, icon: '📝', color: '#48bb78' },
         { label: 'Communities', value: stats?.totalCommunities || 0, icon: '🏘️', color: '#ed8936' },
-        { label: 'Pending Reports', value: stats?.pendingReports || 0, icon: '🚨', color: '#f56565', onClick: () => navigate('/reports') },
-        { label: 'Bug Reports', value: stats?.pendingBugReports || 0, icon: '🐛', color: '#9f7aea', onClick: () => navigate('/bug-reports') },
-        { label: 'Feature Requests', value: stats?.pendingFeatureRequests || 0, icon: '💡', color: '#38b2ac', onClick: () => navigate('/feature-requests') },
+        { label: 'Pending Reports', value: stats?.pendingReports || 0, icon: '🚨', color: '#f56565', onClick: () => navigate('/admin/reports') },
+        { label: 'Bug Reports', value: stats?.pendingBugReports || 0, icon: '🐛', color: '#9f7aea', onClick: () => navigate('/admin/bug-reports') },
+        { label: 'Feature Requests', value: stats?.pendingFeatureRequests || 0, icon: '💡', color: '#38b2ac', onClick: () => navigate('/admin/feature-requests') },
     ];
 
     const formatDate = (timestamp: number | string) => {
@@ -69,13 +70,13 @@ export default function Dashboard() {
         });
     };
 
+    const getCommunityIconSource = (icon: string | null) => {
+        if (!icon) return defaultCommunityIcon;
+        return icon.startsWith('http') ? icon : `${assetsBase}/icon/${icon}`;
+    };
+
     return (
         <div className={styles.dashboard}>
-            <header className={styles.header}>
-                <h1>Dashboard</h1>
-                <p>Welcome to the UAEU Chat Admin Panel</p>
-            </header>
-
             <section className={styles.statsGrid}>
                 {statCards.map((card, index) => (
                     <div 
@@ -102,7 +103,7 @@ export default function Dashboard() {
                                 <div className={styles.rank}>#{index + 1}</div>
                                 <div className={styles.communityIcon}>
                                     <img 
-                                        src={community.icon || defaultCommunityIcon} 
+                                        src={getCommunityIconSource(community.icon)} 
                                         alt={community.name}
                                         onError={(e) => {
                                             e.currentTarget.src = defaultCommunityIcon;

@@ -1,20 +1,15 @@
-import { useState, useEffect } from 'react';
-import { getFeatureRequests, updateFeedbackStatus } from '../../api/feedback';
+import { useState, useEffect, useCallback } from 'react';
+import { assetsBase } from '../../../api/api.ts';
+import { getFeatureRequests, updateFeedbackStatus } from '../../../api/feedback.ts';
 import styles from './Feedback.module.scss';
 
-type FeedbackStatus = 'pending' | 'reviewed' | 'resolved' | 'closed';
-
 export default function FeatureRequests() {
-    const [requests, setRequests] = useState<FeatureRequest[]>([]);
+    const [requests, setRequests] = useState<AdminFeatureRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-    const [filterStatus, setFilterStatus] = useState<string>('');
+    const [filterStatus, setFilterStatus] = useState<AdminFeedbackStatus | ''>('');
 
-    useEffect(() => {
-        loadRequests();
-    }, [filterStatus]);
-
-    const loadRequests = async () => {
+    const loadRequests = useCallback(async () => {
         setIsLoading(true);
         try {
             const data = await getFeatureRequests(filterStatus || undefined);
@@ -25,9 +20,13 @@ export default function FeatureRequests() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [filterStatus]);
 
-    const handleStatusChange = async (requestId: number, newStatus: FeedbackStatus) => {
+    useEffect(() => {
+        void loadRequests();
+    }, [loadRequests]);
+
+    const handleStatusChange = async (requestId: number, newStatus: AdminFeedbackStatus) => {
         try {
             const result = await updateFeedbackStatus('feature', requestId, newStatus);
             if (result === 200) {
@@ -58,7 +57,7 @@ export default function FeatureRequests() {
         });
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: AdminFeedbackStatus) => {
         const colors: Record<string, string> = {
             'pending': 'warning',
             'reviewed': 'info',
@@ -83,7 +82,7 @@ export default function FeatureRequests() {
                 <div className={styles.filters}>
                     <select 
                         value={filterStatus} 
-                        onChange={(e) => setFilterStatus(e.target.value)}
+                        onChange={(e) => setFilterStatus(e.target.value as AdminFeedbackStatus | '')}
                         className={styles.filterSelect}
                     >
                         <option value="">All Statuses</option>
@@ -114,12 +113,12 @@ export default function FeatureRequests() {
                                 {request.screenshot && (
                                     <div className={styles.screenshot}>
                                         <a 
-                                            href={request.screenshot.startsWith('http') ? request.screenshot : `https://r2.uaeu.chat/attachments/${request.screenshot}`}
+                                            href={request.screenshot.startsWith('http') ? request.screenshot : `${assetsBase}/attachments/${request.screenshot}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
                                             <img 
-                                                src={request.screenshot.startsWith('http') ? request.screenshot : `https://r2.uaeu.chat/attachments/${request.screenshot}`}
+                                                src={request.screenshot.startsWith('http') ? request.screenshot : `${assetsBase}/attachments/${request.screenshot}`}
                                                 alt="Feature screenshot"
                                             />
                                         </a>
@@ -138,7 +137,7 @@ export default function FeatureRequests() {
                                 <select
                                     className={styles.statusSelect}
                                     value={request.status}
-                                    onChange={(e) => handleStatusChange(request.id, e.target.value as FeedbackStatus)}
+                                    onChange={(e) => handleStatusChange(request.id, e.target.value as AdminFeedbackStatus)}
                                 >
                                     <option value="pending">Pending</option>
                                     <option value="reviewed">Reviewed</option>

@@ -45,7 +45,10 @@ export async function submitFeatureRequest(description: string, screenshot?: str
 /**
  * Get all bug reports (admin only)
  */
-export async function getBugReports(status?: string, offset: number = 0) {
+export async function getBugReports(
+    status?: AdminFeedbackStatus,
+    offset: number = 0,
+): Promise<{ reports: AdminBugReport[] }> {
     const headers = await getAuthHeaders();
     const params = new URLSearchParams();
     if (status) params.append('status', status);
@@ -61,7 +64,10 @@ export async function getBugReports(status?: string, offset: number = 0) {
 /**
  * Get all feature requests (admin only)
  */
-export async function getFeatureRequests(status?: string, offset: number = 0) {
+export async function getFeatureRequests(
+    status?: AdminFeedbackStatus,
+    offset: number = 0,
+): Promise<{ requests: AdminFeatureRequest[] }> {
     const headers = await getAuthHeaders();
     const params = new URLSearchParams();
     if (status) params.append('status', status);
@@ -77,7 +83,7 @@ export async function getFeatureRequests(status?: string, offset: number = 0) {
 /**
  * Update feedback status (admin only)
  */
-export async function updateFeedbackStatus(type: 'bug' | 'feature', id: number, status: string) {
+export async function updateFeedbackStatus(type: 'bug' | 'feature', id: number, status: AdminFeedbackStatus) {
     const headers = await getAuthHeaders();
     const request = await fetch(`${base}/${type}/${id}`, {
         method: 'PATCH',
