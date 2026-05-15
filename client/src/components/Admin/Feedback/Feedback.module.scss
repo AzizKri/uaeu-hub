@@ -70,18 +70,18 @@
     text-transform: uppercase;
     
     &.warning {
-        background-color: rgba(237, 137, 54, 0.15);
-        color: #c76c07;
+        background-color: var(--warning-soft);
+        color: var(--warning);
     }
     
     &.info {
-        background-color: rgba(66, 153, 225, 0.15);
-        color: #2b6cb0;
+        background-color: var(--accent-soft);
+        color: var(--accent-hover);
     }
     
     &.success {
-        background-color: rgba(72, 187, 120, 0.15);
-        color: #276749;
+        background-color: var(--success-soft);
+        color: var(--success);
     }
     
     &.secondary {
@@ -185,7 +185,7 @@
 }
 
 .error {
-    background-color: rgba(245, 101, 101, 0.1);
+    background-color: var(--error-soft);
     border: 1px solid var(--error);
     color: var(--error);
     padding: 1rem;
