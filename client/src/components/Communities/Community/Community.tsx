@@ -262,7 +262,7 @@ export default function Community() {
     ) => {
         setSearchMembersVal(e.target.value);
     };
-    const removeUser = (id: number) => {
+    const removeUser = (id: string) => {
         setMembers((prev) => prev.filter((mem) => mem.id !== id));
     };
 

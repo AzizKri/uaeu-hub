@@ -1,8 +1,8 @@
 import { sendToWebSocket } from '../helpers';
 
 export interface BanPayload {
-    senderId: number;
-    receiverId: number;
+    senderId: string;
+    receiverId: string;
     reason: string;
 }
 

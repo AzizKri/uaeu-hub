@@ -1,5 +1,5 @@
 import { Context, Hono } from 'hono';
-import { firebaseAuthMiddleware, firebaseAuthMiddlewareCheckOnly, postRateLimitMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware } from '../middleware';
+import { authMiddleware, authMiddlewareCheckOnly, postRateLimitMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware } from '../middleware';
 import {
     deleteSubcomment,
     getSubcommentsOnComment,
@@ -20,13 +20,13 @@ app.post('/',
         if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    firebaseAuthMiddleware,
+    authMiddleware,
     penaltyCheckMiddleware,
     blockPenalizedUserMiddleware,
     (c: Context) => subcomment(c)
 );
-app.post('/like/:scid', firebaseAuthMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => likeSubcomment(c));
-app.get('/:cid', firebaseAuthMiddlewareCheckOnly, (c: Context) => getSubcommentsOnComment(c));
-app.delete('/:scid', firebaseAuthMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => deleteSubcomment(c));
+app.post('/like/:scid', authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => likeSubcomment(c));
+app.get('/:cid', authMiddlewareCheckOnly, (c: Context) => getSubcommentsOnComment(c));
+app.delete('/:scid', authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => deleteSubcomment(c));
 
 export default app;

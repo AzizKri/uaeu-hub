@@ -8,7 +8,7 @@ import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function createCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -106,7 +106,7 @@ export async function communityExists(c: Context) {
 }
 
 export async function getCommunityPostsLatest(c: Context) {
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     const env: Env = c.env;
@@ -148,7 +148,7 @@ export async function getCommunityPostsLatest(c: Context) {
 }
 
 export async function getCommunityPostsBest(c: Context) {
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     const env: Env = c.env;
@@ -199,7 +199,7 @@ export async function getCommunityPostsBest(c: Context) {
 
 export async function getCommunityByName(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -276,7 +276,7 @@ export async function getCommunityByName(c: Context) {
 
 export async function getCommunityById(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -344,7 +344,7 @@ export async function getCommunityById(c: Context) {
 
 export async function getCommunitiesByTag(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -405,7 +405,7 @@ export async function getCommunitiesByTag(c: Context) {
 
 export async function getCommunitiesByTags(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get tags string from query
@@ -478,7 +478,7 @@ export async function getCommunitiesByTags(c: Context) {
 
 export async function getCommunitiesSortByMembers(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -536,7 +536,7 @@ export async function getCommunitiesSortByMembers(c: Context) {
 
 export async function getCommunitiesSortByCreation(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -595,7 +595,7 @@ export async function getCommunitiesSortByCreation(c: Context) {
 // TODO - Implement global activity score updates using a new table & CRON triggers
 export async function getCommunitiesSortByActivity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -665,7 +665,7 @@ export async function getCommunitiesSortByActivity(c: Context) {
 
 export async function searchCommunities(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -721,7 +721,7 @@ export async function searchCommunities(c: Context) {
 
 export async function inviteUserToCommunity(c: Context) {
     const env: Env = c.env;
-    const adminUserId = c.get('userId') as number;
+    const adminUserId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -782,7 +782,7 @@ export async function inviteUserToCommunity(c: Context) {
 
 export async function removeMemberFromCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const adminUserId = c.get('userId') as number;
+    const adminUserId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -846,7 +846,7 @@ export async function removeMemberFromCommunity(c: Context) {
 
 export async function addAdminToCommunity(c: Context) {
     const env: Env = c.env;
-    const ownerId = c.get('userId') as number;
+    const ownerId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     if (!ownerId || isAnonymous) return c.text('Unauthorized', { status: 401 });
@@ -896,7 +896,7 @@ export async function addAdminToCommunity(c: Context) {
 
 export async function joinCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -959,7 +959,7 @@ export async function joinCommunity(c: Context) {
 
 export async function leaveCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -1003,7 +1003,7 @@ export async function leaveCommunity(c: Context) {
 
 export async function editCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -1127,7 +1127,7 @@ export async function editCommunity(c: Context) {
 
 export async function deleteCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -1167,7 +1167,7 @@ export async function deleteCommunity(c: Context) {
 
 export async function getCommunityMembers(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -1221,7 +1221,7 @@ export async function getCommunityMembers(c: Context) {
 
 export async function rejectInvitation(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous

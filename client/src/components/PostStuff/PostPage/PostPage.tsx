@@ -12,7 +12,7 @@ import { parsePositiveInt } from "../../../utils/tools.ts";
 interface CommentBack {
     attachment: string,
     author: string,
-    author_id: number,
+    author_id: string,
     comment_count: number,
     content: string,
     displayname: string,

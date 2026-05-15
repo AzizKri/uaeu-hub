@@ -17,7 +17,7 @@ export default function Right() {
     const year = new Date().getFullYear();
 
     useEffect(() => {
-        // Wait for Firebase auth to be ready before fetching communities
+        // Wait for auth state to be ready before fetching communities
         // This ensures the auth token is available for membership status
         if (!userReady) return;
 
@@ -55,7 +55,7 @@ export default function Right() {
     // TODO - Hussain or Mohammmad: Move this to a notifications page. Below is the implementation.
 
     useEffect(() => {
-        // Wait for Firebase auth to be ready before fetching notifications
+        // Wait for auth state to be ready before fetching notifications
         if (!userReady) return;
 
         getNotifications().then((res) => {
@@ -64,8 +64,8 @@ export default function Right() {
                 res.data.map(
                     (notification: {
                         id: number;
-                        recipient_id: number;
-                        sender_id: number;
+                        recipient_id: string;
+                        sender_id: string;
                         sender: string;
                         sender_displayname: string;
                         type: string;

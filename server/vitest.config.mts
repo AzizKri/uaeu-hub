@@ -17,7 +17,15 @@ export default defineConfig({
                 },
                 miniflare: {
                     // Add a test-only binding for migrations.
-                    bindings: { TEST_MIGRATIONS: migrations }
+                    bindings: {
+                        TEST_MIGRATIONS: migrations,
+                        EN_SECRET: 'test_encryption_secret',
+                        PASSWORD_PEPPER: 'test_password_pepper',
+                        EMAIL_SEND_DISABLED: 'true',
+                        RESEND_API_KEY: 'test_resend_key',
+                        AUTH_EMAIL_FROM: 'UAEU Chat <no-reply@uaeu.chat>',
+                        PUBLIC_APP_URL: 'http://127.0.0.1:5173'
+                    }
                 }
             };
         })
@@ -26,10 +34,6 @@ export default defineConfig({
         globals: true,
         setupFiles: [resolve(projectRoot, 'test/setup.ts')],
         testTimeout: 10000,
-        hookTimeout: 10000,
-        alias: {
-            'google-auth-library': resolve(projectRoot, 'test/mocks/google-auth.ts'),
-            '@sendgrid/mail': resolve(projectRoot, 'test/mocks/sendgrid.ts')
-        }
+        hookTimeout: 10000
     }
 });

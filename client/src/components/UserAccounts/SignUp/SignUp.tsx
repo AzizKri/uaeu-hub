@@ -1,26 +1,19 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { checkUsername, register, upgradeAnonymous } from '../../../api/authentication';
+import { checkUsername, isAnon, signup } from '../../../api/authentication';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
 import { userSchema } from "../../../userSchema.ts";
 import { z } from 'zod';
-import GoogleAuth from "../GoogleAuth/GoogleAuth.tsx";
 import { useUser } from "../../../contexts/user/UserContext.ts";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 import ConfirmationPopUp from "../../UserAuthentication/ConfirmationPopUp/ConfirmationPopUp.tsx";
-import {
-    auth,
-    createUserWithEmailAndPassword,
-    sendEmailVerification,
-    linkWithCredential,
-    EmailAuthProvider,
-} from '../../../firebase/config';
+import { mapBackendUserToUserInfo } from "../../../contexts/user/mapBackendUser.ts";
 
 export default function SignUp() {
     const navigate = useNavigate();
-    const { updateUser, isFirebaseAnonymous, getFirebaseUser } = useUser();
+    const { updateUser } = useUser();
 
     const [formData, setFormData] = useState({
         displayName: '',
@@ -73,8 +66,7 @@ export default function SignUp() {
                 return;
             }
 
-            // Check if user is currently anonymous (has anonymous data)
-            if (isFirebaseAnonymous()) {
+            if (await isAnon()) {
                 setShowPopup(true);
             } else {
                 await processSignup(false);
@@ -88,90 +80,25 @@ export default function SignUp() {
 
     const processSignup = async (includeAnon: boolean) => {
         try {
-            const firebaseUser = getFirebaseUser();
+            const response = await signup({
+                username: formData.username,
+                displayname: formData.displayName || formData.username,
+                email: formData.email,
+                password: formData.password,
+                includeAnon,
+            });
+            const data = await response.json();
 
-            if (includeAnon && firebaseUser?.isAnonymous) {
-                // Upgrade anonymous account to email/password account
-                const credential = EmailAuthProvider.credential(formData.email, formData.password);
-                await linkWithCredential(firebaseUser, credential);
-
-                // Send email verification
-                await sendEmailVerification(firebaseUser);
-
-                // Upgrade anonymous user in backend
-                const response = await upgradeAnonymous({
-                    username: formData.username,
-                    displayname: formData.displayName || formData.username,
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    updateUser({
-                        new: false,
-                        username: data.username || formData.username,
-                        displayName: data.displayname || formData.displayName,
-                        bio: data.bio || '',
-                        pfp: data.pfp || ''
-                    });
-                    setShowConfirmationPopup(true);
-                } else {
-                    const errorData = await response.json();
-                    setErrors({ global: errorData.message || 'Failed to upgrade account' });
-                }
+            if (response.ok && data.user) {
+                updateUser(mapBackendUserToUserInfo(data.user));
+                setShowConfirmationPopup(true);
             } else {
-                // Create new Firebase user
-                const userCredential = await createUserWithEmailAndPassword(
-                    auth,
-                    formData.email,
-                    formData.password
-                );
-
-                // Send email verification
-                await sendEmailVerification(userCredential.user);
-
-                // Register user with backend
-                console.log('SignUp -> formData.displayName:', formData.displayName);
-                console.log('SignUp -> sending to register:', {
-                    username: formData.username,
-                    displayname: formData.displayName || formData.username,
-                });
-                const response = await register({
-                    username: formData.username,
-                    displayname: formData.displayName || formData.username,
-                    includeAnon: false,
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    updateUser({
-                        new: false,
-                        username: data.username || formData.username,
-                        displayName: data.displayname || formData.displayName,
-                        bio: data.bio || '',
-                        pfp: data.pfp || ''
-                    });
-                    setShowConfirmationPopup(true);
-                } else {
-                    const errorData = await response.json();
-                    setErrors({ global: errorData.message || 'Failed to create account' });
-                }
+                setErrors({ global: data.message || 'Failed to create account' });
             }
         } catch (error: unknown) {
             console.error('Signup error:', error);
-            const firebaseError = error as { code?: string; message?: string };
-
-            // Handle Firebase auth errors
-            if (firebaseError.code === 'auth/email-already-in-use') {
-                setErrors({ email: 'This email is already in use' });
-            } else if (firebaseError.code === 'auth/invalid-email') {
-                setErrors({ email: 'Invalid email address' });
-            } else if (firebaseError.code === 'auth/weak-password') {
-                setErrors({ password: 'Password is too weak' });
-            } else if (firebaseError.code === 'auth/credential-already-in-use') {
-                setErrors({ email: 'This email is already linked to another account' });
-            } else {
-                setErrors({ global: firebaseError.message || 'Something went wrong. Please try again.' });
-            }
+            const typedError = error as { message?: string };
+            setErrors({ global: typedError.message || 'Something went wrong. Please try again.' });
         }
     };
 
@@ -228,8 +155,6 @@ export default function SignUp() {
                         </Link>
                         .
                     </p>
-                    <GoogleAuth setErrors={setErrors} setIsLoading={setIsLoading} onSubmit={() => navigate(previousPage)} />
-                    <div className={styles.separator}>OR</div>
                     {errors.global && (
                         <p className={styles.error}>
                             {errors.global}

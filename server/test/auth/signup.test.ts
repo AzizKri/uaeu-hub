@@ -20,36 +20,8 @@ describe('Auth utilities', () => {
         expect(data.message).toContain('Username');
     });
 
-    it('rejects invalid admin email checks', async () => {
-        const response = await SELF.fetch(`${base}/auth/check-admin`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email: 'invalid-email' })
-        });
-
-        expect(response.status).toBe(400);
-        const data = await response.json() as { errors: Array<{ field: string; message: string }> };
-        expect(data.errors.some((error) => error.field === 'email')).toBe(true);
-    });
-
-    it('returns false for non-admin emails that are not in the system', async () => {
-        const response = await SELF.fetch(`${base}/auth/check-admin`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email: 'missing@example.com' })
-        });
-
-        expect(response.status).toBe(200);
-        const data = await response.json() as { isAdmin: boolean };
-        expect(data.isAdmin).toBe(false);
-    });
-
-    it('rejects invalid register payloads before auth runs', async () => {
-        const response = await SELF.fetch(`${base}/auth/register`, {
+    it('rejects invalid signup payloads before auth runs', async () => {
+        const response = await SELF.fetch(`${base}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -60,5 +32,19 @@ describe('Auth utilities', () => {
         expect(response.status).toBe(400);
         const data = await response.json() as { errors: Array<{ field: string; message: string }> };
         expect(data.errors.some((error) => error.field === 'username')).toBe(true);
+    });
+
+    it('rejects invalid login payloads before auth runs', async () => {
+        const response = await SELF.fetch(`${base}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ identifier: '', password: '' })
+        });
+
+        expect(response.status).toBe(400);
+        const data = await response.json() as { errors: Array<{ field: string; message: string }> };
+        expect(data.errors.some((error) => error.field === 'identifier')).toBe(true);
     });
 });

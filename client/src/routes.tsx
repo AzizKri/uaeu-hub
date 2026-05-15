@@ -46,12 +46,6 @@ const PasswordLandingPage = lazy(
             ),
 );
 
-const FirebaseActionHandler = lazy(
-    () =>
-        import(
-            "./components/UserAuthentication/FirebaseActionHandler.tsx"
-            ),
-);
 const AdminGuard = lazy(() => import("./components/Admin/AdminGuard.tsx"));
 const AdminWorkspace = lazy(() => import("./components/Admin/AdminWorkspace.tsx"));
 const AdminDashboard = lazy(() => import("./components/Admin/Dashboard/Dashboard.tsx"));
@@ -147,14 +141,6 @@ const routes = [
         element: (
             <Suspense fallback={<LoadingFallback/>}>
                 <ResetPasswordPage/>
-            </Suspense>
-        )
-    },
-    {
-        path: "/auth/action",
-        element: (
-            <Suspense fallback={<LoadingFallback/>}>
-                <FirebaseActionHandler/>
             </Suspense>
         )
     },

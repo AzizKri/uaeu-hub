@@ -8,10 +8,14 @@ function encodeText(text: string): ArrayBuffer {
 }
 
 // Hash a password with a salt
-export async function hashPassword(password: string, salt: Uint8Array): Promise<string> {
+function passwordMaterial(password: string, pepper = ''): string {
+    return pepper ? `${pepper}\0${password}` : password;
+}
+
+export async function hashPassword(password: string, salt: Uint8Array, pepper = ''): Promise<string> {
     const keyMaterial = await crypto.subtle.importKey(
         'raw',
-        encodeText(password),
+        encodeText(passwordMaterial(password, pepper)),
         { name: 'PBKDF2' },
         false,
         ['deriveBits']
@@ -38,9 +42,9 @@ export function generateSalt() {
     return { 'salt': salt, 'encoded': btoa(String.fromCharCode(...salt)) };
 }
 
-export async function verifyPassword(password: string, storedSalt: string, storedHash: string): Promise<boolean> {
+export async function verifyPassword(password: string, storedSalt: string, storedHash: string, pepper = ''): Promise<boolean> {
     const salt = Uint8Array.from(atob(storedSalt), c => c.charCodeAt(0));
-    const hash = await hashPassword(password, salt);
+    const hash = await hashPassword(password, salt, pepper);
     return hash === storedHash;
 }
 

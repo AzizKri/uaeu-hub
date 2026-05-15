@@ -11,7 +11,7 @@ import {
     likePost,
     searchPosts
 } from '../controllers/post.controller';
-import { firebaseAuthMiddleware, firebaseAuthMiddlewareCheckOnly, postRateLimitMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware } from '../middleware';
+import { authMiddleware, authMiddlewareCheckOnly, postRateLimitMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware } from '../middleware';
 import { validator } from 'hono/validator';
 import { postCreationSchema } from '../util/validationSchemas';
 import { validationError } from '../util/requestValidation';
@@ -29,23 +29,23 @@ app.post('/',
         if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    firebaseAuthMiddleware,
+    authMiddleware,
     penaltyCheckMiddleware,
     blockPenalizedUserMiddleware,
     (c: Context) => createPost(c)
 );
-app.delete('/:id', firebaseAuthMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => deletePost(c));
-app.post('/like/:id', firebaseAuthMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => likePost(c));
+app.delete('/:id', authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => deletePost(c));
+app.post('/like/:id', authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => likePost(c));
 
-app.get('/latest', firebaseAuthMiddlewareCheckOnly, (c: Context) => getLatestPosts(c));
-app.get('/best', firebaseAuthMiddlewareCheckOnly, (c: Context) => getBestPosts(c));
+app.get('/latest', authMiddlewareCheckOnly, (c: Context) => getLatestPosts(c));
+app.get('/best', authMiddlewareCheckOnly, (c: Context) => getBestPosts(c));
 
-app.get('/myLatest', firebaseAuthMiddlewareCheckOnly, (c: Context) => getLatestPostsFromMyCommunities(c));
-app.get('/myBest', firebaseAuthMiddlewareCheckOnly, (c: Context) => getBestPostsFromMyCommunities(c));
+app.get('/myLatest', authMiddlewareCheckOnly, (c: Context) => getLatestPostsFromMyCommunities(c));
+app.get('/myBest', authMiddlewareCheckOnly, (c: Context) => getBestPostsFromMyCommunities(c));
 
 app.get('/search', (c: Context) => searchPosts(c));
 
-app.get('/user/:user', firebaseAuthMiddlewareCheckOnly, (c: Context) => getPostsByUser(c));
-app.get('/:id', firebaseAuthMiddlewareCheckOnly, (c: Context) => getPostByID(c));
+app.get('/user/:user', authMiddlewareCheckOnly, (c: Context) => getPostsByUser(c));
+app.get('/:id', authMiddlewareCheckOnly, (c: Context) => getPostByID(c));
 
 export default app;

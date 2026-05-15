@@ -1,8 +1,8 @@
 import { sendToWebSocket } from '../helpers';
 
 export interface SuspensionPayload {
-    senderId: number;
-    receiverId: number;
+    senderId: string;
+    receiverId: string;
     suspendedUntil: number;
     reason: string;
 }

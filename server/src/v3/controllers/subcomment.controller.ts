@@ -12,7 +12,7 @@ export async function subcomment(c: Context) {
 
     try {
         // Get user ID from Context
-        const userId = c.get('userId') as number;
+        const userId = c.get('userId') as string;
 
         // Generate public_id for the subcomment
         const publicId = createPublicId();
@@ -59,7 +59,7 @@ export async function subcomment(c: Context) {
 
 export async function getSubcommentsOnComment(c: Context) {
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     // Get the required fields
     const env: Env = c.env;
@@ -110,7 +110,7 @@ export async function getSubcommentsOnComment(c: Context) {
 
 export async function deleteSubcomment(c: Context) {
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     if (!userId) return c.text('Unauthorized', { status: 401 });
 
     // Get the required fields
@@ -197,7 +197,7 @@ export async function deleteSubcomment(c: Context) {
 
 export async function likeSubcomment(c: Context) {
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     // Get the required fields
     const env: Env = c.env;

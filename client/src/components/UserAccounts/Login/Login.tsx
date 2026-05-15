@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../Forms.module.scss';
-import { lookupEmail, me } from '../../../api/authentication';
+import { login } from '../../../api/authentication';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import GoogleAuth from "../GoogleAuth/GoogleAuth.tsx";
 import { useUser } from "../../../contexts/user/UserContext.ts";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
-import { auth, signInWithEmailAndPassword } from '../../../firebase/config';
 import { mapBackendUserToUserInfo } from "../../../contexts/user/mapBackendUser.ts";
 
 export default function Login() {
@@ -56,53 +54,20 @@ export default function Login() {
         }
 
         try {
-            // Determine if the identifier is an email or username
-            let email = formData.identifier;
+            const response = await login(formData.identifier, formData.password);
+            const data = await response.json();
 
-            // If it doesn't look like an email, look up the email for the username
-            if (!formData.identifier.includes('@')) {
-                const lookupResult = await lookupEmail(formData.identifier);
-                if (lookupResult.banned) {
-                    setErrors({ global: 'This account has been banned. You cannot log in.' });
-                    setIsLoading(false);
-                    return;
-                }
-                if (lookupResult.error || !lookupResult.email) {
-                    setErrors({ global: lookupResult.error || 'User not found' });
-                    setIsLoading(false);
-                    return;
-                }
-                email = lookupResult.email;
+            if (response.ok && data.user) {
+                updateUser(mapBackendUserToUserInfo(data.user));
+                goBack();
+            } else if (data.banned) {
+                setErrors({ global: 'This account has been banned. You cannot log in.' });
+            } else {
+                setErrors({ global: data.message || 'Invalid credentials' });
             }
-
-            // Sign in with Firebase
-            await signInWithEmailAndPassword(auth, email, formData.password);
-
-            // Get user data from backend
-            const data = await me();
-            if (data) {
-                updateUser(mapBackendUserToUserInfo(data, auth.currentUser));
-            }
-
-            goBack();
         } catch (error: unknown) {
             console.error('Login error:', error);
-            const newErrors: LoginErrors = {};
-
-            // Handle Firebase auth errors
-            const firebaseError = error as { code?: string };
-            if (firebaseError.code === 'auth/user-not-found') {
-                newErrors.global = 'User not found';
-            } else if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
-                newErrors.global = 'Invalid credentials';
-            } else if (firebaseError.code === 'auth/invalid-email') {
-                newErrors.global = 'Invalid email address';
-            } else if (firebaseError.code === 'auth/too-many-requests') {
-                newErrors.global = 'Too many failed attempts. Please try again later.';
-            } else {
-                newErrors.global = 'Something went wrong, please try again';
-            }
-            setErrors(newErrors);
+            setErrors({ global: 'Something went wrong, please try again' });
         }
         setIsLoading(false);
     };
@@ -138,8 +103,6 @@ export default function Login() {
                         </Link>
                         .
                     </p>
-                    <GoogleAuth setErrors={setErrors} setIsLoading={setIsLoading} onSubmit={() => navigate(previousPage)} />
-                    <div className={styles.separator}>OR</div>
                     {errors.global && (
                         <p className={styles.error}>
                             {errors.global}

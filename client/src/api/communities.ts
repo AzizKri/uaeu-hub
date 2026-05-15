@@ -1,18 +1,11 @@
-import { getIdToken } from '../firebase/config';
+import { apiFetch } from "./client";
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/community';
 
-/**
- * Helper to get authorization headers with Firebase ID token
- */
 async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
-    const token = await getIdToken();
     const headers: HeadersInit = {};
     if (includeContentType) {
         headers['Content-Type'] = 'application/json';
-    }
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
 }
@@ -29,7 +22,7 @@ export async function createCommunity(name: string, description: string, tags: s
     }
 
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base, {
+    const request = await apiFetch(base, {
         method: 'POST',
         headers,
         body: formData,
@@ -40,7 +33,7 @@ export async function createCommunity(name: string, description: string, tags: s
 // Check if a community exists with the given name
 export async function communityExists(name: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/exists/${encodeURIComponent(name)}`, {
+    const request = await apiFetch(base + `/exists/${encodeURIComponent(name)}`, {
         method: 'GET',
         headers,
     });
@@ -51,7 +44,7 @@ export async function communityExists(name: string) {
 // Get community by ID
 export async function getCommunityById(id: number) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/${id}`, {
+    const request = await apiFetch(base + `/${id}`, {
         method: 'GET',
         headers,
     });
@@ -61,7 +54,7 @@ export async function getCommunityById(id: number) {
 // Get community by name
 export async function getCommunityByName(name: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/getCommunityByName/${encodeURIComponent(name)}`, {
+    const request = await apiFetch(base + `/getCommunityByName/${encodeURIComponent(name)}`, {
         method: 'GET',
         headers,
     });
@@ -71,7 +64,7 @@ export async function getCommunityByName(name: string) {
 // Get communities by tag
 export async function getCommunitiesByTag(tag: string, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/getCommunitiesByTag?tag=${encodeURIComponent(tag)}&offset=${offset}`, {
+    const request = await apiFetch(base + `/getCommunitiesByTag?tag=${encodeURIComponent(tag)}&offset=${offset}`, {
         method: 'GET',
         headers,
     });
@@ -81,7 +74,7 @@ export async function getCommunitiesByTag(tag: string, offset: number = 0) {
 // Get communities by multiple tags
 export async function getCommunitiesByTags(tags: string[]) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/getCommunitiesByTags?tags=${encodeURIComponent(tags.join(','))}`, {
+    const request = await apiFetch(base + `/getCommunitiesByTags?tags=${encodeURIComponent(tags.join(','))}`, {
         method: 'GET',
         headers,
     });
@@ -91,7 +84,7 @@ export async function getCommunitiesByTags(tags: string[]) {
 // Get communities sorted by latest, activity, or members
 export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/getCommunities?sortBy=${sortBy}&offset=${offset}`, {
+    const request = await apiFetch(base + `/getCommunities?sortBy=${sortBy}&offset=${offset}`, {
         method: 'GET',
         headers,
     });
@@ -101,7 +94,7 @@ export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' =
 // Search communities by query
 export async function searchCommunities(query: string, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/searchCommunities?query=${encodeURIComponent(query)}&offset=${offset}`, {
+    const request = await apiFetch(base + `/searchCommunities?query=${encodeURIComponent(query)}&offset=${offset}`, {
         method: 'GET',
         headers,
     });
@@ -117,7 +110,7 @@ export async function editCommunity(id: number, name?: string, description?: str
     if (tags) formData.append('tags', tags.join(','));
 
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base + `/${id}`, {
+    const request = await apiFetch(base + `/${id}`, {
         method: 'POST',
         headers,
         body: formData,
@@ -128,7 +121,7 @@ export async function editCommunity(id: number, name?: string, description?: str
 // Delete community by ID
 export async function deleteCommunity(id: number) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/${id}`, {
+    const request = await apiFetch(base + `/${id}`, {
         method: 'DELETE',
         headers,
     });
@@ -138,7 +131,7 @@ export async function deleteCommunity(id: number) {
 // Join community by ID
 export async function joinCommunity(id: number) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/join/${id}`, {
+    const request = await apiFetch(base + `/join/${id}`, {
         method: 'POST',
         headers,
     });
@@ -148,7 +141,7 @@ export async function joinCommunity(id: number) {
 // Leave community by ID
 export async function leaveCommunity(id: number) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/leave/${id}`, {
+    const request = await apiFetch(base + `/leave/${id}`, {
         method: 'POST',
         headers,
     });
@@ -158,7 +151,7 @@ export async function leaveCommunity(id: number) {
 // Get members of community by ID
 export async function getMembersOfCommunity(id: number) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/getMembers/${id}`, {
+    const request = await apiFetch(base + `/getMembers/${id}`, {
         method: 'GET',
         headers,
     });
@@ -166,13 +159,13 @@ export async function getMembersOfCommunity(id: number) {
 }
 
 // Invite user to community
-export async function inviteUserToCommunity(communityId: number, userId: number) {
+export async function inviteUserToCommunity(communityId: number, userId: string) {
     const formData = new FormData();
     formData.append('communityId', communityId.toString());
     formData.append('userId', userId.toString());
 
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base + `/invite`, {
+    const request = await apiFetch(base + `/invite`, {
         method: 'POST',
         headers,
         body: formData,
@@ -181,9 +174,9 @@ export async function inviteUserToCommunity(communityId: number, userId: number)
 }
 
 // Remove member from community
-export async function removeMemberFromCommunity(id: number, userId: number) {
+export async function removeMemberFromCommunity(id: number, userId: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/removeMember/${id}/${userId}`, {
+    const request = await apiFetch(base + `/removeMember/${id}/${userId}`, {
         method: 'DELETE',
         headers,
     });
@@ -191,13 +184,13 @@ export async function removeMemberFromCommunity(id: number, userId: number) {
 }
 
 // Add admin to community
-export async function addAdminToCommunity(userId: number, communityId: number) {
+export async function addAdminToCommunity(userId: string, communityId: number) {
     const formData = new FormData();
     formData.append('userId', userId.toString());
     formData.append('communityId', communityId.toString());
 
     const headers = await getAuthHeaders(false);
-    const request = await fetch(base + `/addAdmin`, {
+    const request = await apiFetch(base + `/addAdmin`, {
         method: 'POST',
         headers,
         body: formData,
@@ -208,7 +201,7 @@ export async function addAdminToCommunity(userId: number, communityId: number) {
 // Get latest community posts
 export async function getLatestCommunityPosts(id: number, offset: number = 0) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/posts/${id}?offset=${offset}`, {
+    const request = await apiFetch(base + `/posts/${id}?offset=${offset}`, {
         method: 'GET',
         headers,
     });
@@ -219,7 +212,7 @@ export async function getLatestCommunityPosts(id: number, offset: number = 0) {
 // Reject invitation by ID
 export async function rejectInvitation(id: number) {
     const headers = await getAuthHeaders();
-    const request = await fetch(base + `/rejectInvitation/${id}`, {
+    const request = await apiFetch(base + `/rejectInvitation/${id}`, {
         method: 'POST',
         headers,
     });

@@ -1,12 +1,7 @@
 import React, {useState} from "react";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
-import {
-    auth,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    updatePassword,
-} from "../../../firebase/config";
+import { changePassword } from "../../../api/authentication.ts";
 
 interface ChangePasswordProps {
     onSuccess: () => void;
@@ -60,23 +55,21 @@ export default function ChangePassword({ onSuccess, onError }: ChangePasswordPro
             return;
         }
 
-        const user = auth.currentUser;
-        if (!user || !user.email) {
-            onError("You must be logged in to change your password");
-            return;
-        }
-
         setIsLoading(true);
 
         try {
-            // Re-authenticate user with current password
-            const credential = EmailAuthProvider.credential(user.email, formData.currPassword);
-            await reauthenticateWithCredential(user, credential);
+            const response = await changePassword(formData.currPassword, formData.newPassword);
+            if (!response.ok) {
+                const data = await response.json();
+                if (response.status === 401) {
+                    setErrors({ currPassword: data.message || "Current password is incorrect" });
+                } else {
+                    onError(data.message || "An error occurred while changing your password");
+                }
+                setIsLoading(false);
+                return;
+            }
 
-            // Update password
-            await updatePassword(user, formData.newPassword);
-
-            // Clear form
             setFormData({
                 currPassword: '',
                 newPassword: '',
@@ -85,18 +78,9 @@ export default function ChangePassword({ onSuccess, onError }: ChangePasswordPro
 
             onSuccess();
         } catch (error: unknown) {
-            const firebaseError = error as { code?: string; message?: string };
-
-            if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
-                setErrors({ currPassword: "Current password is incorrect" });
-            } else if (firebaseError.code === 'auth/weak-password') {
-                setErrors({ global: "New password is too weak. Please choose a stronger password." });
-            } else if (firebaseError.code === 'auth/requires-recent-login') {
-                onError("Please log out and log back in before changing your password");
-            } else {
-                console.error('Password change error:', firebaseError);
-                onError(firebaseError.message || "An error occurred while changing your password");
-            }
+            const typedError = error as { message?: string };
+            console.error('Password change error:', typedError);
+            onError(typedError.message || "An error occurred while changing your password");
         }
 
         setIsLoading(false);

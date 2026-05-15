@@ -20,7 +20,7 @@ export default function SearchUsers({ communityId }: { communityId: number }) {
                         setResults(
                             res.data.map(
                                 (user: {
-                                    id: number;
+                                    id: string;
                                     username: string;
                                     displayname: string;
                                     pfp: string;
@@ -43,7 +43,7 @@ export default function SearchUsers({ communityId }: { communityId: number }) {
         [searchValue, communityId],
     );
 
-    const handleSelect = (userId: number) => {
+    const handleSelect = (userId: string) => {
         // navigate(`/community/${communityName}`);
         console.log("invite user with id: ", userId);
     };

@@ -1,5 +1,5 @@
 import { Context, Hono } from 'hono';
-import { firebaseAuthMiddlewareCheckOnly } from '../middleware';
+import { authMiddlewareCheckOnly } from '../middleware';
 import {
     createReport,
     getReport,
@@ -24,7 +24,7 @@ app.post('/',
         }
         return parsed.data;
     }),
-    firebaseAuthMiddlewareCheckOnly,
+    authMiddlewareCheckOnly,
     (c: Context) => createReport(c)
 );
 app.post('/resolve',
@@ -36,12 +36,12 @@ app.post('/resolve',
         }
         return parsed.data;
     }),
-    firebaseAuthMiddlewareCheckOnly,
+    authMiddlewareCheckOnly,
     (c: Context) => resolveReport(c)
 );
 
 // Admin-only routes (must come before parameterized routes)
-app.get('/admin/all', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReportsWithDetails(c));
+app.get('/admin/all', authMiddlewareCheckOnly, (c: Context) => getReportsWithDetails(c));
 app.post('/:reportId/action',
     validator('param', (value, c: Context) => {
         const parsed = reportActionParamSchema.safeParse(value);
@@ -53,11 +53,11 @@ app.post('/:reportId/action',
         if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    firebaseAuthMiddlewareCheckOnly,
+    authMiddlewareCheckOnly,
     (c: Context) => takeReportAction(c)
 );
-app.get('/community/:communityId', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReportsForCommunity(c));
-app.get('/:reportId', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReport(c));
-app.get('/', firebaseAuthMiddlewareCheckOnly, (c: Context) => getReports(c));
+app.get('/community/:communityId', authMiddlewareCheckOnly, (c: Context) => getReportsForCommunity(c));
+app.get('/:reportId', authMiddlewareCheckOnly, (c: Context) => getReport(c));
+app.get('/', authMiddlewareCheckOnly, (c: Context) => getReports(c));
 
 export default app;

@@ -4,11 +4,16 @@ import styles from "../UserContent.module.scss";
 import {getUserCommunities} from "../../../api/users.ts";
 import Skeleton from "../../Reusable/Skeleton/Skeleton.tsx";
 
-export default function UserCommunities({id} : {id : number}) {
+export default function UserCommunities({id} : {id : string}) {
     const [userCommunities, setUserCommunities] = useState<React.ReactElement[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
+        if (!id) {
+            setIsLoading(false);
+            return;
+        }
+
         setIsLoading(true);
         getUserCommunities(id).then((res) => {
             if (res.data.length == 0) {

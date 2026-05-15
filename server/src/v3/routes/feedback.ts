@@ -1,5 +1,5 @@
 import { Context, Hono } from 'hono';
-import { firebaseAuthMiddlewareCheckOnly } from '../middleware';
+import { authMiddlewareCheckOnly } from '../middleware';
 import {
     createBugReport,
     createFeatureRequest,
@@ -23,7 +23,7 @@ app.post('/bug',
         }
         return parsed.data;
     }),
-    firebaseAuthMiddlewareCheckOnly,
+    authMiddlewareCheckOnly,
     (c: Context) => createBugReport(c)
 );
 
@@ -37,15 +37,15 @@ app.post('/feature',
         }
         return parsed.data;
     }),
-    firebaseAuthMiddlewareCheckOnly,
+    authMiddlewareCheckOnly,
     (c: Context) => createFeatureRequest(c)
 );
 
 // Get all bug reports (admin only)
-app.get('/bugs', firebaseAuthMiddlewareCheckOnly, (c: Context) => getBugReports(c));
+app.get('/bugs', authMiddlewareCheckOnly, (c: Context) => getBugReports(c));
 
 // Get all feature requests (admin only)
-app.get('/features', firebaseAuthMiddlewareCheckOnly, (c: Context) => getFeatureRequests(c));
+app.get('/features', authMiddlewareCheckOnly, (c: Context) => getFeatureRequests(c));
 
 // Update feedback status (admin only)
 app.patch('/:type/:id',
@@ -64,7 +64,7 @@ app.patch('/:type/:id',
         }
         return parsed.data;
     }),
-    firebaseAuthMiddlewareCheckOnly,
+    authMiddlewareCheckOnly,
     (c: Context) => updateFeedbackStatus(c)
 );
 

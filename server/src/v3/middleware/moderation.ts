@@ -8,7 +8,7 @@ import { createMiddleware } from 'hono/factory';
  */
 export const penaltyCheckMiddleware = createMiddleware(
     async (c: Context, next) => {
-        const userId = c.get('userId') as number | undefined;
+        const userId = c.get('userId') as string | undefined;
 
         // No user, no penalty check needed
         if (!userId) {

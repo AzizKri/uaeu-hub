@@ -1,18 +1,11 @@
-import { getIdToken } from '../firebase/config';
+import { apiFetch } from "./client";
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/feedback';
 
-/**
- * Helper to get authorization headers with Firebase ID token
- */
 async function getAuthHeaders(): Promise<HeadersInit> {
-    const token = await getIdToken();
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
     };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
     return headers;
 }
 
@@ -21,7 +14,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
  */
 export async function submitBugReport(description: string, screenshot?: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(`${base}/bug`, {
+    const request = await apiFetch(`${base}/bug`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ description, screenshot }),
@@ -34,7 +27,7 @@ export async function submitBugReport(description: string, screenshot?: string) 
  */
 export async function submitFeatureRequest(description: string, screenshot?: string) {
     const headers = await getAuthHeaders();
-    const request = await fetch(`${base}/feature`, {
+    const request = await apiFetch(`${base}/feature`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ description, screenshot }),
@@ -54,7 +47,7 @@ export async function getBugReports(
     if (status) params.append('status', status);
     params.append('offset', offset.toString());
     
-    const request = await fetch(`${base}/bugs?${params.toString()}`, {
+    const request = await apiFetch(`${base}/bugs?${params.toString()}`, {
         method: 'GET',
         headers,
     });
@@ -73,7 +66,7 @@ export async function getFeatureRequests(
     if (status) params.append('status', status);
     params.append('offset', offset.toString());
     
-    const request = await fetch(`${base}/features?${params.toString()}`, {
+    const request = await apiFetch(`${base}/features?${params.toString()}`, {
         method: 'GET',
         headers,
     });
@@ -85,7 +78,7 @@ export async function getFeatureRequests(
  */
 export async function updateFeedbackStatus(type: 'bug' | 'feature', id: number, status: AdminFeedbackStatus) {
     const headers = await getAuthHeaders();
-    const request = await fetch(`${base}/${type}/${id}`, {
+    const request = await apiFetch(`${base}/${type}/${id}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({ status }),

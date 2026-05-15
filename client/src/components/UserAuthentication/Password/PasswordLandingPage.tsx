@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../../UserAccounts/Forms.module.scss';
-import { auth, sendPasswordResetEmail } from '../../../firebase/config';
+import { sendForgotPasswordEmail } from '../../../api/authentication.ts';
 import {useNavigate} from 'react-router-dom';
 import ConfirmationPopUp from "../ConfirmationPopUp/ConfirmationPopUp.tsx";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
@@ -38,20 +38,15 @@ export default function PasswordLandingPage() {
         setIsLoading(true);
         
         try {
-            await sendPasswordResetEmail(auth, formData.email);
-            setShowPopup(true);
-        } catch (error: unknown) {
-            const newErrors: passwordLandingPageErrors = {};
-            const firebaseError = error as { code?: string; message?: string };
-            
-            if (firebaseError.code === 'auth/user-not-found') {
-                newErrors.global = "No account found with this email";
-            } else if (firebaseError.code === 'auth/invalid-email') {
-                newErrors.global = "Invalid email address";
+            const response = await sendForgotPasswordEmail(formData.email);
+            if (response.ok) {
+                setShowPopup(true);
             } else {
-                newErrors.global = 'Something went wrong, please try again';
+                const data = await response.json();
+                setErrors({ global: data.message || 'Something went wrong, please try again' });
             }
-            setErrors(newErrors);
+        } catch (error: unknown) {
+            setErrors({ global: 'Something went wrong, please try again' });
         }
         
         setIsLoading(false);
@@ -99,4 +94,3 @@ export default function PasswordLandingPage() {
         </div>
     );
 };
-

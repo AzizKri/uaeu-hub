@@ -58,18 +58,8 @@ describe('Input hardening', () => {
         await expectValidationField(subcommentResponse, 'content');
     });
 
-    it('rejects invalid Firebase auth utility payloads', async () => {
-        const invalidAdminCheck = await SELF.fetch(`${base}/auth/check-admin`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email: 'not-an-email' })
-        });
-
-        await expectValidationField(invalidAdminCheck, 'email');
-
-        const invalidRegister = await SELF.fetch(`${base}/auth/register`, {
+    it('rejects invalid auth utility payloads', async () => {
+        const invalidSignup = await SELF.fetch(`${base}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -77,7 +67,17 @@ describe('Input hardening', () => {
             body: JSON.stringify({ username: '??' })
         });
 
-        await expectValidationField(invalidRegister, 'username');
+        await expectValidationField(invalidSignup, 'username');
+
+        const invalidForgotPassword = await SELF.fetch(`${base}/auth/forgotPassword`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: 'not-an-email' })
+        });
+
+        await expectValidationField(invalidForgotPassword, 'email');
     });
 
     it('rejects arbitrary avatar and community icon URLs', async () => {

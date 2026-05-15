@@ -1,8 +1,8 @@
 import { sendToWebSocket } from '../helpers';
 
 export interface CommunityWarningPayload {
-    senderId: number;
-    receiverId: number;
+    senderId: string;
+    receiverId: string;
     communityId: number;
     reason: string;
     communityName?: string;

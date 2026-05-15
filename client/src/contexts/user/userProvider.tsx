@@ -1,14 +1,12 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { auth, onAuthStateChanged, User, signOut } from '../../firebase/config';
-import { me } from '../../api/authentication';
-import { mapBackendUserToUserInfo, mapFirebaseUserToNewUser } from "./mapBackendUser.ts";
+import { logout, me } from '../../api/authentication';
+import { mapBackendUserToUserInfo } from "./mapBackendUser.ts";
 
 export const UserContext = createContext<UserContextInterface | null>(null);
 
 export default function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<UserInfo | null>(null);
     const [userReady, setUserReady] = useState(false);
-    const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
 
     const cacheUserData = (userData: UserInfo) => {
         const data = {
@@ -18,54 +16,35 @@ export default function UserProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("userData", JSON.stringify(data));
     }
 
-    // Helper function to fetch and set user data
-    const fetchUserData = async (fbUser: User) => {
+    const fetchUserData = async () => {
         try {
             const data = await me();
-            if (data) {
-                // Check if user is banned - immediately sign out and don't set user state
-                if (data.is_banned) {
-                    console.log("User is banned, signing out");
-                    localStorage.removeItem("userData");
-                    await signOut(auth);
-                    // Set a flag so we can show a message on the login page
-                    sessionStorage.setItem("bannedUserAttempt", "true");
-                    return;
-                }
-
-                const usefulData = mapBackendUserToUserInfo(data, fbUser);
-                usefulData.isBanned = false; // We already checked above, so this is always false here.
-                cacheUserData(usefulData);
-                setUser(usefulData);
-            } else {
-                // Firebase user exists but no backend user yet
-                // This happens for new Google sign-ins that need registration
-                setUser(mapFirebaseUserToNewUser(fbUser));
+            if (!data) {
+                localStorage.removeItem("userData");
+                setUser(null);
+                return;
             }
+
+            if (data.is_banned) {
+                localStorage.removeItem("userData");
+                await logout();
+                sessionStorage.setItem("bannedUserAttempt", "true");
+                setUser(null);
+                return;
+            }
+
+            const usefulData = mapBackendUserToUserInfo(data);
+            cacheUserData(usefulData);
+            setUser(usefulData);
         } catch (error) {
             console.log("Error fetching user data from backend", error);
-            // Set basic info from Firebase
-            setUser(mapFirebaseUserToNewUser(fbUser));
+            localStorage.removeItem("userData");
+            setUser(null);
         }
     };
 
-    // Listen to Firebase auth state changes
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-            setFirebaseUser(fbUser);
-
-            if (fbUser) {
-                await fetchUserData(fbUser);
-            } else {
-                // User is signed out
-                localStorage.removeItem("userData");
-                setUser(null);
-            }
-            setUserReady(true);
-        });
-
-        // Cleanup subscription on unmount
-        return () => unsubscribe();
+        fetchUserData().finally(() => setUserReady(true));
     }, []);
 
     const updateUser = (newUser: UserInfo) => {
@@ -79,43 +58,19 @@ export default function UserProvider({ children }: { children: ReactNode }) {
     }
 
     const isUser = (): boolean => {
-        // User is logged in and not anonymous and has completed registration
         return user !== null && !user.isAnonymous && !user.new;
     }
 
-    /**
-     * Check if the current Firebase user is anonymous
-     */
-    const isFirebaseAnonymous = (): boolean => {
-        return firebaseUser?.isAnonymous ?? false;
-    }
-
-    /**
-     * Get the current Firebase user (for advanced operations)
-     */
-    const getFirebaseUser = (): User | null => {
-        return firebaseUser;
-    }
-
-    /**
-     * Check if the current user is suspended
-     */
     const isSuspended = (): boolean => {
         if (!user) return false;
         const now = Math.floor(Date.now() / 1000);
         return !!(user.suspendedUntil && user.suspendedUntil > now);
     }
 
-    /**
-     * Check if the current user is banned
-     */
     const isBanned = (): boolean => {
         return user?.isBanned === true;
     }
 
-    /**
-     * Set user as suspended (called when receiving suspension notification)
-     */
     const setSuspended = (suspendedUntil: number) => {
         if (user) {
             const updatedUser = { ...user, isSuspended: true, suspendedUntil };
@@ -124,9 +79,6 @@ export default function UserProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    /**
-     * Set user as banned (called when receiving ban notification)
-     */
     const setBanned = () => {
         if (user) {
             const updatedUser = { ...user, isBanned: true };
@@ -142,8 +94,6 @@ export default function UserProvider({ children }: { children: ReactNode }) {
             updateUser,
             removeUser,
             isUser,
-            isFirebaseAnonymous,
-            getFirebaseUser,
             isSuspended,
             isBanned,
             setSuspended,
