@@ -1,8 +1,8 @@
 import styles from "./CreateCommunity.module.scss";
 import Modal from "../../Reusable/Modal/Modal.tsx";
 import React, {
-    ChangeEventHandler, KeyboardEventHandler,
-    useCallback,
+    ChangeEventHandler,
+    KeyboardEventHandler,
     useEffect,
     useRef,
     useState,
@@ -17,9 +17,20 @@ import xIcon from "../../../assets/x-14-white.svg";
 import plusIcon from "../../../assets/plus.svg";
 import { useNavigate } from "react-router-dom";
 import ThreeDotsLine from "../../Reusable/Animations/ThreeDotsLine/ThreeDotsLine.tsx";
-import {dataURLtoFile, debounce, getDefaultIconForCommunity} from "../../../utils/tools.ts";
-import ImageUploader, {ImageUploaderMethods} from "../../Reusable/ImageUploader/ImageUploader.tsx";
-import {uploadIcon} from "../../../api/attachmets.ts";
+import {
+    dataURLtoFile,
+    debounce,
+    getDefaultIconForCommunity,
+    isAssetId,
+} from "../../../utils/tools.ts";
+import ImageUploader, {
+    ImageUploaderMethods,
+} from "../../Reusable/ImageUploader/ImageUploader.tsx";
+import { uploadIcon } from "../../../api/attachmets.ts";
+import {
+    getCommunityDescriptionError,
+    getCommunityNameError,
+} from "./communityFormValidation.ts";
 
 interface props {
     type: "CREATE" | "EDIT";
@@ -28,7 +39,7 @@ interface props {
     name?: string;
     description?: string;
     tags?: string;
-    id?: number
+    id?: number;
 }
 
 export default function CreateCommunity({
@@ -54,6 +65,7 @@ export default function CreateCommunity({
                   status: "IDLE",
                   file: null,
                   preview: icon,
+                  fileName: isAssetId(icon) ? icon : undefined,
               }
             : {
                   status: "IDLE",
@@ -76,6 +88,15 @@ export default function CreateCommunity({
     const [nameFocus, setNameFocus] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>("");
     const childRef = useRef<ImageUploaderMethods>(null);
+    const checkName = useRef(
+        debounce(async (communityName: string) => {
+            communityExists(communityName).then((res) => {
+                setNameExist(res);
+                setCheckingName(false);
+            });
+        }, 1000),
+    ).current;
+    const currentNameErrorMessage = getCommunityNameError(nameState);
 
     useEffect(() => {
         getTags().then((res) => {
@@ -96,110 +117,139 @@ export default function CreateCommunity({
         });
         if (!icon) {
             setUploadState((prev) => ({
-                    ...prev,
-                    preview: getDefaultIconForCommunity("", false)
-                })
-            )
+                ...prev,
+                preview: getDefaultIconForCommunity("", false),
+            }));
         }
-    }, [tags]);
-
+    }, [icon, tags]);
 
     const handleFormSubmit: React.FormEventHandler = (e) => {
         e.preventDefault();
-        console.log("image State", uploadState);
-        console.log("name", nameState);
-        console.log("desc", descriptionState);
+    };
+
+    const prepareCommunityIcon = async (communityName: string) => {
+        if (uploadState.status === "UPLOADING") {
+            setErrorMessage("Please wait for the image upload to finish");
+            return null;
+        }
+
+        if (uploadState.status === "ERROR") {
+            setErrorMessage("Please choose another community icon");
+            return null;
+        }
+
+        if (isAssetId(uploadState.fileName)) {
+            return uploadState.fileName;
+        }
+
+        if (typeof uploadState.preview !== "string") {
+            return undefined;
+        }
+
+        if (!uploadState.preview.startsWith("data")) {
+            return isAssetId(uploadState.preview)
+                ? uploadState.preview
+                : undefined;
+        }
+
+        const file =
+            uploadState.file ??
+            dataURLtoFile(uploadState.preview, `${communityName}.png`);
+
+        if (file === null) {
+            setErrorMessage("Could not prepare the community icon");
+            return null;
+        }
+
+        const response = await uploadIcon(file, "icon");
+
+        if (response.status !== 201 || !response.filename) {
+            setUploadState({
+                status: "ERROR",
+                file: null,
+                preview: null,
+            });
+            setErrorMessage("Could not upload the community icon");
+            return null;
+        }
+
+        return response.filename;
     };
 
     const handleCreate = async () => {
-        if (nameState === "") {
-            setNameError(true);
+        const trimmedName = nameState.trim();
+        const trimmedDescription = descriptionState.trim();
+        const nameValidationMessage = getCommunityNameError(trimmedName);
+        const descriptionValidationMessage =
+            getCommunityDescriptionError(descriptionState);
+
+        setErrorMessage("");
+        setNameError(!!nameValidationMessage);
+        setDescriptionError(!!descriptionValidationMessage);
+
+        if (nameValidationMessage || descriptionValidationMessage) {
+            setErrorMessage(
+                nameValidationMessage || descriptionValidationMessage,
+            );
+            return;
         }
-        if (descriptionState === "") {
-            setDescriptionError(true);
+
+        if (type === "CREATE" && checkingName) {
+            setNameFocus(true);
+            setErrorMessage("Please wait while we check the community name");
+            return;
         }
-        if (nameExist) {
+
+        if (type === "CREATE" && nameExist) {
             setNameError(true);
             setNameFocus(true);
+            setErrorMessage("Community name already taken");
+            return;
         }
-        if (descriptionState === "" || nameState === "") return;
-        setIsCreating(true);
-        const currentUploadState: UploadState = uploadState;
-        if (currentUploadState.file === null && currentUploadState.status === "IDLE") {
-            console.log("yes status is idle and file is null");
-            currentUploadState.file = dataURLtoFile(currentUploadState.preview, nameState + ".png");
 
-            if (currentUploadState.file === null) {
-                console.error("can not convert the dataURL to file");
+        setIsCreating(true);
+
+        try {
+            const iconFileName = await prepareCommunityIcon(trimmedName);
+
+            if (iconFileName === null) {
                 return;
             }
 
-            const response = await uploadIcon(
-                currentUploadState.file,
-                "icon",
-            );
-
-            if (response.status === 201) {
-                currentUploadState.fileName = response.filename;
-            } else {
-                console.error(
-                    `Upload failed with status: ${response.status}`,
+            if (type === "CREATE") {
+                const result = await createCommunity(
+                    trimmedName,
+                    trimmedDescription,
+                    selectedTags.map((tag) => tag.name),
+                    iconFileName,
                 );
-                setUploadState({
-                    status: "ERROR",
-                    file: null,
-                    preview: null,
-                });
+
+                if (result.status === 201) {
+                    onClose();
+                    navigate(`/community/${trimmedName}`);
+                } else {
+                    setErrorMessage(result.message || "Something went wrong");
+                }
+            } else if (type === "EDIT" && id !== undefined) {
+                const result = await editCommunity(
+                    id,
+                    trimmedName,
+                    trimmedDescription,
+                    iconFileName,
+                    selectedTags.map((tag) => tag.name),
+                );
+
+                if (result.status === 200) {
+                    onClose();
+                    navigate(`/community/${trimmedName}`);
+                } else {
+                    setErrorMessage(result.message || "Something went wrong");
+                }
             }
-        }
-        console.log("Upload state on create: ", currentUploadState);
-        if (type === "CREATE") {
-            createCommunity(
-                nameState,
-                descriptionState,
-                selectedTags.map((tag) => tag.name),
-                currentUploadState.fileName,
-            )
-                .then((status) => {
-                    if (status === 201) {
-                        onClose();
-                        navigate(`/community/${nameState}`);
-                    } else {
-                        setErrorMessage("Something went wrong");
-                    }
-                })
-                .finally(() => {
-                    setIsCreating(false);
-                });
-        } else if (type === "EDIT" && id) {
-            editCommunity(
-                id,
-                nameState,
-                descriptionState,
-                currentUploadState.fileName,
-                selectedTags.map((tag) => tag.name),
-            )
-                .then((status) => {
-                    if (status === 200) {
-                        onClose();
-                        navigate(`/community/${nameState}`);
-                    } else {
-                        setErrorMessage("Something went wrong");
-                    }
-                })
-                .finally(() => setIsCreating(false));
+        } finally {
+            setIsCreating(false);
         }
     };
-
-    const checkName = useCallback(
-        debounce(async (name: string) => {
-            communityExists(name).then((res) => {
-                setNameExist(res);
-                setCheckingName(false);
-            });
-        }, 1000),
-        [],
-    );
 
     const handleCancel = () => {
         if (childRef.current) {
@@ -234,22 +284,27 @@ export default function CreateCommunity({
 
     const handleNameInput: ChangeEventHandler<HTMLInputElement> = (e) => {
         setNameError(false);
-        setNameState(e.target.value);
+        setErrorMessage("");
+        const nextName = e.target.value;
+        setNameState(nextName);
         if (uploadState.status !== "COMPLETED")
             setUploadState((prev) => ({
-                    ...prev,
-                    preview: getDefaultIconForCommunity(e.target.value, false)
-                })
-            )
-        if (e.target.value !== "") {
+                ...prev,
+                preview: getDefaultIconForCommunity(nextName, false),
+            }));
+        const validationMessage = getCommunityNameError(nextName);
+
+        if (validationMessage) {
+            setCheckingName(false);
+            setNameExist(false);
+        } else {
             setCheckingName(true);
-            checkName(e.target.value);
+            checkName(nextName.trim());
         }
     };
 
     const handleKeyDownOnTags: KeyboardEventHandler<HTMLInputElement> = (e) => {
-        console.log(e.key);
-        if (e.key === "Enter" ) {
+        if (e.key === "Enter") {
             const val = e.currentTarget.value;
             if (val.trim() !== "") {
                 setSelectedTags((prev) => [
@@ -267,13 +322,19 @@ export default function CreateCommunity({
                 setCurrentTag(last.name);
             }
         }
-    }
+    };
 
     return (
         <Modal onClose={onClose}>
             <div className={styles.container}>
                 <div className={styles.loaderWrapper}>
-                    <ImageUploader type="COMMUNITY" setUploadState={setUploadState} uploadState={uploadState} communityName={nameState} ref={childRef}/>
+                    <ImageUploader
+                        type="COMMUNITY"
+                        setUploadState={setUploadState}
+                        uploadState={uploadState}
+                        communityName={nameState}
+                        ref={childRef}
+                    />
                 </div>
                 {errorMessage && (
                     <div className={styles.errorMessage}>{errorMessage}</div>
@@ -298,7 +359,9 @@ export default function CreateCommunity({
                         />
                         {nameFocus && nameState !== "" && (
                             <span className={styles.nameTooltip}>
-                                {checkingName ? (
+                                {currentNameErrorMessage ? (
+                                    currentNameErrorMessage
+                                ) : checkingName ? (
                                     <ThreeDotsLine />
                                 ) : nameExist ? (
                                     "Not Available"
@@ -311,7 +374,9 @@ export default function CreateCommunity({
                     <label
                         htmlFor="description-input"
                         className={styles.label}
-                        style={nameError ? { border: "2px solid #f33" } : {}}
+                        style={
+                            descriptionError ? { border: "2px solid #f33" } : {}
+                        }
                     >
                         <div
                             style={descriptionError ? { color: "#FF3333" } : {}}
@@ -352,7 +417,6 @@ export default function CreateCommunity({
                                 value={currentTag}
                                 onChange={handleTagChange}
                                 className={styles.tagInput}
-                                onSubmit={() => console.log("submit")}
                                 onKeyDown={handleKeyDownOnTags}
                             />
                         </ul>
@@ -380,7 +444,11 @@ export default function CreateCommunity({
                     <button className="btn-secondary" onClick={handleCancel}>
                         Cancel
                     </button>
-                    <button className="btn-primary" onClick={handleCreate}>
+                    <button
+                        className="btn-primary"
+                        onClick={handleCreate}
+                        disabled={isCreating}
+                    >
                         {isCreating ? <ThreeDotsLine /> : "Create"}
                     </button>
                 </div>

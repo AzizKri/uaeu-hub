@@ -81,7 +81,6 @@ function hashCommunityName(communityName: string) {
 
 export function getDefaultIconForCommunity(communityName: string, newIcon: boolean) {
     const firstTwoLetters: string = communityName.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase();
-    console.log("first two letters", firstTwoLetters);
     const palette = communityIconPalettes[
         newIcon
             ? Math.floor(Math.random() * communityIconPalettes.length)
@@ -137,10 +136,7 @@ export function getDefaultIconForCommunity(communityName: string, newIcon: boole
 }
 
 export function dataURLtoFile(dataURL: string | ArrayBuffer | ImageData | null | undefined, filename: string) {
-    console.log("dataURL", dataURL);
-    console.log("dataURL type", typeof dataURL);
     if (typeof dataURL !== "string") return null;
-    console.log("here");
     const arr = dataURL.split(',');
     const mimeMatch = arr[0].match(/:(.*?);/);
     const mime = mimeMatch ? mimeMatch[1] : 'image/png';

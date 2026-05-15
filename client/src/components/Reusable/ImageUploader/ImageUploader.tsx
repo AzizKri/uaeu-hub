@@ -42,8 +42,6 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
             const selectedFile = event.target.files?.[0];
             if (!selectedFile) return;
 
-            console.log("selected file", selectedFile);
-
             try {
                 setUploadState({
                     status: "UPLOADING",
@@ -54,7 +52,6 @@ export default forwardRef<ImageUploaderMethods, ImageUploaderProps>(
                 // Create preview
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    console.log("e", e);
                     setUploadState((prev) => ({
                         ...prev,
                         preview: e.target?.result || null,
