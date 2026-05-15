@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import { ApiMutationResult, toApiMutationResult } from "./errors";
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/report';
 
@@ -9,54 +10,42 @@ async function getAuthHeaders(): Promise<HeadersInit> {
     return headers;
 }
 
-export async function reportPost(postId: number, reportType: string, reason: string) {
+async function submitReport(body: {
+    entityId: number | string;
+    entityType: 'post' | 'comment' | 'subcomment' | 'community' | 'user';
+    reportType: string;
+    reason: string;
+}): Promise<ApiMutationResult> {
     const headers = await getAuthHeaders();
     const request = await apiFetch(base, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ entityId: postId, entityType: 'post', reportType, reason }),
+        body: JSON.stringify(body),
     });
-    return request.status;
+    return toApiMutationResult(
+        request,
+        `Could not submit ${body.entityType === 'subcomment' ? 'reply' : body.entityType} report.`,
+    );
+}
+
+export async function reportPost(postId: number, reportType: string, reason: string) {
+    return submitReport({ entityId: postId, entityType: 'post', reportType, reason });
 }
 
 export async function reportComment(commentId: number, reportType: string, reason: string) {
-    const headers = await getAuthHeaders();
-    const request = await apiFetch(base, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ entityId: commentId, entityType: 'comment', reportType, reason }),
-    });
-    return request.status;
+    return submitReport({ entityId: commentId, entityType: 'comment', reportType, reason });
 }
 
 export async function reportSubcomment(subcommentId: number, reportType: string, reason: string) {
-    const headers = await getAuthHeaders();
-    const request = await apiFetch(base, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ entityId: subcommentId, entityType: 'subcomment', reportType, reason }),
-    });
-    return request.status;
+    return submitReport({ entityId: subcommentId, entityType: 'subcomment', reportType, reason });
 }
 
 export async function reportUser(userId: string, reportType: string, reason: string) {
-    const headers = await getAuthHeaders();
-    const request = await apiFetch(base, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ entityId: userId, entityType: 'user', reportType, reason }),
-    });
-    return request.status;
+    return submitReport({ entityId: userId, entityType: 'user', reportType, reason });
 }
 
 export async function reportCommunity(communityId: number, reportType: string, reason: string) {
-    const headers = await getAuthHeaders();
-    const request = await apiFetch(base, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ entityId: communityId, entityType: 'community', reportType, reason }),
-    });
-    return request.status;
+    return submitReport({ entityId: communityId, entityType: 'community', reportType, reason });
 }
 
 export async function getReport(reportId: number) {

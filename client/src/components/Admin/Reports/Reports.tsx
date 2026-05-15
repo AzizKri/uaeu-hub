@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { assetsBase } from '../../../api/api.ts';
 import { getAdminReports, takeAdminReportAction } from '../../../api/adminReports.ts';
 import styles from './Reports.module.scss';
+import { getRequestFailureMessage } from '../../../api/errors.ts';
 
 export default function Reports() {
     const [reports, setReports] = useState<AdminReport[]>([]);
@@ -23,7 +24,7 @@ export default function Reports() {
             setReports(data.reports || []);
         } catch (err) {
             console.error('Failed to load reports:', err);
-            setError('Failed to load reports');
+            setError(err instanceof Error ? err.message : 'Could not load reports.');
         } finally {
             setIsLoading(false);
         }
@@ -43,14 +44,18 @@ export default function Reports() {
 
         setIsSubmitting(true);
         try {
-            await takeAdminReportAction(selectedReport.id, action, actionReason);
+            const result = await takeAdminReportAction(selectedReport.id, action, actionReason);
+            if (result.status !== 200) {
+                alert(result.message || 'Could not apply the report action.');
+                return;
+            }
             setActionModal(false);
             setSelectedReport(null);
             setActionReason('');
             void loadReports();
         } catch (err) {
             console.error('Failed to take action:', err);
-            alert('Failed to execute action');
+            alert(getRequestFailureMessage('apply the report action', err));
         } finally {
             setIsSubmitting(false);
         }

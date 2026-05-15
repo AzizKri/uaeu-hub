@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import { toApiMutationResult } from "./errors";
 
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/community';
 
@@ -15,28 +16,11 @@ async function getAuthHeaders(includeContentType: boolean = true): Promise<Heade
     return headers;
 }
 
-async function getCommunityMutationResult(request: Response): Promise<CommunityMutationResult> {
-    if (request.ok) {
-        return { status: request.status };
-    }
-
-    const contentType = request.headers.get('content-type') || '';
-
-    if (contentType.includes('application/json')) {
-        try {
-            const body = await request.json() as { errors?: { message?: string }[]; message?: string };
-            const errorMessage = body.errors?.map((error) => error.message).filter(Boolean).join('\n') || body.message;
-
-            if (errorMessage) {
-                return { status: request.status, message: errorMessage };
-            }
-        } catch {
-            return { status: request.status, message: 'Something went wrong' };
-        }
-    }
-
-    const text = await request.text();
-    return { status: request.status, message: text || 'Something went wrong' };
+async function getCommunityMutationResult(
+    request: Response,
+    fallbackMessage: string,
+): Promise<CommunityMutationResult> {
+    return toApiMutationResult(request, fallbackMessage);
 }
 
 // Create a community
@@ -56,7 +40,10 @@ export async function createCommunity(name: string, description: string, tags: s
         headers,
         body: formData,
     });
-    return getCommunityMutationResult(request);
+    return getCommunityMutationResult(
+        request,
+        'Could not create community. Please review the form and try again.',
+    );
 }
 
 // Check if a community exists with the given name
@@ -144,7 +131,10 @@ export async function editCommunity(id: number, name?: string, description?: str
         headers,
         body: formData,
     });
-    return getCommunityMutationResult(request);
+    return getCommunityMutationResult(
+        request,
+        'Could not update community. Please review the form and try again.',
+    );
 }
 
 // Delete community by ID

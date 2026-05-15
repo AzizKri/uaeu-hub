@@ -10,6 +10,7 @@ import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 import ConfirmationPopUp from "../../UserAuthentication/ConfirmationPopUp/ConfirmationPopUp.tsx";
 import { mapBackendUserToUserInfo } from "../../../contexts/user/mapBackendUser.ts";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 export default function SignUp() {
     const navigate = useNavigate();
@@ -73,7 +74,12 @@ export default function SignUp() {
             }
         } catch (error) {
             console.error('Signup error:', error);
-            setErrors({ global: 'Something went wrong. Please try again.' });
+            setErrors({
+                global: getRequestFailureMessage(
+                    'check username availability',
+                    error,
+                ),
+            });
         }
         setIsLoading(false);
     };
@@ -87,18 +93,31 @@ export default function SignUp() {
                 password: formData.password,
                 includeAnon,
             });
-            const data = await response.json();
 
-            if (response.ok && data.user) {
+            if (response.ok) {
+                const data = await response.json();
+                if (!data.user) {
+                    setErrors({
+                        global:
+                            'Account was created, but the server did not return your profile. Please log in.',
+                    });
+                    return;
+                }
                 updateUser(mapBackendUserToUserInfo(data.user));
                 setShowConfirmationPopup(true);
             } else {
-                setErrors({ global: data.message || 'Failed to create account' });
+                setErrors({
+                    global: await getResponseErrorMessage(
+                        response,
+                        'Could not create account. Please review the form and try again.',
+                    ),
+                });
             }
         } catch (error: unknown) {
             console.error('Signup error:', error);
-            const typedError = error as { message?: string };
-            setErrors({ global: typedError.message || 'Something went wrong. Please try again.' });
+            setErrors({
+                global: getRequestFailureMessage('create account', error),
+            });
         }
     };
 

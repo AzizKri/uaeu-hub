@@ -3,6 +3,7 @@ import Modal from "../Modal/Modal.tsx";
 import React, { useState } from "react";
 import { reportPost, reportComment, reportSubcomment, reportCommunity } from "../../../api/report.ts";
 import ThreeDotsLine from "../Animations/ThreeDotsLine/ThreeDotsLine.tsx";
+import { ApiMutationResult, getRequestFailureMessage } from "../../../api/errors.ts";
 
 interface ReportPopUpProps {
     entityType: "post" | "comment" | "subcomment" | "community";
@@ -37,37 +38,45 @@ export default function ReportPopUp({ entityType, entityId, hidePopUp }: ReportP
         setError("");
 
         try {
-            let status: number;
+            let result: ApiMutationResult;
 
             switch (entityType) {
                 case "post":
-                    status = await reportPost(entityId, reportType, reason);
+                    result = await reportPost(entityId, reportType, reason);
                     break;
                 case "comment":
-                    status = await reportComment(entityId, reportType, reason);
+                    result = await reportComment(entityId, reportType, reason);
                     break;
                 case "subcomment":
-                    status = await reportSubcomment(entityId, reportType, reason);
+                    result = await reportSubcomment(entityId, reportType, reason);
                     break;
                 case "community":
-                    status = await reportCommunity(entityId, reportType, reason);
+                    result = await reportCommunity(entityId, reportType, reason);
                     break;
                 default:
                     throw new Error("Invalid entity type");
             }
 
-            if (status === 200) {
+            if (result.status === 200) {
                 setSuccess(true);
                 setTimeout(() => {
                     hidePopUp();
                 }, 1500);
-            } else if (status === 401) {
+            } else if (result.status === 401) {
                 setError("You must be logged in to report");
             } else {
-                setError("Failed to submit report. Please try again.");
+                setError(
+                    result.message ||
+                        `Could not submit ${getEntityLabel()} report. Please review the form and try again.`,
+                );
             }
-        } catch {
-            setError("An error occurred. Please try again.");
+        } catch (error) {
+            setError(
+                getRequestFailureMessage(
+                    `submit ${getEntityLabel()} report`,
+                    error,
+                ),
+            );
         } finally {
             setIsSubmitting(false);
         }

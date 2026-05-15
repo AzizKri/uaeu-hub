@@ -30,7 +30,10 @@ import { uploadIcon } from "../../../api/attachmets.ts";
 import {
     getCommunityDescriptionError,
     getCommunityNameError,
+    getCommunityTagsError,
+    getFinalCommunityTags,
 } from "./communityFormValidation.ts";
+import { getRequestFailureMessage } from "../../../api/errors.ts";
 
 interface props {
     type: "CREATE" | "EDIT";
@@ -59,6 +62,7 @@ export default function CreateCommunity({
     );
     const [nameError, setNameError] = useState<boolean>(false);
     const [descriptionError, setDescriptionError] = useState<boolean>(false);
+    const [tagError, setTagError] = useState<boolean>(false);
     const [uploadState, setUploadState] = useState<UploadState>(
         icon !== undefined
             ? {
@@ -90,10 +94,19 @@ export default function CreateCommunity({
     const childRef = useRef<ImageUploaderMethods>(null);
     const checkName = useRef(
         debounce(async (communityName: string) => {
-            communityExists(communityName).then((res) => {
-                setNameExist(res);
-                setCheckingName(false);
-            });
+            communityExists(communityName)
+                .then((res) => {
+                    setNameExist(res);
+                    setCheckingName(false);
+                })
+                .catch(() => {
+                    setNameExist(false);
+                    setCheckingName(false);
+                    setNameError(true);
+                    setErrorMessage(
+                        "Could not check whether this community name is available. Check your connection and try again.",
+                    );
+                });
         }, 1000),
     ).current;
     const currentNameErrorMessage = getCommunityNameError(nameState);
@@ -157,7 +170,9 @@ export default function CreateCommunity({
             dataURLtoFile(uploadState.preview, `${communityName}.png`);
 
         if (file === null) {
-            setErrorMessage("Could not prepare the community icon");
+            setErrorMessage(
+                "Could not prepare the community icon. Please choose another image and try again.",
+            );
             return null;
         }
 
@@ -169,7 +184,10 @@ export default function CreateCommunity({
                 file: null,
                 preview: null,
             });
-            setErrorMessage("Could not upload the community icon");
+            setErrorMessage(
+                response.message ||
+                    "Could not upload the community icon. Please choose another image and try again.",
+            );
             return null;
         }
 
@@ -179,17 +197,26 @@ export default function CreateCommunity({
     const handleCreate = async () => {
         const trimmedName = nameState.trim();
         const trimmedDescription = descriptionState.trim();
+        const finalTags = getFinalCommunityTags(selectedTags, currentTag);
         const nameValidationMessage = getCommunityNameError(trimmedName);
         const descriptionValidationMessage =
             getCommunityDescriptionError(descriptionState);
+        const tagValidationMessage = getCommunityTagsError(finalTags);
 
         setErrorMessage("");
         setNameError(!!nameValidationMessage);
         setDescriptionError(!!descriptionValidationMessage);
+        setTagError(!!tagValidationMessage);
 
-        if (nameValidationMessage || descriptionValidationMessage) {
+        if (
+            nameValidationMessage ||
+            descriptionValidationMessage ||
+            tagValidationMessage
+        ) {
             setErrorMessage(
-                nameValidationMessage || descriptionValidationMessage,
+                nameValidationMessage ||
+                    descriptionValidationMessage ||
+                    tagValidationMessage,
             );
             return;
         }
@@ -220,7 +247,7 @@ export default function CreateCommunity({
                 const result = await createCommunity(
                     trimmedName,
                     trimmedDescription,
-                    selectedTags.map((tag) => tag.name),
+                    finalTags,
                     iconFileName,
                 );
 
@@ -228,7 +255,10 @@ export default function CreateCommunity({
                     onClose();
                     navigate(`/community/${trimmedName}`);
                 } else {
-                    setErrorMessage(result.message || "Something went wrong");
+                    setErrorMessage(
+                        result.message ||
+                            "Could not create community. Please review the form and try again.",
+                    );
                 }
             } else if (type === "EDIT" && id !== undefined) {
                 const result = await editCommunity(
@@ -236,16 +266,26 @@ export default function CreateCommunity({
                     trimmedName,
                     trimmedDescription,
                     iconFileName,
-                    selectedTags.map((tag) => tag.name),
+                    finalTags,
                 );
 
                 if (result.status === 200) {
                     onClose();
                     navigate(`/community/${trimmedName}`);
                 } else {
-                    setErrorMessage(result.message || "Something went wrong");
+                    setErrorMessage(
+                        result.message ||
+                            "Could not update community. Please review the form and try again.",
+                    );
                 }
             }
+        } catch (error) {
+            setErrorMessage(
+                getRequestFailureMessage(
+                    type === "CREATE" ? "create community" : "update community",
+                    error,
+                ),
+            );
         } finally {
             setIsCreating(false);
         }
@@ -264,12 +304,16 @@ export default function CreateCommunity({
     };
 
     const addTag = (tag: { id: number; name: string }) => {
+        setTagError(false);
+        setErrorMessage("");
         setUnSelectedTags((prev) => prev.filter((t) => t.id != tag.id));
         setSelectedTags((prev) => [...prev, tag]);
     };
 
     const handleTagChange: ChangeEventHandler<HTMLInputElement> = (e) => {
         const val: string = e.target.value;
+        setTagError(false);
+        setErrorMessage("");
         if (val.trim() !== "" && val.endsWith(" ")) {
             setSelectedTags((prev) => [
                 ...prev,
@@ -305,8 +349,11 @@ export default function CreateCommunity({
 
     const handleKeyDownOnTags: KeyboardEventHandler<HTMLInputElement> = (e) => {
         if (e.key === "Enter") {
+            e.preventDefault();
             const val = e.currentTarget.value;
             if (val.trim() !== "") {
+                setTagError(false);
+                setErrorMessage("");
                 setSelectedTags((prev) => [
                     ...prev,
                     { id: userTagsCounter, name: val.trim() },
@@ -315,10 +362,9 @@ export default function CreateCommunity({
                 setUserTagsCounter((prev) => prev - 1);
             }
         } else if (e.key === "Backspace" && currentTag === "") {
-            const prev = selectedTags;
-            const last = selectedTags.pop();
+            const last = selectedTags[selectedTags.length - 1];
             if (last) {
-                setSelectedTags(prev);
+                setSelectedTags((prev) => prev.slice(0, -1));
                 setCurrentTag(last.name);
             }
         }
@@ -394,8 +440,13 @@ export default function CreateCommunity({
                             {descriptionState}
                         </textarea>
                     </label>
-                    <label className={styles.label}>
-                        <div>Tags</div>
+                    <label
+                        className={styles.label}
+                        style={tagError ? { border: "2px solid #f33" } : {}}
+                    >
+                        <div style={tagError ? { color: "#FF3333" } : {}}>
+                            Tags *
+                        </div>
                         <ul className={styles.tagList}>
                             {selectedTags.map(
                                 (tag: { id: number; name: string }) => (

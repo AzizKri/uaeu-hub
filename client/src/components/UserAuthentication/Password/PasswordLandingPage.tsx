@@ -5,6 +5,7 @@ import {useNavigate} from 'react-router-dom';
 import ConfirmationPopUp from "../ConfirmationPopUp/ConfirmationPopUp.tsx";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 export default function PasswordLandingPage() {
     interface passwordLandingPageErrors {
@@ -42,11 +43,20 @@ export default function PasswordLandingPage() {
             if (response.ok) {
                 setShowPopup(true);
             } else {
-                const data = await response.json();
-                setErrors({ global: data.message || 'Something went wrong, please try again' });
+                setErrors({
+                    global: await getResponseErrorMessage(
+                        response,
+                        'Could not send password reset email. Check the email address and try again.',
+                    ),
+                });
             }
         } catch (error: unknown) {
-            setErrors({ global: 'Something went wrong, please try again' });
+            setErrors({
+                global: getRequestFailureMessage(
+                    'send password reset email',
+                    error,
+                ),
+            });
         }
         
         setIsLoading(false);

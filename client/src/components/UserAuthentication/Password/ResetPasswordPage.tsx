@@ -5,6 +5,7 @@ import {useNavigate, useSearchParams} from 'react-router-dom';
 import ConfirmationPopUp from "../ConfirmationPopUp/ConfirmationPopUp.tsx";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 export default function ResetPasswordPage() {
     interface ResetPasswordPageErrors {
@@ -28,7 +29,7 @@ export default function ResetPasswordPage() {
         if (!token) {
             setShowPopup(true);
             setSuccess(false);
-            setErrors({global : "Invalid token"});
+            setErrors({global : "This password reset link is invalid or expired."});
             return;
         }
     }, [token]);
@@ -59,15 +60,24 @@ export default function ResetPasswordPage() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        const response = await resetPassword(token!, formData.newPassword);
-        if (response.status === 200) {
-            setShowPopup(true);
-            setSuccess(true);
-        } else {
-            const newErrors : ResetPasswordPageErrors = {};
-            const data = await response.json();
-            newErrors.global = data.message;
-            setErrors(newErrors);
+        try {
+            const response = await resetPassword(token!, formData.newPassword);
+            if (response.status === 200) {
+                setShowPopup(true);
+                setSuccess(true);
+            } else {
+                const newErrors : ResetPasswordPageErrors = {};
+                newErrors.global = await getResponseErrorMessage(
+                    response,
+                    'Could not reset password. Request a new reset link and try again.',
+                );
+                setErrors(newErrors);
+                setShowPopup(true);
+            }
+        } catch (error) {
+            setErrors({
+                global: getRequestFailureMessage('reset password', error),
+            });
             setShowPopup(true);
         }
         setIsLoading(false);
@@ -135,4 +145,3 @@ export default function ResetPasswordPage() {
         </div>
     );
 };
-

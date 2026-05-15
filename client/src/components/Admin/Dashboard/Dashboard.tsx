@@ -19,7 +19,11 @@ export default function Dashboard() {
             setTopCommunities(data.topCommunities);
         } catch (err) {
             console.error('Failed to load stats:', err);
-            setError('Failed to load dashboard data');
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : 'Could not load dashboard data.',
+            );
         } finally {
             setIsLoading(false);
         }

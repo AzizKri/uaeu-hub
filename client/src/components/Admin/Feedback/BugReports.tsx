@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { assetsBase } from '../../../api/api.ts';
 import { getBugReports, updateFeedbackStatus } from '../../../api/feedback.ts';
 import styles from './Feedback.module.scss';
+import { getRequestFailureMessage } from '../../../api/errors.ts';
 
 export default function BugReports() {
     const [reports, setReports] = useState<AdminBugReport[]>([]);
@@ -16,7 +17,9 @@ export default function BugReports() {
             setReports(data.reports || []);
         } catch (err) {
             console.error('Failed to load bug reports:', err);
-            setError('Failed to load bug reports');
+            setError(
+                err instanceof Error ? err.message : 'Could not load bug reports.',
+            );
         } finally {
             setIsLoading(false);
         }
@@ -29,14 +32,16 @@ export default function BugReports() {
     const handleStatusChange = async (reportId: number, newStatus: AdminFeedbackStatus) => {
         try {
             const result = await updateFeedbackStatus('bug', reportId, newStatus);
-            if (result === 200) {
+            if (result.status === 200) {
                 setReports(reports.map(r => 
                     r.id === reportId ? { ...r, status: newStatus } : r
                 ));
+            } else {
+                alert(result.message || 'Could not update bug report status.');
             }
         } catch (err) {
             console.error('Failed to update status:', err);
-            alert('Failed to update status');
+            alert(getRequestFailureMessage('update bug report status', err));
         }
     };
 
