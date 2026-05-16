@@ -8,8 +8,8 @@
         "module": "es2022",
         "moduleResolution": "bundler",
         "types": [
-            "@cloudflare/workers-types/2023-07-01",
-            "@cloudflare/vitest-pool-workers"
+            "@cloudflare/vitest-pool-workers/types",
+            "vitest/globals"
         ],
         "resolveJsonModule": true,
         "allowJs": true,

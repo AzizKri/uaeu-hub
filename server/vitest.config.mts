@@ -23,6 +23,8 @@ export default defineConfig({
                         PASSWORD_PEPPER: 'test_password_pepper',
                         EMAIL_SEND_DISABLED: 'true',
                         RESEND_API_KEY: 'test_resend_key',
+                        WS_SECRET: 'test_ws_secret',
+                        SYSTEM: 'test_system_token',
                         AUTH_EMAIL_FROM: 'UAEU Chat <no-reply@uaeu.chat>',
                         PUBLIC_APP_URL: 'http://127.0.0.1:5173'
                     }
