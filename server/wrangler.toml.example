@@ -5,6 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 keep_vars = true
 
 observability = { enabled = true }
+secrets = { required = ["EN_SECRET", "PASSWORD_PEPPER", "RESEND_API_KEY", "WS_SECRET", "SYSTEM"] }
 
 d1_databases = [
     { binding = "DB", database_name = "uaeu-chat", database_id = "PROD_DB_ID", migrations_table = "migrations", migrations_dir = 'migrations' }
@@ -48,6 +49,7 @@ unsafe.bindings = [
 vars = { ENVIRONMENT = "production", WEBSOCKET_URL = "https://wss.uaeu.chat", AUTH_EMAIL_FROM = "UAEU Chat <no-reply@uaeu.chat>", PUBLIC_APP_URL = "https://uaeu.chat" }
 
 [env.production]
+secrets = { required = ["EN_SECRET", "PASSWORD_PEPPER", "RESEND_API_KEY", "WS_SECRET", "SYSTEM"] }
 
 d1_databases = [
     { binding = "DB", database_name = "uaeu-chat", database_id = "UAEU_CHAT_PROD_DB", migrations_table = "migrations", migrations_dir = 'migrations' }
@@ -67,6 +69,7 @@ unsafe.bindings = [
 vars = { ENVIRONMENT = "production", WEBSOCKET_URL = "https://wss.uaeu.chat", AUTH_EMAIL_FROM = "UAEU Chat <no-reply@uaeu.chat>", PUBLIC_APP_URL = "https://uaeu.chat" }
 
 [env.dev]
+secrets = { required = ["EN_SECRET", "PASSWORD_PEPPER", "RESEND_API_KEY", "WS_SECRET", "SYSTEM"] }
 
 d1_databases = [
     { binding = "DB", database_name = "uaeu-chat-dev", database_id = "DEV_DB_ID" }
@@ -110,4 +113,5 @@ unsafe.bindings = [
 vars = { ENVIRONMENT = "development", WEBSOCKET_URL = "https://ws.uaeu.chat", AUTH_EMAIL_FROM = "UAEU Chat <no-reply@uaeu.chat>", PUBLIC_APP_URL = "http://localhost:5173" }
 
 [env.staging]
+secrets = { required = ["EN_SECRET", "PASSWORD_PEPPER", "RESEND_API_KEY", "WS_SECRET", "SYSTEM"] }
 vars = { ENVIRONMENT = "staging" }
