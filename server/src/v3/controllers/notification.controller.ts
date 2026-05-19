@@ -1,17 +1,23 @@
 import { Context } from 'hono';
+import { notificationsQuerySchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function getNotifications(c: Context) {
     const env: Env = c.env;
 
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
     if (!userId || isAnonymous) return c.json({}, { status: 200 });
 
     // Get offset from query
-    const offset = parseInt(c.req.query('offset') as string) || 0;
+    const parsedQuery = validateWithSchema(notificationsQuerySchema, {
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+    const { offset } = parsedQuery.data;
 
     try {
         // Get notifications
@@ -128,7 +134,7 @@ export async function readNotifications(c: Context) {
     const env: Env = c.env;
 
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous

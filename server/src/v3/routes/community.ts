@@ -34,7 +34,7 @@ app.post('/',
     validator('form', (value, c: Context) => {
         const parsed = communitySchema.safeParse(value);
         if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            const errors = parsed.error.issues.map(err => ({ field: err.path[0], message: err.message }));
             return c.json({ errors }, 400);
         }
         return parsed.data;
@@ -50,7 +50,7 @@ app.post('/invite',
     validator('form', (value, c: Context) => {
         const parsed = communityInviteSchema.safeParse(value);
         if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            const errors = parsed.error.issues.map(err => ({ field: err.path[0], message: err.message }));
             return c.json({ errors }, 400);
         }
         return parsed.data;
@@ -99,7 +99,7 @@ app.post('/:id',
         const parsed = communityEditingSchema.safeParse(value);
         if (!parsed.success) {
             // if false positive, check the tags rule
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            const errors = parsed.error.issues.map(err => ({ field: err.path[0], message: err.message }));
             return c.json({ errors }, 400);
         }
         return parsed.data;
@@ -110,7 +110,7 @@ app.post('/addAdmin',
     validator('form', (value, c: Context) => {
         const parsed = communityInviteSchema.safeParse(value);
         if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            const errors = parsed.error.issues.map(err => ({ field: err.path[0], message: err.message }));
             return c.json({ errors }, 400);
         }
         return parsed.data;

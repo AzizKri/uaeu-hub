@@ -1,6 +1,6 @@
 import styles from '../Comment/Comment.module.scss';
 import Content from "../Content/Content.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {getFormattedDate} from "../../../utils/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import Modal from "../../Reusable/Modal/Modal.tsx";
@@ -9,19 +9,23 @@ import {likeSubComment} from "../../../api/subComments.ts";
 import {Link} from "react-router-dom";
 import reply from "../../../assets/reply.svg"
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
+import SuspendedPopUp from "../../Reusable/SuspendedPopUp/SuspendedPopUp.tsx";
 import ProfilePictureComponent from "../../Reusable/ProfilePictureComponent/ProfilePictureComponent.tsx";
 import likeIconLiked from "../../../assets/liked.svg";
 import likeIconUnliked from "../../../assets/unliked.svg";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 
-export default function SubComment({info, deleteComment, parentPrependSubComment}: {info: CommentInfo, deleteComment: (commentId: number) => void, parentPrependSubComment?: (commentInfo: CommentInfo) => void}) {
+export default function SubComment({info, deleteComment, parentPrependSubComment, highlighted = false}: {info: CommentInfo, deleteComment: (commentId: number) => void, parentPrependSubComment?: (commentInfo: CommentInfo) => void, highlighted?: boolean}) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
     const [dateText, setDateText] = useState<string>("");
     const [likeState, setLikeState] = useState<"LIKE" | "DISLIKE" | "NONE">("NONE");
     const [likesCount, setLikesCount] = useState<number>(0);
     const [showActionPopUp, setShowActionPopUp] = useState<boolean>(false);
-    const {isUser} = useUser();
+    const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
+    const {isUser, isSuspended} = useUser();
     const [initialText, setInitialText] = useState<string>("");
+    const subCommentRef = useRef<HTMLDivElement>(null);
+    const [isHighlighted, setIsHighlighted] = useState(false);
 
     useEffect(() => {
         setDateText(getFormattedDate(info.postTime))
@@ -31,7 +35,26 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
         }
     }, []);
 
+    useEffect(() => {
+        if (!highlighted) return;
+
+        setIsHighlighted(true);
+        subCommentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        const timeout = window.setTimeout(() => {
+            setIsHighlighted(false);
+        }, 2500);
+
+        return () => {
+            window.clearTimeout(timeout);
+        };
+    }, [highlighted]);
+
     const handleReply = () => {
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
+            return;
+        }
         setInitialText(`@${info.author}`);
         setShowReplyPopUp(true)
     }
@@ -44,6 +67,10 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
     const handleUpVote = () => {
         if (!isUser()) {
             setShowActionPopUp(true);
+            return;
+        }
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
             return;
         }
         if (likeState === "LIKE") {
@@ -69,9 +96,12 @@ export default function SubComment({info, deleteComment, parentPrependSubComment
     }
 
     return (
-        <div className={styles.comment}>
+        <div ref={subCommentRef} className={`${styles.comment} ${isHighlighted ? styles.targeted : ""}`}>
             {showActionPopUp && (
                 <UnAuthorizedPopUp hidePopUp={hideActionPopUp}/>
+            )}
+            {showSuspendedPopUp && (
+                <SuspendedPopUp hidePopUp={() => setShowSuspendedPopUp(false)} />
             )}
             {showReplyPopUp && (
                 <Modal onClose={hideReplyPopUp}>

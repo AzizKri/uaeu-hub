@@ -46,6 +46,13 @@ const PasswordLandingPage = lazy(
             ),
 );
 
+const AdminGuard = lazy(() => import("./components/Admin/AdminGuard.tsx"));
+const AdminWorkspace = lazy(() => import("./components/Admin/AdminWorkspace.tsx"));
+const AdminDashboard = lazy(() => import("./components/Admin/Dashboard/Dashboard.tsx"));
+const AdminReports = lazy(() => import("./components/Admin/Reports/Reports.tsx"));
+const AdminBugReports = lazy(() => import("./components/Admin/Feedback/BugReports.tsx"));
+const AdminFeatureRequests = lazy(() => import("./components/Admin/Feedback/FeatureRequests.tsx"));
+
 const routes = [
     {
         path: "/",
@@ -63,6 +70,22 @@ const routes = [
             },
             {path: "community/:communityName", element: <Suspense fallback={<NavigationFallback/>}><Community/></Suspense>},
             {path: "community/explore", element: <Suspense fallback={<NavigationFallback/>}><ExploreCommunities/></Suspense>},
+            {
+                path: "admin",
+                element: (
+                    <Suspense fallback={<NavigationFallback/>}>
+                        <AdminGuard>
+                            <AdminWorkspace/>
+                        </AdminGuard>
+                    </Suspense>
+                ),
+                children: [
+                    {index: true, element: <Suspense fallback={<NavigationFallback/>}><AdminDashboard/></Suspense>},
+                    {path: "reports", element: <Suspense fallback={<NavigationFallback/>}><AdminReports/></Suspense>},
+                    {path: "bug-reports", element: <Suspense fallback={<NavigationFallback/>}><AdminBugReports/></Suspense>},
+                    {path: "feature-requests", element: <Suspense fallback={<NavigationFallback/>}><AdminFeatureRequests/></Suspense>},
+                ],
+            },
         ],
     },
     {

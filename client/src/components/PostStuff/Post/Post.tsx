@@ -24,7 +24,9 @@ export default function Post({
 
     const handleClickOnPost: React.MouseEventHandler<HTMLDivElement> = () => {
         if (postInfo.type === "POST-PAGE") return;
-        navigate(`/post/${postInfo.id}`, { state: { from: from } });
+        // Prefer public_id for URL, fall back to numeric id
+        const postIdForUrl = postInfo.publicId || postInfo.id;
+        navigate(`/post/${postIdForUrl}`, { state: { from: from } });
     };
 
     return (
@@ -48,10 +50,12 @@ export default function Post({
             <Content
                 content={postInfo.content}
                 filename={postInfo.filename}
+                attachmentMime={postInfo.attachmentMime}
                 type={postInfo.type}
             />
             <PostFooter
                 id={postInfo.id}
+                publicId={postInfo.publicId}
                 likes={postInfo.likeCount}
                 comments={postInfo.commentCount}
                 isLiked={postInfo.liked}

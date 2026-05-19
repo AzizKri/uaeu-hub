@@ -1,4 +1,14 @@
+import { apiFetch } from "./client";
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/comment';
+
+async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+}
 
 // Comment on post
 export async function comment(post: number, content: string, attachment?: string) {
@@ -10,10 +20,12 @@ export async function comment(post: number, content: string, attachment?: string
         formData.append('filename', attachment);
     }
 
-    const request = await fetch(base, {
+    // Don't include Content-Type for FormData - browser sets it with boundary
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
     return request.json();
 }
@@ -21,28 +33,32 @@ export async function comment(post: number, content: string, attachment?: string
 // Get comments on a post by its ID
 export async function getCommentsOnPost(post: number, offset: number = 0) {
     console.log("getting more comments on posts, offset:", offset);
-    const request = await fetch(base + `/${post}?offset=${offset}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${post}?offset=${offset}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
 // Like/unlike a comment by its ID
 export async function likeComment(comment: number) {
-    const request = await fetch(base + `/like/${comment}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/like/${comment}`, {
         method: 'POST',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
 
 // Delete comment by its ID
-export async function deleteComment(comment: number) {
-    const request = await fetch(base + `/${comment}`, {
+// Optional reason for admin deletions
+export async function deleteComment(comment: number, reason?: string) {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${comment}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
+        body: reason ? JSON.stringify({ reason }) : undefined,
     });
     return request.status;
 }
-

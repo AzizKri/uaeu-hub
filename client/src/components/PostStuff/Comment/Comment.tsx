@@ -1,6 +1,6 @@
 import styles from './Comment.module.scss';
 import Content from "../Content/Content.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {getFormattedDate} from "../../../utils/tools.ts";
 import OptionsMenu from "../OptionsMenu/OptionsMenu.tsx";
 import Modal from "../../Reusable/Modal/Modal.tsx"
@@ -11,6 +11,7 @@ import {Link} from "react-router-dom";
 import reply from "../../../assets/reply.svg"
 import {likeComment} from "../../../api/comments.ts";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
+import SuspendedPopUp from "../../Reusable/SuspendedPopUp/SuspendedPopUp.tsx";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 import SubComment from "../SubComment/SubComment.tsx";
 import likeIconUnliked from "../../../assets/unliked.svg";
@@ -21,7 +22,7 @@ import {useUser} from "../../../contexts/user/UserContext.ts";
 interface SubCommentBack {
     attachment: string,
     author: string,
-    author_id: number,
+    author_id: string,
     comment_count: number,
     content: string,
     displayname: string,
@@ -33,29 +34,86 @@ interface SubCommentBack {
     post_time: Date,
 }
 
-export default function Comment({info, deleteComment}: {info: CommentInfo, deleteComment: (commentId: number) => void}) {
+interface CommentProps {
+    info: CommentInfo;
+    deleteComment: (commentId: number) => void;
+    shouldFocusComment?: boolean;
+    targetReplyId?: number;
+}
+
+function mapSubComment(cd: SubCommentBack): CommentInfo {
+    return {
+        attachment: cd.attachment,
+        author: cd.author,
+        authorId: cd.author_id,
+        content: cd.content,
+        displayName: cd.displayname,
+        id: cd.id,
+        likeCount: cd.like_count,
+        commentCount: cd.comment_count,
+        liked: cd.liked,
+        parentId: cd.parent_comment_id,
+        pfp: cd.pfp,
+        postTime: new Date(cd.post_time),
+    };
+}
+
+export default function Comment({info, deleteComment, shouldFocusComment = false, targetReplyId}: CommentProps) {
     const [showReplyPopUp, setShowReplyPopUp] = useState<boolean>(false);
     const [dateText, setDateText] = useState<string>("");
     const [repliesShown, setRepliesShown] = useState<boolean>(false);
     const [repliesLoading, setRepliesLoading] = useState<boolean>(false);
     const [subComments, setSubComments] = useState<CommentInfo[]>([]);
-    const [totalSubComments, setTotalSubComments] = useState<number>(0);
+    const [totalSubComments, setTotalSubComments] = useState<number>(info.commentCount);
     const [isLoadingMoreSubComments, setIsLoadingMoreSubComments] = useState<boolean>(false);
-    const [likeState, setLikeState] = useState<"LIKE" | "DISLIKE" | "NONE">("NONE");
-    const [likesCount, setLikesCount] = useState<number>(0);
+    const [likeState, setLikeState] = useState<"LIKE" | "DISLIKE" | "NONE">(info.liked ? "LIKE" : "NONE");
+    const [likesCount, setLikesCount] = useState<number>(info.likeCount);
     const [showActionPopUp, setShowActionPopUp] = useState<boolean>(false);
-    const {isUser} = useUser();
+    const [showSuspendedPopUp, setShowSuspendedPopUp] = useState<boolean>(false);
+    const {isUser, isSuspended} = useUser();
+    const commentRef = useRef<HTMLDivElement>(null);
+    const handledDeepLinkRef = useRef<string | null>(null);
+    const highlightTimeoutRef = useRef<number | null>(null);
+    const [isTargetHighlighted, setIsTargetHighlighted] = useState(false);
+    const [highlightedReplyId, setHighlightedReplyId] = useState<number | null>(null);
 
     useEffect(() => {
-        setDateText(getFormattedDate(info.postTime))
+        setDateText(getFormattedDate(info.postTime));
         setLikesCount(info.likeCount);
         setTotalSubComments(info.commentCount);
         if (info.liked) {
             setLikeState("LIKE");
+        } else {
+            setLikeState("NONE");
         }
-    }, [info.postTime]);
+    }, [info.postTime, info.likeCount, info.commentCount, info.liked]);
+
+    useEffect(() => {
+        return () => {
+            if (highlightTimeoutRef.current) {
+                window.clearTimeout(highlightTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    const highlightComment = () => {
+        if (highlightTimeoutRef.current) {
+            window.clearTimeout(highlightTimeoutRef.current);
+        }
+
+        setHighlightedReplyId(null);
+        setIsTargetHighlighted(true);
+        commentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        highlightTimeoutRef.current = window.setTimeout(() => {
+            setIsTargetHighlighted(false);
+        }, 2500);
+    };
 
     const handleReply = () => {
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
+            return;
+        }
         setShowReplyPopUp(true)
     }
 
@@ -63,29 +121,39 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
         setShowReplyPopUp(false);
     }
 
+    const loadReplies = async (replyId?: number) => {
+        setRepliesShown(true);
+        setRepliesLoading(true);
+
+        let loadedReplies: CommentInfo[] = [];
+        let offset = 0;
+
+        while (true) {
+            const response = await getSubCommentsOnComment(info.id, offset);
+            const nextBatch = response.data.map((cd: SubCommentBack) => mapSubComment(cd));
+            loadedReplies = [...loadedReplies, ...nextBatch];
+            setSubComments(loadedReplies);
+
+            const foundTargetReply = replyId ? loadedReplies.some((reply) => reply.id === replyId) : true;
+            const reachedEnd = nextBatch.length === 0 || loadedReplies.length >= totalSubComments;
+
+            if (foundTargetReply || reachedEnd) {
+                break;
+            }
+
+            offset = loadedReplies.length;
+        }
+
+        setRepliesLoading(false);
+        return loadedReplies;
+    };
+
     const toggleReplies = () => {
         setRepliesShown((prev) => !prev);
-        if (subComments === undefined || subComments.length === 0) {
-            setRepliesLoading(true);
-            getSubCommentsOnComment(info.id, 0).then((res) => {
-                setSubComments(res.data.map((cd: SubCommentBack) => ({
-                    attachment: cd.attachment,
-                    author: cd.author,
-                    authorId: cd.author_id,
-                    content: cd.content,
-                    displayName: cd.displayname,
-                    id: cd.id,
-                    likeCount: cd.like_count,
-                    commentCount: cd.comment_count,
-                    liked: cd.liked,
-                    parentId: cd.parent_comment_id,
-                    pfp: cd.pfp,
-                    postTime: new Date(cd.post_time),
-                })));
-                setRepliesLoading(false);
-            })
+        if (subComments.length === 0) {
+            void loadReplies();
         }
-    }
+    };
 
     const prependSubComment = (subComment: CommentInfo) => {
         document.body.style.position = "static";
@@ -100,28 +168,19 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
         getSubCommentsOnComment(info.id, subComments.length).then((res) => {
             setSubComments(prev => [
                 ...prev,
-                ...res.data.map((cd: SubCommentBack) => ({
-                    attachment: cd.attachment,
-                    author: cd.author,
-                    authorId: cd.author_id,
-                    content: cd.content,
-                    displayName: cd.displayname,
-                    id: cd.id,
-                    likeCount: cd.like_count,
-                    commentCount: cd.comment_count,
-                    liked: cd.like_count,
-                    parentId: cd.parent_comment_id,
-                    pfp: cd.pfp,
-                    postTime: new Date(cd.post_time),
-                }))
-            ])
+                ...res.data.map((cd: SubCommentBack) => mapSubComment(cd))
+            ]);
             setIsLoadingMoreSubComments(false);
-        })
-    }
+        });
+    };
 
     const handleUpVote = () => {
         if (!isUser()) {
             setShowActionPopUp(true);
+            return;
+        }
+        if (isSuspended()) {
+            setShowSuspendedPopUp(true);
             return;
         }
         if (likeState === "LIKE") {
@@ -146,12 +205,56 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
         setSubComments((prev) =>
             prev.filter((c) => c.id !== subCommentId)
         );
-    }
+    };
+
+    useEffect(() => {
+        if (!shouldFocusComment) {
+            handledDeepLinkRef.current = null;
+            return;
+        }
+
+        const deepLinkKey = `${info.id}:${targetReplyId ?? "comment"}`;
+        if (handledDeepLinkRef.current === deepLinkKey) {
+            return;
+        }
+
+        handledDeepLinkRef.current = deepLinkKey;
+
+        const resolveDeepLink = async () => {
+            if (!targetReplyId) {
+                highlightComment();
+                return;
+            }
+
+            if (totalSubComments === 0) {
+                highlightComment();
+                return;
+            }
+
+            const loadedReplies = await loadReplies(targetReplyId);
+            const targetReply = loadedReplies.find((reply) => reply.id === targetReplyId);
+
+            if (targetReply) {
+                setHighlightedReplyId(targetReplyId);
+                return;
+            }
+
+            highlightComment();
+        };
+
+        void resolveDeepLink();
+    }, [info.id, shouldFocusComment, targetReplyId, totalSubComments]);
 
     return (
-        <div className={styles.comment}>
+        <div
+            ref={commentRef}
+            className={`${styles.comment} ${isTargetHighlighted ? styles.targeted : ""}`}
+        >
             {showActionPopUp && (
                 <UnAuthorizedPopUp hidePopUp={hideActionPopUp} />
+            )}
+            {showSuspendedPopUp && (
+                <SuspendedPopUp hidePopUp={() => setShowSuspendedPopUp(false)} />
             )}
             {showReplyPopUp && (
                 <Modal onClose={hideReplyPopUp}>
@@ -257,6 +360,7 @@ export default function Comment({info, deleteComment}: {info: CommentInfo, delet
                                     info={cur}
                                     deleteComment={deleteSubComment}
                                     parentPrependSubComment={prependSubComment}
+                                    highlighted={highlightedReplyId === cur.id}
                                 />
                             ))}
                             {subComments.length < totalSubComments && (

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import styles from '../../UserAccounts/Forms.module.scss';
-import {sendForgotPasswordEmail} from '../../../api/authentication.ts';
+import { sendForgotPasswordEmail } from '../../../api/authentication.ts';
 import {useNavigate} from 'react-router-dom';
 import ConfirmationPopUp from "../ConfirmationPopUp/ConfirmationPopUp.tsx";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 export default function PasswordLandingPage() {
     interface passwordLandingPageErrors {
@@ -36,20 +37,28 @@ export default function PasswordLandingPage() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        const response = await sendForgotPasswordEmail(formData.email);
-        if (response.status === 200) {
-            setShowPopup(true);
-        } else {
-            const newErrors : passwordLandingPageErrors = {};
-            if (response.status === 404) {
-                newErrors.global = "User not found";
-            } else if (response.status === 400) {
-                newErrors.global = "Invalid Email Address";
-            }else {
-                newErrors.global = 'Something went wrong please try again';
+        
+        try {
+            const response = await sendForgotPasswordEmail(formData.email);
+            if (response.ok) {
+                setShowPopup(true);
+            } else {
+                setErrors({
+                    global: await getResponseErrorMessage(
+                        response,
+                        'Could not send password reset email. Check the email address and try again.',
+                    ),
+                });
             }
-            setErrors(newErrors);
+        } catch (error: unknown) {
+            setErrors({
+                global: getRequestFailureMessage(
+                    'send password reset email',
+                    error,
+                ),
+            });
         }
+        
         setIsLoading(false);
     };
 
@@ -95,4 +104,3 @@ export default function PasswordLandingPage() {
         </div>
     );
 };
-

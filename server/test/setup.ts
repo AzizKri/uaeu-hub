@@ -15,7 +15,7 @@ beforeAll(async () => {
             'Authorization': `Bearer ${env.SYSTEM}`
         },
     });
-    if (response.status !== 201) {
+    if (![200, 201].includes(response.status)) {
         throw new Error('Failed to initialize database');
     }
 });

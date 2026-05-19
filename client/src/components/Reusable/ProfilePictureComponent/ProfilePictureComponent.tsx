@@ -1,9 +1,13 @@
 import styles from "./ProfilePictureComponent.module.scss";
 import defaultProfilePicture from "../../../assets/profile-picture.png";
 import {assetsBase} from "../../../api/api.ts";
-import {memo} from "react";
+import {memo, SyntheticEvent} from "react";
 
 function ProfilePictureComponent({source}: {source: string | null | undefined}) {
+
+    const handleError = (e: SyntheticEvent<HTMLImageElement>) => {
+        e.currentTarget.src = defaultProfilePicture;
+    };
 
     return (
         <img
@@ -16,6 +20,7 @@ function ProfilePictureComponent({source}: {source: string | null | undefined}) 
             }
             alt={"profile picture"}
             className={styles.img}
+            onError={handleError}
         />
     )
 }

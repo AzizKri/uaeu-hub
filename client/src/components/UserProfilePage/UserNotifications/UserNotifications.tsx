@@ -34,8 +34,8 @@ export default function UserNotifications() {
                     .map((notification: {
                         id: number;
                         action_entity_id: number;
-                        recipient_id: number;
-                        sender_id: number;
+                        recipient_id: string;
+                        sender_id: string;
                         sender: string;
                         type: string;
                         read: boolean;
@@ -87,8 +87,8 @@ export default function UserNotifications() {
             [...prev, ...nextPage.map((notification: {
                 id: number;
                 action_entity_id: number;
-                recipient_id: number;
-                sender_id: number;
+                recipient_id: string;
+                sender_id: string;
                 sender: string;
                 type: string;
                 read: boolean;

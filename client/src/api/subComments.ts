@@ -1,4 +1,14 @@
+import { apiFetch } from "./client";
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/subcomment';
+
+async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+}
 
 // SubComment on comment
 export async function subComment(comment: number, content: string, attachment?: string) {
@@ -10,38 +20,43 @@ export async function subComment(comment: number, content: string, attachment?: 
         formData.append('filename', attachment);
     }
 
-    const request = await fetch(base, {
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
-    return {status: request.status, data: await request.json()};
+    return { status: request.status, data: await request.json() };
 }
 
 // Get subComments on a comment by its ID
-export async function getSubCommentsOnComment(comment: number, page: number = 0) {
-    const request = await fetch(base + `/${comment}?page=${page}`, {
+export async function getSubCommentsOnComment(comment: number, offset: number = 0) {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${comment}?offset=${offset}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
 // Like/unlike a subComment by its ID
 export async function likeSubComment(subComment: number) {
-    const request = await fetch(base + `/like/${subComment}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/like/${subComment}`, {
         method: 'POST',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
 
 // Delete subComment by its ID
-export async function deleteSubComment(subComment: number) {
-    const request = await fetch(base + `/${subComment}`, {
+// Optional reason for admin deletions
+export async function deleteSubComment(subComment: number, reason?: string) {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${subComment}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
+        body: reason ? JSON.stringify({ reason }) : undefined,
     });
     return request.status;
 }
-

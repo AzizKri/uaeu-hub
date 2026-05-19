@@ -1,11 +1,11 @@
 import { Context, Hono } from 'hono';
+import { validator } from 'hono/validator';
 import { authMiddlewareCheckOnly } from '../middleware';
 import {
     authenticateUser,
-    authenticateWithGoogle,
     changeEmail,
     changePassword,
-    forceLogout,
+    checkUsername,
     isAnon,
     isUser,
     login,
@@ -16,79 +16,85 @@ import {
     signup,
     verifyEmail
 } from '../controllers/auth.controller';
-import { validator } from 'hono/validator';
 import {
     emailChangeSchema,
     forgotPasswordSchema,
+    loginSchema,
     passwordChangeSchema,
-    passwordResetSchema
+    passwordResetSchema,
+    signupSchema
 } from '../util/validationSchemas';
+import { validationError } from '../util/requestValidation';
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Login & Signup
-app.post('/signup', authMiddlewareCheckOnly, (c: Context) => signup(c));
-app.post('/google', authMiddlewareCheckOnly, (c: Context) => authenticateWithGoogle(c));
-app.post('/login', authMiddlewareCheckOnly, (c: Context) => login(c));
-app.get('/logout', authMiddlewareCheckOnly, (c: Context) => {
-    const force = c.req.query('force');
-    if (force) return forceLogout(c);
-    return logout(c);
-});
-// app.get('/anon', authMiddlewareCheckOnly, (c: Context) => anonSignup(c) as Promise<never>);
+app.get('/check-username', (c: Context) => checkUsername(c));
 
-// Email
+app.post('/signup',
+    validator('json', (value, c: Context) => {
+        const parsed = signupSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c: Context) => signup(c)
+);
+
+app.post('/login',
+    validator('json', (value, c: Context) => {
+        const parsed = loginSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c: Context) => login(c)
+);
+
+app.post('/logout', authMiddlewareCheckOnly, (c: Context) => logout(c));
+
+app.get('/me', authMiddlewareCheckOnly, (c: Context) => authenticateUser(c));
+app.get('/isUser', authMiddlewareCheckOnly, (c: Context) => isUser(c));
+app.get('/isAnon', authMiddlewareCheckOnly, (c: Context) => isAnon(c));
+
 app.post('/sendEmailVerification', authMiddlewareCheckOnly, (c: Context) => sendEmailVerification(c));
 app.get('/verifyEmail', (c: Context) => verifyEmail(c));
 
-// Password
 app.post('/forgotPassword',
     validator('json', (value, c: Context) => {
         const parsed = forgotPasswordSchema.safeParse(value);
-        if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
-            return c.json({ errors }, 400);
-        }
+        if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    (c: Context) => sendForgotPasswordEmail(c));
+    (c: Context) => sendForgotPasswordEmail(c)
+);
+
 app.post('/resetPassword',
     validator('json', (value, c: Context) => {
         const parsed = passwordResetSchema.safeParse(value);
-        if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
-            return c.json({ errors }, 400);
-        }
+        if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
-    (c: Context) => resetPassword(c));
+    (c: Context) => resetPassword(c)
+);
+
 app.post('/changePassword',
     validator('json', (value, c: Context) => {
         const parsed = passwordChangeSchema.safeParse(value);
-        if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
-            return c.json({ errors }, 400);
-        }
+        if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
     authMiddlewareCheckOnly,
-    (c: Context) => changePassword(c));
+    (c: Context) => changePassword(c)
+);
+
 app.post('/changeEmail',
     validator('json', (value, c: Context) => {
         const parsed = emailChangeSchema.safeParse(value);
-        if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
-            return c.json({ errors }, 400);
-        }
+        if (!parsed.success) return validationError(c, parsed.error);
         return parsed.data;
     }),
     authMiddlewareCheckOnly,
-    (c: Context) => changeEmail(c));
-
-// User data
-
-app.get('/me', authMiddlewareCheckOnly, (c: Context) => authenticateUser(c));
-app.get('/isUser', (c: Context) => isUser(c));
-app.get('/isAnon', authMiddlewareCheckOnly, (c: Context) => isAnon(c));
+    (c: Context) => changeEmail(c)
+);
 
 export default app;

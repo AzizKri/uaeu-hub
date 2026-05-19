@@ -5,10 +5,13 @@ import {
     getReport,
     getReports,
     getReportsForCommunity,
-    resolveReport
+    resolveReport,
+    takeReportAction,
+    getReportsWithDetails
 } from '../controllers/report.controller';
 import { validator } from 'hono/validator';
-import { reportSchema, resolveReportSchema } from '../util/validationSchemas';
+import { reportActionParamSchema, reportActionSchema, reportSchema, resolveReportSchema } from '../util/validationSchemas';
+import { validationError } from '../util/requestValidation';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -16,7 +19,7 @@ app.post('/',
     validator('json', (value, c: Context) => {
         const parsed = reportSchema.safeParse(value);
         if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            const errors = parsed.error.issues.map(err => ({ field: err.path[0], message: err.message }));
             return c.json({ errors }, 400);
         }
         return parsed.data;
@@ -28,7 +31,7 @@ app.post('/resolve',
     validator('json', (value, c: Context) => {
         const parsed = resolveReportSchema.safeParse(value);
         if (!parsed.success) {
-            const errors = parsed.error.errors.map(err => ({ field: err.path[0], message: err.message }));
+            const errors = parsed.error.issues.map(err => ({ field: err.path[0], message: err.message }));
             return c.json({ errors }, 400);
         }
         return parsed.data;
@@ -37,7 +40,23 @@ app.post('/resolve',
     (c: Context) => resolveReport(c)
 );
 
-app.get('/:communityId', authMiddlewareCheckOnly, (c: Context) => getReportsForCommunity(c));
+// Admin-only routes (must come before parameterized routes)
+app.get('/admin/all', authMiddlewareCheckOnly, (c: Context) => getReportsWithDetails(c));
+app.post('/:reportId/action',
+    validator('param', (value, c: Context) => {
+        const parsed = reportActionParamSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    validator('json', (value, c: Context) => {
+        const parsed = reportActionSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    authMiddlewareCheckOnly,
+    (c: Context) => takeReportAction(c)
+);
+app.get('/community/:communityId', authMiddlewareCheckOnly, (c: Context) => getReportsForCommunity(c));
 app.get('/:reportId', authMiddlewareCheckOnly, (c: Context) => getReport(c));
 app.get('/', authMiddlewareCheckOnly, (c: Context) => getReports(c));
 

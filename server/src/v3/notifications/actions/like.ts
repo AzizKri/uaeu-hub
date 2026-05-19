@@ -4,6 +4,9 @@ export async function handleLike(env: Env, { senderId, entityId, entityType }: N
     // Get the receiver ID and generate a message to send through websocket
     const Entity = await getEntity(env, entityId, entityType);
 
+    // Don't notify yourself
+    if (senderId === Entity.author_id) return;
+
     const metadata = {
         entityId: entityId,
         entityType: entityType,

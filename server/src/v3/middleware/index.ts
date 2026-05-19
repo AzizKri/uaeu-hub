@@ -1,3 +1,10 @@
-export { authMiddlewareCheckOnly, authMiddleware } from './authentication';
+export {
+    authMiddlewareCheckOnly,
+    authMiddleware
+} from './authentication';
 export { postRateLimitMiddleware, uploadAttachmentLimitMiddleware } from './ratelimit';
-export { textContentModerationMiddleware } from './moderation';
+export { 
+    textContentModerationMiddleware,
+    penaltyCheckMiddleware,
+    blockPenalizedUserMiddleware
+} from './moderation';

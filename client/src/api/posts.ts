@@ -1,4 +1,14 @@
+import { apiFetch } from "./client";
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/post';
+
+async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+}
 
 // Create post
 export async function createPost(content: string, attachment?: string, communityId: number = 0,) {
@@ -10,74 +20,86 @@ export async function createPost(content: string, attachment?: string, community
         formData.append('filename', attachment);
     }
 
-    const request = await fetch(base, {
+    // Don't include Content-Type for FormData - browser sets it with boundary
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
     return request.json();
 }
 
 // Get latest posts
 export async function getLatestPosts(offset: number = 0) {
-    const request = await fetch(base + `/latest?offset=${offset}`, { credentials: 'include' });
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/latest?offset=${offset}`, { headers });
     return { status: request.status, data: await request.json() };
 }
 
 // Get best posts
 export async function getBestPosts(offset: number = 0) {
-    const request = await fetch(base + `/best?offset=${offset}`, { credentials: 'include' });
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/best?offset=${offset}`, { headers });
     return { status: request.status, data: await request.json() };
 }
 
 // Get latest posts from subscribed communities
 export async function getLatestPostsFromMyCommunities(offset: number = 0) {
-    const request = await fetch(base + `/myLatest?offset=${offset}`, { credentials: 'include' });
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/myLatest?offset=${offset}`, { headers });
     return { status: request.status, data: await request.json() };
 }
 
 // Get best posts from subscribed communities
 export async function getBestPostsFromMyCommunities(offset: number = 0) {
-    const request = await fetch(base + `/myBest?offset=${offset}`, { credentials: 'include' });
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/myBest?offset=${offset}`, { headers });
     return { status: request.status, data: await request.json() };
 }
 
 // Search post by query
 export async function searchPosts(query: string) {
-    const request = await fetch(base + `/search?query=${query}`, { credentials: 'include' });
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/search?query=${encodeURIComponent(query)}`, { headers });
     if (request.status === 400) {
-        return { results: [] };
+        return { status: 400, data: [] };
     }
     return { status: request.status, data: await request.json() };
 }
 
-// Get post by ID
-export async function getPostByID(id: number) {
-    const request = await fetch(base + `/${id}`, { credentials: 'include' });
+// Get post by ID (supports both numeric id and public_id)
+export async function getPostByID(id: number | string) {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${id}`, { headers });
     return { status: request.status, data: await request.json() };
 }
 
 // Get posts sent by user (username)
 export async function getPostsByUser(username: string, offset: number = 0) {
-    const request = await fetch(base + `/user/${username}?offset=${offset}`, { credentials: 'include' });
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/user/${username}?offset=${offset}`, { headers });
     return { status: request.status, data: await request.json() };
 }
 
-// Toggle like on post by its ID
-export async function togglePostLike(post: number) {
-    const request = await fetch(base + `/like/${post}`, {
+// Toggle like on post by its ID (supports both numeric id and public_id)
+export async function togglePostLike(post: number | string) {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/like/${post}`, {
         method: 'POST',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
 
-// Delete post by its ID
-export async function deletePost(post: number) {
-    const request = await fetch(base + `/${post}`, {
+// Delete post by its ID (supports both numeric id and public_id)
+// Optional reason for admin deletions
+export async function deletePost(post: number | string, reason?: string) {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${post}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
+        body: reason ? JSON.stringify({ reason }) : undefined,
     });
     return request.status;
 }
-

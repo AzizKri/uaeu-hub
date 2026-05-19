@@ -1,4 +1,6 @@
 import { Context } from 'hono';
+import { numericIdSchema, searchQuerySchema, userSearchWithCommunityQuerySchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 /* User information */
 
@@ -6,7 +8,7 @@ import { Context } from 'hono';
 
 export async function getCurrentUser(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 
 	if (userId) {
 		try {
@@ -38,7 +40,7 @@ export async function getCurrentUser(c: Context) {
 
 export async function getCurrentUserLikesOnPosts(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -66,7 +68,7 @@ export async function getCurrentUserLikesOnPosts(c: Context) {
 
 export async function getCurrentUserLikesOnComments(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -93,7 +95,7 @@ export async function getCurrentUserLikesOnComments(c: Context) {
 
 export async function getCurrentUserLikesOnSubcomments(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -120,7 +122,7 @@ export async function getCurrentUserLikesOnSubcomments(c: Context) {
 
 export async function getCurrentUserCommunities(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -148,7 +150,7 @@ export async function getCurrentUserCommunities(c: Context) {
 
 export async function editCurrentUser(c: Context) {
 	const env: Env = c.env;
-	const userId = c.get('userId') as number;
+	const userId = c.get('userId') as string;
 	const isAnonymous = c.get('isAnonymous') as boolean;
 
 	// No user or is anonymous
@@ -202,11 +204,12 @@ export async function editCurrentUser(c: Context) {
 export async function searchUser(c: Context) {
 	// Get the required fields
 	const env: Env = c.env;
-	const query = c.req.query('query');
-	const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
-
-	// Check for required fields
-	if (!query) return c.text('No query provided', { status: 400 });
+	const parsedQuery = validateWithSchema(searchQuerySchema, {
+		query: c.req.query('query'),
+		offset: c.req.query('offset')
+	});
+	if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+	const { query, offset } = parsedQuery.data;
 
 	try {
 		// Search for users
@@ -232,12 +235,13 @@ export async function searchUser(c: Context) {
 export async function searchUserWithStatusInCommunity(c: Context) {
 	// Get the required fields
 	const env: Env = c.env;
-	const query = c.req.query('query');
-	const communityId = Number(c.req.query('communityId'));
-	// const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
-
-	// Check for required fields
-	if (!query || !communityId) return c.text('No query provided', { status: 400 });
+	const parsedQuery = validateWithSchema(userSearchWithCommunityQuerySchema, {
+		query: c.req.query('query'),
+		communityId: c.req.query('communityId'),
+		offset: c.req.query('offset')
+	});
+	if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+	const { query, communityId } = parsedQuery.data;
 
 	try {
         // trusting ChatGPT on this
@@ -286,12 +290,13 @@ export async function searchUserWithStatusInCommunity(c: Context) {
 export async function searchUserForCommunity(c: Context) {
 	// Get the required fields
 	const env: Env = c.env;
-	const query = c.req.query('query');
-	const communityId = c.req.query('communityId');
-	const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
-
-	// Check for required fields
-	if (!query) return c.text('No query provided', { status: 400 });
+	const parsedQuery = validateWithSchema(userSearchWithCommunityQuerySchema, {
+		query: c.req.query('query'),
+		communityId: c.req.query('communityId'),
+		offset: c.req.query('offset')
+	});
+	if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+	const { query, communityId, offset } = parsedQuery.data;
 
 	try {
 		// Search for users
@@ -310,7 +315,7 @@ export async function searchUserForCommunity(c: Context) {
                 OFFSET ?
             `,
 		)
-			.bind(`%${query}%`, `%${query}%`, offset, communityId)
+			.bind(`%${query}%`, `%${query}%`, communityId, offset)
 			.all<UserView>();
 
 		return c.json(users.results, { status: 200 });
@@ -343,17 +348,13 @@ export async function getUserByUsername(c: Context) {
 
 export async function getUserCommunities(c: Context) {
 	const env: Env = c.env;
-	const currentUserId = c.get('userId') as number;
+	const currentUserId = c.get('userId') as string;
 	const currentIsAnonymous = c.get('isAnonymous') as boolean;
 
 	// Get the required fields
-	let userId: string | number = c.req.param('userId');
-	console.log(userId);
-	// Check for required fields
-	if (userId === undefined) return c.text('No user ID provided', { status: 400 });
-	userId = Number(userId);
-	if (isNaN(userId)) return c.text('Invalid user ID', { status: 400 });
-	console.log(userId);
+	const parsedUserId = validateWithSchema(numericIdSchema, c.req.param('userId'));
+	if (!parsedUserId.success) return validationError(c, parsedUserId.error);
+	const userId = parsedUserId.data;
 
 	try {
 		// Get communities

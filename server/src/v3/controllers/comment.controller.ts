@@ -1,34 +1,36 @@
 import { Context } from 'hono';
 import { createNotification } from '../notifications';
+import { createPublicId } from '../util/nanoid';
+import { numericIdSchema, offsetSchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function comment(c: Context) {
     const env: Env = c.env;
-    const formData = await c.req.parseBody();
-    const postID: number = Number(formData['postId']);
-    const content: string = formData['content'] as string;
-    const fileName: string | null = formData['filename'] as string;
+    // @ts-ignore
+    const { postId: postID, content, filename } = c.req.valid('form');
+    const fileName = filename ?? null;
 
     // Get userId from Context
-    const userId = c.get('userId') as number;
-
-    // Check for required fields
-    if (!content) return c.text('No content provided', { status: 400 });
+    const userId = c.get('userId') as string;
 
     try {
+        // Generate public_id for the comment
+        const publicId = createPublicId();
+
         let commentId;
         // Check if we have a file & insert into DB
         if (fileName) {
             commentId = await env.DB.prepare(
-                `INSERT INTO comment (parent_post_id, author_id, content, attachment)
-                 VALUES (?, ?, ?, ?)
+                `INSERT INTO comment (parent_post_id, author_id, content, attachment, public_id)
+                 VALUES (?, ?, ?, ?, ?)
                  RETURNING id`
-            ).bind(postID, userId, content, fileName).first<CommentView>();
+            ).bind(postID, userId, content, fileName, publicId).first<CommentView>();
         } else {
             commentId = await env.DB.prepare(`
-                INSERT INTO comment (parent_post_id, author_id, content)
-                VALUES (?, ?, ?)
+                INSERT INTO comment (parent_post_id, author_id, content, public_id)
+                VALUES (?, ?, ?, ?)
                 RETURNING id
-            `).bind(postID, userId, content).first<CommentView>();
+            `).bind(postID, userId, content, publicId).first<CommentView>();
         }
 
         // Get the comment data to return
@@ -58,11 +60,17 @@ export async function comment(c: Context) {
 
 export async function getCommentsOnPost(c: Context) {
     const env: Env = c.env;
-    const postID: number = Number(c.req.param('postId'));
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const params = validateWithSchema(numericIdSchema, c.req.param('postId'));
+    if (!params.success) return validationError(c, params.error);
+
+    const offsetQuery = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!offsetQuery.success) return validationError(c, offsetQuery.error);
+
+    const postID = params.data;
+    const offset = offsetQuery.data;
 
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     try {
         // New user? Get without likes
@@ -102,38 +110,78 @@ export async function getCommentsOnPost(c: Context) {
 
 export async function deleteComment(c: Context) {
     const env: Env = c.env;
-    const commentId = Number(c.req.param('commentId'));
+    const parsedCommentId = validateWithSchema(numericIdSchema, c.req.param('commentId'));
+    if (!parsedCommentId.success) return validationError(c, parsedCommentId.error);
+    const commentId = parsedCommentId.data;
 
     // Get userId from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     if (!userId) return c.text('Unauthorized', { status: 401 });
 
-    // Check for required fields
-    if (!commentId) return c.text('No comment ID provided', { status: 400 });
+    // Get optional reason from request body (for admin deletions)
+    let reason: string | undefined;
+    try {
+        const body = await c.req.json();
+        reason = body?.reason;
+    } catch {
+        // No body or invalid JSON is fine for regular deletions
+    }
 
     try {
-        // Attempt to delete the comment
-        const result = await env.DB.prepare(`
-            DELETE
-            FROM comment
-            WHERE id = ?
-              AND author_id = ?
-        `).bind(commentId, userId).first<CommentView>();
+        // First fetch the comment to check ownership and get content
+        const comment = await env.DB.prepare(`
+            SELECT id, author_id, content, attachment FROM comment WHERE id = ?
+        `).bind(commentId).first<CommentRow>();
 
-        if (!result) return c.text('Failed to delete comment', { status: 400 });
+        if (!comment) return c.text('Comment not found', { status: 404 });
+
+        // Check if user is admin
+        const adminCheck = await env.DB.prepare(`
+            SELECT is_admin FROM user WHERE id = ?
+        `).bind(userId).first<{ is_admin: number }>();
+        const isAdmin = !!(adminCheck?.is_admin);
+
+        // Not the author and not admin? 403
+        if (userId !== comment.author_id && !isAdmin) {
+            return c.text('Unauthorized', { status: 403 });
+        }
+
+        // Admin deleting someone else's comment? Require reason and send notification
+        if (userId !== comment.author_id && isAdmin) {
+            if (!reason || reason.trim().length === 0) {
+                return c.text('Reason is required for admin deletion', { status: 400 });
+            }
+
+            // Send notification to comment author
+            c.executionCtx.waitUntil(createNotification(c, {
+                senderId: userId,
+                receiverId: comment.author_id,
+                type: 'admin_deletion',
+                metadata: {
+                    entityType: 'comment',
+                    entityContent: comment.content,
+                    reason: reason.trim()
+                }
+            }));
+        }
+
+        // Delete the comment
+        await env.DB.prepare(`
+            DELETE FROM comment WHERE id = ?
+        `).bind(commentId).run();
 
         // Check for attachment and delete in the background
-        if (result.attachment) {
+        if (comment.attachment) {
             c.executionCtx.waitUntil(Promise.all([
                     // Delete the attachment from R2
-                    env.R2.delete(`attachments/${result.attachment}`),
+                    env.R2.delete(`attachments/${comment.attachment}`),
 
                     // Delete the attachment from the DB
                     env.DB.prepare(`
                         DELETE
                         FROM attachment
                         WHERE filename = ?
-                    `).bind(result.attachment).run()
+                    `).bind(comment.attachment).run()
                 ]).then(() => console.log('Attachment deleted'))
                     .catch((e) => console.log('Attachment delete failed', e))
             );
@@ -148,13 +196,12 @@ export async function deleteComment(c: Context) {
 
 export async function likeComment(c: Context) {
     const env: Env = c.env;
-    const commentId = Number(c.req.param('commentId'));
+    const parsedCommentId = validateWithSchema(numericIdSchema, c.req.param('commentId'));
+    if (!parsedCommentId.success) return validationError(c, parsedCommentId.error);
+    const commentId = parsedCommentId.data;
 
     // Get userId from Context
-    const userId = c.get('userId') as number;
-
-    // Check for required fields
-    if (!commentId) return c.text('No comment ID provided', { status: 400 });
+    const userId = c.get('userId') as string;
 
     try {
         // Check if the user has already liked the comment

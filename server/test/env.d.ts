@@ -1,4 +1,4 @@
-import { D1Database } from '@cloudflare/workers-types';
+import "cloudflare:test";
 
 declare module "cloudflare:test" {
     // Controls the type of `import("cloudflare:test").env`

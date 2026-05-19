@@ -5,7 +5,27 @@
     font-optical-sizing: auto;
     font-style: normal;
     --main-bg: #f6f6f6;
-    --main-color: #d7420cff
+    --main-color: #d7420cff;
+    --bg-primary: #f6f6f6;
+    --bg-secondary: #ffffff;
+    --bg-card: #f2f2f2;
+    --bg-hover: #eeeeee;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --accent: #d7420c;
+    --accent-hover: #9d3008;
+    --accent-soft: rgba(215, 66, 12, 0.1);
+    --accent-ring: rgba(215, 66, 12, 0.1);
+    --success: #48bb78;
+    --success-soft: rgba(72, 187, 120, 0.15);
+    --warning: #ed8936;
+    --warning-soft: rgba(237, 137, 54, 0.15);
+    --error: #f56565;
+    --error-soft: rgba(245, 101, 101, 0.1);
+    --border: #e5e5e5;
+    --shadow: rgba(0, 0, 0, 0.05);
+    --shadow-hover: rgba(0, 0, 0, 0.1);
+    --overlay: rgba(73, 63, 57, 0.35);
 }
 
 input {
@@ -158,6 +178,18 @@ ul {
     .middle {
         max-width: 600px;
     }
+
+    &.admin-main {
+        grid-template-columns: 250px minmax(0, 1000px);
+        width: min(calc(100vw - 30px), 1280px);
+        align-items: start;
+
+        .admin-middle {
+            max-width: none;
+            width: 100%;
+            min-width: 0;
+        }
+    }
 }
 
 @media screen and (max-width: 1200px) {
@@ -165,12 +197,20 @@ ul {
         grid-template-columns: 77px 600px 300px;
         .middle {
         }
+
+        &.admin-main {
+            grid-template-columns: 77px minmax(0, 1000px);
+        }
     }
 }
 
 @media screen and (max-width: 1030px) {
     .main {
         grid-template-columns: 77px 600px 250px;
+
+        &.admin-main {
+            grid-template-columns: 77px minmax(0, 900px);
+        }
     }
 }
 
@@ -180,6 +220,10 @@ ul {
         .right {
             display: none;
         }
+
+        &.admin-main {
+            grid-template-columns: 77px minmax(0, calc(100vw - 122px));
+        }
     }
 }
 
@@ -188,6 +232,10 @@ ul {
         grid-template-columns: 0 minmax(300px, 600px);
         gap: 0;
         width: 100%;
+
+        &.admin-main {
+            grid-template-columns: 0 minmax(0, 1fr);
+        }
 
         .left {
             transform: translateX(-100vw);

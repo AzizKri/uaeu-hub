@@ -5,6 +5,7 @@ import {useEffect, useState} from "react";
 import {getTags} from "../../../api/tags.ts";
 import CreateCommunity from "../CreateCommunity/CreateCommunity.tsx";
 import UnAuthorizedPopUp from "../../Reusable/UnAuthorizedPopUp/UnAuthorizedPopUp.tsx";
+import SuspendedPopUp from "../../Reusable/SuspendedPopUp/SuspendedPopUp.tsx";
 import {useUser} from "../../../contexts/user/UserContext.ts";
 import LineSpinner from "../../Reusable/Animations/LineSpinner/LineSpinner.tsx";
 
@@ -12,8 +13,9 @@ export default function ExploreCommunities() {
     const [tags, setTags] = useState([]);
     const [showCreateCommunityModal, setShowCreateCommunityModal] = useState(false);
     const [showUnAuthModal, setShowUnAuthModal] = useState(false);
+    const [showSuspendedModal, setShowSuspendedModal] = useState(false);
     const [joinedCommunity, setJoinedCommunity] = useState<number>(-1);
-    const {isUser} = useUser();
+    const {isUser, isSuspended} = useUser();
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
@@ -33,7 +35,15 @@ export default function ExploreCommunities() {
                 <Search/>
                 <div
                     className="btn-outline"
-                    onClick={() => isUser() ? setShowCreateCommunityModal(true) : setShowUnAuthModal(true)}
+                    onClick={() => {
+                        if (!isUser()) {
+                            setShowUnAuthModal(true);
+                        } else if (isSuspended()) {
+                            setShowSuspendedModal(true);
+                        } else {
+                            setShowCreateCommunityModal(true);
+                        }
+                    }}
                 >
                     {/*plus icon*/}
                     <svg
@@ -55,6 +65,7 @@ export default function ExploreCommunities() {
                 <CreateCommunity type="CREATE" onClose={() => setShowCreateCommunityModal(false)}/>
             )}
             {showUnAuthModal && <UnAuthorizedPopUp hidePopUp={() => setShowUnAuthModal(false)}/>}
+            {showSuspendedModal && <SuspendedPopUp hidePopUp={() => setShowSuspendedModal(false)}/>}
         </div>
     );
 }

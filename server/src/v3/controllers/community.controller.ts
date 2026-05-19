@@ -2,10 +2,13 @@ import { Context } from 'hono';
 import { getOrCreateTags } from './tags.controller';
 import { parseId } from '../util/util';
 import { createNotification } from '../notifications';
+import { createPublicId } from '../util/nanoid';
+import { communitySearchQuerySchema, communitySortQuerySchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 export async function createCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -35,12 +38,15 @@ export async function createCommunity(c: Context) {
         c.set('tags', tags);
         const tagIds = await getOrCreateTags(c, true) as number[];
 
+        // Generate public_id for the community
+        const publicId = createPublicId();
+
         // Create the community
         const community = await env.DB.prepare(
-            `INSERT INTO community (name, description, icon, tags, owner_id)
-             VALUES (?, ?, ?, ?, ?)
+            `INSERT INTO community (name, description, icon, tags, owner_id, public_id)
+             VALUES (?, ?, ?, ?, ?, ?)
              RETURNING id`
-        ).bind(name, desc, icon || null, tags.join(','), userId).first<CommunityRow>();
+        ).bind(name, desc, icon || null, tags.join(','), userId, publicId).first<CommunityRow>();
 
         // Add tags to community
         await Promise.all(tagIds.map(async (tagId) => {
@@ -100,7 +106,7 @@ export async function communityExists(c: Context) {
 }
 
 export async function getCommunityPostsLatest(c: Context) {
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     const env: Env = c.env;
@@ -142,7 +148,7 @@ export async function getCommunityPostsLatest(c: Context) {
 }
 
 export async function getCommunityPostsBest(c: Context) {
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     const env: Env = c.env;
@@ -193,7 +199,7 @@ export async function getCommunityPostsBest(c: Context) {
 
 export async function getCommunityByName(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -270,7 +276,7 @@ export async function getCommunityByName(c: Context) {
 
 export async function getCommunityById(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -338,7 +344,7 @@ export async function getCommunityById(c: Context) {
 
 export async function getCommunitiesByTag(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -399,7 +405,7 @@ export async function getCommunitiesByTag(c: Context) {
 
 export async function getCommunitiesByTags(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get tags string from query
@@ -472,13 +478,19 @@ export async function getCommunitiesByTags(c: Context) {
 
 export async function getCommunitiesSortByMembers(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
-    const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(communitySortQuerySchema, {
+        order: c.req.query('order'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const { order, offset } = parsedQuery.data;
+    const orderBy = order === 'asc' ? 'ASC' : 'DESC';
 
     try {
         if (!userId) {
@@ -486,9 +498,9 @@ export async function getCommunitiesSortByMembers(c: Context) {
             const communities = await env.DB.prepare(`
                 SELECT *
                 FROM community
-                ORDER BY ?
+                ORDER BY member_count ${orderBy}
                 LIMIT 5 OFFSET ?
-            `).bind(`member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
+            `).bind(offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -498,9 +510,9 @@ export async function getCommunitiesSortByMembers(c: Context) {
                 const communities = await env.DB.prepare(`
                     SELECT *
                     FROM community
-                    ORDER BY ?
+                    ORDER BY member_count ${orderBy}
                     LIMIT 5 OFFSET ?
-                `).bind(`member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -509,9 +521,9 @@ export async function getCommunitiesSortByMembers(c: Context) {
                     SELECT *,
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
                     FROM community c
-                    ORDER BY ?
+                    ORDER BY member_count ${orderBy}
                     LIMIT 5 OFFSET ?
-                `).bind(userId, `member_count ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(userId, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -524,13 +536,19 @@ export async function getCommunitiesSortByMembers(c: Context) {
 
 export async function getCommunitiesSortByCreation(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
-    const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(communitySortQuerySchema, {
+        order: c.req.query('order'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const { order, offset } = parsedQuery.data;
+    const orderBy = order === 'asc' ? 'ASC' : 'DESC';
 
     try {
         if (!userId) {
@@ -538,9 +556,9 @@ export async function getCommunitiesSortByCreation(c: Context) {
             const communities = await env.DB.prepare(`
                 SELECT *
                 FROM community
-                ORDER BY ?
+                ORDER BY created_at ${orderBy}
                 LIMIT 10 OFFSET ?
-            `).bind(`created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
+            `).bind(offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -550,9 +568,9 @@ export async function getCommunitiesSortByCreation(c: Context) {
                 const communities = await env.DB.prepare(`
                     SELECT *
                     FROM community
-                    ORDER BY ?
+                    ORDER BY created_at ${orderBy}
                     LIMIT 10 OFFSET ?
-                `).bind(`created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -561,9 +579,9 @@ export async function getCommunitiesSortByCreation(c: Context) {
                     SELECT *,
                            (SELECT 1 FROM user_community WHERE community_id = c.id AND user_id = ?) as is_member
                     FROM community c
-                    ORDER BY ?
+                    ORDER BY created_at ${orderBy}
                     LIMIT 10 OFFSET ?
-                `).bind(userId, `created_at ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(userId, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -577,13 +595,19 @@ export async function getCommunitiesSortByCreation(c: Context) {
 // TODO - Implement global activity score updates using a new table & CRON triggers
 export async function getCommunitiesSortByActivity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
-    const order: string = c.req.query('order') ? c.req.query('order') as string : 'desc';
-    const offset: number = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedQuery = validateWithSchema(communitySortQuerySchema, {
+        order: c.req.query('order'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+
+    const { order, offset } = parsedQuery.data;
+    const orderBy = order === 'asc' ? 'ASC' : 'DESC';
 
     try {
         if (!userId) {
@@ -594,10 +618,10 @@ export async function getCommunitiesSortByActivity(c: Context) {
                         FROM post
                         WHERE community_id = c.id
                           AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
-                FROM community
-                ORDER BY ?
+                FROM community c
+                ORDER BY activity_score ${orderBy}
                 LIMIT 10 OFFSET ?
-            `).bind(`activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
+            `).bind(offset).all<CommunityRow>();
 
             return c.json(communities.results, { status: 200 });
         } else {
@@ -610,10 +634,10 @@ export async function getCommunitiesSortByActivity(c: Context) {
                             FROM post
                             WHERE community_id = c.id
                               AND post_time >= datetime('%s', 'now', '-1 day')) as activity_score
-                    FROM community
-                    ORDER BY ?
+                    FROM community c
+                    ORDER BY activity_score ${orderBy}
                     LIMIT 10 OFFSET ?
-                `).bind(`activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             } else {
@@ -626,9 +650,9 @@ export async function getCommunitiesSortByActivity(c: Context) {
                             WHERE community_id = c.id
                               AND post_time >= datetime('%s', 'now', '-1 day'))                     as activity_score
                     FROM community c
-                    ORDER BY ?
+                    ORDER BY activity_score ${orderBy}
                     LIMIT 10 OFFSET ?
-                `).bind(userId, `activity_score ${order.toUpperCase()}`, offset).all<CommunityRow>();
+                `).bind(userId, offset).all<CommunityRow>();
 
                 return c.json(communities.results, { status: 200 });
             }
@@ -641,16 +665,17 @@ export async function getCommunitiesSortByActivity(c: Context) {
 
 export async function searchCommunities(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
-    const query = c.req.query('query');
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
-
-    // Check for required fields
-    if (!query) return c.text('No query provided', { status: 400 });
+    const parsedQuery = validateWithSchema(communitySearchQuerySchema, {
+        query: c.req.query('query'),
+        offset: c.req.query('offset')
+    });
+    if (!parsedQuery.success) return validationError(c, parsedQuery.error);
+    const { query, offset } = parsedQuery.data;
 
     try {
         if (!userId) {
@@ -696,7 +721,7 @@ export async function searchCommunities(c: Context) {
 
 export async function inviteUserToCommunity(c: Context) {
     const env: Env = c.env;
-    const adminUserId = c.get('userId') as number;
+    const adminUserId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -757,7 +782,7 @@ export async function inviteUserToCommunity(c: Context) {
 
 export async function removeMemberFromCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const adminUserId = c.get('userId') as number;
+    const adminUserId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -821,7 +846,7 @@ export async function removeMemberFromCommunity(c: Context) {
 
 export async function addAdminToCommunity(c: Context) {
     const env: Env = c.env;
-    const ownerId = c.get('userId') as number;
+    const ownerId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     if (!ownerId || isAnonymous) return c.text('Unauthorized', { status: 401 });
@@ -871,7 +896,7 @@ export async function addAdminToCommunity(c: Context) {
 
 export async function joinCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -934,7 +959,7 @@ export async function joinCommunity(c: Context) {
 
 export async function leaveCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -978,7 +1003,7 @@ export async function leaveCommunity(c: Context) {
 
 export async function editCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -1102,7 +1127,7 @@ export async function editCommunity(c: Context) {
 
 export async function deleteCommunity(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -1142,7 +1167,7 @@ export async function deleteCommunity(c: Context) {
 
 export async function getCommunityMembers(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
@@ -1196,7 +1221,7 @@ export async function getCommunityMembers(c: Context) {
 
 export async function rejectInvitation(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous

@@ -30,6 +30,11 @@
         transition: background-color 0.2s ease;
         font-weight: 600;
 
+        > img,
+        > svg {
+            flex-shrink: 0;
+        }
+
         &:hover {
             background-color: #eee;
             //color: white;

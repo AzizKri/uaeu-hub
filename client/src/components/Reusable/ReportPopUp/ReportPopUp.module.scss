@@ -1,0 +1,134 @@
+.popupContainer {
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    min-width: 320px;
+    max-width: 400px;
+    text-align: center;
+
+    h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.25rem;
+        color: #333;
+    }
+}
+
+.description {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.formGroup {
+    margin-bottom: 1rem;
+}
+
+.select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fff;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23666'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.5rem;
+
+    &:focus {
+        outline: none;
+        border-color: #007bff;
+    }
+}
+
+.textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    resize: vertical;
+    font-family: inherit;
+    box-sizing: border-box;
+
+    &:focus {
+        outline: none;
+        border-color: #007bff;
+    }
+
+    &::placeholder {
+        color: #999;
+    }
+}
+
+.error {
+    color: #f44336;
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+}
+
+.popupButtons {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 1.5rem;
+    gap: 1rem;
+}
+
+.popupSubmitBtn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #fff;
+    background-color: rgb(215, 66, 12);
+    min-width: 130px;
+
+    &:hover:not(:disabled) {
+        background-color: rgb(157, 48, 8);
+    }
+
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+}
+
+.popupCancelBtn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #fff;
+    background-color: rgb(104, 104, 104);
+
+    &:hover:not(:disabled) {
+        background-color: rgb(64, 64, 64);
+    }
+
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+}
+
+.successMessage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+
+    h3 {
+        color: #4CAF50;
+        margin: 0;
+    }
+
+    p {
+        color: #666;
+        margin: 0;
+    }
+}

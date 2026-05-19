@@ -1,36 +1,41 @@
+import { apiFetch } from "./client";
+import { isAssetId } from '../utils/tools.ts';
+import { ApiMutationResult, getResponseErrorMessage } from "./errors";
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/attachment';
+
+async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+}
 
 const allowedMimeTypes = [
     // Images
     'image/jpeg',           // .jpeg, .jpg
-    'image/png'            // .png
-    // 'image/gif',            // .gif
-    // 'image/webp',           // .webp
-    // 'image/svg+xml',        // .svg
-    // 'image/bmp',            // .bmp
-    // 'image/tiff',           // .tiff
-    // // Videos
-    // 'video/mp4',            // .mp4
-    // 'video/quicktime',      // .mov
-    // 'video/webm',           // .webm
-    // // Audios
-    // 'audio/mpeg',           // .mp3
-    // 'audio/ogg',            // .ogg
-    // 'audio/wav',            // .wav
-    // // Documents
-    // 'application/pdf',      // .pdf
-    // 'application/vnd.ms-powerpoint',    // .ppt
-    // 'application/vnd.openxmlformats-officedocument.presentationml.presentation',    // .pptx
-    // 'application/msword',   // .doc
-    // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',   // .docx
-    // 'application/vnd.ms-excel',    // .xls
-    // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',    // .xlsx
+    'image/png',            // .png
+    // Documents
+    'application/pdf',      // .pdf
+];
+
+const allowedIconMimeTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/bmp',
+    'image/tiff'
 ];
 
 // Upload attachment
-export async function uploadAttachment(attachments: File[]) {
+export async function uploadAttachment(attachments: File[]): Promise<ApiMutationResult> {
     if (!attachments[0] || !allowedMimeTypes.includes(attachments[0].type)) {
-        return { status: 400 };
+        return {
+            status: 400,
+            message: 'Please choose a JPEG, PNG, or PDF file.',
+        };
     }
     const formData = new FormData();
     formData.append('files[]', attachments[0]);
@@ -43,10 +48,11 @@ export async function uploadAttachment(attachments: File[]) {
         formData.append('height', height.toString());
     }
 
-    const request = await fetch(base, {
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
 
     if (request.status === 201) {
@@ -55,39 +61,54 @@ export async function uploadAttachment(attachments: File[]) {
             filename: await request.text()
         };
     } else {
-        return { status: request.status };
+        return {
+            status: request.status,
+            message: await getResponseErrorMessage(
+                request,
+                'Could not upload the file because the upload service rejected it or did not return a filename.',
+            ),
+        };
     }
 }
 
 // Get attachment details by filename (length and height for images, video length, etc...)
 export async function getAttachmentDetails(filename: string) {
-    const request = await fetch(base + `/${filename}`, { method: 'GET' });
+    const request = await apiFetch(base + `/${filename}`, { method: 'GET' });
 
     return { status: request.status, data: await request.json() };
 }
 
 // Delete attachment by filename
 export async function deleteAttachment(filename: string) {
-    const request = await fetch(base + `/${filename}`, {
+    if (!isAssetId(filename)) {
+        return 400;
+    }
+
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${filename}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
 
 // Upload pfp/icon
-export async function uploadIcon(attachments: File, type: 'icon' | 'pfp') {
-    if (!attachments || !allowedMimeTypes.includes(attachments.type)) {
-        return { status: 400 };
+export async function uploadIcon(attachments: File, type: 'icon' | 'pfp'): Promise<ApiMutationResult> {
+    if (!attachments || !allowedIconMimeTypes.includes(attachments.type)) {
+        return {
+            status: 400,
+            message: 'Please choose a supported image file for the upload.',
+        };
     }
     const formData = new FormData();
-    formData.append('files[]', attachments);
+    formData.append('file', attachments);
     formData.append('source', type);
 
-    const request = await fetch(base, {
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base + `/icon`, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
 
     if (request.status === 201) {
@@ -96,6 +117,12 @@ export async function uploadIcon(attachments: File, type: 'icon' | 'pfp') {
             filename: await request.text()
         };
     } else {
-        return { status: request.status };
+        return {
+            status: request.status,
+            message: await getResponseErrorMessage(
+                request,
+                'Could not upload the image because the upload service rejected it or did not return a filename.',
+            ),
+        };
     }
 }

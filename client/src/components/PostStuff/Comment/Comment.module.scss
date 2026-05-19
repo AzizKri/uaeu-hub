@@ -4,6 +4,13 @@
     grid-template-columns: 40px auto;
     padding-block: 10px;
     border-top: 1px solid rgba(0, 0, 0, 0.2);
+    scroll-margin-top: 140px;
+
+    &.targeted {
+        background-color: rgba(215, 66, 12, 0.08);
+        border-radius: 12px;
+        animation: targetFade 2.5s ease-out;
+    }
 
     &__profile_pict {
         width: 40px;
@@ -95,4 +102,14 @@
 
 .btn_hover:hover {
     background-color: #f2f2f2;
+}
+
+@keyframes targetFade {
+    0% {
+        background-color: rgba(215, 66, 12, 0.2);
+    }
+
+    100% {
+        background-color: rgba(215, 66, 12, 0.08);
+    }
 }

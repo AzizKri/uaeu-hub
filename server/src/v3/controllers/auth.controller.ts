@@ -1,841 +1,566 @@
 import { Context } from 'hono';
-import { getSignedCookie } from 'hono/cookie';
-import { z } from 'zod';
-import { isUsernameValid, userSchema } from '../util/validationSchemas';
-import { sendAuthCookie, sendUserIdCookie } from '../util/util';
-import { generateSalt, hashPassword, hashSessionKey, verifyPassword } from '../util/crypto';
-import { OAuth2Client } from 'google-auth-library';
-import * as sgMail from '@sendgrid/mail';
-import { randomBytes } from 'crypto';
+import { addUserToGeneralCommunity, clearAuthCookies, createAnonymousSession, createSession, deleteCurrentSession } from '../util/session';
+import { generateSalt, hashPassword, verifyPassword } from '../util/crypto';
+import { createToken } from '../util/token';
+import { createPublicId } from '../util/nanoid';
+import { isUsernameValid } from '../util/validationSchemas';
+import { resetPasswordEmail, sendEmail, verificationEmail } from '../services/email';
 
-/* User Authentication */
+const PASSWORD_RESET_TTL_SECONDS = 60 * 15;
+const EMAIL_VERIFICATION_TTL_SECONDS = 60 * 60 * 24;
 
-// Simple check if this user has a session key or not
-export async function isUser(c: Context) {
-    const sessionKey = await getSignedCookie(c, c.env.EN_SECRET, 'sessionKey') as string;
-
-    // No session key, not a user
-    if (!sessionKey) return c.json({ user: false, status: 200 }, 200);
-
-    // Is a user
-    return c.json({ user: true, status: 200 }, 200);
+type AuthUserRow = {
+    id: string;
+    public_id?: string;
+    username: string;
+    displayname: string | null;
+    email: string | null;
+    email_verified: number | boolean;
+    bio: string | null;
+    pfp: string | null;
+    is_anonymous: number | boolean;
+    is_admin: number | boolean;
+    suspended_until: number | null;
+    is_banned: number | boolean;
 }
 
-// Check if this user is anonymous
-export async function isAnon(c: Context) {
-    const isAnonymous = c.get('isAnonymous') as boolean;
-
-    // Check if anon
-    if (isAnonymous) return c.json({ message: 'Anonymous', anon: true, status: 200 }, 200);
-
-    // Not anon
-    return c.json({ message: 'Not Anonymous', anon: false, status: 200 }, 200);
+type UserWithPasswordRow = AuthUserRow & {
+    password: string | null;
+    salt: string | null;
+    is_deleted: number | boolean;
 }
 
-export async function signup(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
+type SignupBody = {
+    username: string;
+    displayname?: string;
+    email: string;
+    password: string;
+    includeAnon?: boolean;
+}
 
-    // Some idiot tries to sign up when they're already logged in
-    if (userId && !isAnonymous) return c.json({ message: 'Already Logged In', status: 401 }, 401);
+type LoginBody = {
+    identifier: string;
+    password: string;
+}
 
-    // Get input data
-    const { displayname, email, username, password, includeAnon } = await c.req.json();
+function nowSeconds(): number {
+    return Math.floor(Date.now() / 1000);
+}
 
-    // Parse the input data
-    try {
-        userSchema.parse({ displayname, email, username, password });
-    } catch (e) {
-        if (e instanceof z.ZodError) {
-            const errors = e.errors.map(err => ({ field: err.path[0], message: err.message }));
-            return c.json({ errors }, 400);
-        } else {
-            return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-        }
+function dbBool(value: boolean | number | null | undefined): boolean {
+    return value === true || value === 1;
+}
+
+function tokenCreatedAt(value: unknown): number {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+        const numeric = Number(value);
+        if (!Number.isNaN(numeric)) return numeric;
+
+        const parsed = Date.parse(value);
+        if (!Number.isNaN(parsed)) return Math.floor(parsed / 1000);
     }
+    return 0;
+}
 
-    // Check if username is reserved
-    if (!isUsernameValid(username)) return c.json({ message: 'Username is reserved', status: 400 }, 400);
+function publicUser(row: AuthUserRow) {
+    return {
+        id: row.id,
+        public_id: row.public_id,
+        username: row.username,
+        displayname: row.displayname,
+        email: row.email,
+        email_verified: dbBool(row.email_verified),
+        bio: row.bio,
+        pfp: row.pfp,
+        is_anonymous: dbBool(row.is_anonymous),
+        is_admin: dbBool(row.is_admin),
+        suspended_until: row.suspended_until,
+        is_banned: dbBool(row.is_banned)
+    };
+}
 
-    // Check if username / email already used
-    const existingUser = await env.DB.prepare(`
-        SELECT username
+function passwordPepper(c: Context): string {
+    if (!c.env.PASSWORD_PEPPER) throw new Error('PASSWORD_PEPPER is not configured');
+    return c.env.PASSWORD_PEPPER;
+}
+
+async function selectAuthUser(c: Context, userId: string): Promise<AuthUserRow | null> {
+    return c.env.DB.prepare(`
+        SELECT
+            id,
+            public_id,
+            username,
+            displayname,
+            email,
+            email_verified,
+            bio,
+            pfp,
+            is_anonymous,
+            is_admin,
+            suspended_until,
+            is_banned
         FROM user
-        WHERE username = ?
-           OR email = ?`).bind(username, email).all<UserRow>();
-
-    if (existingUser.results.length != 0) return c.json({ message: 'User already exists', status: 409 }, 409);
-
-    // Generate salt, encoded salt (for storing in db) & hash password with plain salt
-    const { salt, encoded } = generateSalt();
-    const hash = await hashPassword(password, salt);
-
-    try {
-        // Do we want to include anonymous data?
-        if (includeAnon) {
-            // Did we get a userId from the middleware?
-            if (userId) {
-                // Yes, this is an anon user, continue by updating
-                const user = await env.DB.prepare(`
-                    UPDATE user
-                    SET username     = ?,
-                        displayname  = ?,
-                        email        = ?,
-                        password     = ?,
-                        salt         = ?,
-                        is_anonymous = false
-                    WHERE id = ?
-                    RETURNING id
-                `).bind(username, (displayname ? displayname : username), email, hash, encoded, userId).first<UserRow>();
-
-                // I have trust issues
-                if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-
-                const existingSessionKey = await getSignedCookie(c, env.EN_SECRET, 'sessionKey') as string;
-
-                c.set('userId', user.id);
-                c.set('username', username);
-                c.set('email', email);
-
-                // Finalize the process in the background
-                c.executionCtx.waitUntil(Promise.all([
-                        // Add user to general community
-                        await env.DB.prepare(`
-                            INSERT INTO user_community (user_id, community_id, role_id)
-                            VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
-                        `).bind(user.id).run(),
-
-                        // Send email verification
-                        sendEmailVerification(c, true)
-                    ]).then(() => console.log('User created successfully'))
-                        .catch((e) => console.log('Failed to send email', e))
-                );
-
-                // Send session key & token
-                await sendAuthCookie(c, existingSessionKey);
-                await sendUserIdCookie(c, userId.toString(), false);
-
-                return c.json({ message: 'User updated successfully', status: 200 }, 200);
-            } else {
-                // No session key, no activity. Include whose activity????
-                return c.json({ message: 'No activity found', status: 400 }, 400);
-            }
-        } else {
-            // New user, no activity
-            const user = await env.DB.prepare(`
-                INSERT INTO user (username, displayname, email, password, salt)
-                VALUES (?, ?, ?, ?, ?)
-                RETURNING id, username, displayname, created_at, bio, pfp, is_anonymous
-            `).bind(username, (displayname ? displayname : username), email, hash, encoded).first<UserView>();
-
-            if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-
-            // Generate Session Key & Salt
-            const PlainSessionKey = randomBytes(32).toString('hex');
-            const sessionKey = await hashSessionKey(PlainSessionKey);
-
-            // Insert session key into session table, add as member of the general community & send email verification
-            // Set the user data in the context
-            c.set('userId', user.id);
-            c.set('username', username);
-            c.set('email', email);
-
-            // Finalize the process in the background
-            c.executionCtx.waitUntil(Promise.all([
-                    // Insert into session table
-                    await env.DB.prepare(`
-                        INSERT INTO session (id, user_id, is_anonymous, ip)
-                        VALUES (?, ?, false, ?)
-                    `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run(),
-
-                    // Add user to general community
-                    await env.DB.prepare(`
-                        INSERT INTO user_community (user_id, community_id, role_id)
-                        VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
-                    `).bind(user.id).run(),
-
-                    // Send email verification
-                    sendEmailVerification(c, true)
-                ]).then(() => console.log('User created successfully'))
-                    .catch((e) => console.log('User creation failed', e))
-            );
-
-            // Send session key & token
-            await sendAuthCookie(c, PlainSessionKey);
-            await sendUserIdCookie(c, user.id.toString(), false);
-
-            return c.json(user, { status: 201 });
-        }
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
+        WHERE id = ? AND is_deleted = 0
+    `).bind(userId).first<AuthUserRow>();
 }
 
-export async function authenticateWithGoogle(c: Context) {
-    const env: Env = c.env;
-    // const userId = c.get('userId') as number;
-
-    // Some idiot tries to log in when they're already logged in?
-    // if (userId) return c.json({ message: 'Already Logged In', status: 401 }, 401);
-
-    const { code } = await c.req.json();
-    if (!code) return c.json({ message: 'Missing required fields', status: 400 }, 400);
-
-    const oAuth2Client = new OAuth2Client(
-        env.CLIENT_ID,
-        env.CLIENT_SECRET,
-        'postmessage'
-    );
-
-    // Exchange code for tokens
-    const { tokens } = await oAuth2Client.getToken(code);
-
-    // Fetch data from Google
-    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${tokens.id_token}`);
-
-    // Validate
-    const { email, email_verified, name, given_name, picture, sub, exp } = await response.json() as GoogleTokenResponse;
-    if (!email || !email_verified || !name || !given_name || !sub || !exp) return c.json({
-        message: 'Invalid token',
-        status: 401
-    }, 401);
-    if (!isNaN(Number(exp)) && Number(exp) < Date.now() / 1000) return c.json({
-        message: 'Token expired',
-        status: 401
-    }, 401);
-
-    try {
-        // Check if user exists
-        const user = await env.DB.prepare(`
-            SELECT id,
-                   username,
-                   email,
-                   bio,
-                   displayname,
-                   pfp,
-                   google_id,
-                   is_anonymous
-            FROM user
-            WHERE google_id = ?
-        `).bind(sub).first<UserRow>();
-
-        // If user exists, generate session key & token
-        if (user) {
-            const PlainSessionKey = randomBytes(32).toString('hex');
-            const sessionKey = await hashSessionKey(PlainSessionKey);
-
-            c.executionCtx.waitUntil(
-                env.DB.prepare(`
-                    INSERT INTO session (id, user_id, is_anonymous, ip)
-                    VALUES (?, ?, false, ?)
-                `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run()
-            );
-
-            await sendAuthCookie(c, PlainSessionKey);
-            await sendUserIdCookie(c, user.id.toString(), false);
-
-            return c.json(user, { status: 200 });
-        } else {
-            // Check if the email is already used
-            const existingUser = await env.DB.prepare(`
-                SELECT username
-                FROM user
-                WHERE email = ?
-            `).bind(email).all<UserRow>();
-
-            // May reconsider later
-            if (existingUser.results.length > 0) return c.json({ message: 'Email already in use', status: 409 }, 409);
-
-            // Generate username
-            const username = name.replace(/[^a-z0-9.\-_]/i, '') + (Math.floor(Math.random() * 1000).toString());
-
-            // Sign up
-            const newUser = await env.DB.prepare(`
-                INSERT INTO user (username, displayname, email, email_verified, google_id, pfp, auth_provider)
-                VALUES (?, ?, ?, true, ?, ?, 'google')
-                RETURNING id, username, displayname, bio, email, pfp, is_anonymous
-            `).bind(username, name, email, sub, picture).first<UserView>();
-
-            // I have trust issues
-            if (!newUser) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-
-            // Generate session key & token
-            const PlainSessionKey = randomBytes(32).toString('hex');
-            const sessionKey = await hashSessionKey(PlainSessionKey);
-
-            // Send cookies
-            await sendAuthCookie(c, PlainSessionKey);
-            await sendUserIdCookie(c, newUser.id.toString(), false);
-
-            c.executionCtx.waitUntil(Promise.all([
-                    // Insert into session table
-                    env.DB.prepare(`
-                        INSERT INTO session (id, user_id, is_anonymous, ip)
-                        VALUES (?, ?, false, ?)
-                    `).bind(sessionKey, newUser.id, c.req.header('cf-connecting-ip') || '').run(),
-
-                    // Add user to general community
-                    env.DB.prepare(`
-                        INSERT INTO user_community (user_id, community_id, role_id)
-                        VALUES (?, 0, (SELECT id FROM community_role WHERE community_id = 0 AND level = 0))
-                    `).bind(newUser.id).run()
-                ]).then(() => console.log('User created successfully'))
-                    .catch((e) => console.log('User creation failed', e))
-            );
-
-            return c.json(newUser, { status: 201 });
-        }
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function anonSignup(c: Context, returnInternal: boolean = false) {
-    const env: Env = c.env;
-
-    // Check if user is already logged in
-    const existingUserId = c.get('userId') as number;
-    if (existingUserId) return c.json({ message: 'Already Logged In', status: 401 }, 401);
-
-
-    let username: string = '';
-    let existingUser;
-
-    do {
-        // Generate random username, check if already exists
-        username = `anon_${Math.floor(Math.random() * (Date.now() / 1000))}`; // TODO convert to random words
-
-        existingUser = await env.DB.prepare(`
-            SELECT username
-            FROM user
-            WHERE username = ?`).bind(username).all<UserRow>();
-    } while (existingUser.results.length > 0);
-
-    try {
-        // Insert into DB
-        const user = await env.DB.prepare(`
-            INSERT INTO user (username, displayname, is_anonymous)
-            VALUES (?, ?, ?)
-            RETURNING id
-        `).bind(username, 'Anonymous', true).first<UserRow>();
-
-        // Error?
-        if (!user) return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-
-        // All good, generate session key & hash it
-        const PlainSessionKey = randomBytes(32).toString('hex');
-        const sessionKey = await hashSessionKey(PlainSessionKey);
-
-        // const { encoded } = generateSalt();
-        // const sessionKey = await hashSessionKey(PlainSessionKey, encoded);
-
-        // Insert into session table without waiting
-        c.executionCtx.waitUntil(
-            env.DB.prepare(`
-                INSERT INTO session (id, user_id, is_anonymous, ip)
-                VALUES (?, ?, true, ?)
-            `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run()
-        );
-
-        // Send the session key & token
-        await sendAuthCookie(c, PlainSessionKey);
-        await sendUserIdCookie(c, user.id.toString(), true);
-
-        // Check if this is an internal request
-        if (returnInternal) return user.id;
-
-        return c.json({ message: 'User created successfully', status: 200 }, 200);
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
-}
-
-export async function login(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId');
-    const isAnonymous = c.get('isAnonymous');
-
-    // Some idiot tries to log in when they're already logged in?
-    if (userId && !isAnonymous) return c.json({ message: 'Already Logged In', status: 401 }, 401);
-
-    // Get input data
-    const { identifier, password }: { identifier: string, password: string } = await c.req.json();
-
-    // Check if username or email is provided
-    if (!identifier || !password) {
-        return c.json({ message: 'Missing required fields', status: 400 }, 400);
-    }
-
-    // Check if username/email exists
-    const user = await env.DB.prepare(`
-        SELECT id, username, email, password, salt
+async function selectUserWithPassword(c: Context, identifier: string): Promise<UserWithPasswordRow | null> {
+    return c.env.DB.prepare(`
+        SELECT
+            id,
+            public_id,
+            username,
+            displayname,
+            email,
+            email_verified,
+            bio,
+            pfp,
+            is_anonymous,
+            is_admin,
+            suspended_until,
+            is_banned,
+            is_deleted,
+            password,
+            salt
         FROM user
-        WHERE username = ?
-           OR email = ?
-    `).bind(identifier.toLowerCase(), identifier).first<UserRow>();
-    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
-
-    // Verify password
-    const match = await verifyPassword(password, user.salt, user.password);
-    if (!match) return c.json({ message: 'Invalid credentials', status: 401 }, 401);
-
-    // Get user data to send
-    try {
-        const userData = await env.DB.prepare(`
-            SELECT *
-            FROM user_view
-            WHERE id = ?
-        `).bind(user.id).first<UserView>();
-
-        // Generate Session Key & Salt
-        const PlainSessionKey = randomBytes(32).toString('hex');
-        const sessionKey = await hashSessionKey(PlainSessionKey);
-
-        // const { encoded: sessionKeyEncoded } = generateSalt();
-        // const sessionKey = await hashSessionKey(PlainSessionKey, sessionKeyEncoded);
-
-        // Insert into session table
-        await env.DB.prepare(`
-            INSERT INTO session (id, user_id, is_anonymous, ip)
-            VALUES (?, ?, false, ?)
-        `).bind(sessionKey, user.id, c.req.header('cf-connecting-ip') || '').run();
-
-        // Send session key & token
-        await sendAuthCookie(c, PlainSessionKey);
-        await sendUserIdCookie(c, user.id.toString(), false);
-
-        return c.json(userData, { status: 200 });
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
+        WHERE (LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?))
+            AND is_deleted = 0
+        LIMIT 1
+    `).bind(identifier, identifier).first<UserWithPasswordRow>();
 }
 
-export async function sendForgotPasswordEmail(c: Context) {
-    const env: Env = c.env;
-    // @ts-ignore
-    const { email } = c.req.valid('json');
+async function emailExists(c: Context, email: string, exceptUserId?: string): Promise<boolean> {
+    const row = await c.env.DB.prepare(`
+        SELECT id FROM user
+        WHERE LOWER(email) = LOWER(?)
+            AND (? IS NULL OR id != ?)
+        LIMIT 1
+    `).bind(email, exceptUserId ?? null, exceptUserId ?? null).first<{ id: string }>();
+    return !!row;
+}
 
-    // Get the user data
-    const user = await env.DB.prepare(`
-        SELECT id, username
-        FROM user
-        WHERE email = ?
-    `).bind(email).first<UserRow>();
+async function usernameExists(c: Context, username: string, exceptUserId?: string): Promise<boolean> {
+    const row = await c.env.DB.prepare(`
+        SELECT id FROM user
+        WHERE LOWER(username) = LOWER(?)
+            AND (? IS NULL OR id != ?)
+        LIMIT 1
+    `).bind(username, exceptUserId ?? null, exceptUserId ?? null).first<{ id: string }>();
+    return !!row;
+}
 
-    // Check if user exists
-    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+function queueEmail(c: Context, promise: Promise<unknown>): void {
+    c.executionCtx.waitUntil(promise.catch((error) => {
+        console.error('email send failed', error);
+    }));
+}
 
-    // Generate the reset token
-    const token = randomBytes(32).toString('hex');
+async function createVerificationToken(c: Context, user: AuthUserRow): Promise<string> {
+    if (!user.email) throw new Error('Cannot verify a user without email');
 
-    // Insert into the database
-    await env.DB.prepare(`
+    const token = createToken();
+    await c.env.DB.prepare(`
+        INSERT INTO email_verification (token, user_id, email)
+        VALUES (?, ?, ?)
+    `).bind(token, user.id, user.email).run();
+
+    const email = verificationEmail(c, token, user.username);
+    queueEmail(c, sendEmail(c, { to: user.email, ...email }));
+
+    return token;
+}
+
+async function createResetToken(c: Context, user: AuthUserRow): Promise<string> {
+    if (!user.email) throw new Error('Cannot reset password for a user without email');
+
+    const token = createToken();
+    await c.env.DB.prepare(`
         INSERT INTO password_reset (token, user_id)
         VALUES (?, ?)
     `).bind(token, user.id).run();
 
-    // Set the Email API token
-    sgMail.setApiKey(env.EMAIL_API);
+    const email = resetPasswordEmail(c, token, user.username);
+    queueEmail(c, sendEmail(c, { to: user.email, ...email }));
 
-    // Generate the reset link
-    const resetLink = `https://uaeu.chat/reset-password?token=${token}`;
+    return token;
+}
 
-    // Create the email message
-    const msg = {
-        to: email,
-        from: 'no-reply@uaeu.chat',
-        templateId: 'd-bca8e749fea948b5b3e45de04e728c7b',
-        dynamicTemplateData: {
-            username: user.username,
-            reset_link: resetLink
-        },
-        isTransactional: true
-    };
+async function completeSignup(c: Context, userId: string): Promise<AuthUserRow> {
+    await addUserToGeneralCommunity(c, userId);
 
-    // Send the email
-    try {
-        await sgMail.send(msg);
-        return c.json({ message: 'Email sent', status: 200 }, 200);
-    } catch (e: any) {
-        console.error('Error sending email:', e);
-        if (e.response) console.error(e.response.body.errors);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    const user = await selectAuthUser(c, userId);
+    if (!user) throw new Error('Failed to load created user');
+
+    await createSession(c, userId, false);
+    await createVerificationToken(c, user);
+
+    return user;
+}
+
+export async function checkUsername(c: Context) {
+    const username = c.req.query('username')?.trim().toLowerCase();
+    if (!username) return c.json({ available: false, message: 'Username is required' }, 400);
+    if (
+        username.length < 3 ||
+        username.length > 20 ||
+        !/^(?!.*[_.-]{2})[a-z0-9._-]+$/.test(username)
+    ) {
+        return c.json({ available: false, message: 'Username is invalid' }, 400);
     }
+    if (!isUsernameValid(username)) return c.json({ available: false, message: 'Username is not allowed' }, 200);
+
+    const taken = await usernameExists(c, username);
+    return c.json({
+        available: !taken,
+        message: taken ? 'Username is already taken' : 'Username is available'
+    }, 200);
 }
 
-export async function resetPassword(c: Context) {
-    const env: Env = c.env;
-    const token = c.req.query('token');
-    // @ts-ignore
-    const { newPassword } = c.req.valid('json');
+export async function signup(c: Context) {
+    const body = c.req.valid('json') as SignupBody;
+    const username = body.username.trim().toLowerCase();
+    const displayname = body.displayname?.trim() || username;
+    const email = body.email.trim().toLowerCase();
+    const includeAnon = body.includeAnon === true;
+    const existingUserId = c.get('userId') as string | undefined;
+    const isAnonymous = c.get('isAnonymous') as boolean | undefined;
 
-    // Check if data is provided and validate
-    if (!token) return c.json({ message: 'Missing token', status: 400 }, 400);
+    if (!isUsernameValid(username)) return c.json({ message: 'Username is not allowed' }, 400);
 
-    // Get the password reset data
-    const passwordReset = await env.DB.prepare(`
-        SELECT *
-        FROM password_reset
-        WHERE token = ?
-    `).bind(token).first<PasswordResetRow>();
+    const targetUserId = includeAnon && existingUserId && isAnonymous ? existingUserId : undefined;
 
-    // Validate
-    if (!passwordReset) return c.json({
-        message: 'Invalid token',
-        status: 400
-    }, 400);
-    if (passwordReset.used) return c.json({ message: 'Token already used', status: 400 }, 400);
-    if (passwordReset.created_at + (60 * 15) < Date.now() / 1000) return c.json({
-        message: 'Token expired',
-        status: 400
-    }, 400);
+    if (await usernameExists(c, username, targetUserId)) {
+        return c.json({ message: 'Username is already taken' }, 409);
+    }
 
-    // Generate salt, encoded salt (for storing in db) & hash password with plain salt
-    const { salt, encoded } = generateSalt();
-    const hash = await hashPassword(newPassword, salt);
+    if (await emailExists(c, email, targetUserId)) {
+        return c.json({ message: 'Email is already in use' }, 409);
+    }
 
-    // Update the user
-    const user = await env.DB.prepare(`
-        UPDATE user
-        SET password = ?,
-            salt     = ?
-        WHERE id = ?
-        RETURNING username, email
-    `).bind(hash, encoded, passwordReset.user_id).first<UserRow>();
+    const salt = generateSalt();
+    const passwordHash = await hashPassword(body.password, salt.salt, passwordPepper(c));
 
-    // Make sure the user is valid
-    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+    if (includeAnon) {
+        if (!targetUserId) return c.json({ message: 'No anonymous session to upgrade' }, 400);
 
-    c.executionCtx.waitUntil(Promise.all([
+        await c.env.DB.prepare(`
+            UPDATE user
+            SET username = ?,
+                displayname = ?,
+                email = ?,
+                password = ?,
+                salt = ?,
+                email_verified = 0,
+                is_anonymous = 0
+            WHERE id = ?
+        `).bind(username, displayname, email, passwordHash, salt.encoded, targetUserId).run();
 
-            // Set the password reset as used
-            env.DB.prepare(`
-                UPDATE password_reset
-                SET used = true
-                WHERE token = ?
-            `).bind(token).run(),
+        await c.env.DB.prepare(`
+            UPDATE session
+            SET is_anonymous = 0
+            WHERE user_id = ?
+        `).bind(targetUserId).run();
 
-            // Revoke all sessions
-            env.DB.prepare(`
-                DELETE
-                FROM session
-                WHERE user_id = ?
-            `).bind(passwordReset.user_id).run(),
+        await addUserToGeneralCommunity(c, targetUserId);
+        await createSession(c, targetUserId, false);
 
-            // Send email
-            sendPasswordChangedConfirmationEmail(c, user.username, user.email)
-        ])
-    );
+        const user = await selectAuthUser(c, targetUserId);
+        if (!user) return c.json({ message: 'Failed to upgrade anonymous user' }, 500);
 
-    return c.json({ message: 'Password reset successfully', status: 200 }, 200);
+        await createVerificationToken(c, user);
+        return c.json({ user: publicUser(user) }, 200);
+    }
+
+    await deleteCurrentSession(c, false);
+
+    const inserted = await c.env.DB.prepare(`
+        INSERT INTO user (
+            id,
+            public_id,
+            username,
+            displayname,
+            email,
+            password,
+            salt,
+            email_verified,
+            is_anonymous
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0)
+        RETURNING id
+    `).bind(crypto.randomUUID(), createPublicId(), username, displayname, email, passwordHash, salt.encoded).first<{ id: string }>();
+
+    if (!inserted) return c.json({ message: 'Failed to create user' }, 500);
+
+    const user = await completeSignup(c, inserted.id);
+    return c.json({ user: publicUser(user) }, 201);
 }
 
-export async function changePassword(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
+export async function login(c: Context) {
+    const body = c.req.valid('json') as LoginBody;
+    const user = await selectUserWithPassword(c, body.identifier.trim());
 
-    // Some idiot tries to change password when they're not logged in
-    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+    if (!user || dbBool(user.is_anonymous) || !user.password || !user.salt) {
+        return c.json({ message: 'Invalid username/email or password' }, 401);
+    }
 
-    // Get the password data
-    // @ts-ignore
-    const { currentPassword, newPassword } = c.req.valid('json');
+    if (dbBool(user.is_banned)) {
+        return c.json({ message: 'Account is banned', banned: true }, 403);
+    }
 
-    // Get the user data
-    const user = await env.DB.prepare(`
-        SELECT username, email, password, salt
-        FROM user
-        WHERE id = ?
-    `).bind(userId).first<UserRow>();
+    const passwordMatches = await verifyPassword(body.password, user.salt, user.password, passwordPepper(c));
+    if (!passwordMatches) {
+        return c.json({ message: 'Invalid username/email or password' }, 401);
+    }
 
-    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
+    await deleteCurrentSession(c, false);
+    await createSession(c, user.id, false);
 
-    // Compare old password
-    const match = await verifyPassword(currentPassword, user.salt, user.password);
-    if (!match) return c.json({ message: 'Invalid credentials', status: 401 }, 401);
-
-    // Generate salt, encoded salt (for storing in db) & hash password with plain salt
-    const { salt, encoded } = generateSalt();
-    const hash = await hashPassword(newPassword, salt);
-
-    // Update the user
-    await env.DB.prepare(`
-        UPDATE user
-        SET password = ?,
-            salt     = ?
-        WHERE id = ?
-    `).bind(hash, encoded, userId).run();
-
-    c.executionCtx.waitUntil(Promise.all([
-            // Revoke all sessions
-            env.DB.prepare(`
-                DELETE
-                FROM session
-                WHERE user_id = ?
-            `).bind(userId).run(),
-
-            // Send email
-            sendPasswordChangedConfirmationEmail(c, user.username, user.email)
-        ])
-    );
-
-    return c.json({ message: 'Password changed successfully', status: 200 }, 200);
+    return c.json({ user: publicUser(user) }, 200);
 }
 
 export async function logout(c: Context) {
-    const userId = c.get('userId');
-    const isAnonymous = c.get('isAnonymous');
-
-    // Some idiot tries to log out when they're not logged in
-    if (!(userId && !isAnonymous)) return c.text('Not logged in', 401);
-
-    // Set session key & token to empty and expire immediately
-    await sendAuthCookie(c, '', 0);
-    await sendUserIdCookie(c, '', false, 0);
-    return c.text('Logged out', 200);
-}
-
-export async function forceLogout(c: Context) {
-    // Do not check for user data, just erase cookies to force it
-    // Set session key & token to empty and expire immediately
-    await sendAuthCookie(c, '', 0);
-    await sendUserIdCookie(c, '', false, 0);
-    return c.text('Logged out', 200);
+    await deleteCurrentSession(c);
+    return c.json({ message: 'Logged out' }, 200);
 }
 
 export async function authenticateUser(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string | undefined;
+    if (!userId) return c.json({ user: null }, 200);
 
-    if (!userId) return c.json({ user: {} }, 200);
-
-    try {
-        // Get user from DB
-        const user = await env.DB.prepare(`
-            SELECT *
-            FROM user_view
-            WHERE id = ?
-        `).bind(userId).first<UserRow>();
-
-        // No user? impossible unless mohammad or hussain decided to delete the users table or destroy the backend in some other way
-        if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
-
-        // Set our signed userId & anonymous status token
-        await sendUserIdCookie(c, userId.toString(), user.is_anonymous);
-
-        // Return the user
-        return c.json({ user: user, status: 200 }, 200);
-    } catch (e) {
-        console.log(e);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
-    }
+    const user = await selectAuthUser(c, userId);
+    return c.json({ user: user ? publicUser(user) : null }, 200);
 }
 
-export async function sendEmailVerification(c: Context, internal: boolean = false) {
-    const env: Env = c.env;
+export async function isUser(c: Context) {
+    const userId = c.get('userId') as string | undefined;
+    const isAnonymous = c.get('isAnonymous') as boolean | undefined;
+    return c.json({ user: !!userId && !isAnonymous }, 200);
+}
 
-    if (internal) {
-        // Internal call, get the user data from the context
-        const userId = c.get('userId') as number;
-        const username = c.get('username') as string;
-        const email = c.get('email') as string;
+export async function isAnon(c: Context) {
+    const userId = c.get('userId') as string | undefined;
+    const isAnonymous = c.get('isAnonymous') as boolean | undefined;
+    return c.json({ anon: !!userId && !!isAnonymous }, 200);
+}
 
-        // Generate the verification token
-        const token = randomBytes(32).toString('hex');
+export async function sendEmailVerification(c: Context) {
+    const userId = c.get('userId') as string | undefined;
+    if (!userId) return c.json({ message: 'Not authenticated' }, 401);
 
-        // Insert into the database
-        await env.DB.prepare(`
-            INSERT INTO email_verification (token, user_id, email)
-            VALUES (?, ?, ?)
-        `).bind(token, userId, email).run();
+    const user = await selectAuthUser(c, userId);
+    if (!user || dbBool(user.is_anonymous)) return c.json({ message: 'Not authenticated' }, 401);
+    if (!user.email) return c.json({ message: 'User has no email address' }, 400);
+    if (dbBool(user.email_verified)) return c.json({ message: 'Email is already verified' }, 400);
 
-        // Send the email
-        await sendEmailVerificationEmail(c, email, username, token);
-    } else {
-        // External call, get userId from the middleware
-        const userId = c.get('userId') as number;
-        const isAnonymous = c.get('isAnonymous') as boolean;
-
-        // Check if user is logged in
-        if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
-
-        // Get user data
-        const user = await env.DB.prepare(`
-            SELECT username, email, email_verified
-            FROM user
-            WHERE id = ?
-        `).bind(userId).first<UserRow>();
-
-        // No user? impossible unless mohammad or hussain decided to delete the users table or destroy the backend in some other way
-        if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
-
-        // Check if email is already verified
-        if (user.email_verified) return c.json({ message: 'Email already verified', status: 400 }, 400);
-
-        // Generate the verification token
-        const token = randomBytes(32).toString('hex');
-
-        // Insert into the database
-        await env.DB.prepare(`
-            INSERT INTO email_verification (token, user_id, email)
-            VALUES (?, ?, ?)
-        `).bind(token, userId, user.email).run();
-
-        // Send the email
-        await sendEmailVerificationEmail(c, user.email, user.username, token);
-    }
+    await createVerificationToken(c, user);
+    return c.json({ message: 'Verification email sent' }, 200);
 }
 
 export async function verifyEmail(c: Context) {
-    const env: Env = c.env;
     const token = c.req.query('token');
+    if (!token) return c.json({ message: 'Verification token is required' }, 400);
 
-    // Check if token is provided
-    if (!token) return c.json({ message: 'Missing token', status: 400 }, 400);
-
-    // Get the user data
-    const emailVerification = await env.DB.prepare(`
-        SELECT *
+    const row = await c.env.DB.prepare(`
+        SELECT token, user_id, email, used, created_at
         FROM email_verification
         WHERE token = ?
     `).bind(token).first<EmailVerificationRow>();
 
-    // Check if token is valid
-    const expiresIn = 60 * 15; // 15 minutes
-    if (!emailVerification) return c.json({ message: 'Invalid token', status: 400 }, 400);
-    if (emailVerification.used) return c.json({ message: 'Token already used', status: 400 }, 400);
-    if (emailVerification.created_at + (expiresIn) < Date.now() / 1000) return c.json({
-        message: 'Token expired',
-        status: 400
-    }, 400);
+    if (!row || dbBool(row.used)) return c.json({ message: 'Invalid verification token' }, 400);
+    if (tokenCreatedAt(row.created_at) + EMAIL_VERIFICATION_TTL_SECONDS < nowSeconds()) {
+        return c.json({ message: 'Verification token expired' }, 400);
+    }
 
-    // Update the user
-    await env.DB.prepare(`
-        UPDATE user
-        SET email_verified = true
-        WHERE id = ?
-    `).bind(emailVerification.user_id).run();
+    await c.env.DB.batch([
+        c.env.DB.prepare(`
+            UPDATE user
+            SET email_verified = 1
+            WHERE id = ? AND email = ?
+        `).bind(row.user_id, row.email),
+        c.env.DB.prepare(`
+            UPDATE email_verification
+            SET used = 1
+            WHERE token = ?
+        `).bind(token)
+    ]);
 
-    // Set the email verification as used
-    await env.DB.prepare(`
-        UPDATE email_verification
-        SET used = true
+    return c.json({ message: 'Email verified' }, 200);
+}
+
+export async function sendForgotPasswordEmail(c: Context) {
+    const { email } = c.req.valid('json') as { email: string };
+    const user = await c.env.DB.prepare(`
+        SELECT
+            id,
+            public_id,
+            username,
+            displayname,
+            email,
+            email_verified,
+            bio,
+            pfp,
+            is_anonymous,
+            is_admin,
+            suspended_until,
+            is_banned
+        FROM user
+        WHERE LOWER(email) = LOWER(?)
+            AND is_deleted = 0
+            AND is_anonymous = 0
+        LIMIT 1
+    `).bind(email.trim().toLowerCase()).first<AuthUserRow>();
+
+    if (!user) return c.json({ message: 'No account found for that email' }, 404);
+
+    await createResetToken(c, user);
+    return c.json({ message: 'Password reset email sent' }, 200);
+}
+
+export async function resetPassword(c: Context) {
+    const token = c.req.query('token');
+    const { newPassword } = c.req.valid('json') as { newPassword: string };
+    if (!token) return c.json({ message: 'Password reset token is required' }, 400);
+
+    const row = await c.env.DB.prepare(`
+        SELECT token, user_id, used, created_at
+        FROM password_reset
         WHERE token = ?
-    `).bind(token).run();
+    `).bind(token).first<PasswordResetRow>();
 
-    return c.json({ message: 'Email verified', status: 200 }, 200);
+    if (!row || dbBool(row.used)) return c.json({ message: 'Invalid password reset token' }, 400);
+    if (tokenCreatedAt(row.created_at) + PASSWORD_RESET_TTL_SECONDS < nowSeconds()) {
+        return c.json({ message: 'Password reset token expired' }, 400);
+    }
+
+    const salt = generateSalt();
+    const passwordHash = await hashPassword(newPassword, salt.salt, passwordPepper(c));
+
+    await c.env.DB.batch([
+        c.env.DB.prepare(`
+            UPDATE user
+            SET password = ?, salt = ?
+            WHERE id = ?
+        `).bind(passwordHash, salt.encoded, row.user_id),
+        c.env.DB.prepare(`
+            UPDATE password_reset
+            SET used = 1
+            WHERE token = ?
+        `).bind(token),
+        c.env.DB.prepare(`
+            DELETE FROM session
+            WHERE user_id = ?
+        `).bind(row.user_id)
+    ]);
+
+    await clearDanglingAuth(c);
+    return c.json({ message: 'Password reset successful' }, 200);
+}
+
+export async function changePassword(c: Context) {
+    const userId = c.get('userId') as string | undefined;
+    if (!userId) return c.json({ message: 'Not authenticated' }, 401);
+
+    const { currentPassword, newPassword } = c.req.valid('json') as { currentPassword: string; newPassword: string };
+    const user = await c.env.DB.prepare(`
+        SELECT
+            id,
+            public_id,
+            username,
+            displayname,
+            email,
+            email_verified,
+            bio,
+            pfp,
+            is_anonymous,
+            is_admin,
+            suspended_until,
+            is_banned,
+            is_deleted,
+            password,
+            salt
+        FROM user
+        WHERE id = ? AND is_deleted = 0 AND is_anonymous = 0
+    `).bind(userId).first<UserWithPasswordRow>();
+
+    if (!user || !user.password || !user.salt) return c.json({ message: 'Not authenticated' }, 401);
+    if (!await verifyPassword(currentPassword, user.salt, user.password, passwordPepper(c))) {
+        return c.json({ message: 'Current password is incorrect' }, 401);
+    }
+
+    const salt = generateSalt();
+    const passwordHash = await hashPassword(newPassword, salt.salt, passwordPepper(c));
+
+    await c.env.DB.batch([
+        c.env.DB.prepare(`
+            UPDATE user
+            SET password = ?, salt = ?
+            WHERE id = ?
+        `).bind(passwordHash, salt.encoded, userId),
+        c.env.DB.prepare(`
+            DELETE FROM session
+            WHERE user_id = ?
+        `).bind(userId)
+    ]);
+
+    await createSession(c, userId, false);
+    return c.json({ message: 'Password changed' }, 200);
 }
 
 export async function changeEmail(c: Context) {
-    const env: Env = c.env;
-    const userId = c.get('userId') as number;
-    const isAnonymous = c.get('isAnonymous') as boolean;
+    const userId = c.get('userId') as string | undefined;
+    if (!userId) return c.json({ message: 'Not authenticated' }, 401);
 
-    // Some idiot tries to change email when they're not logged in
-    if (!userId || isAnonymous) return c.json({ message: 'Unauthorized', status: 401 }, 401);
+    const { email, password } = c.req.valid('json') as { email: string; password: string };
+    const normalizedEmail = email.trim().toLowerCase();
 
-    // Get the email data
-    // @ts-ignore
-    const { email, password } = c.req.valid('json');
+    if (await emailExists(c, normalizedEmail, userId)) {
+        return c.json({ message: 'Email is already in use' }, 409);
+    }
 
-    // Check if email is already used
-    const existingUser = await env.DB.prepare(`
-        SELECT username
-        FROM user
-        WHERE email = ?
-    `).bind(email).first<UserRow>();
-
-    if (existingUser) return c.json({ message: 'Email already in use', status: 409 }, 409);
-
-    // Get the user data
-    const user = await env.DB.prepare(`
-        SELECT username, password, salt
-        FROM user
-        WHERE id = ?
-    `).bind(userId).first<UserRow>();
-
-    if (!user) return c.json({ message: 'User not found', status: 404 }, 404);
-
-    // Verify password
-    const match = await verifyPassword(password, user.salt, user.password);
-    if (!match) return c.json({ message: 'Invalid credentials', status: 401 }, 401);
-
-    // Update the user
-    await env.DB.prepare(`
-        UPDATE user
-        SET email          = ?,
-            email_verified = false
-        WHERE id = ?
-    `).bind(userId).run();
-
-    // Send email verification
-    c.set('email', email);
-    c.set('username', user.username);
-    c.executionCtx.waitUntil(sendEmailVerification(c, true));
-
-    return c.json({ message: 'Email changed successfully', status: 200 }, 200);
-}
-
-// MISC
-
-async function sendEmailVerificationEmail(c: Context, to: string, username: string, token: string) {
-    // Set the API Key
-    const env: Env = c.env;
-    sgMail.setApiKey(env.EMAIL_API);
-
-    // Generate the verification link
-    const verificationLink = `https://uaeu.chat/verify-email?token=${token}`;
-
-    // Create the email message
-    const msg = {
-        to,
-        from: 'no-reply@uaeu.chat',
-        templateId: 'd-ea015cfe295f4d98bee1c188b2c57e93',
-        dynamicTemplateData: {
+    const user = await c.env.DB.prepare(`
+        SELECT
+            id,
+            public_id,
             username,
-            verification_link: verificationLink
-        },
-        isTransactional: true
-    };
+            displayname,
+            email,
+            email_verified,
+            bio,
+            pfp,
+            is_anonymous,
+            is_admin,
+            suspended_until,
+            is_banned,
+            is_deleted,
+            password,
+            salt
+        FROM user
+        WHERE id = ? AND is_deleted = 0 AND is_anonymous = 0
+    `).bind(userId).first<UserWithPasswordRow>();
 
-    try {
-        await sgMail.send(msg);
-        return c.json({ message: 'Email sent', status: 200 }, 200);
-    } catch (e: any) {
-        console.error('Error sending email:', e);
-        if (e.response) console.error(e.response.body.errors);
-        return c.json({ message: 'Internal Server Error', status: 500 }, 500);
+    if (!user || !user.password || !user.salt) return c.json({ message: 'Not authenticated' }, 401);
+    if (!await verifyPassword(password, user.salt, user.password, passwordPepper(c))) {
+        return c.json({ message: 'Password is incorrect' }, 401);
     }
 
+    await c.env.DB.prepare(`
+        UPDATE user
+        SET email = ?, email_verified = 0
+        WHERE id = ?
+    `).bind(normalizedEmail, userId).run();
+
+    const updatedUser = await selectAuthUser(c, userId);
+    if (!updatedUser) return c.json({ message: 'Failed to update email' }, 500);
+
+    await createVerificationToken(c, updatedUser);
+    return c.json({ user: publicUser(updatedUser) }, 200);
 }
 
-async function sendPasswordChangedConfirmationEmail(c: Context, username: string, email: string) {
-    // Set the API Key
-    const env: Env = c.env;
-    sgMail.setApiKey(env.EMAIL_API);
+export async function anonSignup(c: Context, withId = false) {
+    const session = await createAnonymousSession(c);
+    return withId ? session.userId : c.json({ userId: session.userId }, 200);
+}
 
-    // Create the email message
-    const msg = {
-        to: email,
-        from: 'no-reply@uaeu.chat',
-        templateId: 'd-8704060f13b54d1e91aaec50bfd71f0e',
-        dynamicTemplateData: {
-            username
-        },
-        isTransactional: true
-    };
-
-    // Send the email
-    try {
-        await sgMail.send(msg);
-    } catch (e: any) {
-        console.error('Error sending email:', e);
-        if (e.response) console.error(e.response.body.errors);
-    }
+async function clearDanglingAuth(c: Context): Promise<void> {
+    await clearAuthCookies(c);
 }

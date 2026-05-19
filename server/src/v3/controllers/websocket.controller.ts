@@ -3,7 +3,7 @@ import { validateWebSocketIdSignature } from '../util/crypto';
 
 export async function createWebSocketEntry(c: Context) {
     // Check for userId. We don't need to create a websocket if there's no user
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     if (!userId) return c.json({}, 200);
 
     const env: Env = c.env;
@@ -68,7 +68,7 @@ export async function getUserIdFromWebSocketId(c: Context) {
 
 export async function deleteWebSocketEntry(c: Context) {
     // Check for userId. Can't delete a websocket if there's no user
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     if (!userId) return c.json({ message: 'Unauthorized', status: 401 }, 401);
 
     // Get required params

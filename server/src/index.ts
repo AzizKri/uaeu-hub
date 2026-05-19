@@ -5,6 +5,7 @@ import { generateSalt, hashPassword } from './v3/util/crypto';
 import { getOrCreateTags } from './v3/controllers/tags.controller';
 
 const app = new Hono<{ Bindings: Env }>();
+const SYSTEM_USER_ID = 'b21d6c6a-3e65-4b79-8ef4-7d956d35733c';
 
 app.use(cors({
     origin: [
@@ -12,8 +13,7 @@ app.use(cors({
         'https://dev.uaeu.chat',
         'https://osama.uaeu.chat',
         'https://post-page.uaeu-hub.pages.dev',
-        'http://localhost:5173',
-        'http://localhost:5174'
+        'http://localhost:5173'
     ],
     credentials: true
 }));
@@ -29,7 +29,8 @@ app.post('/init', async (c) => {
     const env: Env = c.env;
 
     // Validate request
-    if (c.req.header('Authorization') !== `Bearer ${env.SYSTEM}`) return c.json({
+    const expectedSystemAuth = `Bearer ${env.SYSTEM}`;
+    if (c.req.header('Authorization') !== expectedSystemAuth) return c.json({
         message: 'Unauthorized',
         status: 401
     }, 401);
@@ -38,18 +39,18 @@ app.post('/init', async (c) => {
     const system = await env.DB.prepare(`
         SELECT 1
         FROM user
-        WHERE id = 0
-    `).first<number>();
+        WHERE id = ?
+    `).bind(SYSTEM_USER_ID).first<number>();
     if (system) return c.json({ message: 'Already initialized', status: 200 });
 
     // Create System User
     const password = env.SYSTEM;
     const { salt, encoded } = generateSalt();
-    const hash = await hashPassword(password, salt);
+    const hash = await hashPassword(password, salt, env.PASSWORD_PEPPER ?? '');
     await env.DB.prepare(`
         INSERT INTO user (id, username, password, salt, is_admin)
-        VALUES (0, 'System', ?, ?, 1)
-    `).bind(hash, encoded).run();
+        VALUES (?, 'System', ?, ?, 1)
+    `).bind(SYSTEM_USER_ID, hash, encoded).run();
 
     const tags = ['UAEU', 'Study', 'Gaming', 'Hobbies', 'Jobs'];
     // @ts-ignore
@@ -58,10 +59,10 @@ app.post('/init', async (c) => {
 
     // Create the community
     const community = await env.DB.prepare(
-        `INSERT INTO community (id, name, description, icon, tags, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)
+        `INSERT INTO community (id, name, description, icon, tags, created_at, owner_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
          RETURNING id`
-    ).bind(0, 'general', 'This is the general community', null, tags.join(','), Date.now()).first<CommunityRow>();
+    ).bind(0, 'general', 'This is the general community', null, tags.join(','), Date.now(), SYSTEM_USER_ID).first<CommunityRow>();
 
     // Add tags to community
     await Promise.all(tagIds.map(async (tagId) => {
@@ -90,7 +91,7 @@ app.post('/init', async (c) => {
     await env.DB.prepare(`
         INSERT INTO user_community (user_id, community_id, role_id, joined_at)
         VALUES (?, ?, ?, ?)
-    `).bind(0, community!.id, adminRoleId!.id, Date.now()).run();
+    `).bind(SYSTEM_USER_ID, community!.id, adminRoleId!.id, Date.now()).run();
 
     return c.json(community, { status: 201 });
 });

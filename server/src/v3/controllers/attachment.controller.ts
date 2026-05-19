@@ -1,4 +1,6 @@
 import { Context } from 'hono';
+import { attachmentSourceSchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 const allowedMimeTypes = [
     // Images
@@ -29,14 +31,21 @@ const allowedMimeTypes = [
 
 export async function uploadAttachment(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const formData: FormData = await c.req.formData();
-    const uploadSource: string = formData.get('source') as string;
-    const file: File = formData.get('files[]') as File;
+    const parsedSource = validateWithSchema(attachmentSourceSchema, formData.get('source'));
+    if (!parsedSource.success) return validationError(c, parsedSource.error);
+
+    const uploadSource = parsedSource.data;
+    const file = formData.get('files[]') as File | null;
 
     // Make sure we have a file
     if (!file) {
         return c.text('No file provided', { status: 400 });
+    }
+
+    if (uploadSource !== 'attachments') {
+        return c.text('Invalid upload source', { status: 400 });
     }
 
     // Deny blacklisted files
@@ -113,7 +122,7 @@ export async function getAttachmentDetails(c: Context) {
 
 export async function deleteAttachment(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     // Check if user is authenticated
     if (!userId) return c.text('Unauthorized', { status: 403 });
@@ -166,11 +175,14 @@ const allowedPFPMimeTypes = [
 
 export async function uploadIcon(c: Context) {
     const env: Env = c.env;
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as number;
     const formData: FormData = await c.req.formData();
-    const file: File = formData.get('file') as File;
-    const source: string = formData.get('source') as string;
+    const parsedSource = validateWithSchema(attachmentSourceSchema, formData.get('source'));
+    if (!parsedSource.success) return validationError(c, parsedSource.error);
+
+    const source = parsedSource.data;
+    const file = (formData.get('file') || formData.get('files[]')) as File | null;
 
     // Make sure we have a valid user
     if (!userId || isAnonymous) return c.text('Unauthorized', { status: 401 });
@@ -178,8 +190,7 @@ export async function uploadIcon(c: Context) {
     // Make sure we have a file
     if (!file) return c.text('No file provided', { status: 400 });
 
-    // Make sure the type is sent
-    if (!source) return c.text('No source provided', { status: 400 });
+    if (!['icon', 'pfp'].includes(source)) return c.text('Invalid source provided', { status: 400 });
 
     // Deny blacklisted files
     if (!allowedPFPMimeTypes.includes(file.type)) {
@@ -202,12 +213,13 @@ export async function uploadIcon(c: Context) {
             // Upload failed
             return c.json({ message: 'Upload failed' }, { status: 500 });
         } else {
-            // Upload successful, insert into DB for reference
-            await env.DB.prepare(`
-                UPDATE user
-                SET pfp = ?
-                WHERE id = ?`
-            ).bind(fileName, userId).run();
+            if (source === 'pfp') {
+                await env.DB.prepare(`
+                    UPDATE user
+                    SET pfp = ?
+                    WHERE id = ?`
+                ).bind(fileName, userId).run();
+            }
 
             // Return filename
             return c.text(fileName, { status: 201 });

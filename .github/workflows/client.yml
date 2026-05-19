@@ -9,16 +9,26 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up env
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24.11.1'
+          cache: 'npm'
+          cache-dependency-path: ./client/package-lock.json
+
+      - name: Set npm version
+        run: npm install -g npm@11.6.2
+
+      - name: Verify toolchain
+        run: |
+          test "$(node --version)" = "v24.11.1"
+          test "$(npm --version)" = "11.6.2"
 
       - name: Install dependencies
         working-directory: ./client
-        run: npm install
+        run: npm ci
 
       - name: Run build
         working-directory: ./client

@@ -1,4 +1,27 @@
+import { apiFetch } from "./client";
+import { toApiMutationResult } from "./errors";
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/community';
+
+type CommunityMutationResult = {
+    status: number;
+    message?: string;
+};
+
+async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+}
+
+async function getCommunityMutationResult(
+    request: Response,
+    fallbackMessage: string,
+): Promise<CommunityMutationResult> {
+    return toApiMutationResult(request, fallbackMessage);
+}
 
 // Create a community
 export async function createCommunity(name: string, description: string, tags: string[], icon?: string) {
@@ -11,19 +34,24 @@ export async function createCommunity(name: string, description: string, tags: s
         formData.append('icon', icon);
     }
 
-    const request = await fetch(base, {
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
-    return request.status;
+    return getCommunityMutationResult(
+        request,
+        'Could not create community. Please review the form and try again.',
+    );
 }
 
 // Check if a community exists with the given name
 export async function communityExists(name: string) {
-    const request = await fetch(base + `/exists/${name}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/exists/${encodeURIComponent(name)}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     const exist = await request.json();
     return exist.exists;
@@ -31,54 +59,60 @@ export async function communityExists(name: string) {
 
 // Get community by ID
 export async function getCommunityById(id: number) {
-    const request = await fetch(base + `/${id}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${id}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
 // Get community by name
 export async function getCommunityByName(name: string) {
-    const request = await fetch(base + `/getCommunityByName/${name}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/getCommunityByName/${encodeURIComponent(name)}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
 // Get communities by tag
 export async function getCommunitiesByTag(tag: string, offset: number = 0) {
-    const request = await fetch(base + `/getCommunitiesByTag?tag=${tag}&offset=${offset}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/getCommunitiesByTag?tag=${encodeURIComponent(tag)}&offset=${offset}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
 // Get communities by multiple tags
 export async function getCommunitiesByTags(tags: string[]) {
-    const request = await fetch(base + `/getCommunitiesByTags?tags=${tags.join(',')}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/getCommunitiesByTags?tags=${encodeURIComponent(tags.join(','))}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
 // Get communities sorted by latest, activity, or members
 export async function getCommunities(sortBy: 'latest' | 'activity' | 'members' = 'members', offset: number = 0) {
-    const request = await fetch(base + `/getCommunities?sortBy=${sortBy}&offset=${offset}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/getCommunities?sortBy=${sortBy}&offset=${offset}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
 // Search communities by query
 export async function searchCommunities(query: string, offset: number = 0) {
-    const request = await fetch(base + `/searchCommunities?query=${query}&offset=${offset}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/searchCommunities?query=${encodeURIComponent(query)}&offset=${offset}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
@@ -91,102 +125,115 @@ export async function editCommunity(id: number, name?: string, description?: str
     if (icon) formData.append('icon', icon);
     if (tags) formData.append('tags', tags.join(','));
 
-    const request = await fetch(base + `/${id}`, {
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base + `/${id}`, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
-    return request.status;
+    return getCommunityMutationResult(
+        request,
+        'Could not update community. Please review the form and try again.',
+    );
 }
 
 // Delete community by ID
 export async function deleteCommunity(id: number) {
-    const request = await fetch(base + `/${id}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${id}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
 
 // Join community by ID
 export async function joinCommunity(id: number) {
-    const request = await fetch(base + `/join/${id}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/join/${id}`, {
         method: 'POST',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
 
 // Leave community by ID
 export async function leaveCommunity(id: number) {
-    const request = await fetch(base + `/leave/${id}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/leave/${id}`, {
         method: 'POST',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
 
 // Get members of community by ID
 export async function getMembersOfCommunity(id: number) {
-    const request = await fetch(base + `/getMembers/${id}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/getMembers/${id}`, {
         method: 'GET',
-        credentials: 'include'
+        headers,
     });
     return { status: request.status, data: await request.json() };
 }
 
 // Invite user to community
-export async function inviteUserToCommunity(communityId: number, userId: number) {
+export async function inviteUserToCommunity(communityId: number, userId: string) {
     const formData = new FormData();
     formData.append('communityId', communityId.toString());
     formData.append('userId', userId.toString());
 
-    const request = await fetch(base + `/invite`, {
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base + `/invite`, {
         method: 'POST',
-        credentials: 'include',
-        body: formData
+        headers,
+        body: formData,
     });
     return request.status;
 }
 
 // Remove member from community
-export async function removeMemberFromCommunity(id: number, userId: number) {
-    const request = await fetch(base + `/removeMember/${id}/${userId}`, {
+export async function removeMemberFromCommunity(id: number, userId: string) {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/removeMember/${id}/${userId}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }
 
 // Add admin to community
-export async function addAdminToCommunity(userId: number, communityId: number) {
+export async function addAdminToCommunity(userId: string, communityId: number) {
     const formData = new FormData();
     formData.append('userId', userId.toString());
     formData.append('communityId', communityId.toString());
 
-    const request = await fetch(base + `/addAdmin`, {
+    const headers = await getAuthHeaders(false);
+    const request = await apiFetch(base + `/addAdmin`, {
         method: 'POST',
-        credentials: 'include',
-        body: formData
+        headers,
+        body: formData,
     });
     return request.status;
 }
 
 // Get latest community posts
 export async function getLatestCommunityPosts(id: number, offset: number = 0) {
-    const request = await fetch(base + `/posts/${id}?offset=${offset}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/posts/${id}?offset=${offset}`, {
         method: 'GET',
-        credentials: 'include'
-    })
+        headers,
+    });
 
-    return {status: request.status, data: await request.json() };
+    return { status: request.status, data: await request.json() };
 }
 
-// Join community by ID
+// Reject invitation by ID
 export async function rejectInvitation(id: number) {
-    const request = await fetch(base + `/rejectInvitation/${id}`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/rejectInvitation/${id}`, {
         method: 'POST',
-        credentials: 'include'
+        headers,
     });
     return request.status;
 }

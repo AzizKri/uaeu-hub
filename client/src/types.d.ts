@@ -3,21 +3,31 @@ import React from "react";
 declare global {
     interface SearchResult {
         id: number;
+        public_id?: string;
         author: string;
+        displayname?: string;
+        pfp?: string;
         content: string;
-        postTime: number;
+        post_time: number;
         attachment: string | null;
+        attachment_mime?: string | null;
+        community?: string;
+        community_icon?: string;
+        like_count?: number;
+        comment_count?: number;
         rank: number;
     }
 
     interface PostInfo {
         id: number,
+        publicId?: string,
         authorUsername: string,
         authorDisplayName: string,
         postDate: Date,
         content: string,
         pfp: string,
         filename?: string,
+        attachmentMime?: string,
         likeCount: number,
         commentCount: number,
         type: "POST" | "POST-PAGE" | "NO_COMMUNITY",
@@ -27,7 +37,7 @@ declare global {
     interface CommentInfo {
         attachment: string
         author: string
-        authorId: number
+        authorId: string
         content: string
         displayName: string
         id: number
@@ -66,8 +76,8 @@ declare global {
 
     interface Notification {
         id: number;
-        recipient_id: number;
-        sender_id: number;
+        recipient_id: string;
+        sender_id: string;
         sender: string;
         sender_displayname: string;
         type: string;
@@ -94,16 +104,20 @@ declare global {
     }
 
     interface UserInfo {
-        id?: number;
+        id?: string;
         new?: boolean;
         username: string;
         displayName: string;
         bio?: string;
         pfp?: string;
         isAnonymous?: boolean;
+        isAdmin?: boolean;
         role?: string;
         status?: "ADMIN" | "NOT-ADMIN" | "MEMBER" | "INVITED" | "NOT-INVITED";
         email?: string;
+        isSuspended?: boolean;
+        suspendedUntil?: number;
+        isBanned?: boolean;
     }
 
     interface SignUpErrors {
@@ -135,9 +149,80 @@ declare global {
     interface UserContextInterface {
         user: UserInfo | null;
         userReady: boolean;
-        updateUser: (userInfo) => void;
+        updateUser: (userInfo: UserInfo) => void;
         removeUser: () => void;
         isUser: () => boolean;
+        isSuspended: () => boolean;
+        isBanned: () => boolean;
+        setSuspended: (suspendedUntil: number) => void;
+        setBanned: () => void;
+    }
+
+    interface AdminStats {
+        totalUsers: number;
+        totalPosts: number;
+        totalCommunities: number;
+        pendingReports: number;
+        pendingBugReports: number;
+        pendingFeatureRequests: number;
+    }
+
+    interface TopCommunity {
+        id: number;
+        public_id: string;
+        name: string;
+        description: string;
+        icon: string | null;
+        member_count: number;
+        created_at: number | string;
+    }
+
+    interface AdminReport {
+        id: number;
+        reporter_id: string;
+        reporter_username?: string;
+        entity_id: string | number;
+        entity_type: "post" | "comment" | "subcomment" | "community" | "user";
+        report_type: string;
+        reason: string;
+        resolved: boolean;
+        created_at: number | string;
+        entity?: AdminReportEntity;
+    }
+
+    interface AdminReportEntity {
+        id: string | number;
+        content?: string;
+        author_username?: string;
+        author_displayname?: string;
+        name?: string;
+        username?: string;
+        attachment?: string;
+        attachment_mime?: string;
+    }
+
+    type AdminFeedbackStatus = "pending" | "reviewed" | "resolved" | "closed";
+
+    interface AdminBugReport {
+        id: number;
+        public_id: string;
+        reporter_id: string;
+        reporter_username?: string;
+        description: string;
+        screenshot?: string;
+        status: AdminFeedbackStatus;
+        created_at: number | string;
+    }
+
+    interface AdminFeatureRequest {
+        id: number;
+        public_id: string;
+        reporter_id: string;
+        reporter_username?: string;
+        description: string;
+        screenshot?: string;
+        status: AdminFeedbackStatus;
+        created_at: number | string;
     }
 
     interface GenericMetadata {
@@ -202,13 +287,34 @@ declare global {
         content? : string;
     }
 
-    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata | InvitationMetadata;
+    interface AdminDeletionMetadata {
+        entityType: 'post' | 'comment' | 'subcomment';
+        content: string;
+        reason: string;
+    }
+
+    interface SuspensionMetadata {
+        suspendedUntil: number;
+        reason: string;
+    }
+
+    interface BanMetadata {
+        reason: string;
+    }
+
+    interface CommunityWarningMetadata {
+        communityId: number;
+        communityName: string;
+        reason: string;
+    }
+
+    type NotificationMetadata = LikeMetadata | CommentMetadata | SubcommentMetadata | InvitationMetadata | AdminDeletionMetadata | SuspensionMetadata | BanMetadata | CommunityWarningMetadata;
 
     interface Notification {
         id: number;
         actionEntityId: number;
-        recipientId: number;
-        senderId: number;
+        recipientId: string;
+        senderId: string;
         sender: string;
         type: string;
         read: boolean;

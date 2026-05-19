@@ -1,4 +1,14 @@
+import { apiFetch } from "./client";
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/ws';
+
+async function getAuthHeaders(includeContentType: boolean = true): Promise<HeadersInit> {
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+}
 
 export async function createWebsocketConnection() {
     console.log("createWebsocketConnection");
@@ -34,18 +44,20 @@ async function createWebSocketEntryInDatabase(uuid: string, timestamp: number, n
     formData.append('nonce', nonce);
     formData.append('signature', signature);
 
-    return await fetch(base, {
+    const headers = await getAuthHeaders(false);
+    return await apiFetch(base, {
         method: 'POST',
+        headers,
         body: formData,
-        credentials: 'include'
     });
 }
 
 // Delete the WebSocket entry from the database (in case of failed connections)
 export async function deleteWebSocketEntryFromDatabase(uuid: string) {
-    return await fetch(base + `/${uuid}`, {
+    const headers = await getAuthHeaders();
+    return await apiFetch(base + `/${uuid}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers,
     });
 }
 

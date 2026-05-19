@@ -1,23 +1,25 @@
 import { Context } from 'hono';
 import { createNotification } from '../notifications';
+import { createPublicId } from '../util/nanoid';
+import { offsetSchema } from '../util/validationSchemas';
+import { validationError, validateWithSchema } from '../util/requestValidation';
 
 // api.uaeu.chat/post/
 export async function createPost(c: Context) {
     const env: Env = c.env;
-    const formData = await c.req.parseBody();
-    const content = formData['content'] as string;
-    const communityId = Number(formData['communityId']);
-    const fileName: string | null = formData['filename'] as string;
-
-    // Check for required fields
-    if (!content) return c.text('No content defined', { status: 400 });
+    const { content, communityId, filename } = (c.req as any).valid('form') as {
+        content: string;
+        communityId: number;
+        filename?: string;
+    };
+    const fileName = filename ?? null;
 
     // Trim excess newlines
     const trimmedContent = content.replace(/\n{3,}/g, '\n');
 
     try {
         // Get userId & isAnon from Context
-        const userId = c.get('userId') as number;
+        const userId = c.get('userId') as string;
         const isAnonymous = c.get('isAnonymous') as boolean;
 
         // Check if user isn't anon and is in community
@@ -33,13 +35,16 @@ export async function createPost(c: Context) {
             if (!inCommunity) return c.text('User not in community', { status: 401 });
         }
 
+        // Generate public_id for the post
+        const publicId = createPublicId();
+
         // Check if we have a file & insert into DB
         if (fileName) {
             const postId = await env.DB.prepare(
-                `INSERT INTO post (author_id, content, attachment, community_id)
-                 VALUES (?, ?, ?, ?)
+                `INSERT INTO post (author_id, content, attachment, community_id, public_id)
+                 VALUES (?, ?, ?, ?, ?)
                  RETURNING id`
-            ).bind(userId, trimmedContent, fileName, communityId || 0).first<PostView>();
+            ).bind(userId, trimmedContent, fileName, communityId || 0, publicId).first<PostView>();
 
             // Get the full post data to return
             const post = await env.DB.prepare(`
@@ -51,10 +56,10 @@ export async function createPost(c: Context) {
             return c.json(post, { status: 201 });
         } else {
             const postId = await env.DB.prepare(
-                `INSERT INTO post (author_id, content, community_id)
-                 VALUES (?, ?, ?)
+                `INSERT INTO post (author_id, content, community_id, public_id)
+                 VALUES (?, ?, ?, ?)
                  RETURNING id`
-            ).bind(userId, trimmedContent, communityId || 0).first<PostView>();
+            ).bind(userId, trimmedContent, communityId || 0, publicId).first<PostView>();
 
             // Get the full post data to return
             const post = await env.DB.prepare(`
@@ -74,12 +79,14 @@ export async function createPost(c: Context) {
 // api.uaeu.chat/post/latest/:offset?
 export async function getLatestPosts(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     try {
         if (!userId || isAnonymous) {
@@ -116,12 +123,14 @@ export async function getLatestPosts(c: Context) {
 // api.uaeu.chat/post/best/:offset?
 export async function getBestPosts(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     try {
         if (!userId || isAnonymous) {
@@ -165,7 +174,7 @@ export async function getBestPosts(c: Context) {
 
 export async function getLatestPostsFromMyCommunities(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -173,7 +182,9 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     try {
         // Get posts
@@ -199,7 +210,7 @@ export async function getLatestPostsFromMyCommunities(c: Context) {
 
 export async function getBestPostsFromMyCommunities(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Check if user is valid and not anonymous
@@ -207,7 +218,9 @@ export async function getBestPostsFromMyCommunities(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     try {
         // Get posts
@@ -239,13 +252,15 @@ export async function getBestPostsFromMyCommunities(c: Context) {
 // api.uaeu.chat/post/user/:id?offset=0
 export async function getPostsByUser(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
     const { user } = c.req.param();
-    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+    const parsedOffset = validateWithSchema(offsetSchema, c.req.query('offset'));
+    if (!parsedOffset.success) return validationError(c, parsedOffset.error);
+    const offset = parsedOffset.data;
 
     // Check for user param
     if (!user) return c.json([], { status: 400 });
@@ -295,6 +310,30 @@ export async function searchPosts(c: Context) {
     if (!query || query.length < 3) return c.text('Query too short', { status: 400 });
 
     try {
+        // Sanitize and prepare FTS5 query
+        // Split into terms, escape special characters, wrap in quotes, add wildcard
+        const sanitizedQuery = query
+            .trim()
+            .split(/\s+/)
+            .filter(term => term.length > 0)
+            .map(term => {
+                // Remove FTS5 special characters and escape double quotes
+                const escaped = term
+                    .replace(/[*"():^]/g, '')
+                    .replace(/^(AND|OR|NOT)$/i, '');
+                // Only include non-empty terms
+                if (!escaped) return null;
+                // Wrap in quotes for exact matching, add wildcard for prefix search
+                return `"${escaped}"*`;
+            })
+            .filter(Boolean)
+            .join(' ');
+
+        // If no valid terms after sanitization, return empty
+        if (!sanitizedQuery) {
+            return c.json([], 200);
+        }
+
         // Get results from FTS
         const results = await env.DB.prepare(
             `SELECT *, bm25(posts_fts, 1.0, 0.75) AS rank
@@ -303,7 +342,7 @@ export async function searchPosts(c: Context) {
              WHERE posts_fts MATCH ?
              ORDER BY rank DESC
              LIMIT 10`
-        ).bind(query?.concat('*')).all<PostView>();
+        ).bind(sanitizedQuery).all<PostView>();
 
         return c.json(results.results, 200);
     } catch (e) {
@@ -313,39 +352,52 @@ export async function searchPosts(c: Context) {
 }
 
 // api.uaeu.chat/post/:id
+// Supports both numeric id and public_id
 export async function getPostByID(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Get the required fields
     const env: Env = c.env;
-    const id: number = Number(c.req.param('id'));
+    const idParam = c.req.param('id');
 
     // Check for post ID param
-    if (!id || id == 0) return c.text('No post ID provided', { status: 400 });
+    if (!idParam) return c.text('No post ID provided', { status: 400 });
+
+    // Determine if this is a numeric ID or public_id
+    const numericId = Number(idParam);
+    const isNumeric = !isNaN(numericId) && numericId > 0;
 
     try {
         if (!userId || isAnonymous) {
             // New user, show posts without likes
             const results = await env.DB.prepare(
-                `SELECT *
-                 FROM post_view AS post
-                 WHERE post.id = ?`
-            ).bind(id).all<PostView>();
+                isNumeric
+                    ? `SELECT * FROM post_view AS post WHERE post.id = ?`
+                    : `SELECT * FROM post_view AS post WHERE post.public_id = ?`
+            ).bind(isNumeric ? numericId : idParam).all<PostView>();
 
             return c.json(results.results, { status: 200 });
         } else {
             // Returning user, show posts with likes
-            const results = await env.DB.prepare(`
-                SELECT post.*,
-                       EXISTS (SELECT 1
-                               FROM post_like
-                               WHERE post_like.post_id = post.id
-                                 AND post_like.user_id = ?) AS liked
-                FROM post_view AS post
-                WHERE post.id = ?
-            `).bind(userId, id).all<PostView>();
+            const results = await env.DB.prepare(
+                isNumeric
+                    ? `SELECT post.*,
+                              EXISTS (SELECT 1
+                                      FROM post_like
+                                      WHERE post_like.post_id = post.id
+                                        AND post_like.user_id = ?) AS liked
+                       FROM post_view AS post
+                       WHERE post.id = ?`
+                    : `SELECT post.*,
+                              EXISTS (SELECT 1
+                                      FROM post_like
+                                      WHERE post_like.post_id = post.id
+                                        AND post_like.user_id = ?) AS liked
+                       FROM post_view AS post
+                       WHERE post.public_id = ?`
+            ).bind(userId, isNumeric ? numericId : idParam).all<PostView>();
 
             return c.json(results.results, 200);
         }
@@ -356,33 +408,74 @@ export async function getPostByID(c: Context) {
 }
 
 // api.uaeu.chat/post/:id
+// Supports both numeric id and public_id
 export async function deletePost(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
 
     // Check if user is valid
     if (!userId) return c.text('Unauthorized', { status: 401 });
 
     // Get the required fields
     const env: Env = c.env;
-    const postid = c.req.param('id');
+    const idParam = c.req.param('id');
 
     // Check for post ID param
-    if (!postid) return c.text('No post provided', { status: 400 });
+    if (!idParam) return c.text('No post provided', { status: 400 });
+
+    // Get optional reason from request body (for admin deletions)
+    let reason: string | undefined;
+    try {
+        const body = await c.req.json();
+        reason = body?.reason;
+    } catch {
+        // No body or invalid JSON is fine for regular deletions
+    }
+
+    // Determine if this is a numeric ID or public_id
+    const numericId = Number(idParam);
+    const isNumeric = !isNaN(numericId) && numericId > 0;
 
     try {
-        // Get the post's author
-        const post = await env.DB.prepare(`
-            SELECT author_id, attachment
-            FROM post
-            WHERE id = ?
-        `).bind(postid).first<PostRow>();
+        // Get the post's author and content (lookup by id or public_id)
+        const post = await env.DB.prepare(
+            isNumeric
+                ? `SELECT id, author_id, content, attachment FROM post WHERE id = ?`
+                : `SELECT id, author_id, content, attachment FROM post WHERE public_id = ?`
+        ).bind(isNumeric ? numericId : idParam).first<PostRow>();
 
         // No post? 404
         if (!post) return c.text('Post not found', { status: 404 });
 
-        // Not the author? 403
-        if (userId !== post.author_id) return c.text('Unauthorized', { status: 403 });
+        // Check if user is admin
+        const adminCheck = await env.DB.prepare(`
+            SELECT is_admin FROM user WHERE id = ?
+        `).bind(userId).first<{ is_admin: number }>();
+        const isAdmin = !!(adminCheck?.is_admin);
+
+        // Not the author and not admin? 403
+        if (userId !== post.author_id && !isAdmin) {
+            return c.text('Unauthorized', { status: 403 });
+        }
+
+        // Admin deleting someone else's post? Require reason and send notification
+        if (userId !== post.author_id && isAdmin) {
+            if (!reason || reason.trim().length === 0) {
+                return c.text('Reason is required for admin deletion', { status: 400 });
+            }
+
+            // Send notification to post author
+            c.executionCtx.waitUntil(createNotification(c, {
+                senderId: userId,
+                receiverId: post.author_id,
+                type: 'admin_deletion',
+                metadata: {
+                    entityType: 'post',
+                    entityContent: post.content,
+                    reason: reason.trim()
+                }
+            }));
+        }
 
         // Check for attachment and delete in the background
         if (post.attachment) {
@@ -401,12 +494,12 @@ export async function deletePost(c: Context) {
             );
         }
 
-        // Delete the post
+        // Delete the post using the internal id
         await env.DB.prepare(`
             DELETE
             FROM post
             WHERE id = ?
-        `).bind(postid).run();
+        `).bind(post.id).run();
 
         return c.text('Post deleted', { status: 200 });
     } catch (e) {
@@ -416,9 +509,10 @@ export async function deletePost(c: Context) {
 }
 
 // api.uaeu.chat/post/like/:id
+// Supports both numeric id and public_id
 export async function likePost(c: Context) {
     // Get userId & isAnonymous from Context
-    const userId = c.get('userId') as number;
+    const userId = c.get('userId') as string;
     const isAnonymous = c.get('isAnonymous') as boolean;
 
     // Make sure we have a valid user
@@ -426,19 +520,34 @@ export async function likePost(c: Context) {
 
     // Get the required fields
     const env: Env = c.env;
-    const postid = Number(c.req.param('id'));
+    const idParam = c.req.param('id');
 
     // Check for post ID param
-    if (!postid) return c.text('No post provided', { status: 400 });
+    if (!idParam) return c.text('No post provided', { status: 400 });
+
+    // Determine if this is a numeric ID or public_id
+    const numericId = Number(idParam);
+    const isNumeric = !isNaN(numericId) && numericId > 0;
 
     try {
+        // Get the internal post id if public_id was provided
+        let postId: number;
+        if (isNumeric) {
+            postId = numericId;
+        } else {
+            const post = await env.DB.prepare(`SELECT id FROM post WHERE public_id = ?`)
+                .bind(idParam).first<{ id: number }>();
+            if (!post) return c.text('Post not found', { status: 404 });
+            postId = post.id;
+        }
+
         // Check if there's already a like by this user on this post
         const like = await env.DB.prepare(`
             SELECT *
             FROM post_like
             WHERE post_id = ?
               AND user_id = ?
-        `).bind(postid, userId).first<PostLikeRow>();
+        `).bind(postId, userId).first<PostLikeRow>();
 
         // If there is, remove it
         if (like) {
@@ -447,13 +556,13 @@ export async function likePost(c: Context) {
                 FROM post_like
                 WHERE post_id = ?
                   AND user_id = ?
-            `).bind(postid, userId).run();
+            `).bind(postId, userId).run();
         } else {
             // Not liked, add a like
             await env.DB.prepare(`
                 INSERT INTO post_like (post_id, user_id)
                 VALUES (?, ?)
-            `).bind(postid, userId).run();
+            `).bind(postId, userId).run();
 
             // Make sure the worker waits until the notification is actually sent through the websocket
             // This will still return the response without waiting though
@@ -461,7 +570,7 @@ export async function likePost(c: Context) {
                 senderId: userId,
                 type: 'like',
                 metadata: {
-                    entityId: postid,
+                    entityId: postId,
                     entityType: 'post'
                 }
             }));

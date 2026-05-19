@@ -1,82 +1,81 @@
+import { apiFetch } from "./client";
+import { ApiMutationResult, toApiMutationResult } from "./errors";
+
 const base = (import.meta.env.VITE_API_URL || 'https://api.uaeu.chat') + '/report';
 
-export async function reportPost(postId: number, reportType: string, reason: string) {
-    const request = await fetch(base, {
+async function getAuthHeaders(): Promise<HeadersInit> {
+    const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+    };
+    return headers;
+}
+
+async function submitReport(body: {
+    entityId: number | string;
+    entityType: 'post' | 'comment' | 'subcomment' | 'community' | 'user';
+    reportType: string;
+    reason: string;
+}): Promise<ApiMutationResult> {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityId: postId, entityType: 'post', reportType, reason }),
-        credentials: 'include'
+        headers,
+        body: JSON.stringify(body),
     });
-    return request.status;
+    return toApiMutationResult(
+        request,
+        `Could not submit ${body.entityType === 'subcomment' ? 'reply' : body.entityType} report.`,
+    );
+}
+
+export async function reportPost(postId: number, reportType: string, reason: string) {
+    return submitReport({ entityId: postId, entityType: 'post', reportType, reason });
 }
 
 export async function reportComment(commentId: number, reportType: string, reason: string) {
-    const request = await fetch(base, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityId: commentId, entityType: 'comment', reportType, reason }),
-        credentials: 'include'
-    });
-    return request.status;
+    return submitReport({ entityId: commentId, entityType: 'comment', reportType, reason });
 }
 
 export async function reportSubcomment(subcommentId: number, reportType: string, reason: string) {
-    const request = await fetch(base, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityId: subcommentId, entityType: 'subcomment', reportType, reason }),
-        credentials: 'include'
-    });
-    return request.status;
+    return submitReport({ entityId: subcommentId, entityType: 'subcomment', reportType, reason });
 }
 
-export async function reportUser(userId: number, reportType: string, reason: string) {
-    const request = await fetch(base, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityId: userId, entityType: 'user', reportType, reason }),
-        credentials: 'include'
-    });
-    return request.status;
+export async function reportUser(userId: string, reportType: string, reason: string) {
+    return submitReport({ entityId: userId, entityType: 'user', reportType, reason });
 }
 
 export async function reportCommunity(communityId: number, reportType: string, reason: string) {
-    const request = await fetch(base, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityId: communityId, entityType: 'community', reportType, reason }),
-        credentials: 'include'
-    });
-    return request.status;
+    return submitReport({ entityId: communityId, entityType: 'community', reportType, reason });
 }
 
 export async function getReport(reportId: number) {
-    const request = await fetch(base + `/${reportId}`, {
-        credentials: 'include'
-    });
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/${reportId}`, { headers });
     return await request.json();
 }
 
 export async function getReportsForCommunity(communityId: number, includeResolved: boolean = false, offset: number = 0) {
-    const request = await fetch(base + `/community/${communityId}?includeResolved=${includeResolved}&offset=${offset}`, {
-        credentials: 'include'
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/community/${communityId}?includeResolved=${includeResolved}&offset=${offset}`, {
+        headers,
     });
     return await request.json();
 }
 
 export async function getAllReports(includeResolved: boolean = false, offset: number = 0) {
-    const request = await fetch(base + `?includeResolved=${includeResolved}&offset=${offset}`, {
-        credentials: 'include'
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `?includeResolved=${includeResolved}&offset=${offset}`, {
+        headers,
     });
     return await request.json();
 }
 
 export async function resolveReport(reportId: number, communityId: string) {
-    const request = await fetch(base + `/resolve`, {
+    const headers = await getAuthHeaders();
+    const request = await apiFetch(base + `/resolve`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ reportId, communityId }),
-        credentials: 'include'
     });
     return request.status;
 }

@@ -11,7 +11,10 @@ import {
     likePost,
     searchPosts
 } from '../controllers/post.controller';
-import { authMiddleware, authMiddlewareCheckOnly, postRateLimitMiddleware } from '../middleware';
+import { authMiddleware, authMiddlewareCheckOnly, postRateLimitMiddleware, penaltyCheckMiddleware, blockPenalizedUserMiddleware } from '../middleware';
+import { validator } from 'hono/validator';
+import { postCreationSchema } from '../util/validationSchemas';
+import { validationError } from '../util/requestValidation';
 
 
 const app = new Hono<{ Bindings: Env }>();
@@ -19,9 +22,20 @@ const app = new Hono<{ Bindings: Env }>();
 // spent an hour trying to figure out why /latest/:page? works but /latest doesn't
 // do NOT place any route with parameters above /latest/:page? or the parameterless route will break, with your bones
 
-app.post('/', postRateLimitMiddleware, authMiddleware, (c: Context) => createPost(c));
-app.delete('/:id', authMiddlewareCheckOnly, (c: Context) => deletePost(c));
-app.post('/like/:id', authMiddleware, (c: Context) => likePost(c));
+app.post('/',
+    postRateLimitMiddleware,
+    validator('form', (value, c: Context) => {
+        const parsed = postCreationSchema.safeParse(value);
+        if (!parsed.success) return validationError(c, parsed.error);
+        return parsed.data;
+    }),
+    authMiddleware,
+    penaltyCheckMiddleware,
+    blockPenalizedUserMiddleware,
+    (c: Context) => createPost(c)
+);
+app.delete('/:id', authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => deletePost(c));
+app.post('/like/:id', authMiddlewareCheckOnly, penaltyCheckMiddleware, blockPenalizedUserMiddleware, (c: Context) => likePost(c));
 
 app.get('/latest', authMiddlewareCheckOnly, (c: Context) => getLatestPosts(c));
 app.get('/best', authMiddlewareCheckOnly, (c: Context) => getBestPosts(c));

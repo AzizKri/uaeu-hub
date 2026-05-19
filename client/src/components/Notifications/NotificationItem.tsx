@@ -33,7 +33,7 @@ export default function NotificationItem({notification, onClick} : NotificationI
                 <span className={styles.sender}><a className={styles.senderLink} href={`/user/${notification.sender}`}>@{notification.sender}</a> {getMessage(notification)}</span>
                 <span className={styles.timestamp}>{getFormattedDate(notification.createdAt)}</span>
             </div>
-            {notification.metadata.content && (
+            {'content' in notification.metadata && notification.metadata.content && (
                  <div className={styles.content}>{notification.metadata.content}</div>
             )}
         </div>

@@ -23,12 +23,14 @@ export default function UserLikes () {
             for (const post of data) {
                 const postInfo: PostInfo = {
                     id: post.id,
+                    publicId: post.public_id,
                     content: post.content,
                     authorUsername: post.author,
                     authorDisplayName: post.displayname,
                     pfp: post.pfp,
                     postDate: new Date(post.post_time),
                     filename: post.attachment,
+                    attachmentMime: post.attachment_mime,
                     likeCount: post.like_count,
                     commentCount: post.comment_count,
                     type: "POST",

@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import styles from '../Forms.module.scss';
-import {Link, useLocation, useNavigate} from 'react-router-dom';
-import {signUp} from '../../../api/authentication.ts';
-import {isAnon} from '../../../api/currentUser.ts';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { checkUsername, isAnon, signup } from '../../../api/authentication';
 import YesNoPopUp from "../../Reusable/YesNoPopUp/YesNoPopUp.tsx";
-import {userSchema} from "../../../userSchema.ts";
+import { userSchema } from "../../../userSchema.ts";
 import { z } from 'zod';
-import GoogleAuth from "../GoogleAuth/GoogleAuth.tsx";
-import {useUser} from "../../../contexts/user/UserContext.ts";
+import { useUser } from "../../../contexts/user/UserContext.ts";
 import FormsContainer from "../../Reusable/Forms/FormsContainer.tsx";
 import FormItem from "../../Reusable/Forms/FormItem.tsx";
 import ConfirmationPopUp from "../../UserAuthentication/ConfirmationPopUp/ConfirmationPopUp.tsx";
+import { mapBackendUserToUserInfo } from "../../../contexts/user/mapBackendUser.ts";
+import { getRequestFailureMessage, getResponseErrorMessage } from "../../../api/errors.ts";
 
 export default function SignUp() {
     const navigate = useNavigate();
-    const {updateUser} = useUser();
+    const { updateUser } = useUser();
 
     const [formData, setFormData] = useState({
         displayName: '',
@@ -43,10 +43,12 @@ export default function SignUp() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setErrors({});
+
+        // Validate form data with Zod
         const parseResult = userSchema.safeParse(formData);
         if (!parseResult.success) {
             const newErrors: SignUpErrors = {};
-            parseResult.error.issues.forEach((issue : z.ZodIssue) => {
+            parseResult.error.issues.forEach((issue: z.ZodIssue) => {
                 const fieldName = issue.path[0] as keyof SignUpErrors;
                 newErrors[fieldName] = issue.message;
             });
@@ -56,49 +58,72 @@ export default function SignUp() {
         }
         setIsLoading(true);
 
-        const isAnonResponse = await isAnon();
-        if (isAnonResponse) {
-            setShowPopup(true);
-        } else {
-            await processSignup(false);
+        try {
+            // First, check if username is available
+            const usernameCheck = await checkUsername(formData.username);
+            if (!usernameCheck.available) {
+                setErrors({ username: usernameCheck.message || 'Username is already taken' });
+                setIsLoading(false);
+                return;
+            }
+
+            if (await isAnon()) {
+                setShowPopup(true);
+            } else {
+                await processSignup(false);
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            setErrors({
+                global: getRequestFailureMessage(
+                    'check username availability',
+                    error,
+                ),
+            });
         }
         setIsLoading(false);
     };
 
     const processSignup = async (includeAnon: boolean) => {
-        const p = { ...formData, includeAnon };
-        const payload = {
-            username: p.username,
-            displayname: p.displayName,
-            email: p.email,
-            password: p.password,
-            includeAnon: includeAnon
-        }
-        const response = await signUp(payload);
-        const data = await response.json();
-        if (response.status === 200 || response.status === 201) {
-            console.log('Sign up success:', response);
-            updateUser({
-                new: false,
-                username: data.username,
-                displayName: data.displayName,
-                bio: data.bio,
-                pfp: data.pfp
-            })
-            setShowConfirmationPopup(true);
-        } else {
-            const newErrors: SignUpErrors = {};
-            if (response.status === 409) {
-                newErrors.global = 'User already exists';
+        try {
+            const response = await signup({
+                username: formData.username,
+                displayname: formData.displayName || formData.username,
+                email: formData.email,
+                password: formData.password,
+                includeAnon,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (!data.user) {
+                    setErrors({
+                        global:
+                            'Account was created, but the server did not return your profile. Please log in.',
+                    });
+                    return;
+                }
+                updateUser(mapBackendUserToUserInfo(data.user));
+                setShowConfirmationPopup(true);
             } else {
-                newErrors.global = data.message;
+                setErrors({
+                    global: await getResponseErrorMessage(
+                        response,
+                        'Could not create account. Please review the form and try again.',
+                    ),
+                });
             }
-            setErrors(newErrors);
+        } catch (error: unknown) {
+            console.error('Signup error:', error);
+            setErrors({
+                global: getRequestFailureMessage('create account', error),
+            });
         }
     };
 
     const handlePopupResponse = async (choice: boolean) => {
         setIsLoading(true);
+        setShowPopup(false);
         await processSignup(choice);
         setIsLoading(false);
     };
@@ -113,14 +138,14 @@ export default function SignUp() {
         goBack();
     }
 
-    const handleFocus = (isPassword: boolean | undefined, showRequirements : boolean | undefined) => {
+    const handleFocus = (isPassword: boolean | undefined, showRequirements: boolean | undefined) => {
         setErrors({});
         setIsPasswordActive((isPassword ? isPassword : false) && (showRequirements ? showRequirements : false));
         setIsLoading(false);
     };
 
     const handleGoToLogin = () => {
-        navigate('/login', {state: {from: previousPage}});
+        navigate('/login', { state: { from: previousPage } });
     }
 
     const goBack = () => {
@@ -134,23 +159,21 @@ export default function SignUp() {
                     <div className={styles.arrow_container} onClick={() => goBack()}>
                         {/*back button*/}
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                            <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+                            <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
                         </svg>
                     </div>
                     <h2 className={styles.subTitle}>Sign Up</h2>
                     <p className={styles.textParagraph}>
                         By continuing, you agree to our{" "}
-                        <Link to="#" className={styles.formLink}>
+                        <Link to="/terms" className={styles.formLink}>
                             User Agreement
                         </Link>{" "}
                         and acknowledge that you understand the{" "}
-                        <Link to="#" className={styles.formLink}>
+                        <Link to="/privacy" className={styles.formLink}>
                             Privacy Policy
                         </Link>
                         .
                     </p>
-                    <GoogleAuth setErrors={setErrors} setIsLoading={setIsLoading} onSubmit={() => navigate(previousPage)}/>
-                    <div className={styles.separator}>OR</div>
                     {errors.global && (
                         <p className={styles.error}>
                             {errors.global}
@@ -225,13 +248,12 @@ export default function SignUp() {
             )}
             {(showConfirmationPopup &&
                 <ConfirmationPopUp confirmation={"Success!"}
-                                   text={`We have sent an email to ${formData.email}. please follow the instructions to verify your email`}
-                                   success={true}
-                                   duration={10000}
-                                   onClose={onCloseConfirmation}/>
+                    text={`We have sent an email to ${formData.email}. please follow the instructions to verify your email`}
+                    success={true}
+                    duration={10000}
+                    onClose={onCloseConfirmation} />
             )}
 
         </div>
     );
 };
-

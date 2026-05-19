@@ -30,12 +30,14 @@ function UserPosts() {
             for (const post of res.data) {
                 const postInfo: PostInfo = {
                     id: post.id,
+                    publicId: post.public_id,
                     content: post.content,
                     authorUsername: post.author,
                     authorDisplayName: post.displayname,
                     pfp: post.pfp,
                     postDate: new Date(post.post_time),
                     filename: post.attachment,
+                    attachmentMime: post.attachment_mime,
                     likeCount: post.like_count,
                     commentCount: post.comment_count,
                     type: "POST",
@@ -80,6 +82,7 @@ function UserPosts() {
                             pfp: string;
                             post_time: string | number | Date;
                             attachment: string;
+                            attachment_mime?: string;
                             like_count: number;
                             comment_count: number;
                             like: boolean;
@@ -96,6 +99,7 @@ function UserPosts() {
                                     pfp: post.pfp,
                                     postDate: new Date(post.post_time),
                                     filename: post.attachment,
+                                    attachmentMime: post.attachment_mime,
                                     likeCount: post.like_count,
                                     commentCount: post.comment_count,
                                     type: "POST",
